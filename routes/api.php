@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\PruebaController;
+use App\Http\Controllers\API\TeacherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,5 +26,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->group( function () {
+
     Route::get('pruebas', [PruebaController::class, 'index']);
 });
+
+Route::resource('teachers', TeacherController::class);
