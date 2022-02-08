@@ -42,7 +42,7 @@
                 <ul class="navbar-nav mr-auto">
                     <a class="nav-link" href="{{ url('/teachers') }}">Docentes</a>
                     <a class="nav-link" href="{{ url('/centers') }}">Centros</a>
-                    <a class="nav-link" href="{{ url('/subjects') }}">Asignaturas</a>
+                    <a class="nav-link" href="{{ url('/companies_activities') }}">Actividades</a>
                     <a class="nav-link" href="{{ url('/students') }}">Alumnos</a>
                     <a class="nav-link" href="{{ url('/registrations') }}">Matriculaciones</a>
                 </ul>

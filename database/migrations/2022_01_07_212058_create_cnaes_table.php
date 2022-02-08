@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCompaniesTypesTable extends Migration
+class CreateCnaesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,9 @@ class CreateCompaniesTypesTable extends Migration
      */
     public function up()
     {
-        Schema::create('companies_types', function (Blueprint $table) {
+        Schema::create('cnaes', function (Blueprint $table) {
             $table->id();
-            $table->string('type');
+            $table->string('cnae');
         });
     }
 
@@ -26,6 +26,6 @@ class CreateCompaniesTypesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('companies_types');
+        Schema::dropIfExists('cnaes');
     }
 }

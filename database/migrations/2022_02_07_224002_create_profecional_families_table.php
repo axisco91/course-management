@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCompaniesActivitiesTable extends Migration
+class CreateProfecionalFamiliesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,10 @@ class CreateCompaniesActivitiesTable extends Migration
      */
     public function up()
     {
-        Schema::create('companies_activities', function (Blueprint $table) {
+        Schema::create('profecional_families', function (Blueprint $table) {
             $table->id();
-            $table->string('activity');
+            $table->string('name');
+            $table->timestamps();
         });
     }
 
@@ -26,6 +27,6 @@ class CreateCompaniesActivitiesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('companies_activities');
+        Schema::dropIfExists('profecional_families');
     }
 }
