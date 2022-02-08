@@ -19,7 +19,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware(['auth'])->group(function () {
+//Route::middleware(['auth'])->group(function () {
     Route::prefix('teachers')->group(function() {
         Route::controller(TeacherController::class)->group(function(){
             Route::get('', 'index');
@@ -65,7 +65,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('delete', 'destroy');
         });
     });
-});
+//});
 
 Auth::routes(['register' => false]);
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
