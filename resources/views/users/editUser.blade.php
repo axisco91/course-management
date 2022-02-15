@@ -1,43 +1,50 @@
 @extends('layouts.app')
 @section('content')
-    <script src="/js/centers.js"></script>
+    <script src="/js/users.js"></script>
     <div id="container-content" class="container-content">
+        <input name="id" type="text" id="teacher_id" class="form-control" value="{{$teacher['id']}}" hidden>
         <section id="multiple-column-form">
             <div class="row match-height">
                 <div class="col-12">
                     <div class="card" style="margin-top: 10px">
                         <div class="card-header">
-                            <h4 class="card-title">Crear Centro</h4>
+                            <h4 class="card-title">Editar Usuario</h4>
                         </div>
                         <div class="card-content">
                             <div class="row">
                                 <div class="col-md-6 col-12">
                                     <div class="form-group">
                                         <label for="name">Nombre</label>
-                                        <input name="name" type="text" id="name" class="form-control round" required>
+                                        <input name="name" type="text" id="name" class="form-control round" value="{{$teacher['name']}}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-12">
                                     <div class="form-group">
-                                        <label for="address">Dirrección</label>
-                                        <input name="address" id="address" type="text" class="form-control round">
+                                        <label for="surname">Apellidos</label>
+                                        <input name="surname"type="text" id="surname" class="form-control round" value="{{$teacher['surname']}}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    <div class="form-group">
+                                        <label for="username">Usuario</label>
+                                        <input name="username"type="text" id="username" class="form-control round" value="{{$teacher['username']}}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-12">
                                     <div class="form-group">
                                         <label for="email">Correo</label>
-                                        <input name="email" id="email" type="email" class="form-control round">
+                                        <input name="email" id="email" type="email" class="form-control round" value="{{$teacher['email']}}">
                                     </div>
                                 </div>
                                 <div class="col-md-6 col-12">
                                     <div class="form-group">
-                                        <label for="telephone">Telefono</label>
-                                        <input name="telephone" id="telephone" type="text" class="form-control round">
+                                        <label for="password">Contraseña</label>
+                                        <input name="password" id="password" type="text" class="form-control round" value="{{$teacher['password']}}">
                                     </div>
                                 </div>
                                 <div class="col-12 d-flex justify-content-end">
-                                    <a  class="btn btn-success me-1 mb-1" id="saveCenter">Crear</a>
-                                    <a  class="btn btn-primary me-1 mb-1" href="{{ url('/centers') }}" >Volver</a>
+                                    <a class="btn btn-success me-1 mb-1" id="updateUser">Edit</a>
+                                    <a  class="btn btn-primary me-1 mb-1" href="{{ url('/users') }}" >Volver</a>
                                 </div>
                             </div>
                         </div>

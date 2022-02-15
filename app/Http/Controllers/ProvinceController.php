@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Center;
+use App\Models\Province;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class CenterController extends Controller
+class ProvinceController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,17 +15,7 @@ class CenterController extends Controller
      */
     public function index()
     {
-        return view('centers/list');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        return view('centers/createCenter');
+        return view('provinces/list');
     }
 
     /**
@@ -44,37 +34,20 @@ class CenterController extends Controller
             return response()->json(['error' => $validator->errors()], 401);
         }
 
-        $center = Center::create([
+        $province = Province::create([
             'name' => $request['nombre'],
-            'address' => $request['address'],
-            'email' => $request['email'],
-            'telephone' => $request['telephone']
         ]);
 
         return response()->json([
             'status' => 200,
-            'center' => $center
+            'province' => $province
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $center = Center::find($id);
-
-        return view('centers/editCenter', compact('center'));
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request)
@@ -87,18 +60,15 @@ class CenterController extends Controller
             return response()->json(['error' => $validator->errors()], 401);
         }
 
-        $center = Center::find($request['id']);
+        $province = Province::find($request['id']);
 
-        $center->update([
+        $province->update([
             'name' => $request['nombre'],
-            'address' => $request['address'],
-            'email' => $request['email'],
-            'telephone' => $request['telephone']
         ]);
 
         return response()->json([
             'status' => 200,
-            'center' => $center
+            'population' => $province
         ]);
     }
 
@@ -110,26 +80,23 @@ class CenterController extends Controller
      */
     public function destroy(Request  $request)
     {
-        $center = Center::find($request['id']);
+        $province = Province::find($request['id']);
 
-        $center->delete();
+        $province->delete();
 
         return response()->json([
             'status' => 200
         ]);
     }
 
-    public function restCenters(Request  $request){
-        $centers = Center::all();
+    public function restProvinces(Request  $request){
+        $provinces = Province::all();
         $data = [];
 
-        foreach ($centers as $center){
+        foreach ($provinces as $province){
             $info = [
-                'name' => $center['name'],
-                'address' => $center['address'],
-                'email' => $center['email'],
-                'telephone' => $center['telephone'],
-                'accions' => '<a class="btn btn-success btn-sm" href="centers/edit/'.$center['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger btn-sm" id="deleteCenter" data-id="'.$center['id'].'"><i class="far fa-trash-alt"></i></a>'
+                'name' => $province['name'],
+                'accions' => '<a class="btn btn-success btn-sm" id="updateProvince" data-name="'.$province['name'].'" data-id="'.$province['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger btn-sm" id="deleteProvince" data-id="'.$province['id'].'"><i class="far fa-trash-alt"></i></a>'
             ];
 
             array_push($data, $info);

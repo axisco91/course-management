@@ -17,6 +17,22 @@ class CreateTrainingActionsTable extends Migration
             $table->id();
             $table->string('accion_formative');
             $table->string('name');
+            $table->foreignId('teacher_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('provider_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->tinyInteger('course_z');
+            $table->tinyInteger('course_avz');
+            $table->tinyInteger('active');
+            $table->tinyInteger('in_catalog')->nullable();
+            $table->integer('face_to_face_hours')->default(0);
+            $table->integer('teletraining_hours')->default(0);
+            $table->integer('total_hours')->default(0);
+            $table->decimal('price')->default('0.00');
+            $table->text('objectives')->nullable();
+            $table->text('content')->nullable();
+            $table->string('user')->nullable();
+            $table->string('password')->nullable();
+            $table->string('web_platform')->nullable();
+            $table->string('observations')->nullable();
         });
     }
 

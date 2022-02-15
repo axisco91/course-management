@@ -97,7 +97,7 @@ class CompanyActivityController extends Controller
         foreach ($activities as $activity){
             $info = [
                 'activity' => $activity['activity'],
-                'accions' => '<a class="btn btn-success" id="updateActivity" data-activity="'.$activity['activity'].'" data-id="'.$activity['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger" id="deleteActivity" data-id="'.$activity['id'].'"><i class="far fa-trash-alt"></i></a>'
+                'accions' => '<a class="btn btn-success btn-sm" id="updateActivity" data-activity="'.$activity['activity'].'" data-id="'.$activity['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger btn-sm" id="deleteActivity" data-id="'.$activity['id'].'"><i class="far fa-trash-alt"></i></a>'
             ];
 
             array_push($data, $info);

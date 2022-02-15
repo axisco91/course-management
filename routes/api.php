@@ -16,7 +16,7 @@ use App\Http\Controllers\API\TeacherController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
+/*
 Route::post('login', [AuthController::class, 'signin']);
 Route::post('register', [AuthController::class, 'signup']);
 
@@ -31,3 +31,4 @@ Route::middleware('auth:sanctum')->group( function () {
 });
 
 Route::resource('teachers', TeacherController::class);
+*/

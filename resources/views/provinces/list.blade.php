@@ -1,19 +1,19 @@
 @extends('layouts.app')
 
 @section('content')
-    <script src="/js/company_types.js"></script>
+    <script src="/js/provinces.js"></script>
     <div id="container-content" class="container-content">
         <section class="section">
             <div class="col-sm-12">
                 <div class="card" style="margin-top: 10px">
                     <div class="card-header">
-                        <h4 class="card-title">Tipos de Compañia</h4>
+                        <h4 class="card-title">Provincias</h4>
                     </div>
                     <div class="card-body">
-                        <table id="typesTable" class="table" style="width: 100%">
+                        <table id="provincesTable" class="table" style="width: 100%">
                             <thead>
                             <tr>
-                                <th>Tipos</th>
+                                <th>Provincia</th>
                                 <th>Acciones</th>
                             </tr>
                             </thead>
@@ -23,7 +23,7 @@
                         </table>
                     </div>
                     <div class="col-sm-12 d-flex justify-content-end">
-                        <a class="btn btn-primary" id="createType">Create</a>
+                        <a class="btn btn-primary" id="createProvince">Create</a>
                     </div>
                 </div>
             </div>

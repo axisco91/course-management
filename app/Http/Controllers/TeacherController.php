@@ -113,7 +113,7 @@ class TeacherController extends Controller
                 'dni' => $teacher['dni'],
                 'email' => $teacher['email'],
                 'telephone' => $teacher['telephone'],
-                'accions' => '<a class="btn btn-success" href="teachers/edit_teacher/'.$teacher['id'].'"><i class="far fa-trash-alt"></i></a> <a class="btn btn-danger" id="deleteTeacher" data-id="'.$teacher['id'].'"><i class="far fa-edit"></i></a>'
+                'accions' => '<a class="btn btn-success btn-sm" href="teachers/edit_teacher/'.$teacher['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger btn-sm" id="deleteTeacher" data-id="'.$teacher['id'].'"><i class="far fa-trash-alt"></i></a>'
             ];
             array_push($data, $info);
         }

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CompanyType;
+use App\Models\Cnae;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class CompanyTypeController extends Controller
+class CnaeController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -15,7 +15,7 @@ class CompanyTypeController extends Controller
      */
     public function index()
     {
-        return view('company_types/list');
+        return view('cnaes/list');
     }
 
     /**
@@ -27,20 +27,20 @@ class CompanyTypeController extends Controller
     public function store(Request $request)
     {
         $validator  = Validator::make($request->all(), [
-            'type' => 'required',
+            'cnae' => 'required',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 401);
         }
 
-        $company_type = CompanyType::create([
-            'type' => $request['type'],
+        $cnae = Cnae::create([
+            'cnae' => $request['cnae'],
         ]);
 
         return response()->json([
             'status' => 200,
-            'company_type' => $company_type
+            'province' => $cnae
         ]);
     }
 
@@ -53,22 +53,22 @@ class CompanyTypeController extends Controller
     public function update(Request $request)
     {
         $validator  = Validator::make($request->all(), [
-            'type' => 'required',
+            'cnae' => 'required',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 401);
         }
 
-        $company_type = CompanyType::find($request['id']);
+        $cnae = Cnae::find($request['id']);
 
-        $company_type->update([
-            'type' => $request['type'],
+        $cnae->update([
+            'cnae' => $request['cnae'],
         ]);
 
         return response()->json([
             'status' => 200,
-            'company_activity' => $company_type
+            'population' => $cnae
         ]);
     }
 
@@ -80,23 +80,23 @@ class CompanyTypeController extends Controller
      */
     public function destroy(Request  $request)
     {
-        $company_type = CompanyType::find($request['id']);
+        $cnae = Cnae::find($request['id']);
 
-        $company_type->delete();
+        $cnae->delete();
 
         return response()->json([
             'status' => 200
         ]);
     }
 
-    public function restCompanyTypes(Request  $request){
-        $types = CompanyType::all();
+    public function restCnaes(Request  $request){
+        $cnaes = Cnae::all();
         $data = [];
 
-        foreach ($types as $type){
+        foreach ($cnaes as $cnae){
             $info = [
-                'type' => $type['type'],
-                'accions' => '<a class="btn btn-success btn-sm" id="updateType" data-type="'.$type['type'].'" data-id="'.$type['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger btn-sm" id="deleteType" data-id="'.$type['id'].'"><i class="far fa-trash-alt"></i></a>'
+                'name' => $cnae['cnae'],
+                'accions' => '<a class="btn btn-success btn-sm" id="updateProvince" data-cnae="'.$cnae['cnae'].'" data-id="'.$cnae['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger btn-sm" id="deleteProvince" data-id="'.$cnae['id'].'"><i class="far fa-trash-alt"></i></a>'
             ];
 
             array_push($data, $info);

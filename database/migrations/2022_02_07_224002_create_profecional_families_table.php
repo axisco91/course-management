@@ -16,7 +16,6 @@ class CreateProfecionalFamiliesTable extends Migration
         Schema::create('profecional_families', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->timestamps();
         });
     }
 

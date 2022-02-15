@@ -26,11 +26,23 @@
 
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.11.4/datatables.min.js"></script>
 
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+   <!-- <link href="{{ asset('/css/app.css') }}" rel="stylesheet">-->
     <script src="{{ asset('js/app.js') }}"></script>
+    <script src="{{ asset('assets/vendors/jquery-datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/jquery-datatables/custom.jquery.dataTables.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('assets/vendors/fontawesome/all.min.js') }}"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.9/sweetalert2.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.9/sweetalert2.min.js"></script>
+
+    <link href="{{ asset('assets/css/bootstrap.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/vendors/jquery-datatables/jquery.dataTables.bootstrap5.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/vendors/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/pages/auth.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/images/favicon.svg') }}" rel="stylesheet">
+    <link href="{{ asset('assets/vendors/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+
 </head>
 <body>
 <div id="app">
@@ -43,8 +55,7 @@
                     <a class="nav-link" href="{{ url('/teachers') }}">Docentes</a>
                     <a class="nav-link" href="{{ url('/centers') }}">Centros</a>
                     <a class="nav-link" href="{{ url('/companies_activities') }}">Actividades</a>
-                    <a class="nav-link" href="{{ url('/students') }}">Alumnos</a>
-                    <a class="nav-link" href="{{ url('/registrations') }}">Matriculaciones</a>
+                    <a class="nav-link" href="{{ url('/company_types') }}">Tipos</a>
                 </ul>
 
                 <!-- Right Side Of Navbar -->

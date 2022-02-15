@@ -63,7 +63,7 @@ class PopulationController extends Controller
         $population = Population::find($request['id']);
 
         $population->update([
-            'type' => $request['type'],
+            'name' => $request['nombre'],
         ]);
 
         return response()->json([
@@ -90,13 +90,13 @@ class PopulationController extends Controller
     }
 
     public function restPopulations(Request  $request){
-        $populations = CompanyType::all();
+        $populations = Population::all();
         $data = [];
 
         foreach ($populations as $population){
             $info = [
                 'name' => $population['name'],
-                'accions' => '<a class="btn btn-success" id="updatePopulation" data-type="'.$population['name'].'" data-id="'.$population['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger" id="deletePopulation" data-id="'.$population['id'].'"><i class="far fa-trash-alt"></i></a>'
+                'accions' => '<a class="btn btn-success btn-sm" id="updatePopulation" data-name="'.$population['name'].'" data-id="'.$population['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger btn-sm" id="deletePopulation" data-id="'.$population['id'].'"><i class="far fa-trash-alt"></i></a>'
             ];
 
             array_push($data, $info);

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateProfecionalAreaTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateProfecionalAreaTable extends Migration
      */
     public function up()
     {
-        Schema::create('profecional_area', function (Blueprint $table) {
+        Schema::create('tutoring', function (Blueprint $table) {
             $table->id();
             $table->string('name');
         });
@@ -26,6 +26,6 @@ class CreateProfecionalAreaTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('profecional_area');
+        Schema::dropIfExists('tutoring');
     }
-}
+};
