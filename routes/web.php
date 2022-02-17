@@ -3,8 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\CenterController;
-use App\Http\Controllers\CompanyActivityController;
-use App\Http\Controllers\CompanyTypeController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,57 +13,35 @@ use App\Http\Controllers\CompanyTypeController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::middleware(['auth'])->group(function () {
-    Route::prefix('teachers')->group(function() {
-        Route::controller(TeacherController::class)->group(function(){
-            Route::get('', 'index');
-            Route::get('rest', 'restTeachers');
-            Route::get('create', 'create');
-            Route::get('store', 'store');
-            Route::get('update_teacher', 'updateTeacher');
-            Route::get('edit_teacher/{id}', 'editTeacher');
-            Route::get('delete', 'destroy');
-        });
-    });
-
-    Route::prefix('centers')->group(function() {
-        Route::controller(CenterController::class)->group(function(){
-            Route::get('', 'index');
-            Route::get('rest', 'restCenters');
-            Route::get('create', 'create');
-            Route::get('store', 'store');
-            Route::get('update', 'update');
-            Route::get('edit/{id}', 'edit');
-            Route::get('delete', 'destroy');
-        });
-    });
-
-    Route::prefix('companies_activities')->group(function() {
-        Route::controller(CompanyActivityController::class)->group(function(){
-            Route::get('', 'index');
-            Route::get('rest', 'restCompaniesActivities');
-            Route::get('store', 'store');
-            Route::get('update', 'update');
-            Route::get('edit/{id}', 'edit');
-            Route::get('delete', 'destroy');
-        });
-    });
-
-    Route::prefix('company_types')->group(function() {
-        Route::controller(CompanyTypeController::class)->group(function(){
-            Route::get('', 'index');
-            Route::get('rest', 'restCompanyTypes');
-            Route::get('store', 'store');
-            Route::get('update', 'update');
-            Route::get('edit/{id}', 'edit');
-            Route::get('delete', 'destroy');
-        });
+Route::prefix('teachers')->group(function() {
+    Route::controller(TeacherController::class)->group(function(){
+        Route::get('', 'index');
+        Route::get('rest', 'restTeachers');
+        Route::get('create', 'create');
+        Route::get('store', 'store');
+        Route::get('update_teacher', 'updateTeacher');
+        Route::get('edit_teacher/{id}', 'editTeacher');
+        Route::get('delete', 'destroy');
     });
 });
 
-Auth::routes(['register' => false]);
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::prefix('centers')->group(function() {
+    Route::controller(CenterController::class)->group(function(){
+        Route::get('', 'index');
+        Route::get('rest', 'restCenters');
+        Route::get('create', 'create');
+        Route::get('store', 'store');
+        Route::get('update', 'update');
+        Route::get('edit/{id}', 'edit');
+        Route::get('delete', 'destroy');
+    });
+});
+/*Route::get('teachers/rest', [TeacherController::class, 'restTeachers']);
+Route::get('teachers/rest', [TeacherController::class, 'restTeachers']);
+Route::get('teachers/create', [TeacherController::class, '']);
+Route::resource('teachers', TeacherController::class);*/
+
