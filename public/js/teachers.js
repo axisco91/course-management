@@ -146,7 +146,7 @@ $('body').on('click', '#updateTeacher', function(){
     })
 })
 
-$('body').on('click', '#deleteTeacher', function(){
+$('body').on('click', '.deleteTeacher', function(){
     Swal.fire({
         title: '¿Estas seguro?',
         text: 'No podras revertirlo',

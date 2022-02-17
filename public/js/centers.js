@@ -138,7 +138,7 @@ $('body').on('click', '#updateCenter', function(){
     })
 })
 
-$('body').on('click', '#deleteCenter', function(){
+$('body').on('click', '.deleteCenter', function(){
     Swal.fire({
         title: '¿Estas seguro?',
         text: 'No podras revertirlo',

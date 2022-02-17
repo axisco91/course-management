@@ -129,7 +129,7 @@ class CenterController extends Controller
                 'address' => $center['address'],
                 'email' => $center['email'],
                 'telephone' => $center['telephone'],
-                'accions' => '<a class="btn btn-success" href="centers/edit/'.$center['id'].'"><i class="far fa-trash-alt"></i></a> <a class="btn btn-danger" id="deleteCenter" data-id="'.$center['id'].'"><i class="far fa-edit"></i></a>'
+                'accions' => '<a class="btn btn-success btn-sm" href="centers/edit/'.$center['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger btn-sm deleteCenter" data-id="'.$center['id'].'"><i class="far fa-trash-alt"></i></a>'
             ];
 
             array_push($data, $info);

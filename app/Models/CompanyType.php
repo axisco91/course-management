@@ -9,4 +9,7 @@ class CompanyType extends Model
 {
     use HasFactory;
     public $timestamps = false;
+    protected $fillable = [
+        'type',
+    ];
 }

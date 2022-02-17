@@ -1,31 +1,50 @@
-@extends('layout')
+@extends('layouts.app')
 @section('content')
     <script src="/js/centers.js"></script>
     <div id="container-content" class="container-content">
         <input name="id" type="text" id="center_id" class="form-control" value="{{$center['id']}}" hidden>
-        <div class="col-sm-12">
-
-        </div>
-        <div class="row">
-            <div class="col-sm-4 form-group">
-                <label for="name">Nombre</label>
-                <input name="name" type="text" id="name" class="form-control" required value="{{$center['name']}}">
+        <section id="multiple-column-form">
+            <div class="row- match-height">
+                <div class="col-12">
+                    <div class="card" style="margin-top: 10px">
+                        <div class="card-header">
+                            <h4 class="card-title">Editar Centro</h4>
+                        </div>
+                        <div class="card-content">
+                            <div class="row">
+                                <div class="col-md-6 col-12">
+                                    <div class="form-group">
+                                        <label for="name">Nombre</label>
+                                        <input name="name" type="text" id="name" class="form-control" required value="{{$center['name']}}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    <div class="form-group">
+                                        <label for="address">Dirrección</label>
+                                        <input name="address" id="address" type="text" class="form-control" value="{{$center['address']}}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    <div class="form-group">
+                                        <label for="email">Correo</label>
+                                        <input name="email" id="email" type="email" class="form-control" value="{{$center['email']}}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-12">
+                                    <div class="form-group">
+                                        <label for="telephone">Telefono</label>
+                                        <input name="telephone" id="telephone" type="text" class="form-control" value="{{$center['telephone']}}">
+                                    </div>
+                                </div>
+                                <div class="col-12 d-flex justify-content-end">
+                                    <a  class="btn btn-success me-1 mb-1" id="updateCenter">Edit</a>
+                                    <a  class="btn btn-primary me-1 mb-1" href="{{ url('/centers') }}" >Volver</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="col-sm-4 form-group">
-                <label for="address">Dirrección</label>
-                <input name="address" id="address" type="text" class="form-control" value="{{$center['address']}}">
-            </div>
-            <div class="col-sm-4 form-group">
-                <label for="email">Correo</label>
-                <input name="email" id="email" type="email" class="form-control" value="{{$center['email']}}">
-            </div>
-            <div class="col-sm-4 form-group">
-                <label for="telephone">Telefono</label>
-                <input name="telephone" id="telephone" type="text" class="form-control" value="{{$center['telephone']}}">
-            </div>
-        </div>
-        <div class="col-sm-12">
-            <a  class="btn btn-success" id="updateCenter">Edit</a>
-        </div>
+        </section>
     </div>
 @endsection
