@@ -15,6 +15,7 @@ class CreateAdvisorsTable extends Migration
     {
         Schema::create('advisors', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
             $table->foreignId('company_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->string('irpf')->nullable();
             $table->string('commission')->nullable();

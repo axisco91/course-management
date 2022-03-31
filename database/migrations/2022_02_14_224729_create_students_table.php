@@ -24,20 +24,22 @@ return new class extends Migration
             $table->string('user');
             $table->string('password');
             $table->date('date_of_birth')->nullable();
-            $table->string('level_of_studies')->nullable();
+            $table->foreignId('level_study_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->tinyInteger('disabled');
-            $table->tinyInteger('social_security_number')->nullable();
+            $table->string('social_security_number')->nullable();
             $table->string('c_quote')->nullable();
-            $table->tinyInteger('quote_group')->nullable();
+            $table->Integer('quote_group')->nullable();
             $table->foreignId('professional_category_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->decimal('annual_gross_salary')->nullable();
+            $table->string('annual_gross_salary')->nullable();
             $table->integer('annual_hours')->nullable();
             $table->string('hourly_cost_worker_gross')->nullable();
             $table->string('direction')->nullable();
             $table->string('post_code')->nullable();
             $table->foreignId('population_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('province_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->string('observation')->nullable();
+            $table->text('population')->nullable();
+            $table->text('observation')->nullable();
+            $table->string('iban')->nullable();
             $table->timestamps();
         });
     }

@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function index() {
 
-        return view('teachers/list');
+        return view('users/list');
     }
 
     /**
@@ -40,7 +40,7 @@ class UserController extends Controller
             'name' => $request['nombre'],
             'surname' => $request['apellidos'],
             'username' => $request['username'],
-            'email' => $request['correo'],
+            'email' => $request['email'],
             'password' => Hash::make($request['password']),
         ]);
 
@@ -73,6 +73,7 @@ class UserController extends Controller
         $user = User::find($request['id']);
 
         $user->update([
+            'id' => $request['id'],
             'name' => $request['nombre'],
             'surname' => $request['apellidos'],
             'username' => $request['username'],
@@ -104,7 +105,7 @@ class UserController extends Controller
             $info = [
                 'name' => $user['name'].' '.$user['surname'],
                 'email' => $user['email'],
-                'accions' => '<a class="btn btn-success btn-sm" href="users/edit_user/'.$user['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger btn-sm" id="deleteUser" data-id="'.$user['id'].'"><i class="far fa-trash-alt"></i></a>'
+                'actions' => '<a class="btn btn-success btn-sm" href="users/edit/'.$user['id'].'"><i class="far fa-edit"></i></a> <a class="btn btn-danger btn-sm deleteUser" data-id="'.$user['id'].'"><i class="far fa-trash-alt"></i></a>'
             ];
             array_push($data, $info);
         }

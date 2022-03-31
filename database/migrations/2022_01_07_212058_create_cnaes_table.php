@@ -15,7 +15,7 @@ class CreateCnaesTable extends Migration
     {
         Schema::create('cnaes', function (Blueprint $table) {
             $table->id();
-            $table->string('cnae');
+            $table->string('name');
         });
     }
 

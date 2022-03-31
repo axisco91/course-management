@@ -14,7 +14,7 @@ class AddAdvisoryIdToCompaniesTable extends Migration
     public function up()
     {
         Schema::table('companies', function (Blueprint $table) {
-            $table->foreignId('advisor_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('advisor_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
         });
     }
 

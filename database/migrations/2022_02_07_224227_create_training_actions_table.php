@@ -15,10 +15,17 @@ class CreateTrainingActionsTable extends Migration
     {
         Schema::create('training_actions', function (Blueprint $table) {
             $table->id();
-            $table->string('accion_formative');
+            $table->string('formative_action');
             $table->string('name');
             $table->foreignId('teacher_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('provider_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('course_provider_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('action_type_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('professional_families_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('professional_areas_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('modality_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('training_action_level_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('training_action_group_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('tutoring_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->tinyInteger('course_z');
             $table->tinyInteger('course_avz');
             $table->tinyInteger('active');
@@ -31,8 +38,10 @@ class CreateTrainingActionsTable extends Migration
             $table->text('content')->nullable();
             $table->string('user')->nullable();
             $table->string('password')->nullable();
-            $table->string('web_platform')->nullable();
-            $table->string('observations')->nullable();
+            $table->foreignId('web_platform_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->text('observations')->nullable();
+            $table->tinyInteger('number_activities')->nullable()->default(0);
+            $table->tinyInteger('number_units')->nullable()->default(0);
         });
     }
 

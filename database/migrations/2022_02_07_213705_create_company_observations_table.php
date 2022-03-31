@@ -16,7 +16,8 @@ class CreateCompanyObservationsTable extends Migration
         Schema::create('company_observations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->string('observation');
+            $table->text('observation');
+            $table->timestamps();
         });
     }
 

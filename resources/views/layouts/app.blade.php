@@ -7,12 +7,10 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+	<title>@hasSection('title') @yield('title') | @endif {{ config('app.name', 'Laravel') }}</title>
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Fonts -->
@@ -26,97 +24,177 @@
 
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.4/datatables.min.css"/>
 
-    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.11.4/datatables.min.js"></script>
-
 <!-- <link href="{{ asset('/css/app.css') }}" rel="stylesheet">-->
     <script src="{{ asset('js/app.js') }}"></script>
-    <script src="{{ asset('assets/vendors/jquery-datatables/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('assets/vendors/jquery-datatables/custom.jquery.dataTables.bootstrap5.min.js') }}"></script>
-    <script src="{{ asset('assets/vendors/fontawesome/all.min.js') }}"></script>
-    <script src="{{ asset('assets/js/pages/dashboard.js') }}"></script>
-    <script src="{{ asset('assets/js/mazer.js') }}"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.9/sweetalert2.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.9/sweetalert2.min.js"></script>
+    <script src="{{ asset('assets/vendors/fontawesome/all.min.js') }}"></script>
 
-    <link href="{{ asset('assets/css/bootstrap.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/mazar/css/bootstrap.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendors/jquery-datatables/jquery.dataTables.bootstrap5.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendors/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/app.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/pages/auth.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/mazar/css/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/mazar/css/pages/auth.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/images/favicon.svg') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendors/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" integrity="sha512-nMNlpuaDPrqlEls3IX/Q56H36qvBASwb3ipuo3MxeWbsQB1881ox0cRv7UPTgBlriqoynt35KjEwgGUeUXIPnw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link href="{{ asset('css/general.css') }}" rel="stylesheet">
+
+    <script src="{{ url('js/general.js') }}"></script>
+	 @livewireStyles
 </head>
 <body>
     <div id="app">
         <div class="row">
-            <div class="col-md-4">
-                <div id="sidebar" class="active">
-                    <div class="sidebar-wrapper active">
-                        <div class="sidebar-header">
-                            <div class="d-flex justify-content-between">
-                                <div class="logo">
-                                    <a href="{{url('/')}}"><img src="" alt="Logo" srcset=""></a>
-                                </div>
-                                <div class="togger">
-                                    <a href="#" class="sidebar-hide d-xl-none d-block"><i class="bi bi-x bi-middle"></i></a>
-                                </div>
-                            </div>
+            <nav class="navbar navbar-light bg-light fixed-top">
+                <div class="container-fluid">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <a href="{{url('/')}}"><img src="" alt="Logo" srcset=""></a>
+                    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+                        <div class="offcanvas-header">
+                            <h5 class="offcanvas-title" id="offcanvasNavbarLabel"></h5>
+                            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                         </div>
-                        <div class="sidebar-menu">
-                            <ul class="menu">
-                                <li class="sidebar-item">
-                                    <a href="{{url('/teachers')}}" class="sidebar-link"><span>Docentes</span></a>
+                        <div class="offcanvas-body">
+                            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                                <li class="nav-item">
+                                    <a class="nav-link" aria-current="page" href="#">Pagina Principa</a>
                                 </li>
-                                <li class="sidebar-item">
-                                    <a href="{{url('/centers')}}" class="sidebar-link"><span>Centros</span></a>
-                                </li>
-                                <li class="sidebar-item has-sub">
-                                    <a href="#" class="sidebar-link"><span>Empresas</span></a>
-                                    <ul class="submenu">
-                                        <li class="submenu-item">
-                                            <a href="{{url('/companies')}}" class="sidebar-link">Empresas</a>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="offcanvasNavbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Alumno
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="offcanvasNavbarDropdown">
+                                        <li><a class="dropdown-item" href="{{url('/students')}}">Alumnos</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
                                         </li>
-                                        <li class="submenu-item">
-                                            <a href="{{url('/advisors')}}" class="sidebar-link">Asesorias</a>
+                                        <li><a class="dropdown-item" href="{{url('/professional_categories')}}">Categorias Profecionales</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
                                         </li>
-                                        <li class="submenu-item">
-                                            <a href="{{url('/companies_activities')}}" class="sidebar-link">Actividades</a>
-                                        </li>
-                                        <li class="submenu-item">
-                                            <a href="{{url('/company_types')}}" class="sidebar-link">Tipos</a>
-                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/level_studies')}}">Nivel de Estudios</a></li>
                                     </ul>
                                 </li>
-                                <li class="sidebar-item">
-                                    <a href="{{url('/users')}}" class="sidebar-link"><span>Usuarios</span></a>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="offcanvasNavbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Docentes
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="offcanvasNavbarDropdown">
+                                        <li><a class="dropdown-item" href="{{url('/teachers')}}">Docentes</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/teacher_areas')}}">Áreas Docentes</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="offcanvasNavbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Empresas
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="offcanvasNavbarDropdown">
+                                        <li><a class="dropdown-item" href="{{url('/companies')}}">Empresas</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/company_activities')}}">Actividades de Empresa</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/cnaes')}}">CNAE</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/company_types')}}">Tipos de Empresa</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/provinces')}}">Provincias</a></li>
+                                       <!-- <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/populations')}}" >Poblaciones</a></li>-->
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{url('/advisors')}}" class="nav-link"><span>Asesorias</span></a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="offcanvasNavbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Acción Formativa
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="offcanvasNavbarDropdown">
+                                        <li><a class="dropdown-item" href="{{url('/training_actions')}}"><span>Acciones Formativas</span></a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/professional_areas')}}">Areas Profecionales</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/action_types')}}">Tipos de Acciones</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/professional_families')}}">Familias Profecionales</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/modalities')}}">Modalidades</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/training_action_levels')}}">Nivel</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/tutorings')}}">Tutorizaciones</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/training_action_groups')}}">Grupos</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/web_platforms')}}">Plataformas</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{url('/providers')}}" class="nav-link"><span>Proveedores</span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{url('/users')}}" class="nav-link"><span>Usuarios</span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{url('/centers')}}" class="nav-link"><span>Centros</span></a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="offcanvasNavbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Cursos
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="offcanvasNavbarDropdown">
+                                        <li><a class="dropdown-item" href="{{url('/courses')}}">Cursos</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/course_types')}}">Tipos de Cursos</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/course_statuses')}}">Estado de Curso</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{url('/billings')}}" class="nav-link"><span>Facturas</span></a>
                                 </li>
                             </ul>
-
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-            <div class="col-md-6">
-                <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
-                    <div class="container">
-                        <a class="navbar-brand" href="{{ url('/') }}">
-                            {{ config('app.name', 'Laravel') }}
-                        </a>
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-
-                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                            <!-- Left Side Of Navbar -->
-                            <ul class="navbar-nav me-auto">
-
-                            </ul>
-
-                            <!-- Right Side Of Navbar -->
-                            <ul class="navbar-nav ms-auto">
-                                <!-- Authentication Links -->
+                            <ul>
                                 @guest
                                     @if (Route::has('login'))
                                         <li class="nav-item">
@@ -151,12 +229,21 @@
                             </ul>
                         </div>
                     </div>
-                </nav>
-                <main class="">
-                    @yield('content')
-                </main>
-            </div>
+                </div>
+            </nav>
         </div>
+
+        <main class="py-2">
+            @yield('content')
+        </main>
     </div>
+    @livewireScripts
+    <script type="text/javascript">
+        window.livewire.on('closeModal', () => {
+            $('#createDataModal').modal('hide');
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js" integrity="sha512-RtZU3AyMVArmHLiW0suEZ9McadTdegwbgtiQl5Qqo9kunkVg1ofwueXD8/8wv3Af8jkME3DDe3yLfR8HSJfT2g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 </html>

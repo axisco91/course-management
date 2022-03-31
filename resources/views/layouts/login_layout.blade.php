@@ -19,14 +19,14 @@
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 
-    <link href="{{ asset('assets/css/bootstrap.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/mazar/css/bootstrap.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/vendors/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/app.rtl.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/pages/auth.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/mazar/css/app.rtl.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/mazar/css/pages/auth.css') }}" rel="stylesheet">
 </head>
 <body>
-    <div id="app">
-            @yield('content')
-    </div>
+<div id="app">
+    @yield('content')
+</div>
 </body>
 </html>

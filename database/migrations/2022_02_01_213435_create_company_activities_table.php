@@ -15,7 +15,7 @@ class CreateCompanyActivitiesTable extends Migration
     {
         Schema::create('company_activities', function (Blueprint $table) {
             $table->id();
-            $table->string('activity');
+            $table->string('name');
         });
     }
 
