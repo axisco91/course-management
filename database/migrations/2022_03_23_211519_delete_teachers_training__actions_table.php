@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class DeleteTeachersTrainingActionsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::table('training_actions', function (Blueprint $table) {
+            $table->dropForeign(['teacher_id']);
+            $table->dropColumn('teacher_id');
+            $table->dropColumn('formative_action');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::create('training_actions', function (Blueprint $table) {
+            $table->string('formative_action');
+            $table->foreignId('teacher_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+        });
+    }
+}

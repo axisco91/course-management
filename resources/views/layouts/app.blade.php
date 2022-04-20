@@ -190,8 +190,20 @@
                                         <li><a class="dropdown-item" href="{{url('/course_statuses')}}">Estado de Curso</a></li>
                                     </ul>
                                 </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="offcanvasNavbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Facturas
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="offcanvasNavbarDropdown">
+                                        <li><a class="dropdown-item" href="{{url('/billings')}}">Facturas</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{url('/payments')}}">Metodos de Pago</a></li>
+                                    </ul>
+                                </li>
                                 <li class="nav-item">
-                                    <a href="{{url('/billings')}}" class="nav-link"><span>Facturas</span></a>
+                                    <a href="{{url('/profitabilities')}}" class="nav-link"><span>Rentabilidad</span></a>
                                 </li>
                             </ul>
                             <ul>

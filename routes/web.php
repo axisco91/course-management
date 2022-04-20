@@ -6,7 +6,7 @@ use App\Http\Controllers\CenterController;
 use App\Http\Controllers\CompanyActivityController;
 use App\Http\Controllers\CompanyTypeController;
 use App\Http\Controllers\PopulationController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\CnaeController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\AdvisorController;
@@ -29,7 +29,7 @@ use App\Http\Controllers\TutoringController;
 use App\Http\Controllers\CourseStatusController;
 use App\Http\Controllers\Tracingcontroller;
 use App\Http\Controllers\CompanyobservationController;
-use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\UserController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -46,6 +46,22 @@ Route::middleware(['auth'])->group(function () {
         return view('welcome');
     });
     /**
+     * Companies Routes
+     */
+    Route::prefix('companies')->group(function() {
+        Route::controller(CompanyController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    /**
+     * Companies Routes
+     */
+    Route::prefix('advisors')->group(function() {
+        Route::controller(AdvisorController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    /**
      * Students Routes
      */
     Route::prefix('students')->group(function() {
@@ -59,9 +75,65 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('teachers')->group(function() {
         Route::controller(TeacherController::class)->group(function(){
             Route::get('', 'index');
-            Route::get('/create', 'create');
         });
     });
+    /**
+     * Centers Routes
+     */
+    Route::prefix('centers')->group(function() {
+        Route::controller(CenterController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    /**
+     * Training Actions Routes
+     */
+    Route::prefix('training-actions')->group(function() {
+        Route::controller(TrainingActionController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    /**
+     * Training Actions Routes
+     */
+    Route::prefix('training-actions')->group(function() {
+        Route::controller(TrainingActionController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    /**
+     * Provider Routes
+     */
+    Route::prefix('providers')->group(function() {
+        Route::controller(ProviderController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    /**
+     * Courses Routes
+     */
+    Route::prefix('courses')->group(function() {
+        Route::controller(CourseController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    /**
+     * Training Actions Routes
+     */
+    Route::prefix('training_actions')->group(function() {
+        Route::controller(TrainingActionController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    /**
+     * Training Actions Routes
+     */
+    Route::prefix('users')->group(function() {
+        Route::controller(UserController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 });
 Route::get('/register', App\Http\Livewire\Auth\Register::class);
@@ -72,10 +144,10 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
 //Route Hooks - Do not delete//
+	Route::view('profitabilities', 'livewire.profitabilities.index')->middleware('auth');
 	Route::view('training_action_levels', 'livewire.training-action-levels.index')->middleware('auth');
 	Route::view('level_studies', 'livewire.level-studies.index')->middleware('auth');
 	Route::view('billings', 'livewire.billings.index')->middleware('auth');
-	Route::view('providers', 'livewire.providers.index')->middleware('auth');
 	Route::view('areas_teacher_areas', 'livewire.areas-teacher-areas.index')->middleware('auth');
 	Route::view('teacher_areas', 'livewire.teacher-areas.index')->middleware('auth');
 	Route::view('bonuses', 'livewire.bonuses.index')->middleware('auth');
@@ -83,11 +155,9 @@ Route::get('/home', 'HomeController@index')->name('home');
 	Route::view('registrations', 'livewire.registrations.index')->middleware('auth');
 	Route::view('tracings', 'livewire.tracings.index')->middleware('auth');
 	Route::view('chores', 'livewire.chores.index')->middleware('auth');
-	Route::view('courses', 'livewire.courses.index')->middleware('auth');
 	Route::view('professional_categories', 'livewire.professional-categories.index')->middleware('auth');
 	Route::view('course_types', 'livewire.course-types.index')->middleware('auth');
 	Route::view('course_statuses', 'livewire.course-statuses.index')->middleware('auth');
-	Route::view('training_actions', 'livewire.training-actions.index')->middleware('auth');
 	Route::view('tutorings', 'livewire.tutorings.index')->middleware('auth');
 	Route::view('modalities', 'livewire.modalities.index')->middleware('auth');
 	Route::view('professional_areas', 'livewire.professional-areas.index')->middleware('auth');
@@ -96,13 +166,9 @@ Route::get('/home', 'HomeController@index')->name('home');
 	Route::view('course_providers', 'livewire.course-providers.index')->middleware('auth');
 	Route::view('tutoring', 'livewire.tutoring.index')->middleware('auth');
 	Route::view('training_action_groups', 'livewire.training-action-groups.index')->middleware('auth');
-	Route::view('advisors', 'livewire.advisors.index')->middleware('auth');
 	Route::view('company_observations', 'livewire.company-observations.index')->middleware('auth');
 	Route::view('web_platforms', 'livewire.web-platforms.index')->middleware('auth');
-	Route::view('companies', 'livewire.companies.index')->middleware('auth');
 	Route::view('company_activities', 'livewire.company-activities.index')->middleware('auth');
 	Route::view('company_types', 'livewire.company-types.index')->middleware('auth');
 	Route::view('provinces', 'livewire.provinces.index')->middleware('auth');
-	Route::view('centers', 'livewire.centers.index')->middleware('auth');
 	Route::view('cnaes', 'livewire.cnaes.index')->middleware('auth');
-	Route::view('users', 'livewire.users.index')->middleware('auth');
