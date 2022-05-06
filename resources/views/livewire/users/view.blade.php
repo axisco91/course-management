@@ -15,12 +15,14 @@
 						<div>
 							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
 						</div>
+                        <div>
+                            <label for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
+                        </div>
 						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
 						<i class="fa fa-plus"></i>  Añadir Usuario
 						</div>
 					</div>
 				</div>
-
 				<div class="card-body">
                     @include('livewire.users.create')
                     @include('livewire.users.update')

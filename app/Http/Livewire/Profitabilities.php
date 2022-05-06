@@ -21,23 +21,31 @@ class Profitabilities extends Component
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
+
+        $profitabilities = Profitability::select('profitabilities.*', 'companies.name as company_name', 'courses.name as course_name',
+            'students.name as student_name', 'students.surname as student_surname')
+            ->leftjoin('companies', 'companies.id', '=', 'profitabilities.company_id')
+            ->leftjoin('courses', 'courses.id', '=', 'profitabilities.course_id')
+            ->leftjoin('students', 'students.id', '=', 'profitabilities.student_id')
+            ->orWhere('courses.name', 'LIKE', $keyWord)
+            ->orWhere('companies.name', 'LIKE', $keyWord)
+            ->orWhere('students.name', 'LIKE', $keyWord)
+            ->orWhere('students.surname', 'LIKE', $keyWord)
+            ->orWhere('profitabilities.price', 'LIKE', $keyWord)
+            ->orWhere('license', 'LIKE', $keyWord)
+            ->orWhere('teacher', 'LIKE', $keyWord)
+            ->orWhere('management', 'LIKE', $keyWord)
+            ->orWhere('nebrija_title', 'LIKE', $keyWord)
+            ->orWhere('discount', 'LIKE', $keyWord)
+            ->orWhere('collaborator_commission', 'LIKE', $keyWord)
+            ->orWhere('advisor_commission', 'LIKE', $keyWord)
+            ->orWhere('total', 'LIKE', $keyWord)
+            ->orWhere('benefits', 'LIKE', $keyWord)
+            ->orWhere('observations', 'LIKE', $keyWord)
+            ->paginate(10);
+
         return view('livewire.profitabilities.view', [
-            'profitabilities' => Profitability::select()
-						->orWhere('course_id', 'LIKE', $keyWord)
-						->orWhere('company_id', 'LIKE', $keyWord)
-						->orWhere('student_id', 'LIKE', $keyWord)
-						->orWhere('price', 'LIKE', $keyWord)
-						->orWhere('license', 'LIKE', $keyWord)
-						->orWhere('teacher', 'LIKE', $keyWord)
-						->orWhere('management', 'LIKE', $keyWord)
-						->orWhere('nebrija_title', 'LIKE', $keyWord)
-						->orWhere('discount', 'LIKE', $keyWord)
-						->orWhere('collaborator_commission', 'LIKE', $keyWord)
-						->orWhere('advisor_commission', 'LIKE', $keyWord)
-						->orWhere('total', 'LIKE', $keyWord)
-						->orWhere('benefits', 'LIKE', $keyWord)
-						->orWhere('observations', 'LIKE', $keyWord)
-						->paginate(10),
+            'profitabilities' => $profitabilities,
         ]);
     }
 
@@ -137,29 +145,10 @@ class Profitabilities extends Component
 
     public function update()
     {
-        $this->validate([
-		'course_id' => 'required',
-		'company_id' => 'required',
-		'student_id' => 'required',
-		'price' => 'required',
-		'license' => 'required',
-		'teacher' => 'required',
-		'management' => 'required',
-		'nebrija_title' => 'required',
-		'discount' => 'required',
-		'collaborator_commission' => 'required',
-		'advisor_commission' => 'required',
-		'total' => 'required',
-		'benefits' => 'required',
-		'observations' => 'required',
-        ]);
 
         if ($this->selected_id) {
 			$record = Profitability::find($this->selected_id);
             $record->update([
-			'course_id' => $this-> course_id,
-			'company_id' => $this-> company_id,
-			'student_id' => $this-> student_id,
 			'price' => $this-> price,
 			'license' => $this-> license,
 			'teacher' => $this-> teacher,
@@ -175,7 +164,7 @@ class Profitabilities extends Component
 
             $this->resetInput();
             $this->updateMode = false;
-			session()->flash('message', 'Profitability Successfully updated.');
+			session()->flash('message', 'Rentabilidad actualizado con exito.');
         }
     }
 }

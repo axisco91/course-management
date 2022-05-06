@@ -15,6 +15,9 @@
 						<div>
 							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
 						</div>
+                        <div>
+                            <label for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
+                        </div>
 						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
 						<i class="fa fa-plus"></i>  Añadir Empresa
 						</div>
@@ -24,6 +27,7 @@
 				<div class="card-body">
 						@include('livewire.companies.create')
 						@include('livewire.companies.update')
+                        @include('livewire.companies.info')
                         @include('livewire.companies.createObservation')
                         @include('livewire.companies.observations')
                         @include('livewire.companies.updateObservation')
@@ -40,6 +44,7 @@
 								<th>Telefono</th>
 								<th>Representante Legal</th>
 								<th>Asesoria</th>
+                                <th>Estado</th>
 								<td>Acciones</td>
 							</tr>
 						</thead>
@@ -47,7 +52,7 @@
 							@foreach($companies as $row)
 							<tr>
 								<td>{{ $loop->iteration }}</td>
-								<td>{{ $row->name }}</td>
+                                <td><a data-bs-toggle="modal" data-bs-target="#companiesTabModal" class="dropdown-item" wire:click="general({{$row->id}})">{{ $row->name }}</a></td>
 								<td>{{ $row->nif }}</td>
 								<td>{{ $row->type }}</td>
 								<td>{{ $row->activity }}</td>
@@ -55,18 +60,26 @@
 								<td>{{ $row->telephone }}</td>
 								<td>{{ $row->legal_representative }}</td>
 								<td>{{ $row->advisor }}</td>
+                                <td>{{$row->inactive == 1 ? 'Inactivo' : 'Activo'}}</td>
 								<td width="90">
 								<div class="btn-group dropup">
 									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									Acciones
 									</button>
 									<div class="dropdown-menu dropdown-menu-right">
-                                        <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>
+                                    <!--    <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>-->
+                                        <a href="{{url('/companies/edit/'.$row->id)}}" class="dropdown-item edit"><i class="fa fa-edit"></i> Editar </a>
+                                        <a data-bs-toggle="modal" data-bs-target="#companiesTabModal" class="dropdown-item" wire:click="general({{$row->id}})"><i class="fa fa-watch"></i> Ver </a>
                                         @if ($row->is_advisor)
                                             <a class="dropdown-item" onclick="confirm('Confirmar convertir a asesoria: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertAdvisor({{$row->id}})">Convertir Asesoria</a>
                                         @endif
                                         @if ($row->is_provider)
                                             <a class="dropdown-item" onclick="confirm('Confirmar convertir a proveedor: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertProvider({{$row->id}})">Convertir Proveedor</a>
+                                        @endif
+                                        @if ($row->inactivo == 1)
+                                            <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
+                                        @else
+                                            <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
                                         @endif
                                         <a data-bs-toggle="modal" data-bs-target="#createObservationModal" class="dropdown-item" wire:click="newObservation({{$row->id}})"><i class="fa fa-edit"></i> Crear Observación </a>
                                         <a data-bs-toggle="modal" data-bs-target="#observationsModal" class="dropdown-item" wire:click="observations({{$row->id}})"><i class="fa fa-edit"></i> Ver Observaciones </a></a>

@@ -12,4 +12,7 @@ class CompanyController extends Controller
         return view('companies.index');
     }
 
+    public function edit($id){
+        return view('companies.update', compact('id'));
+    }
 }

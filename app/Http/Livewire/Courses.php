@@ -94,9 +94,9 @@ class Courses extends Component
     }
 
     public function mount(){
-        $this->training_actions = TrainingAction::all();
+        $this->training_actions = TrainingAction::where('inactive', 0)->get();
         $this->course_types = CourseType::all();
-        $this->teachers = Teacher::all();
+        $this->teachers = Teacher::where('inactive', 0)->get();
         $this->formation_centers = Center::all();
         $this->delivery_centers = Center::all();
         $this->course_statuses = CourseStatus::all();
@@ -363,12 +363,12 @@ class Courses extends Component
         $end = Carbon::createFromFormat('Y-m-d', $end_date);
         $course_status = CourseStatus::all();
         if ($beginning->gt($now)){
-            $course_status_id = $course_status->firstWhere('name', 'Pendiente')['id'];
+            $course_status_id = $course_status->firstWhere('name', 'PENDIENTE')['id'];
         } else{
-            $course_status_id = $course_status->firstWhere('name', 'Impartición')['id'];
+            $course_status_id = $course_status->firstWhere('name', 'IMPARTICIÓN')['id'];
         }
         if ($now->gt($end)){
-            $course_status_id = $course_status->firstWhere('name', 'Finalizado')['id'];
+            $course_status_id = $course_status->firstWhere('name', 'FINALIZADO')['id'];
         }
         return [
             'quater' => $quater,
@@ -420,6 +420,7 @@ class Courses extends Component
                         'company_id' => $student['company_id'],
                         'student_id' => $student['id'],
                         'price' => $price,
+                        'total' => $price,
                     ]);
 
                     $registration = Registration::create([

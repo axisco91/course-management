@@ -28,7 +28,7 @@
 								<th>Curso</th>
 								<th>Empresa</th>
 								<th>Alumno</th>
-								<th>Observaciones</th>
+								<th>Total</th>
 								<td>Acciones</td>
 							</tr>
 						</thead>
@@ -36,26 +36,16 @@
 							@foreach($profitabilities as $row)
 							<tr>
 								<td>{{ $loop->iteration }}</td>
-								<td>{{ $row->course_id }}</td>
-								<td>{{ $row->company_id }}</td>
-								<td>{{ $row->student_id }}</td>
-								<td>{{ $row->price }}</td>
-								<td>{{ $row->license }}</td>
-								<td>{{ $row->teacher }}</td>
-								<td>{{ $row->management }}</td>
-								<td>{{ $row->nebrija_title }}</td>
-								<td>{{ $row->discount }}</td>
-								<td>{{ $row->collaborator_commission }}</td>
-								<td>{{ $row->advisor_commission }}</td>
+								<td>{{ $row->course_name }}</td>
+								<td>{{ $row->company_name }}</td>
+								<td>{{ $row->student_name }} {{$row->student_surname}}</td>
 								<td>{{ $row->total }}</td>
-								<td>{{ $row->benefits }}</td>
-								<td>{{ $row->observations }}</td>
 								<td width="90">
 								<div class="btn-group">
-									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									Acciones
 									</button>
-									<div class="dropdown-menu dropdown-menu-right">
+                                    <div class="dropdown-menu dropdown-menu-right">
 									<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>
 									</div>
 								</div>

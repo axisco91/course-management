@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div wire:ignore.self class="modal fade" id="createDataModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="createDataModalLabel" aria-hidden="true">
+<div wire:ignore.self class="modal fade" id="createDataModal" data-bs-backdrop="static" role="dialog" aria-labelledby="createDataModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -11,15 +11,19 @@
            <div class="modal-body">
 				<form>
                     <div class="row">
-                       <div class="form-group col-4">
+                        <div class="form-group col-3">
+                            <label for="formative_action">Acción Formativa</label>
+                            <input wire:model.lazy="formative_action" type="text" class="form-control" id="formative_action" disabled placeholder="Nombre">@error('formative_action') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
+                       <div class="form-group col-3">
                             <label for="name">Nombre</label>
                             <input wire:model.lazy="name" type="text" class="form-control" id="name" placeholder="Nombre">@error('name') <span class="error text-danger">{{ $message }}</span> @enderror
                        </div>
-                       <div class="form-group col-4">
+                       <div class="form-group col-3">
                            <div wire:ignore>
                                <label for="create_action_type_id">Tipo Acción</label>
                                <select wire:model.lazy="create_action_type_id" class="form-control selectCreate" id="create_action_type_id">
-                                   <option value="">Seleccione un tipo de acción</option>
+                                   <option value="-1">Seleccione un tipo de acción</option>
                                    @foreach($action_types as $type)
                                        <option value="{{$type['id']}}">{{$type['name']}}</option>
                                    @endforeach
@@ -27,11 +31,11 @@
                            </div>
                            @error('create_action_type_id') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                       <div class="form-group col-4">
+                       <div class="form-group col-3">
                            <div wire:ignore>
                                <label for="create_professional_family_id">Familia profesional</label>
                                <select wire:model.lazy="create_professional_family_id" class="form-control selectCreate" id="create_professional_family_id">
-                                   <option value="">Seleccione una familia profesional</option>
+                                   <option value="-1">Seleccione una familia profesional</option>
                                    @foreach($professional_families as $family)
                                        <option value="{{$family['id']}}">{{$family['name']}}</option>
                                    @endforeach
@@ -43,7 +47,7 @@
                            <div wire:ignore>
                                <label for="create_professional_area_id">Área profesional</label>
                                <select wire:model.lazy="create_professional_area_id" class="form-control selectCreate" id="create_professional_area_id">
-                                   <option value="">Seleccione una area profesional</option>
+                                   <option value="-1">Seleccione una area profesional</option>
                                    @foreach($professional_areas as $area)
                                        <option value="{{$area['id']}}">{{$area['name']}}</option>
                                    @endforeach
@@ -55,20 +59,19 @@
                            <div wire:ignore>
                                <label for="create_modality_id">Modalidad</label>
                                <select wire:model.lazy="create_modality_id" class="form-control selectCreate" id="create_modality_id">
-                                   <option value="">Seleccione una modalidad</option>
+                                   <option value="-1">Seleccione una modalidad</option>
                                    @foreach($modalities as $modalidad)
                                        <option value="{{$modalidad['id']}}">{{$modalidad['name']}}</option>
                                    @endforeach
                                </select>
                            </div>
-
                             @error('create_modality_id') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                        <div class="form-group col-4">
                            <div wire:ignore>
                                <label for="create_training_action_level_id">Nivel</label>
                                <select wire:model.lazy="create_training_action_level_id" class="form-control selectCreate" id="create_training_action_level_id">
-                                   <option value="">Seleccione un nivel</option>
+                                   <option value="-1">Seleccione un nivel</option>
                                    @foreach($training_action_levels as $level)
                                        <option value="{{$level['id']}}">{{$level['name']}}</option>
                                    @endforeach
@@ -80,7 +83,7 @@
                            <div wire:ignore>
                                <label for="create_training_action_group_id">Grupos</label>
                                <select wire:model.lazy="create_training_action_group_id" class="form-control selectCreate" id="create_training_action_group_id">
-                                   <option value="">Seleccione un grupo</option>
+                                   <option value="-1">Seleccione un grupo</option>
                                    @foreach($training_action_groups as $group)
                                        <option value="{{$group['id']}}">{{$group['name']}}</option>
                                    @endforeach
@@ -126,15 +129,19 @@
                             <label for="in_catalog"> <input wire:model.lazy="in_catalog" type="checkbox" id="in_catalog" value="in_catalog" {{$in_catalog == 1 ? 'che' : ''}}> En Catalogo</label>
                             @error('in_catalog') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                       <div class="form-group col-4">
+                       <div class="form-group col-3">
                             <label for="face_to_face_hours">Horas Presenciales</label>
-                            <input wire:model.lazy="face_to_face_hours" type="text" class="form-control" id="face_to_face_hours" placeholder="Horas Presenciales">@error('face_to_face_hours') <span class="error text-danger">{{ $message }}</span> @enderror
+                            <input wire:model.lazy="face_to_face_hours" type="text" class="form-control" id="face_to_face_hours" placeholder="Horas Presenciales">@error('create_face_to_face_hours') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                       <div class="form-group col-4">
-                            <label for="teletraining_hours">Horas Teletrabajo</label>
-                            <input wire:model.lazy="teletraining_hours" type="text" class="form-control" id="teletraining_hours" placeholder="Horas Teletrabajo">@error('teletraining_hours') <span class="error text-danger">{{ $message }}</span> @enderror
+                       <div class="form-group col-3">
+                            <label for="create_teletraining_hours">Horas Teletrabajo</label>
+                            <input wire:model.lazy="teletraining_hours" type="text" class="form-control" id="teletraining_hours" placeholder="Horas Teletrabajo">@error('create_teletraining_hours') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                       <div class="form-group col-4">
+                        <div class="form-group col-3">
+                            <label for="create_total_hours">Horas Totales</label>
+                            <input wire:model.lazy="total_hours" type="text" class="form-control" id="total_hours" disabled placeholder="Horas Totales">@error('create_total_hours') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
+                       <div class="form-group col-3">
                             <label for="price">Precio</label>
                             <input wire:model.lazy="price" type="text" class="form-control" id="price" placeholder="Precio">@error('price') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
@@ -204,7 +211,11 @@
         document.addEventListener('livewire:load', function(){
             $('.selectCreate').select2()
             $('.selectCreate').on('change', function(){
+                dropdownParent: $("#create_action_type_id")
             @this.set(this.id, $(this).val())
+            })
+            $('#create_face_to_face_hours, #create_teletraining_hours').on('change', function(){
+            @this.setTotalHours(Number($('#create_face_to_face_hours').val()), Number($('#create_teletraining_hours').val()))
             })
         })
     </script>

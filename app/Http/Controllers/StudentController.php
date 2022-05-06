@@ -12,4 +12,8 @@ class StudentController extends Controller
         return view('students.index');
     }
 
+    public function edit($id){
+        return view('students.update', compact('id'));
+    }
+
 }

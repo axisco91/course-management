@@ -20,5 +20,4 @@ class TeacherArea extends Model
     {
         return $this->hasMany('App\Models\AreasTeacherArea', 'teacher_area_id', 'id');
     }
-
 }

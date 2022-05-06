@@ -22,10 +22,11 @@ class TrainingActions extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $name, $teacher_id, $action_type_id, $professional_family_id, $professional_area_id,
+    public $selected_id, $keyWord, $inactiveFilter, $name, $teacher_id, $action_type_id, $professional_family_id, $professional_area_id,
         $modality_id, $training_action_level_id, $training_action_group_id, $tutoring_id, $course_z, $course_avz, $active = 1,
         $in_catalog = 1, $face_to_face_hours, $teletraining_hours, $total_hours, $price, $objectives, $content, $user,
-        $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password;
+        $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password,
+        $create_total_hours, $formative_action;
     public $create_action_type_id, $create_professional_family_id, $create_professional_area_id, $create_modality_id, $create_training_action_level_id,
         $create_training_acion_group_id, $create_tutoring_id, $create_web_platform_id, $create_provider_id, $create_training_action_group_id;
     public $updateMode = false;
@@ -49,31 +50,36 @@ class TrainingActions extends Component
             ->leftjoin('training_action_groups', 'training_action_groups.id', '=', 'training_actions.training_action_group_id')
             ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
             ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
-            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id')
-            ->orWhere('training_actions.name', 'LIKE', $keyWord)
-            ->orWhere('action_types.name', 'LIKE', $keyWord)
-            ->orWhere('professional_families.name', 'LIKE', $keyWord)
-            ->orWhere('professional_areas.name', 'LIKE', $keyWord)
-            ->orWhere('modalities.name', 'LIKE', $keyWord)
-            ->orWhere('training_action_levels.name', 'LIKE', $keyWord)
-            ->orWhere('training_action_groups.name', 'LIKE', $keyWord)
-            ->orWhere('tutorings.name', 'LIKE', $keyWord)
-            ->orWhere('course_z', 'LIKE', $keyWord)
-            ->orWhere('course_avz', 'LIKE', $keyWord)
-            ->orWhere('active', 'LIKE', $keyWord)
-            ->orWhere('in_catalog', 'LIKE', $keyWord)
-            ->orWhere('face_to_face_hours', 'LIKE', $keyWord)
-            ->orWhere('teletraining_hours', 'LIKE', $keyWord)
-            ->orWhere('total_hours', 'LIKE', $keyWord)
-            ->orWhere('price', 'LIKE', $keyWord)
-            ->orWhere('objectives', 'LIKE', $keyWord)
-            ->orWhere('content', 'LIKE', $keyWord)
-            ->orWhere('training_actions.user', 'LIKE', $keyWord)
-            ->orWhere('web_platforms.name', 'LIKE', $keyWord)
-            ->orWhere('training_actions.observations', 'LIKE', $keyWord)
-            ->orWhere('number_activities', 'LIKE', $keyWord)
-            ->orWhere('number_units', 'LIKE', $keyWord)
-            ->orWhere('providers.name', 'LIKE', $keyWord)
+            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
+        if ($this->inactiveFilter != 1) {
+            $trainingActions = $trainingActions->where('inactive', 0);
+        }
+        $trainingActions = $trainingActions->where(function ($query) use ($keyWord){
+            $query->orWhere('training_actions.name', 'LIKE', $keyWord)
+                ->orWhere('action_types.name', 'LIKE', $keyWord)
+                ->orWhere('professional_families.name', 'LIKE', $keyWord)
+                ->orWhere('professional_areas.name', 'LIKE', $keyWord)
+                ->orWhere('modalities.name', 'LIKE', $keyWord)
+                ->orWhere('training_action_levels.name', 'LIKE', $keyWord)
+                ->orWhere('training_action_groups.name', 'LIKE', $keyWord)
+                ->orWhere('tutorings.name', 'LIKE', $keyWord)
+                ->orWhere('course_z', 'LIKE', $keyWord)
+                ->orWhere('course_avz', 'LIKE', $keyWord)
+                ->orWhere('active', 'LIKE', $keyWord)
+                ->orWhere('in_catalog', 'LIKE', $keyWord)
+                ->orWhere('face_to_face_hours', 'LIKE', $keyWord)
+                ->orWhere('teletraining_hours', 'LIKE', $keyWord)
+                ->orWhere('total_hours', 'LIKE', $keyWord)
+                ->orWhere('price', 'LIKE', $keyWord)
+                ->orWhere('objectives', 'LIKE', $keyWord)
+                ->orWhere('content', 'LIKE', $keyWord)
+                ->orWhere('training_actions.user', 'LIKE', $keyWord)
+                ->orWhere('web_platforms.name', 'LIKE', $keyWord)
+                ->orWhere('training_actions.observations', 'LIKE', $keyWord)
+                ->orWhere('number_activities', 'LIKE', $keyWord)
+                ->orWhere('number_units', 'LIKE', $keyWord)
+                ->orWhere('providers.name', 'LIKE', $keyWord);
+        })->orderby('name', 'desc')
             ->paginate(10);
 
         foreach ($trainingActions as $action) {
@@ -107,7 +113,9 @@ class TrainingActions extends Component
         $this->training_action_groups = TrainingActionGroup::all();
         $this->tutorings = Tutoring::all();
         $this->web_platforms = WebPlatform::all();
-        $this->providers = Provider::all();
+        $this->providers = Provider::select('providers.*')
+            ->join('companies', 'companies.id', '=', 'providers.company_id')
+            ->where('companies.inactive', 0)->get();
     }
 
     private function resetInput()
@@ -146,6 +154,7 @@ class TrainingActions extends Component
         $this->create_training_action_level_id = null;
         $this->create_tutoring_id = null;
         $this->create_web_platform_id = null;
+        $this->formative_action = null;
     }
 
     public function store()
@@ -153,11 +162,8 @@ class TrainingActions extends Component
         $this->validate([
 		'name' => 'required',
 		'create_action_type_id' => 'required',
-		'create_professional_family_id' => 'required',
-		'create_professional_area_id' => 'required',
 		'create_modality_id' => 'required',
 		'create_training_action_level_id' => 'required',
-		'create_training_action_group_id' => 'required',
 		'create_tutoring_id' => 'required',
 		'face_to_face_hours' => 'required',
 		'teletraining_hours' => 'required',
@@ -169,14 +175,14 @@ class TrainingActions extends Component
         TrainingAction::create([
 			'name' => $this-> name,
 			'action_type_id' => $this-> create_action_type_id,
-			'professional_family_id' => $this-> create_professional_family_id,
-			'professional_area_id' => $this-> create_professional_area_id,
+			'professional_family_id' => $this-> create_professional_family_id != -1 ? $this-> create_professional_family_id : null,
+			'professional_area_id' => $this-> create_professional_area_id != -1 ? $this-> create_professional_area_id : null,
 			'modality_id' => $this-> create_modality_id,
 			'training_action_level_id' => $this-> create_training_action_level_id,
-			'training_action_group_id' => $this-> create_training_action_group_id,
+			'training_action_group_id' => $this-> create_training_action_group_id != -1 ? $this-> create_training_action_group_id :null,
 			'tutoring_id' => $this-> create_tutoring_id,
-			'course_z' => $this-> course_z,
-			'course_avz' => $this-> course_avz,
+			'course_z' => $this-> course_z == true ? 1 : 0,
+			'course_avz' => $this-> course_avz == true ? 1 : 0,
 			'active' => $this-> active == true ? 1 : 0,
 			'in_catalog' => $this-> in_catalog == true ? 1 : 0,
 			'face_to_face_hours' => $this-> face_to_face_hours,
@@ -203,6 +209,7 @@ class TrainingActions extends Component
     {
         $record = TrainingAction::findOrFail($id);
 
+        $this->action($id);
         $this->selected_id = $id;
 		$this->name = $record-> name;
 		$this->action_type_id = $record-> action_type_id;
@@ -238,11 +245,8 @@ class TrainingActions extends Component
         $this->validate([
             'name' => 'required',
             'action_type_id' => 'required',
-            'professional_family_id' => 'required',
-            'professional_area_id' => 'required',
             'modality_id' => 'required|numeric|min:1',
             'training_action_level_id' => 'required',
-            'training_action_group_id' => 'required',
             'tutoring_id' => 'required',
             'face_to_face_hours' => 'required',
             'teletraining_hours' => 'required',
@@ -256,14 +260,14 @@ class TrainingActions extends Component
             $record->update([
                 'name' => $this-> name,
                 'action_type_id' => $this-> action_type_id,
-                'professional_family_id' => $this-> professional_family_id,
-                'professional_area_id' => $this-> professional_area_id,
+                'professional_family_id' => $this-> professional_family_id != -1 ? $this-> professional_family_id : null,
+                'professional_area_id' => $this-> professional_area_id != -1 ? $this-> professional_area_id  : null,
                 'modality_id' => $this-> modality_id,
                 'training_action_level_id' => $this-> training_action_level_id,
-                'training_action_group_id' => $this-> training_action_group_id,
+                'training_action_group_id' => $this-> training_action_group_id != -1 ? $this-> training_action_group_id : null,
                 'tutoring_id' => $this-> tutoring_id,
-                'course_z' => $this-> course_z,
-                'course_avz' => $this-> course_avz,
+                'course_z' => $this-> course_z == true ? 1 : 0,
+                'course_avz' => $this-> course_avz == true ? 1 : 0,
                 'active' => $this-> active == true ? 1 : 0,
                 'in_catalog' => $this-> in_catalog == true ? 1 : 0,
                 'face_to_face_hours' => $this-> face_to_face_hours,
@@ -284,6 +288,40 @@ class TrainingActions extends Component
             $this->resetInput();
             $this->updateMode = false;
 			session()->flash('message', 'Acción formativa actualizada con exito.');
+        }
+    }
+    public function setTotalHours($face_to_face, $teletraining) {
+        $this->total_hours = $face_to_face+$teletraining;
+        $this->create_total_hours = $face_to_face+$teletraining;
+    }
+
+    public function action($id = null){
+        if (!$id){
+            $training = TrainingAction::orderBy('id', 'desc')->first();
+            $id = $training['id']+1;
+        }
+        if ($id < 10) {
+            $this->formative_action = '00'.$id;
+        }
+        else if ($id < 100) {
+            $this->formative_action = '0'.$id;
+        } else {
+            $this->formative_action = $id;
+        }
+    }
+
+    public function changeState($id){
+        $trainingActions = TrainingAction::find($id);
+        if ($trainingActions->inactive == 1){
+            $trainingActions->update([
+                'inactive' => 0
+            ]);
+            session()->flash('message', 'Acción formativa activado con exito.');
+        } else {
+            $trainingActions->update([
+                'inactive' => 1
+            ]);
+            session()->flash('message', 'Acción formativa desactivado con exito.');
         }
     }
 }

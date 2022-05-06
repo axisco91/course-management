@@ -12,4 +12,7 @@ class TeacherController extends Controller
         return view('teachers.index');
     }
 
+    public function edit($id){
+        return view('teachers.update', compact('id'));
+    }
 }

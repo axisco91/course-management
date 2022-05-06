@@ -30,6 +30,10 @@ use App\Http\Controllers\CourseStatusController;
 use App\Http\Controllers\Tracingcontroller;
 use App\Http\Controllers\CompanyobservationController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\BillingController;
+use App\Http\Controllers\CommandController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -51,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('companies')->group(function() {
         Route::controller(CompanyController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
         });
     });
     /**
@@ -59,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('advisors')->group(function() {
         Route::controller(AdvisorController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
         });
     });
     /**
@@ -67,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('students')->group(function() {
         Route::controller(StudentController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
         });
     });
     /**
@@ -75,6 +82,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('teachers')->group(function() {
         Route::controller(TeacherController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
         });
     });
     /**
@@ -91,14 +99,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('training-actions')->group(function() {
         Route::controller(TrainingActionController::class)->group(function(){
             Route::get('', 'index');
-        });
-    });
-    /**
-     * Training Actions Routes
-     */
-    Route::prefix('training-actions')->group(function() {
-        Route::controller(TrainingActionController::class)->group(function(){
-            Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
         });
     });
     /**
@@ -107,6 +108,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('providers')->group(function() {
         Route::controller(ProviderController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
         });
     });
     /**
@@ -115,6 +117,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('courses')->group(function() {
         Route::controller(CourseController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
         });
     });
     /**
@@ -126,10 +129,33 @@ Route::middleware(['auth'])->group(function () {
         });
     });
     /**
-     * Training Actions Routes
+     * Users User
      */
     Route::prefix('users')->group(function() {
         Route::controller(UserController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    /**
+     * Roles Routes
+     */
+    Route::prefix('roles')->group(function() {
+        Route::controller(RoleController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    /**
+     * Roles Routes
+     */
+    Route::prefix('billings')->group(function() {
+        Route::controller(BillingController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
+        });
+    });
+
+    Route::prefix('commands')->group(function() {
+        Route::controller(CommandController::class)->group(function(){
             Route::get('', 'index');
         });
     });
@@ -137,7 +163,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 });
 Route::get('/register', App\Http\Livewire\Auth\Register::class);
-Auth::routes(['register' => false]);
+Auth::routes(['register' => true]);
 
 Auth::routes();
 
@@ -147,7 +173,6 @@ Route::get('/home', 'HomeController@index')->name('home');
 	Route::view('profitabilities', 'livewire.profitabilities.index')->middleware('auth');
 	Route::view('training_action_levels', 'livewire.training-action-levels.index')->middleware('auth');
 	Route::view('level_studies', 'livewire.level-studies.index')->middleware('auth');
-	Route::view('billings', 'livewire.billings.index')->middleware('auth');
 	Route::view('areas_teacher_areas', 'livewire.areas-teacher-areas.index')->middleware('auth');
 	Route::view('teacher_areas', 'livewire.teacher-areas.index')->middleware('auth');
 	Route::view('bonuses', 'livewire.bonuses.index')->middleware('auth');

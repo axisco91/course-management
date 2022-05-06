@@ -20,8 +20,8 @@ class CreateTrainingActionsTable extends Migration
             $table->foreignId('teacher_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('course_provider_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('action_type_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('professional_families_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('professional_areas_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('professional_family_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('professional_area_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('modality_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('training_action_level_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('training_action_group_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');

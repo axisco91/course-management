@@ -9,6 +9,7 @@ use App\Models\CompanyObservation;
 use App\Models\CompanyType;
 use App\Models\Provider;
 use App\Models\Province;
+use App\Models\Teacher;
 use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -19,7 +20,7 @@ class Companies extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $observation;
+    public $selected_id, $keyWord, $inactiveFilter, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $observation, $inactive;
     public $updateMode = false, $createObservationModal = false, $updateObservationModal = false;
     public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null;
     public $create_type_id, $create_activity_id, $create_cnae_id, $create_province_id, $create_advisor_id;
@@ -35,27 +36,33 @@ class Companies extends Component
             ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
-            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
-            ->orWhere('companies.name', 'LIKE', $keyWord)
-            ->orWhere('nif', 'LIKE', $keyWord)
-            ->orWhere('company_types.name', 'LIKE', $keyWord)
-            ->orWhere('company_activities.name', 'LIKE', $keyWord)
-            ->orWhere('email', 'LIKE', $keyWord)
-            ->orWhere('telephone', 'LIKE', $keyWord)
-            ->orWhere('legal_representative', 'LIKE', $keyWord)
-            ->orWhere('dni_legal_representative', 'LIKE', $keyWord)
-            ->orWhere('quote', 'LIKE', $keyWord)
-            ->orWhere('cnaes.name', 'LIKE', $keyWord)
-            ->orWhere('average_template', 'LIKE', $keyWord)
-            ->orWhere('iban', 'LIKE', $keyWord)
-            ->orWhere('sepa', 'LIKE', $keyWord)
-            ->orWhere('b2b', 'LIKE', $keyWord)
-            ->orWhere('address', 'LIKE', $keyWord)
-            ->orWhere('post_code', 'LIKE', $keyWord)
-            ->orWhere('provinces.name', 'LIKE', $keyWord)
-            ->orWhere('population', 'LIKE', $keyWord)
-            ->orWhere('active', 'LIKE', $keyWord)
-            ->orWhere('advisors.name', 'LIKE', $keyWord)
+            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id');
+        if ($this->inactiveFilter != 1) {
+            $companies = $companies->where('inactive', 0);
+        }
+
+        $companies = $companies->where(function ($query) use ($keyWord){
+            $query->orWhere('companies.name', 'LIKE', $keyWord)
+                ->orWhere('nif', 'LIKE', $keyWord)
+                ->orWhere('company_types.name', 'LIKE', $keyWord)
+                ->orWhere('company_activities.name', 'LIKE', $keyWord)
+                ->orWhere('email', 'LIKE', $keyWord)
+                ->orWhere('telephone', 'LIKE', $keyWord)
+                ->orWhere('legal_representative', 'LIKE', $keyWord)
+                ->orWhere('dni_legal_representative', 'LIKE', $keyWord)
+                ->orWhere('quote', 'LIKE', $keyWord)
+                ->orWhere('cnaes.name', 'LIKE', $keyWord)
+                ->orWhere('average_template', 'LIKE', $keyWord)
+                ->orWhere('iban', 'LIKE', $keyWord)
+                ->orWhere('sepa', 'LIKE', $keyWord)
+                ->orWhere('b2b', 'LIKE', $keyWord)
+                ->orWhere('address', 'LIKE', $keyWord)
+                ->orWhere('post_code', 'LIKE', $keyWord)
+                ->orWhere('provinces.name', 'LIKE', $keyWord)
+                ->orWhere('population', 'LIKE', $keyWord)
+                ->orWhere('active', 'LIKE', $keyWord)
+                ->orWhere('advisors.name', 'LIKE', $keyWord);
+        })->orderBy('name', 'desc')
             ->paginate(10);
 
         foreach ($companies as $company) {
@@ -85,7 +92,9 @@ class Companies extends Component
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
         $this->provinces = Province::all();
-        $this->advisors = Advisor::all();
+        $this->advisors = Advisor::select('advisors.*')
+            ->join('companies', 'companies.id', '=', 'advisors.company_id')
+            ->where('companies.inactive', 0)->get();
         $this->company_id = null;
     }
 
@@ -124,6 +133,11 @@ class Companies extends Component
 		$this->remaining_credit = null;
 		$this->advisor_id = null;
         $this->company_id = null;
+        $this->observation = null;
+        $this->observations = null;
+    }
+
+    public function resetObservation(){
         $this->observation = null;
     }
 
@@ -164,86 +178,35 @@ class Companies extends Component
 		session()->flash('message', 'Company Successfully created.');
     }
 
-    public function edit($id)
+    public function general($id)
     {
-        $record = Company::findOrFail($id);
+        if ($id){
+            $record = Company::findOrFail($id);
 
-        $this->selected_id = $id;
-		$this->name = $record-> name;
-		$this->nif = $record-> nif;
-		$this->type_id = $record-> company_type_id;
-		$this->activity_id = $record-> company_activity_id;
-		$this->email = $record-> email;
-		$this->telephone = $record-> telephone;
-		$this->legal_representative = $record-> legal_representative;
-		$this->dni_legal_representative = $record-> dni_legal_representative;
-		$this->quote = $record-> quote;
-		$this->cnae_id = $record-> cnae_id;
-		$this->average_template = $record-> average_template;
-		$this->iban = $record-> iban;
-		$this->sepa = $record-> sepa;
-		$this->b2b = $record-> b2b;
-		$this->address = $record-> address;
-		$this->post_code = $record-> post_code;
-		$this->population_id = $record-> population_id;
-		$this->province_id = $record-> province_id;
-		$this->population = $record-> population;
-		$this->active = $record-> active;
-		$this->advisor_id = $record-> advisor_id;
+            $this->selected_id = $id;
+            $this->name = $record-> name;
+            $this->nif = $record-> nif;
+            $this->type_id = $record-> company_type_id;
+            $this->activity_id = $record-> company_activity_id;
+            $this->email = $record-> email;
+            $this->telephone = $record-> telephone;
+            $this->legal_representative = $record-> legal_representative;
+            $this->dni_legal_representative = $record-> dni_legal_representative;
+            $this->quote = $record-> quote;
+            $this->cnae_id = $record-> cnae_id;
+            $this->average_template = $record-> average_template;
+            $this->iban = $record-> iban;
+            $this->sepa = $record-> sepa;
+            $this->b2b = $record-> b2b;
+            $this->address = $record-> address;
+            $this->post_code = $record-> post_code;
+            $this->population_id = $record-> population_id;
+            $this->province_id = $record-> province_id;
+            $this->population = $record-> population;
+            $this->active = $record-> active;
+            $this->advisor_id = $record-> advisor_id;
 
-        $this->updateMode = true;
-    }
-
-    public function update()
-    {
-        $this->validate([
-		'name' => 'required',
-        'type_id' => 'required|numeric|min:1',
-        'activity_id' => 'required|numeric|min:1',
-        'province_id' => 'required|numeric|min:1',
-        ]);
-
-        if ($this->selected_id) {
-			$record = Company::find($this->selected_id);
-            $record->update([
-                'name' => $this-> name,
-                'nif' => $this-> nif,
-                'company_type_id' => $this-> type_id != -1 ? $this-> type_id : null,
-                'company_activity_id' => $this-> activity_id != -1 ? $this-> activity_id : null,
-                'email' => $this-> email,
-                'telephone' => $this-> telephone,
-                'legal_representative' => $this-> legal_representative,
-                'dni_legal_representative' => $this-> dni_legal_representative,
-                'quote' => $this-> quote,
-                'cnae_id' => $this-> cnae_id != -1 ? $this-> cnae_id : null,
-                'average_template' => $this-> average_template,
-                'iban' => $this-> iban,
-                'sepa' => $this-> sepa,
-                'b2b' => $this-> b2b,
-                'address' => $this-> address,
-                'post_code' => $this-> post_code,
-                'province_id' => $this-> province_id != -1 ? $this-> province_id : null,
-                'population' => $this-> population,
-                'active' => $this-> active == true ? 1 : 0,
-                'advisor_id' => $this-> advisor_id != -1 ? $this-> advisor_id : null
-            ]);
-
-            $advisor = Advisor::where('company_id', $this->selected_id)->first();
-            if ($advisor){
-                $advisor->update([
-                    'name' => $this-> name,
-                ]);
-            }
-            $provider = Provider::where('company_id', $this->selected_id)->first();
-            if ($provider){
-                $provider->update([
-                    'name' => $this-> name,
-                ]);
-            }
-
-            $this->resetInput();
-            $this->updateMode = false;
-			session()->flash('message', 'Company Successfully updated.');
+            $this-> observations = CompanyObservation::where('company_id', $id)->get();
         }
     }
 
@@ -321,7 +284,7 @@ class Companies extends Component
                 'observation' => $this->observation
             ]);
 
-            $this->resetInput();
+            $this->resetObservation();
             $this->updateObservationModal = false;
             session()->flash('message', 'Obseervación actualizado con exito.');
         }
@@ -330,6 +293,21 @@ class Companies extends Component
         if ($id) {
             $record = CompanyObservation::where('id', $id);
             $record->delete();
+        }
+    }
+
+    public function changeState($id){
+        $companies = Company::find($id);
+        if ($companies->inactive == 1){
+            $companies->update([
+                'inactive' => 0
+            ]);
+            session()->flash('message', 'Empresa activado con exito.');
+        } else {
+            $companies->update([
+                'inactive' => 1
+            ]);
+            session()->flash('message', 'Empresa desactivado con exito.');
         }
     }
 }

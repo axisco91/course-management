@@ -7,7 +7,7 @@
 					<div style="display: flex; justify-content: space-between; align-items: center;">
 						<div class="float-left">
 							<h4><i class="fab fa-laravel text-info"></i>
-							Teacher Listing </h4>
+							Docentes </h4>
 						</div>
 						@if (session()->has('message'))
 						<div wire:poll.4s class="btn btn-sm btn-success" style="margin-top:0px; margin-bottom:0px;"> {{ session('message') }} </div>
@@ -15,6 +15,9 @@
 						<div>
 							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
 						</div>
+                        <div>
+                            <label for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
+                        </div>
 						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
 						<i class="fa fa-plus"></i>  Añadir Docente
 						</div>
@@ -34,6 +37,7 @@
 								<th>Email</th>
 								<th>Telephone</th>
 								<th>User</th>
+                                <th>Estado</th>
 								<td>Acciones</td>
 							</tr>
 						</thead>
@@ -47,13 +51,20 @@
 								<td>{{ $row->email }}</td>
 								<td>{{ $row->telephone }}</td>
 								<td>{{ $row->user }}</td>
+                                <td>{{$row->inactive == 1 ? 'Inactivo' : 'Activo'}}</td>
 								<td width="90">
 								<div class="btn-group">
 									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
 									Acciones
 									</button>
 									<div class="dropdown-menu dropdown-menu-right">
-									<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>
+									    <!--<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>-->
+                                        <a href="{{url('/teachers/edit/'.$row->id)}}" class="dropdown-item"><i class="fa fa-edit"></i> Editar </a>
+                                        @if ($row->inactivo == 1)
+                                            <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}} {{$row->surname}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
+                                        @else
+                                            <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}} {{$row->surname}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
+                                        @endif
 									</div>
 								</div>
 								</td>

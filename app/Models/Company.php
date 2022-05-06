@@ -11,7 +11,7 @@ class Company extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','nif','company_type_id','company_activity_id','email','telephone','legal_representative','dni_legal_representative','quote','cnae_id','average_template','iban','sepa','b2b','address','post_code','population_id','province_id','population','active','advisor_id'];
+    protected $fillable = ['name','nif','company_type_id','company_activity_id','email','telephone','legal_representative','dni_legal_representative','quote','cnae_id','average_template','iban','sepa','b2b','address','post_code','population_id','province_id','population','active','advisor_id', 'inactive'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

@@ -12,4 +12,7 @@ class TrainingActionController extends Controller
         return view('training-actions.index');
     }
 
+    public function edit($id){
+        return view('training-actions.update', compact('id'));
+    }
 }

@@ -28,5 +28,4 @@ class Province extends Model
     {
         return $this->hasMany('App\Models\Student', 'province_id', 'id');
     }
-
 }

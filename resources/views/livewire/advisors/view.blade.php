@@ -58,7 +58,8 @@
 									Acciones
 									</button>
 									<div class="dropdown-menu dropdown-menu-right">
-									<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-Edit"></i> Editar </a>
+									    <!--<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-Edit"></i> Editar </a>-->
+                                        <a href="{{url('/advisors/edit/'.$row->id)}}" class="dropdown-item"><i class="fa fa-Edit"></i> Editar </a>
 									</div>
 								</div>
 								</td>

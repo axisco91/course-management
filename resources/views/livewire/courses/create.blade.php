@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div wire:ignore.self class="modal fade" id="createDataModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="createDataModalLabel" aria-hidden="true">
+<div wire:ignore.self class="modal fade" id="createDataModal" data-bs-backdrop="static" role="dialog" aria-labelledby="createDataModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -24,7 +24,7 @@
                                        <option value="{{$action['id']}}">
                                            @if ($action['id'] < 10)
                                                00{{$action['id']}} - {{$action['name']}}
-                                           @elseif($action < 100)
+                                           @elseif($action['id'] < 100)
                                                0{{$action['id']}} - {{$action['name']}}
                                            @else
                                                {{$action['id']}} - {{$action['name']}}
@@ -41,8 +41,8 @@
                         </div>
                        <div class="form-group col-4">
                            <div wire:ignore>
-                               <label for="course_type_id">Tipo Curso</label>
-                               <select wire:model.lazy="course_type_id" class="form-control selectCreate" id="course_type_id">
+                               <label for="create_course_type_id">Tipo Curso</label>
+                               <select wire:model.lazy="create_course_type_id" class="form-control selectCreate" id="create_course_type_id">
                                    <option value="">Seleccione un tipo</option>
                                    @foreach($course_types as $type)
                                        <option value="{{$type['id']}}">{{$type['name']}}</option>

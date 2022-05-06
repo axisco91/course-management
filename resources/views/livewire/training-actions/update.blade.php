@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div wire:ignore.self class="modal fade" id="updateModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+<div wire:ignore.self class="modal fade" id="updateModal" data-bs-backdrop="static" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
        <div class="modal-content">
             <div class="modal-header">
@@ -12,11 +12,15 @@
                 <form>
 					<input type="hidden" wire:model="selected_id">
                     <div class="row">
-                        <div class="form-group col-4">
+                        <div class="form-group col-3">
+                            <label for="formative_action">Acción Formativa</label>
+                            <input wire:model.lazy="formative_action" type="text" class="form-control" id="formative_action" disabled placeholder="Nombre">@error('formative_action') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="form-group col-3">
                             <label for="name">Nombre</label>
                             <input wire:model.lazy="name" type="text" class="form-control" id="name" placeholder="Nombre">@error('name') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                        <div class="form-group col-4">
+                        <div class="form-group col-3">
                             <div wire:ignore>
                                 <label for="action_type_id">Tipo Acción</label>
                                 <select wire:model.lazy="action_type_id" class="form-control select2" id="action_type_id">
@@ -28,7 +32,7 @@
                             </div>
                             @error('action_type_id') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                        <div class="form-group col-4">
+                        <div class="form-group col-3">
                             <div wire:ignore>
                                 <label for="professional_family_id">Familia profesional</label>
                                 <select wire:model.lazy="professional_family_id" class="form-control select2" id="professional_family_id">
@@ -126,15 +130,19 @@
                             <label for="in_catalog"> <input wire:model.lazy="in_catalog" type="checkbox" id="in_catalog" value="in_catalog" {{$in_catalog == 1 ? 'che' : ''}}> En Catalogo</label>
                             @error('in_catalog') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                        <div class="form-group col-4">
+                        <div class="form-group col-3">
                             <label for="face_to_face_hours">Horas Presenciales</label>
                             <input wire:model.lazy="face_to_face_hours" type="text" class="form-control" id="face_to_face_hours" placeholder="Horas Presenciales">@error('face_to_face_hours') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                        <div class="form-group col-4">
+                        <div class="form-group col-3">
                             <label for="teletraining_hours">Horas Teletrabajo</label>
                             <input wire:model.lazy="teletraining_hours" type="text" class="form-control" id="teletraining_hours" placeholder="Horas Teletrabajo">@error('teletraining_hours') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                        <div class="form-group col-4">
+                        <div class="form-group col-3">
+                            <label for="total_hours">Horas Totales</label>
+                            <input wire:model.lazy="total_hours" type="text" class="form-control" id="total_hours" disabled placeholder="Horas Totales">@error('total_hours') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="form-group col-3">
                             <label for="price">Precio</label>
                             <input wire:model.lazy="price" type="text" class="form-control" id="price" placeholder="Precio">@error('price') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
@@ -208,6 +216,9 @@
                 })
                 $('.select2').on('change', function(){
                 @this.set(this.id, $(this).val())
+                })
+                $('#face_to_face_hours, #teletraining_hours').on('change', function(){
+                @this.setTotalHours(Number($('#face_to_face_hours').val()), Number($('#teletraining_hours').val()))
                 })
             })
         </script>

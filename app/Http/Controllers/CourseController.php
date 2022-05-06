@@ -12,7 +12,7 @@ class CourseController extends Controller
         return view('courses.index');
     }
 
-    public function update($id){
+    public function edit($id){
         return view('courses.update', compact('id'));
     }
 }

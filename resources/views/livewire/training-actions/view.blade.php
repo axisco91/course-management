@@ -15,7 +15,10 @@
 						<div>
 							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
 						</div>
-						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
+                        <div>
+                            <label for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
+                        </div>
+						<div class="btn btn-sm btn-info" data-bs-toggle="modal" wire:click="action()" data-bs-target="#createDataModal">
 						<i class="fa fa-plus"></i>  Añadir Acción Formativa
 						</div>
 					</div>
@@ -37,6 +40,7 @@
 								<th>En Catalogo</th>
 								<th>Plataforma</th>
 								<th>Proveedor</th>
+                                <th>Estado</th>
 								<td>Acciones</td>
 							</tr>
 						</thead>
@@ -52,13 +56,20 @@
 								<td>{{ $row->in_catalog == 1 ? 'Si' : 'No' }}</td>
 								<td>{{ $row->web_platform }}</td>
 								<td>{{ $row->provider }}</td>
+                                <td>{{$row->inactive == 1 ? 'Inactivo' : 'Activo'}}</td>
 								<td width="90">
 								<div class="btn-group">
 									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									Acciones
 									</button>
 									<div class="dropdown-menu dropdown-menu-right">
-									<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>
+									<!--<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>-->
+                                        <a href="{{url('/training-actions/edit/'.$row->id)}}" class="dropdown-item edit"><i class="fa fa-edit"></i> Editar </a>
+                                        @if ($row->inactivo == 1)
+                                            <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
+                                        @else
+                                            <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
+                                        @endif
 									</div>
 								</div>
 								</td>

@@ -16,8 +16,8 @@ class Teachers extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $name, $surname, $dni, $email, $telephone, $user, $password, $observations, $iban, $address,
-        $post_code, $province_id, $population, $teacher_areas, $teacher_area_id;
+    public $selected_id, $keyWord, $inactiveFilter, $name, $surname, $dni, $email, $telephone, $user, $password, $observations, $iban, $address,
+        $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $inactive;
     public $create_province_id, $create_teacher_area_id = [];
     public $updateMode = false;
 
@@ -25,18 +25,25 @@ class Teachers extends Component
     {
 		$keyWord = '%'.$this->keyWord .'%';
 
+        $teachers = Teacher::select('*');
+        if ($this->inactiveFilter != 1) {
+            $teachers = $teachers->where('inactive', 0);
+        }
+        $teachers = $teachers->where(function ($query) use ($keyWord){
+            $query->orWhere('name', 'LIKE', $keyWord)
+                ->orWhere('surname', 'LIKE', $keyWord)
+                ->orWhere('dni', 'LIKE', $keyWord)
+                ->orWhere('email', 'LIKE', $keyWord)
+                ->orWhere('telephone', 'LIKE', $keyWord)
+                ->orWhere('user', 'LIKE', $keyWord)
+                ->orWhere('password', 'LIKE', $keyWord)
+                ->orWhere('observations', 'LIKE', $keyWord)
+                ->orWhere('iban', 'LIKE', $keyWord);
+        })->orderBy('name','desc')
+            ->paginate(10);
+
         return view('livewire.teachers.view', [
-            'teachers' => Teacher::
-						orWhere('name', 'LIKE', $keyWord)
-						->orWhere('surname', 'LIKE', $keyWord)
-						->orWhere('dni', 'LIKE', $keyWord)
-						->orWhere('email', 'LIKE', $keyWord)
-						->orWhere('telephone', 'LIKE', $keyWord)
-						->orWhere('user', 'LIKE', $keyWord)
-                        ->orWhere('password', 'LIKE', $keyWord)
-						->orWhere('observations', 'LIKE', $keyWord)
-						->orWhere('iban', 'LIKE', $keyWord)
-						->paginate(10),
+            'teachers' => $teachers,
         ]);
     }
 
@@ -102,7 +109,7 @@ class Teachers extends Component
 
         $this->resetInput();
 		$this->emit('closeModal');
-		session()->flash('message', 'Teacher Successfully created.');
+		session()->flash('message', 'Docente creado con exito.');
     }
 
     public function edit($id)
@@ -167,7 +174,22 @@ class Teachers extends Component
 
             $this->resetInput();
             $this->updateMode = false;
-			session()->flash('message', 'Teacher Successfully updated.');
+			session()->flash('message', 'Docente Actulizado con exito.');
+        }
+    }
+
+    public function changeState($id){
+        $teacher = Teacher::find($id);
+        if ($teacher->inactive == 1){
+            $teacher->update([
+                'inactive' => 0
+            ]);
+            session()->flash('message', 'Docente activado con exito.');
+        } else {
+            $teacher->update([
+                'inactive' => 1
+            ]);
+            session()->flash('message', 'Docente desactivado con exito.');
         }
     }
 }

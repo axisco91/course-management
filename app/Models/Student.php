@@ -11,7 +11,7 @@ class Student extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['name','surname','dni','telephone','email','company_id','user', 'password','date_of_birth','level_study_id','disabled','social_security_number','c_quote','quote_group','professional_category_id','annual_gross_salary','annual_hours','hourly_cost_worker_gross','direction','post_code','population_id','province_id','population','observation','iban'];
+    protected $fillable = ['name','surname','dni','telephone','email','company_id','user', 'password','date_of_birth','level_study_id','disabled','social_security_number','c_quote','quote_group','professional_category_id','annual_gross_salary','annual_hours','hourly_cost_worker_gross','direction','post_code','population_id','province_id','population','observation','iban', 'inactive'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

@@ -12,4 +12,7 @@ class AdvisorController extends Controller
         return view('advisors.index');
     }
 
+    public function edit($id){
+        return view('advisors.update', compact('id'));
+    }
 }

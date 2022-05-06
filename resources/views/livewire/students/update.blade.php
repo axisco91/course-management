@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div wire:ignore.self class="modal fade" id="updateModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+<div wire:ignore.self class="modal fade" id="updateModal" data-bs-backdrop="static" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
        <div class="modal-content">
             <div class="modal-header">
@@ -155,7 +155,7 @@
                 $('body').on('show.bs.modal', '#updateModal', function (e) {
                     setTimeout(function () {
                         initializeSelect2()
-                    }, 100)
+                    }, 300)
                 })
                 $('.select2').on('change', function(){
                      @this.set(this.id, $(this).val())

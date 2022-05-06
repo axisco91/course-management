@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div wire:ignore.self class="modal fade" id="createDataModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="createDataModalLabel" aria-hidden="true">
+<div wire:ignore.self class="modal fade" id="createDataModal" data-bs-backdrop="static" role="dialog" aria-labelledby="createDataModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -31,7 +31,7 @@
                             </div>
                             @error('create_type_id') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                        <div class="form-group  col-sm-4">
+                        <div class="form-group  col-sm-12">
                             <div wire:ignore>
                                 <label for="create_activity_id">Actividad</label>
                                 <select wire:model.lazy="create_activity_id" class="form-control selectCreate" id="create_activity_id">
@@ -63,7 +63,19 @@
                             <label for="quote">C. cotización</label>
                             <input wire:model.lazy="quote" type="text" class="form-control" id="quote" placeholder="C. cotización">@error('quote') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
-                        <div class="form-group  col-sm-4">
+                        <div class="form-group col-sm-4" wire:ignore>
+                            <div>
+                                <label for="create_advisor_id">Asesoria</label>
+                                <select wire:model.lazy="create_advisor_id" class="form-control selectCreate" id="create_advisor_id" placeholder="Advisor Id">
+                                    <option value="">Selección una Asesoria</option>
+                                    @foreach($advisors as $advisor)
+                                        <option value="{{$advisor['id']}}">{{$advisor['name']}}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('create_advisor_id') <span class="error text-danger">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="form-group col-sm-12">
                             <div wire:ignore>
                                 <label for="create_cnae_id">Cnae</label>
                                 <select wire:model.lazy="create_cnae_id" class="form-control selectCreate" id="create_cnae_id">
@@ -119,18 +131,6 @@
                             <br>
                             <label for="active"><input wire:model="active" id="active" type="checkbox" value="active"> Activo</label>
                             @error('active') <span class="error text-danger">{{ $message }}</span> @enderror
-                        </div>
-                        <div class="form-group col-sm-4" wire:ignore>
-                            <div>
-                                <label for="create_advisor_id">Asesoria</label>
-                                <select wire:model.lazy="create_advisor_id" class="form-control selectCreate" id="create_advisor_id" placeholder="Advisor Id">
-                                    <option value="">Selección una Asesoria</option>
-                                    @foreach($advisors as $advisor)
-                                        <option value="{{$advisor['id']}}">{{$advisor['name']}}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            @error('create_advisor_id') <span class="error text-danger">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </form>

@@ -59,8 +59,8 @@
 									Acciones
 									</button>
 									<div class="dropdown-menu dropdown-menu-right">
-                                        <!--<a class="dropdown-item edit" href="{{url('/courses/update/'.$row->id)}}" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>-->
-                                        <a data-bs-toggle="modal" class="dropdown-item" data-bs-target="#updateModal" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar</a>
+                                        <a class="dropdown-item edit" href="{{url('/courses/edit/'.$row->id)}}"><i class="fa fa-edit"></i> Editar </a>
+                                       <!-- <a data-bs-toggle="modal" class="dropdown-item" data-bs-target="#updateModal" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar</a>-->
                                         <a data-bs-toggle="modal" data-bs-target="#registrationsModal" class="dropdown-item" wire:click="registrations({{$row->id}})"><i class="fas fa-chalkboard-teacher"></i> Matriculaciones </a>
                                         <a data-bs-toggle="modal" data-bs-target="#tracingsModal" class="dropdown-item" wire:click="tracings({{$row->id}})"><i class="fas fa-chalkboard-teacher"></i> Seguimiento</a>
                                         <a data-bs-toggle="modal" data-bs-target="#choresModal" class="dropdown-item" wire:click="chores({{$row->id}})"><i class="fas fa-chalkboard-teacher"></i> Tareas</a>

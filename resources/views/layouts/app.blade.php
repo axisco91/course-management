@@ -64,11 +64,11 @@
                         <div class="offcanvas-body">
                             <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                                 <li class="nav-item">
-                                    <a class="nav-link" aria-current="page" href="#">Pagina Principa</a>
+                                    <a class="nav-link" aria-current="page" href="#">Pagina Principal</a>
                                 </li>
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="offcanvasNavbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Alumno
+                                        Alumnos
                                     </a>
                                     <ul class="dropdown-menu" aria-labelledby="offcanvasNavbarDropdown">
                                         <li><a class="dropdown-item" href="{{url('/students')}}">Alumnos</a></li>
@@ -170,6 +170,9 @@
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{url('/users')}}" class="nav-link"><span>Usuarios</span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{url('/roles')}}" class="nav-link"><span>Roles</span></a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{url('/centers')}}" class="nav-link"><span>Centros</span></a>

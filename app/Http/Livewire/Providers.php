@@ -17,7 +17,7 @@ class Providers extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $name, $company_id, $irpf, $commission, $contact_1, $contact_2, $contact_3, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id;
+    public $selected_id, $keyWord, $inactiveFilter, $name, $company_id, $irpf, $commission, $contact_1, $contact_2, $contact_3, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id;
     public $company_types, $company_activities, $cnaes, $provinces, $advisors;
     public $create_type_id, $create_activity_id, $create_cnae_id, $create_province_id, $create_advisor_id;
     public $updateMode = false;
@@ -25,44 +25,53 @@ class Providers extends Component
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
+
+        $providers = Company::select('providers.id as provider_id','providers.irpf', 'providers.commission',
+            'providers.contact_1', 'providers.contact_2', 'providers.contact_3', 'companies.*',
+            'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
+            'provinces.name as province',
+            'advisors.name as advisor')
+            ->join('providers', 'providers.company_id', '=', 'companies.id')
+            ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
+            ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
+            ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id');
+        if ($this->inactiveFilter != 1) {
+            $providers = $providers->where('inactive', 0);
+        }
+
+        $providers = $providers->where(function ($query) use ($keyWord){
+            $query->orWhere('providers.name', 'LIKE', $keyWord)
+                ->orWhere('providers.irpf', 'LIKE', $keyWord)
+                ->orWhere('providers.commission', 'LIKE', $keyWord)
+                ->orWhere('providers.contact_1', 'LIKE', $keyWord)
+                ->orWhere('providers.contact_2', 'LIKE', $keyWord)
+                ->orWhere('providers.contact_3', 'LIKE', $keyWord)
+                ->orWhere('nif', 'LIKE', $keyWord)
+                ->orWhere('company_types.name', 'LIKE', $keyWord)
+                ->orWhere('company_activities.name', 'LIKE', $keyWord)
+                ->orWhere('email', 'LIKE', $keyWord)
+                ->orWhere('telephone', 'LIKE', $keyWord)
+                ->orWhere('legal_representative', 'LIKE', $keyWord)
+                ->orWhere('dni_legal_representative', 'LIKE', $keyWord)
+                ->orWhere('quote', 'LIKE', $keyWord)
+                ->orWhere('cnaes.name', 'LIKE', $keyWord)
+                ->orWhere('average_template', 'LIKE', $keyWord)
+                ->orWhere('iban', 'LIKE', $keyWord)
+                ->orWhere('sepa', 'LIKE', $keyWord)
+                ->orWhere('b2b', 'LIKE', $keyWord)
+                ->orWhere('address', 'LIKE', $keyWord)
+                ->orWhere('post_code', 'LIKE', $keyWord)
+                ->orWhere('provinces.name', 'LIKE', $keyWord)
+                ->orWhere('population', 'LIKE', $keyWord)
+                ->orWhere('active', 'LIKE', $keyWord)
+                ->orWhere('advisors.name', 'LIKE', $keyWord);
+        })->orderby('name', 'desc')
+            ->paginate(10);
+
         return view('livewire.providers.view', [
-            'providers' => Company::select('providers.id as provider_id','providers.irpf', 'providers.commission',
-                            'providers.contact_1', 'providers.contact_2', 'providers.contact_3', 'companies.*',
-                            'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-                            'provinces.name as province',
-                            'advisors.name as advisor')
-                        ->join('providers', 'providers.company_id', '=', 'companies.id')
-                        ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
-                        ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
-                        ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
-                        ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
-                        ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
-						->orWhere('providers.name', 'LIKE', $keyWord)
-						->orWhere('providers.irpf', 'LIKE', $keyWord)
-						->orWhere('providers.commission', 'LIKE', $keyWord)
-						->orWhere('providers.contact_1', 'LIKE', $keyWord)
-						->orWhere('providers.contact_2', 'LIKE', $keyWord)
-						->orWhere('providers.contact_3', 'LIKE', $keyWord)
-                        ->orWhere('nif', 'LIKE', $keyWord)
-                        ->orWhere('company_types.name', 'LIKE', $keyWord)
-                        ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                        ->orWhere('email', 'LIKE', $keyWord)
-                        ->orWhere('telephone', 'LIKE', $keyWord)
-                        ->orWhere('legal_representative', 'LIKE', $keyWord)
-                        ->orWhere('dni_legal_representative', 'LIKE', $keyWord)
-                        ->orWhere('quote', 'LIKE', $keyWord)
-                        ->orWhere('cnaes.name', 'LIKE', $keyWord)
-                        ->orWhere('average_template', 'LIKE', $keyWord)
-                        ->orWhere('iban', 'LIKE', $keyWord)
-                        ->orWhere('sepa', 'LIKE', $keyWord)
-                        ->orWhere('b2b', 'LIKE', $keyWord)
-                        ->orWhere('address', 'LIKE', $keyWord)
-                        ->orWhere('post_code', 'LIKE', $keyWord)
-                        ->orWhere('provinces.name', 'LIKE', $keyWord)
-                        ->orWhere('population', 'LIKE', $keyWord)
-                        ->orWhere('active', 'LIKE', $keyWord)
-                        ->orWhere('advisors.name', 'LIKE', $keyWord)
-						->paginate(10),
+            'providers' => $providers
         ]);
     }
 
@@ -71,7 +80,9 @@ class Providers extends Component
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
         $this->provinces = Province::all();
-        $this->advisors = Advisor::all();
+        $this->advisors = Advisor::select('advisors.*')
+            ->join('companies', 'companies.id', '=', 'advisors.company_id')
+            ->where('companies.inactive', 0)->get();
     }
 
     public function cancel()
