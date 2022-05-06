@@ -1,0 +1,92 @@
+<div>
+    <div>
+        <div class="">
+            <form>
+                <h5 class="modal-title" id="updateModalLabel">Editar Docente</h5>
+                <input type="hidden" wire:model="selected_id">
+                <div class="row">
+                    <div class="form-group col-4">
+                        <label for="name">Nombre</label>
+                        <input wire:model.lazy="name" type="text" class="form-control" id="name" placeholder="Nombre">@error('name') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="surname">Apellidos</label>
+                        <input wire:model.lazy="surname" type="text" class="form-control" id="surname" placeholder="Apellidos">@error('surname') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="dni">DNI</label>
+                        <input wire:model.lazy="dni" type="text" class="form-control" id="dni" placeholder="Dni">@error('dni') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="email">Correo</label>
+                        <input wire:model.lazy="email" type="email" class="form-control" id="email" placeholder="Correo">@error('email') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="telephone">Telefono</label>
+                        <input wire:model.lazy="telephone" type="text" class="form-control" id="telephone" placeholder="Telefono">@error('telephone') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="user">Usuario</label>
+                        <input wire:model.lazy="user" type="text" class="form-control" id="user" placeholder="Usuario">@error('user') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="password">Contraseña</label>
+                        <input wire:model.lazy="password" type="text" class="form-control" id="password" placeholder="Contraseña">@error('user') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4" wire:ignore>
+                        <label for="teacher_area_id">Área</label>
+                        <select class="form-control select2" wire:model.lazy="teacher_area_id" id="teacher_area_id" multiple>
+                            <option value="">Selecciona áreas</option>
+                            @foreach($teacher_areas as $area)
+                                <option value="{{$area['id']}}">{{$area['name']}}</option>
+                            @endforeach
+                        </select>
+                        @error('teacher_areas') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="address">Dirección</label>
+                        <input wire:model.lazy="address" type="text" class="form-control" id="address" placeholder="Dirección">@error('direction') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="post_code">Código Postal</label>
+                        <input wire:model.lazy="post_code" type="text" class="form-control" id="post_code" placeholder="Código postal">@error('post_code') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4" wire:ignore>
+                        <label for="province_id">Provincia</label>
+                        <select class="form-control select2" wire:model.lazy="province_id" id="province_id">
+                            <option value="-1">Seleccione una provincia</option>
+                            @foreach($provinces as $province)
+                                <option value="{{$province['id']}}">{{$province['name']}}</option>
+                            @endforeach
+                        </select>
+                        @error('province_id') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="population">Población</label>
+                        <input wire:model.lazy="population" type="text" class="form-control" id="population" placeholder="Población">@error('population') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="iban">Iban</label>
+                        <input wire:model.lazy="iban" type="text" class="form-control" id="iban" placeholder="Iban">@error('iban') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="form-group">
+                        <label for="observations">Observaciones</label>
+                        <textarea wire:model.lazy="observations" class="form-control" id="observations" placeholder="Observaciones"></textarea>@error('observations') <span class="error text-danger">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="">
+            <a href="{{ url()->previous() }}" class="btn btn-secondary">Volver</a>
+            <button type="button" wire:click.prevent="update()" class="btn btn-primary">Guardar</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('livewire:load', function() {
+            initializeSelect2()
+            $('.select2').on('change', function(){
+            @this.set(this.id, $(this).val())
+            })
+        })
+    </script>
+</div>
