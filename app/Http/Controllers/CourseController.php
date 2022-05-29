@@ -15,4 +15,8 @@ class CourseController extends Controller
     public function edit($id){
         return view('courses.update', compact('id'));
     }
+
+    public function create(){
+        return view('courses.create');
+    }
 }

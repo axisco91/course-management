@@ -74,8 +74,7 @@ class Roles extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = Role::where('id', $id);
-            $record->delete();
+            Role::destroy($id);
         }
     }
 

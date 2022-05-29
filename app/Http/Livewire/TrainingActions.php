@@ -25,17 +25,17 @@ class TrainingActions extends Component
     public $selected_id, $keyWord, $inactiveFilter, $name, $teacher_id, $action_type_id, $professional_family_id, $professional_area_id,
         $modality_id, $training_action_level_id, $training_action_group_id, $tutoring_id, $course_z, $course_avz, $active = 1,
         $in_catalog = 1, $face_to_face_hours, $teletraining_hours, $total_hours, $price, $objectives, $content, $user,
-        $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password,
-        $create_total_hours, $formative_action;
-    public $create_action_type_id, $create_professional_family_id, $create_professional_area_id, $create_modality_id, $create_training_action_level_id,
-        $create_training_acion_group_id, $create_tutoring_id, $create_web_platform_id, $create_provider_id, $create_training_action_group_id;
+        $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password, $formative_action;
     public $updateMode = false;
     public $action_types, $professional_families, $professional_areas, $modalities, $training_action_levels, $training_action_groups,
     $tutorings, $web_platforms, $providers;
+    public $search_formative_actions, $search_name;
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
+        $search_formative_actions = '%'.$this->search_formative_actions.'%';
+        $search_name = '%'.$this->search_name.'%';
         $trainingActions = TrainingAction::
             select('training_actions.*',
             'action_types.name as action_type', 'professional_families.name as professional_family',
@@ -52,7 +52,7 @@ class TrainingActions extends Component
             ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
             ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
         if ($this->inactiveFilter != 1) {
-            $trainingActions = $trainingActions->where('inactive', 0);
+            $trainingActions = $trainingActions->where('active', 1);
         }
         $trainingActions = $trainingActions->where(function ($query) use ($keyWord){
             $query->orWhere('training_actions.name', 'LIKE', $keyWord)
@@ -79,19 +79,12 @@ class TrainingActions extends Component
                 ->orWhere('number_activities', 'LIKE', $keyWord)
                 ->orWhere('number_units', 'LIKE', $keyWord)
                 ->orWhere('providers.name', 'LIKE', $keyWord);
-        })->orderby('name', 'desc')
+        })->where(function ($query) use ($search_formative_actions){
+            $query->orWhere('formative_action', 'LIKE', $search_formative_actions);
+        })->where(function ($query) use ($search_name){
+            $query->orWhere('training_actions.name', 'LIKE', $search_name);
+        })->orderby('id', 'asc')
             ->paginate(10);
-
-        foreach ($trainingActions as $action) {
-            if ($action['id'] < 10) {
-                $action['name'] = '00'.$action['id'].' - '.$action['name'];
-            }
-            else if ($action['id'] < 100) {
-                $action['name'] = '0'.$action['id'].' - '.$action['name'];
-            } else {
-                $action['name'] = $action['id'].' - '.$action['name'];
-            }
-        }
 
         return view('livewire.training-actions.view', [
             'trainingActions' => $trainingActions,
@@ -115,7 +108,7 @@ class TrainingActions extends Component
         $this->web_platforms = WebPlatform::all();
         $this->providers = Provider::select('providers.*')
             ->join('companies', 'companies.id', '=', 'providers.company_id')
-            ->where('companies.inactive', 0)->get();
+            ->where('companies.active', 1)->get();
     }
 
     private function resetInput()
@@ -145,183 +138,65 @@ class TrainingActions extends Component
 		$this->number_units = null;
 		$this->provider_id = null;
         $this->password = null;
-        $this->create_action_type_id = null;
-        $this->create_modality_id = null;
-        $this->create_professional_area_id = null;
-        $this->create_professional_family_id = null;
-        $this->create_provider_id = null;
-        $this->create_training_acion_group_id = null;
-        $this->create_training_action_level_id = null;
-        $this->create_tutoring_id = null;
-        $this->create_web_platform_id = null;
         $this->formative_action = null;
-    }
-
-    public function store()
-    {
-        $this->validate([
-		'name' => 'required',
-		'create_action_type_id' => 'required',
-		'create_modality_id' => 'required',
-		'create_training_action_level_id' => 'required',
-		'create_tutoring_id' => 'required',
-		'face_to_face_hours' => 'required',
-		'teletraining_hours' => 'required',
-		'price' => 'required',
-        ]);
-
-        $total_hours = $this-> face_to_face_hours + $this-> teletraining_hours;
-
-        TrainingAction::create([
-			'name' => $this-> name,
-			'action_type_id' => $this-> create_action_type_id,
-			'professional_family_id' => $this-> create_professional_family_id != -1 ? $this-> create_professional_family_id : null,
-			'professional_area_id' => $this-> create_professional_area_id != -1 ? $this-> create_professional_area_id : null,
-			'modality_id' => $this-> create_modality_id,
-			'training_action_level_id' => $this-> create_training_action_level_id,
-			'training_action_group_id' => $this-> create_training_action_group_id != -1 ? $this-> create_training_action_group_id :null,
-			'tutoring_id' => $this-> create_tutoring_id,
-			'course_z' => $this-> course_z == true ? 1 : 0,
-			'course_avz' => $this-> course_avz == true ? 1 : 0,
-			'active' => $this-> active == true ? 1 : 0,
-			'in_catalog' => $this-> in_catalog == true ? 1 : 0,
-			'face_to_face_hours' => $this-> face_to_face_hours,
-			'teletraining_hours' => $this-> teletraining_hours,
-			'total_hours' => $total_hours,
-			'price' => $this-> price,
-			'objectives' => $this-> objectives,
-			'content' => $this-> content,
-			'user' => $this-> user,
-            'password' => $this->password,
-			'web_platform_id' => $this-> create_web_platform_id,
-			'observations' => $this-> observations,
-			'number_activities' => $this-> number_activities,
-			'number_units' => $this-> number_units,
-			'provider_id' => $this-> create_provider_id
-        ]);
-
-        $this->resetInput();
-		$this->emit('closeModal');
-		session()->flash('message', 'Acción formativa creado con exito.');
-    }
-
-    public function edit($id)
-    {
-        $record = TrainingAction::findOrFail($id);
-
-        $this->action($id);
-        $this->selected_id = $id;
-		$this->name = $record-> name;
-		$this->action_type_id = $record-> action_type_id;
-		$this->professional_family_id = $record-> professional_family_id;
-		$this->professional_area_id = $record-> professional_area_id;
-		$this->modality_id = $record-> modality_id;
-		$this->training_action_level_id = $record-> training_action_level_id;
-		$this->training_action_group_id = $record-> training_action_group_id;
-		$this->tutoring_id = $record-> tutoring_id;
-		$this->course_z = $record-> course_z;
-		$this->course_avz = $record-> course_avz;
-		$this->active = $record-> active;
-		$this->in_catalog = $record-> in_catalog;
-		$this->face_to_face_hours = $record-> face_to_face_hours;
-		$this->teletraining_hours = $record-> teletraining_hours;
-		$this->total_hours = $record-> total_hours;
-		$this->price = $record-> price;
-		$this->objectives = $record-> objectives;
-		$this->content = $record-> content;
-		$this->user = $record-> user;
-        $this->password = $record-> pasword;
-		$this->web_platform_id = $record-> web_platform_id;
-		$this->observations = $record-> observations;
-		$this->number_activities = $record-> number_activities;
-		$this->number_units = $record-> number_units;
-		$this->provider_id = $record-> provider_id;
-
-        $this->updateMode = true;
-    }
-
-    public function update()
-    {
-        $this->validate([
-            'name' => 'required',
-            'action_type_id' => 'required',
-            'modality_id' => 'required|numeric|min:1',
-            'training_action_level_id' => 'required',
-            'tutoring_id' => 'required',
-            'face_to_face_hours' => 'required',
-            'teletraining_hours' => 'required',
-            'price' => 'required'
-        ]);
-
-        $total_hours = $this-> face_to_face_hours + $this-> teletraining_hours;
-
-        if ($this->selected_id) {
-			$record = TrainingAction::find($this->selected_id);
-            $record->update([
-                'name' => $this-> name,
-                'action_type_id' => $this-> action_type_id,
-                'professional_family_id' => $this-> professional_family_id != -1 ? $this-> professional_family_id : null,
-                'professional_area_id' => $this-> professional_area_id != -1 ? $this-> professional_area_id  : null,
-                'modality_id' => $this-> modality_id,
-                'training_action_level_id' => $this-> training_action_level_id,
-                'training_action_group_id' => $this-> training_action_group_id != -1 ? $this-> training_action_group_id : null,
-                'tutoring_id' => $this-> tutoring_id,
-                'course_z' => $this-> course_z == true ? 1 : 0,
-                'course_avz' => $this-> course_avz == true ? 1 : 0,
-                'active' => $this-> active == true ? 1 : 0,
-                'in_catalog' => $this-> in_catalog == true ? 1 : 0,
-                'face_to_face_hours' => $this-> face_to_face_hours,
-                'teletraining_hours' => $this-> teletraining_hours,
-                'total_hours' => $total_hours,
-                'price' => $this-> price,
-                'objectives' => $this-> objectives,
-                'content' => $this-> content,
-                'user' => $this-> user,
-                'password' => $this->password,
-                'web_platform_id' => $this-> web_platform_id,
-                'observations' => $this-> observations,
-                'number_activities' => $this-> number_activities,
-                'number_units' => $this-> number_units,
-                'provider_id' => $this-> provider_id
-            ]);
-
-            $this->resetInput();
-            $this->updateMode = false;
-			session()->flash('message', 'Acción formativa actualizada con exito.');
-        }
-    }
-    public function setTotalHours($face_to_face, $teletraining) {
-        $this->total_hours = $face_to_face+$teletraining;
-        $this->create_total_hours = $face_to_face+$teletraining;
-    }
-
-    public function action($id = null){
-        if (!$id){
-            $training = TrainingAction::orderBy('id', 'desc')->first();
-            $id = $training['id']+1;
-        }
-        if ($id < 10) {
-            $this->formative_action = '00'.$id;
-        }
-        else if ($id < 100) {
-            $this->formative_action = '0'.$id;
-        } else {
-            $this->formative_action = $id;
-        }
     }
 
     public function changeState($id){
         $trainingActions = TrainingAction::find($id);
-        if ($trainingActions->inactive == 1){
+        if ($trainingActions->active == 0){
             $trainingActions->update([
-                'inactive' => 0
+                'active' => 1
             ]);
             session()->flash('message', 'Acción formativa activado con exito.');
         } else {
             $trainingActions->update([
-                'inactive' => 1
+                'active' => 0
             ]);
             session()->flash('message', 'Acción formativa desactivado con exito.');
         }
+    }
+    public function general($id)
+    {
+        $record = TrainingAction::findOrFail($id);
+
+        $this->selected_id = $id;
+        $this->formative_action = $record-> formative_action;
+        $this->name = $record-> name;
+        $this->action_type_id = $record-> action_type_id;
+        $this->professional_family_id = $record-> professional_family_id;
+        $this->professional_area_id = $record-> professional_area_id;
+        $this->modality_id = $record-> modality_id;
+        $this->training_action_level_id = $record-> training_action_level_id;
+        $this->training_action_group_id = $record-> training_action_group_id;
+        $this->tutoring_id = $record-> tutoring_id;
+        $this->course_z = $record-> course_z;
+        $this->course_avz = $record-> course_avz;
+        $this->active = $record-> active;
+        $this->in_catalog = $record-> in_catalog;
+        $this->face_to_face_hours = $record-> face_to_face_hours;
+        $this->teletraining_hours = $record-> teletraining_hours;
+        $this->total_hours = $record-> total_hours;
+        $this->price = $record-> price;
+        $this->objectives = $record-> objectives;
+        $this->content = $record-> content;
+        $this->user = $record-> user;
+        $this->password = $record-> pasword;
+        $this->web_platform_id = $record-> web_platform_id;
+        $this->observations = $record-> observations;
+        $this->number_activities = $record-> number_activities;
+        $this->number_units = $record-> number_units;
+        $this->provider_id = $record-> provider_id;
+    }
+
+    public function getInfo($id){
+        $this->emit('getTrainingActionInfo', $id);
+        $training_Action = TrainingAction::find($id);
+        $this->formative_action = $training_Action->formative_action;
+        $this->name = $training_Action->name;
+        $this->selected_id = $id;
+    }
+
+    public function editAction($id){
+        $this->emit('editTrainingAction', $id);
     }
 }

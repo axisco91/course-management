@@ -21,4 +21,35 @@ class CourseType extends Model
         return $this->hasMany('App\Models\Course', 'course_type_id', 'id');
     }
 
+    public function getCourseTypes($keyWord){
+        $course_types = CourseType::
+        orWhere('name', 'LIKE', $keyWord)
+            ->paginate(10);
+        foreach ($course_types as $course_type){
+            $course = Course::where('company_type_id', $course_type['id'])->first();
+            if ($course){
+                $course_types['used'] = true;
+            } else {
+                $course_types['used'] = false;
+            }
+        }
+        return $course_types;
+    }
+
+    public function createCourseType($data){
+        $course_type = CourseType::create([
+            'name' => $data['name']
+        ]);
+
+        return $course_type;
+    }
+
+    public function updateCourseType($id, $data){
+        $course_type = CourseType::find($id);
+        $course_type->update([
+            'name' => $data['name']
+        ]);
+
+        return $course_type;
+    }
 }

@@ -27,12 +27,12 @@ class CreateChoresTable extends Migration
             $table->tinyInteger('welcome_guid_status')->default(0);
             $table->date('welcome_guid_date')->nullable();
             $table->tinyInteger('registration_status')->default(0);
-            $table->date('registration_status_date')->nullable();
+            $table->date('registration_date')->nullable();
             $table->tinyInteger('diploma_status')->default(0);
             $table->date('diploma_status_date')->nullable();
             $table->tinyInteger('start_communication_status')->default(0);
             $table->date('start_communication_date')->nullable();
-            $table->tinyInteger('close_communication_status')->default();
+            $table->tinyInteger('close_communication_status')->default(0);
             $table->date('close_communication_date')->nullable();
             $table->tinyInteger('invoiced_status')->default(0);
             $table->date('invoiced_date')->nullable();

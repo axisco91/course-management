@@ -1,98 +1,105 @@
-@section('title', __('Companys'))
-<div class="container-fluid">
-	<div class="row justify-content-center">
-		<div class="col-md-12">
-			<div class="card">
-				<div class="card-header">
-					<div style="display: flex; justify-content: space-between; align-items: center;">
-						<div class="float-left">
-							<h4><i class="fab fa-laravel text-info"></i>
-							Empresas </h4>
-						</div>
-						@if (session()->has('message'))
-						<div wire:poll.4s class="btn btn-sm btn-success" style="margin-top:0px; margin-bottom:0px;"> {{ session('message') }} </div>
-						@endif
-						<div>
-							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
-						</div>
-                        <div>
-                            <label for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
-                        </div>
-						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
-						<i class="fa fa-plus"></i>  Añadir Empresa
-						</div>
-					</div>
-				</div>
+<div class="card">
+    <div class="card-header border-bottom">
+        <h4 class="card-title">Empresas</h4>
+        @if (session()->has('message'))
+            <input hidden id="toastr" data-type="success" value="{{ session('message') }}">
+        @endif
+        @if (session()->has('error'))
+            <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
+        @endif
+        @include('livewire.companies.info')
+        @include('livewire.companies.createObservation')
+        @include('livewire.companies.observations')
+        @include('livewire.companies.updateObservation')
+    </div>
+    <!--Search Form -->
+    <div class="card-body mt-2">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+                <label class="form-label">Nombre:</label>
+                <input wire:model="search_name" type="text" class="form-control dt-input dt-full-name" data-column="1" placeholder="Nombre" data-column-index="0" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">CIF:</label>
+                <input wire:model="search_nif" type="text" class="form-control dt-input" data-column="2" placeholder="CIF" data-column-index="1" />
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+                <input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
+            </div>
+            <div class="col-md-4">
 
-				<div class="card-body">
-						@include('livewire.companies.create')
-						@include('livewire.companies.update')
-                        @include('livewire.companies.info')
-                        @include('livewire.companies.createObservation')
-                        @include('livewire.companies.observations')
-                        @include('livewire.companies.updateObservation')
-				<div class="table-responsive">
-					<table class="table table-bordered table-sm">
-						<thead class="thead">
-							<tr>
-								<td>#</td>
-								<th>Nombre</th>
-								<th>CIF</th>
-								<th>Tipo</th>
-								<th>Actividad</th>
-								<th>Correo</th>
-								<th>Telefono</th>
-								<th>Representante Legal</th>
-								<th>Asesoria</th>
-                                <th>Estado</th>
-								<td>Acciones</td>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach($companies as $row)
-							<tr>
-								<td>{{ $loop->iteration }}</td>
-                                <td><a data-bs-toggle="modal" data-bs-target="#companiesTabModal" class="dropdown-item" wire:click="general({{$row->id}})">{{ $row->name }}</a></td>
-								<td>{{ $row->nif }}</td>
-								<td>{{ $row->type }}</td>
-								<td>{{ $row->activity }}</td>
-								<td>{{ $row->email }}</td>
-								<td>{{ $row->telephone }}</td>
-								<td>{{ $row->legal_representative }}</td>
-								<td>{{ $row->advisor }}</td>
-                                <td>{{$row->inactive == 1 ? 'Inactivo' : 'Activo'}}</td>
-								<td width="90">
-								<div class="btn-group dropup">
-									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									Acciones
-									</button>
-									<div class="dropdown-menu dropdown-menu-right">
-                                    <!--    <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>-->
-                                        <a href="{{url('/companies/edit/'.$row->id)}}" class="dropdown-item edit"><i class="fa fa-edit"></i> Editar </a>
-                                        <a data-bs-toggle="modal" data-bs-target="#companiesTabModal" class="dropdown-item" wire:click="general({{$row->id}})"><i class="fa fa-watch"></i> Ver </a>
-                                        @if ($row->is_advisor)
-                                            <a class="dropdown-item" onclick="confirm('Confirmar convertir a asesoria: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertAdvisor({{$row->id}})">Convertir Asesoria</a>
-                                        @endif
-                                        @if ($row->is_provider)
-                                            <a class="dropdown-item" onclick="confirm('Confirmar convertir a proveedor: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertProvider({{$row->id}})">Convertir Proveedor</a>
-                                        @endif
-                                        @if ($row->inactivo == 1)
-                                            <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
-                                        @else
-                                            <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
-                                        @endif
-                                        <a data-bs-toggle="modal" data-bs-target="#createObservationModal" class="dropdown-item" wire:click="newObservation({{$row->id}})"><i class="fa fa-edit"></i> Crear Observación </a>
-                                        <a data-bs-toggle="modal" data-bs-target="#observationsModal" class="dropdown-item" wire:click="observations({{$row->id}})"><i class="fa fa-edit"></i> Ver Observaciones </a></a>
-									</div>
-								</div>
-								</td>
-							@endforeach
-						</tbody>
-					</table>
-					{{ $companies->links() }}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+            </div>
+            <div class="col-md-4">
+                <a class="btn btn-sm btn-info" href="{{url('/companies/create')}}">
+                    <i data-feather="plus-circle" class="me-50"></i>  Añadir Empresa
+                </a>
+            </div>
+        </div>
+    </div>
+    <hr class="my-0" />
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <th>Nombre</th>
+                    <th>CIF</th>
+                    <th>Tipo</th>
+                    <th>Actividad</th>
+                    <th>Correo</th>
+                    <th>Telefono</th>
+                    <th>Representante Legal</th>
+                    <th>Asesoria</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($companies as $row)
+                <tr>
+                    <td>{{ $loop->iteration }}</td>
+                    <td><a data-bs-toggle="modal" data-bs-target="#companiesTabModal" class="dropdown-item" wire:click="general({{$row->id}})">{{ $row->name }}</a></td>
+                    <td>{{ $row->nif }}</td>
+                    <td>{{ $row->type }}</td>
+                    <td>{{ $row->activity }}</td>
+                    <td>{{ $row->email }}</td>
+                    <td>{{ $row->telephone }}</td>
+                    <td>{{ $row->legal_representative }}</td>
+                    <td>{{ $row->advisor }}</td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->active == 0 ?'danger' : 'success'}} me-1">{{$row->active == 0 ? 'Inactivo' : 'Activo'}}</span></td>
+                    <td>
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-sm dropdown-toggle hide-arrow py-0" data-bs-toggle="dropdown">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end">
+                            <!--    <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>-->
+                                <a href="{{url('/companies/edit/'.$row->id)}}" class="dropdown-item edit"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                                <a data-bs-toggle="modal" data-bs-target="#companiesTabModal" class="dropdown-item" wire:click="general({{$row->id}})"><i class="fa fa-watch"></i> Ver </a>
+                                @if ($row->is_advisor)
+                                    <a class="dropdown-item" onclick="confirm('Confirmar convertir a asesoria: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertAdvisor({{$row->id}})">Convertir Asesoria</a>
+                                @endif
+                                @if ($row->is_provider)
+                                    <a class="dropdown-item" onclick="confirm('Confirmar convertir a proveedor: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertProvider({{$row->id}})">Convertir Proveedor</a>
+                                @endif
+                                @if ($row->activo == 0)
+                                    <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
+                                @else
+                                    <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
+                                @endif
+                                <a data-bs-toggle="modal" data-bs-target="#createObservationModal" class="dropdown-item" wire:click="newObservation({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Crear Observación </a>
+                                <a data-bs-toggle="modal" data-bs-target="#observationsModal" class="dropdown-item" wire:click="observations({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Ver Observaciones </a></a>
+                            </div>
+                        </div>
+                    </td>
+                @endforeach
+            </tbody>
+        </table>
+        {{ $companies->links() }}
+        </div>
+    </div>
 </div>

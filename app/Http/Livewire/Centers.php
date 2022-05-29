@@ -19,21 +19,7 @@ class Centers extends Component
     {
 		$keyWord = '%'.$this->keyWord .'%';
 
-        $centers = Center::
-        orWhere('name', 'LIKE', $keyWord)
-            ->orWhere('address', 'LIKE', $keyWord)
-            ->orWhere('email', 'LIKE', $keyWord)
-            ->orWhere('telephone', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($centers as $center) {
-            $course = Course::orWhere('delivery_center_id', $center['id'])
-                ->orWhere('formation_center_id', $center['id'])->first();
-            if ($course){
-                $center['used'] = true;
-            } else {
-                $center['used'] = false;
-            }
-        }
+        $centers = Center::getCenters($keyWord);
 
         return view('livewire.centers.view', [
             'centers' => $centers,
@@ -60,12 +46,14 @@ class Centers extends Component
 		'name' => 'required',
         ]);
 
-        Center::create([
-			'name' => $this-> name,
-			'address' => $this-> address,
-			'email' => $this-> email,
-			'telephone' => $this-> telephone
-        ]);
+        $data = [
+            'name' => $this-> name,
+            'address' => $this-> address,
+            'email' => $this-> email,
+            'telephone' => $this-> telephone
+        ];
+
+        Center::createCenter($data);
 
         $this->resetInput();
 		$this->emit('closeModal');
@@ -92,13 +80,14 @@ class Centers extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = Center::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name,
-			'address' => $this-> address,
-			'email' => $this-> email,
-			'telephone' => $this-> telephone
-            ]);
+            $data = [
+                'name' => $this-> name,
+                'address' => $this-> address,
+                'email' => $this-> email,
+                'telephone' => $this-> telephone
+            ];
+
+            Center::updateCenter($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -109,8 +98,17 @@ class Centers extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = Center::where('id', $id);
-            $record->delete();
+            Center::destroy($id);
         }
+    }
+
+    public function general($id){
+        $record = Center::findOrFail($id);
+
+        $this->selected_id = $id;
+        $this->name = $record-> name;
+        $this->address = $record-> address;
+        $this->email = $record-> email;
+        $this->telephone = $record-> telephone;
     }
 }

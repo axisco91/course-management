@@ -17,10 +17,9 @@ class Provinces extends Component
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
+        $provinces = Province::getProvinces($keyWord);
         return view('livewire.provinces.view', [
-            'provinces' => Province::
-						orWhere('name', 'LIKE', $keyWord)
-						->paginate(10),
+            'provinces' => $provinces,
         ]);
     }
 
@@ -41,10 +40,10 @@ class Provinces extends Component
 		'name' => 'required',
         ]);
 
-        Province::create([
+        $data = [
 			'name' => $this-> name
-        ]);
-
+        ];
+        Province::createProvince($data);
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Province Successfully created.');
@@ -67,10 +66,10 @@ class Provinces extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = Province::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name
-            ]);
+            $data = [
+                'name' => $this-> name
+            ];
+            Province::updateProvince($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;

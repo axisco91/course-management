@@ -21,4 +21,34 @@ class ProfessionalFamily extends Model
         return $this->hasMany('App\Models\TrainingAction', 'professional_family_id', 'id');
     }
 
+    public function getProfessionalFamilies($keyWord){
+        $professional_families = ProfessionalFamily::
+        orWhere('name', 'LIKE', $keyWord)
+            ->paginate(10);
+        foreach ($professional_families as $professional_family){
+            $training_action = TrainingAction::where('professional_family_id', $professional_family['id']);
+            if ($training_action){
+                $professional_family['used'] = true;
+            } else {
+                $professional_family['used'] = false;
+            }
+        }
+        return $professional_families;
+    }
+
+    public function createProfessionalFamily($data){
+        $professional_family = ProfessionalFamily::create([
+            'name' => $data['name']
+        ]);
+        return $professional_family;
+    }
+
+    public function updateProfessionalFamily($id, $data){
+        $professional_family = ProfessionalFamily::find($id);
+        $professional_family->update([
+            'name' => $data['name']
+        ]);
+        return $professional_family;
+    }
+
 }

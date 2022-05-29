@@ -17,10 +17,9 @@ class Tutorings extends Component
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
+        $tutorings = Tutoring::getTutorings($keyWord);
         return view('livewire.tutorings.view', [
-            'tutorings' => Tutoring::
-						orWhere('name', 'LIKE', $keyWord)
-						->paginate(10),
+            'tutorings' => $tutorings,
         ]);
     }
 
@@ -41,10 +40,10 @@ class Tutorings extends Component
 		'name' => 'required',
         ]);
 
-        Tutoring::create([
+        $data = [
 			'name' => $this-> name
-        ]);
-
+        ];
+        Tutoring::createTutoring($data);
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Tutorización creado con exito.');
@@ -67,10 +66,10 @@ class Tutorings extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = Tutoring::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name
-            ]);
+            $data = [
+                'name' => $this-> name
+            ];
+            Tutoring::updateTutoring($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;

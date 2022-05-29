@@ -23,4 +23,33 @@ class TrainingActionLevel extends Model
         return $this->hasMany('App\Models\TrainingAction', 'training_action_level_id', 'id');
     }
 
+    public function getTrainingActionLevel($keyWord){
+        $training_action_levels = TrainingActionLevel::
+        orWhere('name', 'LIKE', $keyWord)
+            ->paginate(10);
+        foreach ($training_action_levels as $training_action_level){
+            $training_action = TrainingAction::where('training_action_level_id', $training_action_level['id'])->first();
+            if ($training_action){
+                $training_action_level['used'] = true;
+            } else {
+                $training_action_level['used'] = false;
+            }
+        }
+        return $training_action_levels;
+    }
+
+    public function createTrainingActionLevel($data){
+        $training_action_level = TrainingActionLevel::create([
+            'name' => $data['name']
+        ]);
+        return $training_action_level;
+    }
+
+    public function updateTrainingActionLevel($id, $data){
+        $training_action_level = TrainingActionLevel::find($id);
+        $training_action_level->update([
+            'name' => $data['name']
+        ]);
+        return $training_action_level;
+    }
 }

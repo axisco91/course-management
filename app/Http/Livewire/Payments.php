@@ -18,17 +18,7 @@ class Payments extends Component
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $payments = Payment::latest()
-            ->orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($payments as $payment){
-            $billing = Billing::where('payment_id', $payment['id'])->first();
-            if ($billing){
-                $payment['used'] = true;
-            } else{
-                $payment['used'] = false;
-            }
-        }
+        $payments = Payment::getPayments($keyWord);
         return view('livewire.payments.view', [
             'payments' => $payments,
         ]);
@@ -51,10 +41,10 @@ class Payments extends Component
 		'name' => 'required',
         ]);
 
-        Payment::create([
+        $data = [
 			'name' => $this-> name
-        ]);
-
+        ];
+        Payment::createPayment($data);
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Payment Successfully created.');
@@ -77,10 +67,10 @@ class Payments extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = Payment::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name
-            ]);
+            $data = [
+                'name' => $this-> name
+            ];
+            Payment::updatePayment($data);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -91,8 +81,7 @@ class Payments extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = Payment::where('id', $id);
-            $record->delete();
+             Payment::destroy($id);
         }
     }
 }

@@ -18,18 +18,7 @@ class WebPlatforms extends Component
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $web_platforms = WebPlatform::
-        orWhere('name', 'LIKE', $keyWord)
-            ->orWhere('url', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($web_platforms as $web_platform){
-            $training_action = TrainingAction::where('web_platform_id', $web_platform['id'])->first();
-            if ($training_action){
-                $web_platform['used'] = true;
-            } else {
-                $web_platform['used'] = false;
-            }
-        }
+        $web_platforms =WebPlatform::getWebPlatforms($keyWord);
         return view('livewire.web-platforms.view', [
             'webPlatforms' => $web_platforms,
         ]);
@@ -54,11 +43,11 @@ class WebPlatforms extends Component
 		'url' => 'required',
         ]);
 
-        WebPlatform::create([
+       $data = [
 			'name' => $this-> name,
 			'url' => $this-> url
-        ]);
-
+        ];
+       WebPlatform::createWebPlatform($data);
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Plataforma creado con exito.');
@@ -83,11 +72,11 @@ class WebPlatforms extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = WebPlatform::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name,
-			'url' => $this-> url
-            ]);
+            $data = [
+                'name' => $this-> name,
+                'url' => $this-> url
+            ];
+            WebPlatform::updateWebPlatform($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -98,8 +87,7 @@ class WebPlatforms extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = WebPlatform::where('id', $id);
-            $record->delete();
+            WebPlatform::destroy($id);
         }
     }
 }

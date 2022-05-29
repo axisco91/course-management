@@ -28,4 +28,26 @@ class Province extends Model
     {
         return $this->hasMany('App\Models\Student', 'province_id', 'id');
     }
+
+    public function getProvinces($keyWord){
+        $provinces = Province::
+        orWhere('name', 'LIKE', $keyWord)
+            ->paginate(10);
+        return $provinces;
+    }
+
+    public function createProvince($data){
+        $province = Province::create([
+            'name' => $data['name']
+        ]);
+        return $province;
+    }
+
+    public function updateProvince($id, $data){
+        $province = Province::find($id);
+        $province->update([
+            'name' => $data['name']
+        ]);
+        return $province;
+    }
 }

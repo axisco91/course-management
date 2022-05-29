@@ -20,64 +20,20 @@ class Companies extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $inactiveFilter, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $observation, $inactive;
+    public $selected_id, $keyWord, $inactiveFilter, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $observation;
     public $updateMode = false, $createObservationModal = false, $updateObservationModal = false;
     public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null;
-    public $create_type_id, $create_activity_id, $create_cnae_id, $create_province_id, $create_advisor_id;
+    public $search_name, $search_nif;
     public function render()
+
     {
 		$keyWord = '%'.$this->keyWord .'%';
-
-        $companies = Company::select('companies.*', 'company_types.name as type',
-            'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province',
-            'advisors.name as advisor')
-            ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
-            ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
-            ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
-            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id');
-        if ($this->inactiveFilter != 1) {
-            $companies = $companies->where('inactive', 0);
-        }
-
-        $companies = $companies->where(function ($query) use ($keyWord){
-            $query->orWhere('companies.name', 'LIKE', $keyWord)
-                ->orWhere('nif', 'LIKE', $keyWord)
-                ->orWhere('company_types.name', 'LIKE', $keyWord)
-                ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                ->orWhere('email', 'LIKE', $keyWord)
-                ->orWhere('telephone', 'LIKE', $keyWord)
-                ->orWhere('legal_representative', 'LIKE', $keyWord)
-                ->orWhere('dni_legal_representative', 'LIKE', $keyWord)
-                ->orWhere('quote', 'LIKE', $keyWord)
-                ->orWhere('cnaes.name', 'LIKE', $keyWord)
-                ->orWhere('average_template', 'LIKE', $keyWord)
-                ->orWhere('iban', 'LIKE', $keyWord)
-                ->orWhere('sepa', 'LIKE', $keyWord)
-                ->orWhere('b2b', 'LIKE', $keyWord)
-                ->orWhere('address', 'LIKE', $keyWord)
-                ->orWhere('post_code', 'LIKE', $keyWord)
-                ->orWhere('provinces.name', 'LIKE', $keyWord)
-                ->orWhere('population', 'LIKE', $keyWord)
-                ->orWhere('active', 'LIKE', $keyWord)
-                ->orWhere('advisors.name', 'LIKE', $keyWord);
-        })->orderBy('name', 'desc')
-            ->paginate(10);
-
-        foreach ($companies as $company) {
-            $advisor = Advisor::where('company_id', $company['id'])->first();
-            if (!$advisor) {
-                $company['is_advisor'] = true;
-            }
-            $provider = Provider::where('company_id', $company['id'])->first();
-            if (!$provider) {
-                $company['is_provider'] = true;
-            }
-        }
+        $search_name = '%'.$this->search_name.'%';
+        $search_nif = '%'.$this->search_nif.'%';
+        $companies = Company::getCompanies($keyWord, $search_name, $search_nif);
 
         if ($this->observations) {
-            foreach ($this-> observations as $observation){
+            foreach ($this->observations as $observation){
                 $observation['date'] = Carbon::createFromFormat('Y-m-d H:i:s', $observation['created_at'])->format('d/m/Y');
             }
         }
@@ -94,7 +50,7 @@ class Companies extends Component
         $this->provinces = Province::all();
         $this->advisors = Advisor::select('advisors.*')
             ->join('companies', 'companies.id', '=', 'advisors.company_id')
-            ->where('companies.inactive', 0)->get();
+            ->where('companies.active', 1)->get();
         $this->company_id = null;
     }
 
@@ -141,43 +97,6 @@ class Companies extends Component
         $this->observation = null;
     }
 
-    public function store()
-    {
-        $this->validate([
-		'name' => 'required',
-		'create_type_id' => 'required',
-		'create_activity_id' => 'required',
-		'create_province_id' => 'required',
-        ]);
-
-        Company::create([
-			'name' => $this-> name,
-			'nif' => $this-> nif,
-			'company_type_id' => $this-> create_type_id,
-			'company_activity_id' => $this-> create_activity_id,
-			'email' => $this-> email,
-			'telephone' => $this-> telephone,
-			'legal_representative' => $this-> legal_representative,
-			'dni_legal_representative' => $this-> dni_legal_representative,
-			'quote' => $this-> quote,
-			'cnae_id' => $this-> create_cnae_id,
-			'average_template' => $this-> average_template,
-			'iban' => $this-> iban,
-			'sepa' => $this-> sepa,
-			'b2b' => $this-> b2b,
-			'address' => $this-> address,
-			'post_code' => $this-> post_code,
-			'province_id' => $this-> create_province_id,
-			'population' => $this-> population,
-			'active' => $this-> active == true ? 1 : 0,
-			'advisor_id' => $this-> create_advisor_id
-        ]);
-
-        $this->resetInput();
-		$this->emit('closeModal');
-		session()->flash('message', 'Company Successfully created.');
-    }
-
     public function general($id)
     {
         if ($id){
@@ -212,22 +131,15 @@ class Companies extends Component
 
     public function convertAdvisor($id){
         if ($id) {
-            $record = Company::find($id);
-            Advisor::create([
-                'name' => $record['name'],
-                'company_id' => $record['id']
-            ]);
+            Advisor::convertAdvisor($id);
+
             session()->flash('message', 'Empresa convertido a asesoria con exito');
         }
     }
 
     public function convertProvider($id){
         if ($id) {
-            $record = Company::find($id);
-            Provider::create([
-                'name' => $record['name'],
-                'company_id' => $record['id']
-            ]);
+            Provider::convertProvider($id);
             session()->flash('message', 'Empresa convertido a proveedor con exito');
         }
     }
@@ -244,10 +156,12 @@ class Companies extends Component
             'observation' => 'required',
         ]);
 
-        CompanyObservation::create([
+        $data = [
             'company_id' => $this->company_id,
             'observation' => $this->observation
-        ]);
+        ];
+
+        CompanyObservation::createCompabyObservation($data);
 
         $this->resetInput();
         $this->createObservationModal = false;
@@ -256,11 +170,7 @@ class Companies extends Component
 
     public function observations($id){
         if ($id){
-            $this-> observations = CompanyObservation::where('company_id', $id)->get();
-
-            foreach ($this-> observations as $observation){
-                $observation['date'] = Carbon::createFromFormat('Y-m-d H:i:s', $observation['created_at'])->format('d/m/Y');
-            }
+            $this-> observations = CompanyObservation::getCompanyObservations($id);
         }
     }
 
@@ -279,10 +189,11 @@ class Companies extends Component
             'observation' => 'required',
         ]);
         if ($this->selected_id) {
-            $record = CompanyObservation::find($this->selected_id);
-            $record->update([
+            $data = [
                 'observation' => $this->observation
-            ]);
+            ];
+
+            CompanyObservation::updateCompanyObservation($this->selected_id, $data);
 
             $this->resetObservation();
             $this->updateObservationModal = false;
@@ -291,22 +202,15 @@ class Companies extends Component
     }
     public function destroyObservation($id) {
         if ($id) {
-            $record = CompanyObservation::where('id', $id);
-            $record->delete();
+            CompanyObservation::destroy($id);
         }
     }
 
     public function changeState($id){
-        $companies = Company::find($id);
-        if ($companies->inactive == 1){
-            $companies->update([
-                'inactive' => 0
-            ]);
+        $active = Company::changeState($id);
+        if ($active == 1){
             session()->flash('message', 'Empresa activado con exito.');
         } else {
-            $companies->update([
-                'inactive' => 1
-            ]);
             session()->flash('message', 'Empresa desactivado con exito.');
         }
     }

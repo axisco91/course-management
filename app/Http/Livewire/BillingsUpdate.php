@@ -19,7 +19,7 @@ class BillingsUpdate extends Component
 
     public function render()
     {
-        return view('livewire.billings.edit');
+        return view('livewire.billings.update');
     }
 
     public function mount($id){
@@ -51,7 +51,7 @@ class BillingsUpdate extends Component
         $this->observation = $record-> observation;
         $this->is_bonus = $record-> is_bonus;
 
-
+        $this->route = url()->previous();
     }
 
     public function update()
@@ -72,8 +72,7 @@ class BillingsUpdate extends Component
         ]);
 
         if ($this->selected_id) {
-            $record = Billing::find($this->selected_id);
-            $record->update([
+            $data = [
                 'course_id' => $this-> course_id,
                 'company_id' => $this-> company_id,
                 'number_students' => $this-> number_students,
@@ -94,10 +93,13 @@ class BillingsUpdate extends Component
                 'company_bonus' => $this-> company_bonus,
                 'observation' => $this-> observation,
                 'is_bonus' => $this-> is_bonus,
-            ]);
+            ];
 
+            $billing = Billing::updateBilling($this->selected_id, $data);
+
+            $this->resetInput();
+            $this->updateMode = false;
             session()->flash('message', 'Billing Successfully updated.');
-            return $this->redirect($this->route);
         }
     }
 }

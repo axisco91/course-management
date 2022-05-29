@@ -18,17 +18,7 @@ class TrainingActionGroups extends Component
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $training_action_groups = TrainingActionGroup::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($training_action_groups as $training_action_group){
-            $training_action = TrainingAction::where('training_action_group_id', $training_action_group['id'])->first();
-            if ($training_action){
-                $training_action_group['used'] = true;
-            } else {
-                $training_action_group['used'] = false;
-            }
-        }
+        $training_action_groups = TrainingActionGroup::getTrainingActionGroups($keyWord);
         return view('livewire.training-action-groups.view', [
             'trainingActionGroups' => $training_action_groups,
         ]);
@@ -51,10 +41,10 @@ class TrainingActionGroups extends Component
 		'name' => 'required',
         ]);
 
-        TrainingActionGroup::create([
+        $data = [
 			'name' => $this-> name
-        ]);
-
+        ];
+        TrainingActionGroup::createTrainingActionGroup($data);
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Grupo creado con exito.');
@@ -77,11 +67,10 @@ class TrainingActionGroups extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = TrainingActionGroup::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name
-            ]);
-
+            $data = [
+                'name' => $this-> name
+            ];
+            TrainingActionGroup::updateTrainingActionGroup($this->selected_id, $data);
             $this->resetInput();
             $this->updateMode = false;
 			session()->flash('message', 'Grupo actualizado con exito.');
@@ -91,8 +80,7 @@ class TrainingActionGroups extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = TrainingActionGroup::where('id', $id);
-            $record->delete();
+            TrainingActionGroup::destroy($id);
         }
     }
 }

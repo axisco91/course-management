@@ -19,9 +19,8 @@ class ActionTypes extends Component
     {
 		$keyWord = '%'.$this->keyWord .'%';
 
-        $actionTypes = ActionType::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+       $actionTypes = ActionType::getActionType($keyWord);
+
         foreach($actionTypes as $actionType){
 
             $action = TrainingAction::where('action_type_id', $actionType['id'])->first();
@@ -54,9 +53,7 @@ class ActionTypes extends Component
 		'name' => 'required',
         ]);
 
-        ActionType::create([
-			'name' => $this-> name
-        ]);
+        ActionType::createActionType($this->name);
 
         $this->resetInput();
 		$this->emit('closeModal');
@@ -80,10 +77,7 @@ class ActionTypes extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = ActionType::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name
-            ]);
+            ActionType::updateActionType($this->selected_id, $this->name);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -94,8 +88,7 @@ class ActionTypes extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = ActionType::where('id', $id);
-            $record->delete();
+            ActionType::destroy($id);
         }
     }
 }

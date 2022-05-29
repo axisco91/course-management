@@ -26,7 +26,7 @@
 
     <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.11.4/datatables.min.js"></script>
 
-   <!-- <link href="{{ asset('/css/app.css') }}" rel="stylesheet">-->
+   <!-- <link href="{{ asset('/app-assets/css/app.css') }}" rel="stylesheet">-->
     <script src="{{ asset('js/app.js') }}"></script>
     <script src="{{ asset('assets/vendors/jquery-datatables/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/vendors/jquery-datatables/custom.jquery.dataTables.bootstrap5.min.js') }}"></script>

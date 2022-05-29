@@ -6,7 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Bonus;
 
-class Bonuss extends Component
+class Bonuses extends Component
 {
     use WithPagination;
 
@@ -17,42 +17,22 @@ class Bonuss extends Component
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
+
+        $bonuses = Bonus::getBonuses($keyWord);
+
         return view('livewire.bonuses.view', [
-            'bonuses' => Bonus::latest()
-						->orWhere('course_id', 'LIKE', $keyWord)
-						->orWhere('company_id', 'LIKE', $keyWord)
-						->orWhere('course_status_id', 'LIKE', $keyWord)
-						->orWhere('number_students', 'LIKE', $keyWord)
-						->orWhere('billing', 'LIKE', $keyWord)
-						->orWhere('bonus', 'LIKE', $keyWord)
-						->orWhere('total_training_activity', 'LIKE', $keyWord)
-						->orWhere('organization_expenses', 'LIKE', $keyWord)
-						->orWhere('only_organizing_entity', 'LIKE', $keyWord)
-						->orWhere('average_template', 'LIKE', $keyWord)
-						->orWhere('salary_cost', 'LIKE', $keyWord)
-						->orWhere('payment_id', 'LIKE', $keyWord)
-						->orWhere('start_communication_date', 'LIKE', $keyWord)
-						->orWhere('close_communication_date', 'LIKE', $keyWord)
-						->orWhere('invoiced', 'LIKE', $keyWord)
-						->orWhere('invoice_number', 'LIKE', $keyWord)
-						->orWhere('invoice_date', 'LIKE', $keyWord)
-						->orWhere('collection_date', 'LIKE', $keyWord)
-						->orWhere('status_bonus', 'LIKE', $keyWord)
-						->orWhere('date', 'LIKE', $keyWord)
-						->orWhere('company_bonus', 'LIKE', $keyWord)
-						->orWhere('observations', 'LIKE', $keyWord)
-						->paginate(10),
+            'bonuses' => $bonuses,
         ]);
     }
-	
+
     public function cancel()
     {
         $this->resetInput();
         $this->updateMode = false;
     }
-	
+
     private function resetInput()
-    {		
+    {
 		$this->course_id = null;
 		$this->company_id = null;
 		$this->course_status_id = null;
@@ -97,7 +77,7 @@ class Bonuss extends Component
 		'company_bonus' => 'required',
         ]);
 
-        Bonus::create([ 
+        Bonus::create([
 			'course_id' => $this-> course_id,
 			'company_id' => $this-> company_id,
 			'course_status_id' => $this-> course_status_id,
@@ -121,7 +101,7 @@ class Bonuss extends Component
 			'company_bonus' => $this-> company_bonus,
 			'observations' => $this-> observations
         ]);
-        
+
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Bonus Successfully created.');
@@ -131,7 +111,7 @@ class Bonuss extends Component
     {
         $record = Bonus::findOrFail($id);
 
-        $this->selected_id = $id; 
+        $this->selected_id = $id;
 		$this->course_id = $record-> course_id;
 		$this->company_id = $record-> company_id;
 		$this->course_status_id = $record-> course_status_id;
@@ -154,7 +134,7 @@ class Bonuss extends Component
 		$this->date = $record-> date;
 		$this->company_bonus = $record-> company_bonus;
 		$this->observations = $record-> observations;
-		
+
         $this->updateMode = true;
     }
 
@@ -180,7 +160,7 @@ class Bonuss extends Component
 
         if ($this->selected_id) {
 			$record = Bonus::find($this->selected_id);
-            $record->update([ 
+            $record->update([
 			'course_id' => $this-> course_id,
 			'company_id' => $this-> company_id,
 			'course_status_id' => $this-> course_status_id,
@@ -214,8 +194,7 @@ class Bonuss extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = Bonus::where('id', $id);
-            $record->delete();
+            Bonus::destroy($id);
         }
     }
 }

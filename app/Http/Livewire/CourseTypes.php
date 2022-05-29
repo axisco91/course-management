@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\CompanyType;
 use App\Models\Course;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -18,17 +19,8 @@ class CourseTypes extends Component
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $course_types = CourseType::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($course_types as $course_type){
-            $course = Course::where('course_type_id', $course_type['id'])->first();
-            if ($course){
-                $course_type['used'] = true;
-            } else {
-                $course_type['used'] = false;
-            }
-        }
+        $course_types = CourseType::getCourseTypes($keyWord);
+
         return view('livewire.course-types.view', [
             'courseTypes' => $course_types,
         ]);
@@ -51,9 +43,10 @@ class CourseTypes extends Component
 		'name' => 'required',
         ]);
 
-        CourseType::create([
+        $data = [
 			'name' => $this-> name
-        ]);
+        ];
+        CourseType::createCourseType($data);
 
         $this->resetInput();
 		$this->emit('closeModal');
@@ -77,10 +70,11 @@ class CourseTypes extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = CourseType::find($this->selected_id);
-            $record->update([
+			$data = [
 			'name' => $this-> name
-            ]);
+            ];
+
+            CourseType::updateCourseType($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -91,8 +85,7 @@ class CourseTypes extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = CourseType::where('id', $id);
-            $record->delete();
+            CourseType::destroy($id);
         }
     }
 }

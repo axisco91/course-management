@@ -1,107 +1,126 @@
-@section('title', __('Chores'))
-<div class="container-fluid">
-	<div class="row justify-content-center">
-		<div class="col-md-12">
-			<div class="card">
-				<div class="card-header">
-					<div style="display: flex; justify-content: space-between; align-items: center;">
-						<div class="float-left">
-							<h4><i class="fab fa-laravel text-info"></i>
-							Chore Listing </h4>
-						</div>
-						<div wire:poll.60s>
-							<code><h5>{{ now()->format('H:i:s') }} UTC</h5></code>
-						</div>
-						@if (session()->has('message'))
-						<div wire:poll.4s class="btn btn-sm btn-success" style="margin-top:0px; margin-bottom:0px;"> {{ session('message') }} </div>
-						@endif
-						<div>
-							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Search Chores">
-						</div>
-						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
-						<i class="fa fa-plus"></i>  Add Chores
-						</div>
-					</div>
-				</div>
-
-				<div class="card-body">
-						@include('livewire.chores.create')
-						@include('livewire.chores.update')
-				<div class="table-responsive">
-					<table class="table table-bordered table-sm">
-						<thead class="thead">
-							<tr>
-								<td>#</td>
-								<th>Course Id</th>
-								<th>Company Id</th>
-								<th>Student Id</th>
-								<th>Membership Tab Status</th>
-								<th>Membership Tab Date</th>
-								<th>Economic Proposal Status</th>
-								<th>Economic Proposal Date</th>
-								<th>Student Tab Status</th>
-								<th>Student Tab Date</th>
-								<th>Welcome Guid Status</th>
-								<th>Welcome Guid Date</th>
-								<th>Registration Status</th>
-								<th>Registration Status Date</th>
-								<th>Diploma Status</th>
-								<th>Diploma Status Date</th>
-								<th>Start Communication Status</th>
-								<th>Start Communication Date</th>
-								<th>Close Communication Status</th>
-								<th>Close Communication Date</th>
-								<th>Invoiced Status</th>
-								<th>Invoiced Date</th>
-								<th>Bonus Sent Status</th>
-								<th>Bonus Sent Date</th>
-								<td>Acciones</td>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach($chores as $row)
-							<tr>
-								<td>{{ $loop->iteration }}</td>
-								<td>{{ $row->course_id }}</td>
-								<td>{{ $row->company_id }}</td>
-								<td>{{ $row->student_id }}</td>
-								<td>{{ $row->membership_tab_status }}</td>
-								<td>{{ $row->membership_tab_date }}</td>
-								<td>{{ $row->economic_proposal_status }}</td>
-								<td>{{ $row->economic_proposal_date }}</td>
-								<td>{{ $row->student_tab_status }}</td>
-								<td>{{ $row->student_tab_date }}</td>
-								<td>{{ $row->welcome_guid_status }}</td>
-								<td>{{ $row->welcome_guid_date }}</td>
-								<td>{{ $row->registration_status }}</td>
-								<td>{{ $row->registration_status_date }}</td>
-								<td>{{ $row->diploma_status }}</td>
-								<td>{{ $row->diploma_status_date }}</td>
-								<td>{{ $row->start_communication_status }}</td>
-								<td>{{ $row->start_communication_date }}</td>
-								<td>{{ $row->close_communication_status }}</td>
-								<td>{{ $row->close_communication_date }}</td>
-								<td>{{ $row->invoiced_status }}</td>
-								<td>{{ $row->invoiced_date }}</td>
-								<td>{{ $row->bonus_sent_status }}</td>
-								<td>{{ $row->bonus_sent_date }}</td>
-								<td width="90">
-								<div class="btn-group">
-									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									Acciones
-									</button>
-									<div class="dropdown-menu dropdown-menu-right">
-									<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="Editar({{$row->id}})"><i class="fa fa-Edit"></i> Editar </a>
-									</div>
-								</div>
-								</td>
-							@endforeach
-						</tbody>
-					</table>
-					{{ $chores->links() }}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+<div class="card">
+    <div class="card-header border-bottom">
+        <h4 class="card-title">Tareas</h4>
+        @if (session()->has('message'))
+            <input hidden id="toastr" data-type="success" value="{{ session('message') }}">
+        @endif
+        @if (session()->has('error'))
+            <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
+        @endif
+        @include('livewire.chores.info')
+        @include('livewire.chores.update')
+    </div>
+    <!--Search Form -->
+    <div class="card-body mt-2">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+                <div wire:ignore>
+                    <label class="form-label" for="course_search"></label>
+                    <select wire:model.lazy="course_search" class="form-control select2" id="course_search">
+                        <option value="-1">Todos los cursos</option>
+                        @foreach($courses as $course)
+                            <option value="{{$course['id']}}">{{$course['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div wire:ignore>
+                    <label class="form-label" for="company_search"></label>
+                    <select wire:model.lazy="company_search" class="form-control select2" id="company_search">
+                        <option value="-1">Todas las empresas</option>
+                        @foreach($companies as $company)
+                            <option value="{{$company['id']}}">{{$company['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div wire:ignore>
+                    <label class="form-label" for="student_search"></label>
+                    <select wire:model.lazy="student_search" class="form-control select2" id="student_search">
+                        <option value="-1">Todas los alumnos</option>
+                        @foreach($students as $student)
+                            <option value="{{$student['id']}}">{{$student['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr class="my-0" />
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <td>#</td>
+                <th>Curso</th>
+                <th>Empresa</th>
+                <th>Alumno</th>
+                <th>Ficha Adhesión</th>
+                <th>Propuesta Económica</th>
+                <th>Ficha Alumno</th>
+                <th>Guia Bienvenida</th>
+                <th>Matriculación</th>
+                <th>Diploma</th>
+                <th>Comunicación Inicio</th>
+                <th>Comunicación Cierre</th>
+                <th>Facturado</th>
+                <th>Bonificacion Enviada</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach($chores as $row)
+                <tr>
+                    <td>{{ $loop->iteration }}</td>
+                    <td><a data-bs-toggle="modal" data-bs-target="#choresTabModal" class="dropdown-item" wire:click="general({{$row->id}})">{{ $row->course }}</a></td>
+                    <td>{{ $row->company }}</td>
+                    <td>{{ $row->student }}</td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->membership_tab_status == 0 ?'warning' : ($row->membership_tab_status == 1 ? 'info' : $row->membership_tab_status == 2 ? 'success' : 'danger' )}} me-1">{{$row->membership_tab_status == 0 ? 'Pendiente' : ($row->membership_tab_status == 1 ? 'Enviado' : $row->membership_tab_status == 2 ? 'Recibido' : 'No procede')}}</span></td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->economic_proposal_status == 0 ?'warning' : ($row->economic_proposal_status == 1 ? 'info' : 'success')}} me-1">{{$row->economic_proposal_status == 0 ? 'Pendiente' : ($row->economic_proposal_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->student_tab_status == 0 ?'warning' : ($row->student_tab_status == 1 ? 'info' : 'success')}} me-1">{{$row->student_tab_status == 0 ? 'Pendiente' : ($row->student_tab_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->welcome_guid_status == 0 ?'warning' : ($row->welcome_guid_status == 1 ? 'info' : 'success')}} me-1">{{$row->welcome_guid_status == 0 ? 'Pendiente' : ($row->welcome_guid_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->registration_status == 0 ?'warning' : 'success'}} me-1">{{$row->registration_status == 0 ? 'Pendiente' : 'Realizada'}}</span></td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->diploma_status == 0 ?'warning' : ($row->diploma_status == 1 ? 'success' : 'danger')}} me-1">{{$row->diploma_status == 0 ? 'Pendiente' : ($row->diploma_status == 1 ? 'Enviada' : 'No procede')}}</span></td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->start_communication_status == 0 ?'warning' : ($row->start_communication_status == 1 ? 'success' : 'danger')}} me-1">{{$row->start_communication_status == 0 ? 'Pendiente' : ($row->start_communication_status == 1 ? 'Realizada' : 'No procede')}}</span></td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->close_communication_status == 0 ?'warning' : ($row->close_communication_status == 1 ? 'success' : 'danger')}} me-1">{{$row->close_communication_status == 0 ? 'Pendiente' : ($row->close_communication_status == 1 ? 'Realizada' : 'No procede')}}</span></td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->invoiced_status == 0 ?'warning' : ($row->invoiced_status == 1 ? 'success' : 'danger')}} me-1">{{$row->invoiced_status == 0 ? 'Pendiente' : ($row->invoiced_status == 1 ? 'Realizada' : 'No procede')}}</span></td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->bonus_sent_status == 0 ?'warning' : ($row->bonus_sent_status == 1 ? 'success' : 'danger')}} me-1">{{$row->bonus_sent_status == 0 ? 'Pendiente' : ($row->bonus_sent_status == 1 ? 'Realizada' : 'No procede')}}</span></td>
+                    <td>
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-sm dropdown-toggle hide-arrow py-0" data-bs-toggle="dropdown">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <a data-bs-toggle="modal" data-bs-target="#updateChore" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+        {{ $chores->links() }}
+    </div>
+    @section('vendor-script')
+        <!-- vendor files -->
+            <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+    @endsection
+    @section('page-script')
+        <!-- Page js files -->
+        <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+    @endsection
+    <script>
+        document.addEventListener('livewire:load', function() {
+            initializeSelect2()
+            $('.select2').on('change', function(){
+            @this.set(this.id, this.value)
+            })
+            $('#training_action_id').on('change', function(){
+            @this.set(this.id, this.value)
+            @this.setName()
+            })
+        })
+    </script>
 </div>

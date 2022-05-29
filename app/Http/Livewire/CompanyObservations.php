@@ -88,8 +88,7 @@ class CompanyObservations extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = CompanyObservation::where('id', $id);
-            $record->delete();
+            CompanyObservation::destroy($id);
         }
     }
 }

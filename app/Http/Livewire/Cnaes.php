@@ -18,17 +18,7 @@ class Cnaes extends Component
     {
 
 		$keyWord = '%'.$this->keyWord .'%';
-        $cnaes = Cnae::orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-
-        foreach ($cnaes as $cnae){
-            $company = Company::where('cnae_id', $cnae['id'])->first();
-            if ($company){
-                $company['used'] = true;
-            } else{
-                $company['used'] = false;
-            }
-        }
+       $cnaes = Cnae::getCnaes($keyWord);
         return view('livewire.cnaes.view', [
             'cnaes' => $cnaes,
         ]);
@@ -51,9 +41,11 @@ class Cnaes extends Component
 		'name' => 'required',
         ]);
 
-        Cnae::create([
-			'name' => $this-> name
-        ]);
+        $data = [
+            'name' => $this-> name
+        ];
+
+        Cnae::createCnae($data);
 
         $this->resetInput();
 		$this->emit('closeModal');
@@ -77,10 +69,10 @@ class Cnaes extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = Cnae::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name
-            ]);
+            $data = [
+                'name' => $this-> name
+            ];
+            Cnae::updateCnaes($data);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -91,8 +83,7 @@ class Cnaes extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = Cnae::where('id', $id);
-            $record->delete();
+            Cnae::destroy($id);
         }
     }
 }

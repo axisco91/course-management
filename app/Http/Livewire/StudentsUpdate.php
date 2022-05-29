@@ -21,7 +21,7 @@ class StudentsUpdate extends Component
 
     public function render()
     {
-        return view('livewire.students.edit');
+        return view('livewire.students.update');
     }
 
     public function mount($id){
@@ -30,7 +30,9 @@ class StudentsUpdate extends Component
         $this->professional_categories = ProfessionalCategory::all();
         $this->provinces = Province::all();
 
-        $record = Student::findOrFail($id);
+        // Obtain student
+        $student = new Student();
+        $record = $student->getStudent($id);
 
         $this->selected_id = $id;
         $this->name = $record-> name;
@@ -66,6 +68,9 @@ class StudentsUpdate extends Component
         $this->emit('select2');
     }
 
+    /**
+     * @return Update Student
+     */
     public function update()
     {
         $this->validate([
@@ -77,11 +82,11 @@ class StudentsUpdate extends Component
             'user' => 'required',
             'level_study_id' => 'required',
             'password' => 'required',
+            'company_id' => 'required'
         ]);
 
         if ($this->selected_id) {
-            $record = Student::find($this->selected_id);
-            $record->update([
+            $data = [
                 'name' => $this-> name,
                 'surname' => $this-> surname,
                 'dni' => $this-> dni,
@@ -107,9 +112,14 @@ class StudentsUpdate extends Component
                 'population' => $this-> population,
                 'observation' => $this-> observation,
                 'iban' => $this-> iban
-            ]);
+            ];
+
+            $student = Student::updateStudent($this->selected_id, $data);
+
             session()->flash('message', 'Alumno Actulizado con exito.');
             return redirect($this->route);
+        } else {
+            session()->flash('error', 'Alumno Actulizado sin exito.');
         }
     }
 }

@@ -23,6 +23,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $pageConfigs = ['pageHeader' => false];
+        return view('home', ['pageConfigs' => $pageConfigs]);
     }
 }

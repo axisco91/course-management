@@ -35,7 +35,7 @@
                                             Acciones
                                         </button>
                                         <div class="dropdown-menu dropdown-menu-right">
-                                            <a data-bs-toggle="modal" data-bs-target="#updateObservation" class="dropdown-item" wire:click="editObservation({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>
+                                            <a data-bs-toggle="modal" data-bs-target="#updateObservation" class="dropdown-item" wire:click="editObservation({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
                                             <a class="dropdown-item" onclick="confirm('Confirmar eliminar observacion: {{$row->onservacion}}? \nNo se puede recuperar!')||event.stopImmediatePropagation()" wire:click="destroyObservation({{$row->id}})"><i class="fa fa-trash"></i> Eliminar </a>
                                         </div>
                                     </div>
@@ -46,7 +46,7 @@
                     @endif
                 </div>
             </div>
-            <div class="modal-footer">
+              <div class="col-12 text-center mt-2 pt-50">
                 <button type="button" class="btn btn-secondary close-btn" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>

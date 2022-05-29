@@ -1,83 +1,111 @@
-<!-- Modal -->
-<div wire:ignore.self class="modal fade" id="updateModal" data-bs-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl" role="document">
-       <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="updateModalLabel">Update Tracing</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span wire:click.prevent="cancel()" aria-hidden="true">×</span>
-                </button>
+<div wire:ignore.self class="modal fade" id="updateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-edit-user">
+        <div class="modal-content">
+            <div class="modal-header bg-transparent">
+                <button type="button" wire:click.prevent="cancel()" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <form>
-					<input type="hidden" wire:model="selected_id">
-            <div class="form-group">
-                <label for="course_id"></label>
-                <input wire:model="course_id" type="text" class="form-control" id="course_id" placeholder="Course Id">@error('course_id') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="company_id"></label>
-                <input wire:model="company_id" type="text" class="form-control" id="company_id" placeholder="Company Id">@error('company_id') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="student_id"></label>
-                <input wire:model="student_id" type="text" class="form-control" id="student_id" placeholder="Student Id">@error('student_id') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="performed_activities"></label>
-                <input wire:model="performed_activities" type="text" class="form-control" id="performed_activities" placeholder="Performed Activities">@error('performed_activities') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="performed_hours"></label>
-                <input wire:model="performed_hours" type="text" class="form-control" id="performed_hours" placeholder="Performed Hours">@error('performed_hours') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="performed_units"></label>
-                <input wire:model="performed_units" type="text" class="form-control" id="performed_units" placeholder="Performed Units">@error('performed_units') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="follow_up_date"></label>
-                <input wire:model="follow_up_date" type="text" class="form-control" id="follow_up_date" placeholder="Follow Up Date">@error('follow_up_date') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="final_test"></label>
-                <input wire:model="final_test" type="text" class="form-control" id="final_test" placeholder="Final Test">@error('final_test') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="questionnaire"></label>
-                <input wire:model="questionnaire" type="text" class="form-control" id="questionnaire" placeholder="Questionnaire">@error('questionnaire') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="welcome_message"></label>
-                <input wire:model="welcome_message" type="text" class="form-control" id="welcome_message" placeholder="Welcome Message">@error('welcome_message') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="quarter_message"></label>
-                <input wire:model="quarter_message" type="text" class="form-control" id="quarter_message" placeholder="Quarter Message">@error('quarter_message') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="half_message"></label>
-                <input wire:model="half_message" type="text" class="form-control" id="half_message" placeholder="Half Message">@error('half_message') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="three_quarters_message"></label>
-                <input wire:model="three_quarters_message" type="text" class="form-control" id="three_quarters_message" placeholder="Three Quarters Message">@error('three_quarters_message') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="final_message"></label>
-                <input wire:model="final_message" type="text" class="form-control" id="final_message" placeholder="Final Message">@error('final_message') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-            <div class="form-group">
-                <label for="observation"></label>
-                <input wire:model="observation" type="text" class="form-control" id="observation" placeholder="Observation">@error('observation') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-
+            <div class="modal-body pb-5 px-sm-5 pt-50">
+                <div class="text-center mb-2">
+                    <h1 class="mb-1">Editar Seguimiento</h1>
+                </div>
+                <form id="editTracingForm" class="row gy-1 pt-75" onsubmit="return false">
+                    <input type="hidden" wire:model="selected_id">
+                    <div class="row">
+                        <div class="col-md-4 col-12 mb-1">
+                            <label class="form-label" for="performed_activities">Actividades Realizadas</label>
+                            <input wire:model.lazy="performed_activities" type="number" class="form-control" id="performed_activities" placeholder="Actividades Realizadas">
+                        </div>
+                        <div class="col-md-4 col-12 mb-1">
+                            <div wire:ignore>
+                                <label class="form-label" for="performed_hours">Horas Realizadas</label>
+                                <input wire:model.lazy="performed_hours" type="number" class="form-control" id="performed_hours" placeholder="Horas Realizadas">
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12 mb-1">
+                            <div wire:ignore>
+                                <label class="form-label" for="performed_units">Unidades Realizadas</label>
+                                <input wire:model.lazy="performed_units" type="number" class="form-control" id="performed_units" placeholder="Unidades Realizadas">
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <label class="form-label" for="follow_up_date">Fecha Seguimiento</label>
+                            <input wire:model.lazy="follow_up_date" type="date" class="form-control" id="follow_up_date">@error('follow_up_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-4 col-12 mb-1">
+                            <div wire:ignore>
+                                <label class="form-label" for="final_test">Test Final</label>
+                                <select class="form-select" wire:model.lazy="final_test" id="final_test">
+                                    <option value="0">No realizado</option>
+                                    <option value="1">Realizado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12 mb-1">
+                            <div wire:ignore>
+                                <label class="form-label" for="questionnaire">Cuestionario</label>
+                                <select class="form-select" wire:model.lazy="questionnaire" id="questionnaire">
+                                    <option value="0">No realizado</option>
+                                    <option value="1">Realizado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12 mb-1">
+                            <div wire:ignore>
+                                <label class="form-label" for="welcome_message">Bienvenida</label>
+                                <select class="form-select" wire:model.lazy="welcome_message" id="welcome_message">
+                                    <option value="0">No</option>
+                                    <option value="1">Si</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12 mb-1">
+                            <div wire:ignore>
+                                <label class="form-label" for="quarter_message">Mensaje 25%</label>
+                                <select class="form-select" wire:model.lazy="quarter_message" id="quarter_message">
+                                    <option value="0">No</option>
+                                    <option value="1">Si</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12 mb-1">
+                            <div wire:ignore>
+                                <label class="form-label" for="half_message">Mensaje 50%</label>
+                                <select class="form-select" wire:model.lazy="half_message" id="half_message">
+                                    <option value="0">No</option>
+                                    <option value="1">Si</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12 mb-1">
+                            <div wire:ignore>
+                                <label class="form-label" for="three_quarters_message">Mensaje 75%</label>
+                                <select class="form-select" wire:model.lazy="three_quarters_message" id="three_quarters_message">
+                                    <option value="0">No</option>
+                                    <option value="1">Si</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12 mb-1">
+                            <div wire:ignore>
+                                <label class="form-label" for="final_message">Finalizacion</label>
+                                <select class="form-select" wire:model.lazy="final_message" id="final_message">
+                                    <option value="0">No</option>
+                                    <option value="1">Si</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="course_observation"></label>
+                            <textarea wire:model.lazy="course_observation" class="form-control" id="course_observation" placeholder="Observaciones"></textarea>
+                            @error('course_observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+                    <div class="col-12 text-center mt-2 pt-50">
+                        <button type="button" class="btn btn-secondary close-btn" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" wire:click.prevent="update()" class="btn btn-primary" data-bs-dismiss="modal">Guardar</button>
+                    </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" wire:click.prevent="update()" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
-            </div>
-       </div>
+        </div>
     </div>
 </div>

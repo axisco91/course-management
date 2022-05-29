@@ -18,17 +18,7 @@ class ProfessionalFamilies extends Component
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $professional_families = ProfessionalFamily::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($professional_families as $professional_family){
-            $training_action = TrainingAction::where('professional_family_id', $professional_family['id']);
-            if ($training_action){
-                $professional_family['used'] = true;
-            } else {
-                $professional_family['used'] = false;
-            }
-        }
+        $professional_families = ProfessionalFamily::getProfessionalFamilies($keyWord);
         return view('livewire.professional-families.view', [
             'professionalFamilies' => $professional_families,
         ]);
@@ -51,9 +41,10 @@ class ProfessionalFamilies extends Component
 		'name' => 'required',
         ]);
 
-        ProfessionalFamily::create([
+        $data = [
 			'name' => $this-> name
-        ]);
+        ];
+        ProfessionalFamily::createProfessionalFamily($data);
 
         $this->resetInput();
 		$this->emit('closeModal');
@@ -77,11 +68,10 @@ class ProfessionalFamilies extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = ProfessionalFamily::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name
-            ]);
-
+            $data = [
+                'name' => $this-> name
+            ];
+            ProfessionalFamily::updateProfessionalFamily($this->selected_id, $data);
             $this->resetInput();
             $this->updateMode = false;
 			session()->flash('message', 'Familia actualizado con exito.');
@@ -91,8 +81,7 @@ class ProfessionalFamilies extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = ProfessionalFamily::where('id', $id);
-            $record->delete();
+            ProfessionalFamily::destroy($id);
         }
     }
 }

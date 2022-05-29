@@ -15,4 +15,8 @@ class AdvisorController extends Controller
     public function edit($id){
         return view('advisors.update', compact('id'));
     }
+
+    public function create(){
+        return view('advisors.create');
+    }
 }

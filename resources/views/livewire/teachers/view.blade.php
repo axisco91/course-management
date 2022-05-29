@@ -1,80 +1,105 @@
-@section('title', __('Teachers'))
-<div class="container-fluid">
-	<div class="row justify-content-center">
-		<div class="col-md-12">
-			<div class="card">
-				<div class="card-header">
-					<div style="display: flex; justify-content: space-between; align-items: center;">
-						<div class="float-left">
-							<h4><i class="fab fa-laravel text-info"></i>
-							Docentes </h4>
-						</div>
-						@if (session()->has('message'))
-						<div wire:poll.4s class="btn btn-sm btn-success" style="margin-top:0px; margin-bottom:0px;"> {{ session('message') }} </div>
-						@endif
-						<div>
-							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
-						</div>
-                        <div>
-                            <label for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
+<div class="card">
+    <div class="card-header border-bottom">
+        <h4 class="card-title">Busqueda Avanzada</h4>
+        @if (session()->has('message'))
+            <input hidden id="toastr" data-type="success" value="{{ session('message') }}">
+        @endif
+        @if (session()->has('error'))
+            <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
+        @endif
+        @include('livewire.teachers.info')
+    </div>
+    <!--Search Form -->
+    <div class="card-body mt-2">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+                <label class="form-label">Nombre:</label>
+                <input wire:model="search_name" type="text" class="form-control dt-input dt-full-name" data-column="1" placeholder="Nombre" data-column-index="0" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Apellidos:</label>
+                <input wire:model="search_surname" type="text" class="form-control dt-input" data-column="2" placeholder="Apellidos" data-column-index="1" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">DNI:</label>
+                <input wire:model="search_dni" type="text" class="form-control dt-input" data-column="3" placeholder="DNI" data-column-index="2" />
+            </div>
+        </div>
+        <div class="row g-1">
+            <div class="col-md-4">
+                <label class="form-label">Telephono:</label>
+                <input wire:model="search_telephone" type="text" class="form-control dt-input" data-column="4" placeholder="Telephono" data-column-index="3" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Correo:</label>
+                <input wire:model="search_email" type="text" class="form-control dt-input" data-column="5" placeholder="Correo" data-column-index="4" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Empresa:</label>
+                <input wire:model="search_comapny" type="text" class="form-control dt-input" data-column="6" placeholder="Empresa" data-column-index="5" />
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+                <input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
+            </div>
+            <div class="col-md-4">
+                <a class="btn btn-sm btn-info" href="{{url('/teachers/create')}}">
+                    <i data-feather="plus-circle" class="me-50"></i> Añadir Docente
+                </a>
+            </div>
+        </div>
+    </div>
+    <hr class="my-0" />
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Dni</th>
+                    <th>Correo</th>
+                    <th>Telefono</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($teachers as $row)
+                <tr>
+                    <td>{{ $loop->iteration }}</td>
+                    <td><a data-bs-toggle="modal" data-bs-target="#studentsTabModal" class="dropdown-item" wire:click="general({{$row->id}})">{{ $row->name }}</a></td>
+                    <td>{{ $row->surname }}</td>
+                    <td>{{ $row->dni }}</td>
+                    <td>{{ $row->email }}</td>
+                    <td>{{ $row->telephone }}</td>
+                    <td><span class="badge rounded-pill badge-light-{{$row->active == 0 ?'danger' : 'success'}} me-1">{{$row->active == 0 ? 'Inactivo' : 'Activo'}}</span></td>
+                    <td>
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-sm dropdown-toggle hide-arrow py-0" data-bs-toggle="dropdown">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end">
+                                <!--<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>-->
+                                <a href="{{url('/teachers/edit/'.$row->id)}}" class="dropdown-item"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                                @if ($row->activo == 1)
+                                    <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}} {{$row->surname}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
+                                @else
+                                    <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}} {{$row->surname}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
+                                @endif
+                            </div>
                         </div>
-						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
-						<i class="fa fa-plus"></i>  Añadir Docente
-						</div>
-					</div>
-				</div>
-				<div class="card-body">
-						@include('livewire.teachers.create')
-						@include('livewire.teachers.update')
-				<div class="table-responsive">
-					<table class="table table-bordered table-sm">
-						<thead class="thead">
-							<tr>
-								<td>#</td>
-								<th>Name</th>
-								<th>Surname</th>
-								<th>Dni</th>
-								<th>Email</th>
-								<th>Telephone</th>
-								<th>User</th>
-                                <th>Estado</th>
-								<td>Acciones</td>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach($teachers as $row)
-							<tr>
-								<td>{{ $loop->iteration }}</td>
-								<td>{{ $row->name }}</td>
-								<td>{{ $row->surname }}</td>
-								<td>{{ $row->dni }}</td>
-								<td>{{ $row->email }}</td>
-								<td>{{ $row->telephone }}</td>
-								<td>{{ $row->user }}</td>
-                                <td>{{$row->inactive == 1 ? 'Inactivo' : 'Activo'}}</td>
-								<td width="90">
-								<div class="btn-group">
-									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-									Acciones
-									</button>
-									<div class="dropdown-menu dropdown-menu-right">
-									    <!--<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>-->
-                                        <a href="{{url('/teachers/edit/'.$row->id)}}" class="dropdown-item"><i class="fa fa-edit"></i> Editar </a>
-                                        @if ($row->inactivo == 1)
-                                            <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}} {{$row->surname}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
-                                        @else
-                                            <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}} {{$row->surname}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
-                                        @endif
-									</div>
-								</div>
-								</td>
-							@endforeach
-						</tbody>
-					</table>
-					{{ $teachers->links() }}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        {{ $teachers->links() }}
+    </div>
 </div>

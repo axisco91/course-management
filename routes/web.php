@@ -33,6 +33,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\CommandController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProfitabilityController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,8 +48,8 @@ use App\Http\Controllers\CommandController;
 */
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', function () {
-        return view('welcome');
+    Route::controller(HomeController::class)->group(function(){
+        Route::get('', 'index');
     });
     /**
      * Companies Routes
@@ -56,6 +58,7 @@ Route::middleware(['auth'])->group(function () {
         Route::controller(CompanyController::class)->group(function(){
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
         });
     });
     /**
@@ -65,6 +68,7 @@ Route::middleware(['auth'])->group(function () {
         Route::controller(AdvisorController::class)->group(function(){
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
         });
     });
     /**
@@ -74,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
         Route::controller(StudentController::class)->group(function(){
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
         });
     });
     /**
@@ -83,6 +88,7 @@ Route::middleware(['auth'])->group(function () {
         Route::controller(TeacherController::class)->group(function(){
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
         });
     });
     /**
@@ -100,6 +106,7 @@ Route::middleware(['auth'])->group(function () {
         Route::controller(TrainingActionController::class)->group(function(){
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
         });
     });
     /**
@@ -109,6 +116,7 @@ Route::middleware(['auth'])->group(function () {
         Route::controller(ProviderController::class)->group(function(){
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
         });
     });
     /**
@@ -118,6 +126,7 @@ Route::middleware(['auth'])->group(function () {
         Route::controller(CourseController::class)->group(function(){
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
         });
     });
     /**
@@ -126,6 +135,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('training_actions')->group(function() {
         Route::controller(TrainingActionController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
         });
     });
     /**
@@ -145,10 +156,19 @@ Route::middleware(['auth'])->group(function () {
         });
     });
     /**
-     * Roles Routes
+     * Billings Routes
      */
     Route::prefix('billings')->group(function() {
         Route::controller(BillingController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
+        });
+    });
+    /**
+     * Profitabilities Routes
+     */
+    Route::prefix('profitabilities')->group(function() {
+        Route::controller(ProfitabilityController::class)->group(function(){
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
         });
@@ -170,7 +190,6 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
 //Route Hooks - Do not delete//
-	Route::view('profitabilities', 'livewire.profitabilities.index')->middleware('auth');
 	Route::view('training_action_levels', 'livewire.training-action-levels.index')->middleware('auth');
 	Route::view('level_studies', 'livewire.level-studies.index')->middleware('auth');
 	Route::view('areas_teacher_areas', 'livewire.areas-teacher-areas.index')->middleware('auth');
@@ -197,3 +216,13 @@ Route::get('/home', 'HomeController@index')->name('home');
 	Route::view('company_types', 'livewire.company-types.index')->middleware('auth');
 	Route::view('provinces', 'livewire.provinces.index')->middleware('auth');
 	Route::view('cnaes', 'livewire.cnaes.index')->middleware('auth');
+
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified'
+])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+});

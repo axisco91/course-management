@@ -92,8 +92,7 @@ class TeacherAreas extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = TeacherArea::where('id', $id);
-            $record->delete();
+            TeacherArea::destroy($id);
         }
     }
 }
