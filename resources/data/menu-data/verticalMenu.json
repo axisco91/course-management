@@ -1,0 +1,198 @@
+{
+  "menu": [
+      {
+          "url": "/students",
+          "name": "Students",
+          "icon": "users",
+          "slug": "students"
+      },
+      {
+          "url": "/teachers",
+          "name": "Teachers",
+          "icon": "users",
+          "slug": "teachers"
+      },
+      {
+          "url": "/companies",
+          "name": "Companies",
+          "icon": "home",
+          "slug": "companies"
+      },
+      {
+          "url": "/advisors",
+          "name": "Advisors",
+          "icon": "briefcase",
+          "slug": "advisors"
+      },
+      {
+          "url": "/training_actions",
+          "name": "Training Actions",
+          "icon": "book",
+          "slug": "training-actions"
+      },
+      {
+          "url": "/providers",
+          "name": "Providers",
+          "icon": "package",
+          "slug": "providers"
+      },
+      {
+          "url": "/users",
+          "name": "Users",
+          "icon": "users",
+          "slug": "users"
+      },
+      {
+          "url": "/roles",
+          "name": "Roles",
+          "icon": "unlock",
+          "slug": "roles"
+      },
+      {
+          "url": "/centers",
+          "name": "Centers",
+          "icon": "home",
+          "slug": "centers"
+      },
+      {
+          "url": "/courses",
+          "name": "Courses",
+          "icon": "book-open",
+          "slug": "courses"
+      },
+      {
+          "url": "/billings",
+          "name": "Billings",
+          "icon": "credit-card",
+          "slug": "billings"
+      },
+      {
+          "url": "/chores",
+          "name": "Chores",
+          "icon": "file-text",
+          "slug": "chores"
+      },
+      {
+          "url": "/tracings",
+          "name": "Tracings",
+          "icon": "edit-2",
+          "slug": "tracings"
+      },
+      {
+          "url": "/profitabilities",
+          "name": "Profitabilities",
+          "icon": "dollar-sign",
+          "slug": "profitabilities"
+      },
+      {
+          "name": "Settings",
+          "icon": "settings",
+          "slug": "",
+          "badgeClass": "badge rounded-pill badge-light-danger ms-auto me-1",
+          "submenu": [
+              {
+                  "url": "/professional_categories",
+                  "name": "Professional Categories",
+                  "icon": "circle",
+                  "slug": "professional-categories"
+              },
+              {
+                  "url": "/level_studies",
+                  "name": "Level Studies",
+                  "icon": "circle",
+                  "slug": "level-studies"
+              },
+              {
+                  "url": "/teacher_areas",
+                  "name": "Teacher Areas",
+                  "icon": "circle",
+                  "slug": "teacher-areas"
+              },
+              {
+                  "url": "/cnaes",
+                  "name": "CNAES",
+                  "icon": "circle",
+                  "slug": "cnaes"
+              },
+              {
+                  "url": "/company_types",
+                  "name": "Company Types",
+                  "icon": "circle",
+                  "slug": "company-types"
+              },
+              {
+                  "url": "/provinces",
+                  "name": "Provinces",
+                  "icon": "circle",
+                  "slug": "provinces"
+              },
+              {
+                  "url": "/professional_areas",
+                  "name": "Professional Areas",
+                  "icon": "circle",
+                  "slug": "professional-areas"
+              },
+              {
+                  "url": "/action_types",
+                  "name": "Action Types",
+                  "icon": "circle",
+                  "slug": "action-types"
+              },
+              {
+                  "url": "/professional_families",
+                  "name": "Professional Families",
+                  "icon": "circle",
+                  "slug": "professional-families"
+              },
+              {
+                  "url": "/modalities",
+                  "name": "Modalities",
+                  "icon": "circle",
+                  "slug": "modalities"
+              },
+              {
+                  "url": "/training_action_levels",
+                  "name": "Training Action Levels",
+                  "icon": "circle",
+                  "slug": "training-action-levels"
+              },
+              {
+                  "url": "/tutorings",
+                  "name": "Tutorings",
+                  "icon": "circle",
+                  "slug": "tutorings"
+              },
+              {
+                  "url": "/training_action_groups",
+                  "name": "Training Action Groups",
+                  "icon": "circle",
+                  "slug": "training-action-groups"
+              },
+              {
+                  "url": "/web_platforms",
+                  "name": "Web Platforms",
+                  "icon": "circle",
+                  "slug": "web-platforms"
+              },
+              {
+                  "url": "/course_types",
+                  "name": "Course Types",
+                  "icon": "circle",
+                  "slug": "course-types"
+              },
+              {
+                  "url": "/course_statuses",
+                  "name": "Course Statuses",
+                  "icon": "circle",
+                  "slug": "course-statuses"
+              },
+              {
+                  "url": "/payments",
+                  "name": "Payments",
+                  "icon": "circle",
+                  "slug": "payments"
+              }
+          ]
+      }
+  ]
+}

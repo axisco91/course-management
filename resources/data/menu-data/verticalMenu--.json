@@ -1,0 +1,238 @@
+{
+  "menu": [
+      {
+          "name": "Students",
+          "icon": "users",
+          "slug": "",
+          "badgeClass": "badge rounded-pill badge-light-danger ms-auto me-1",
+          "submenu": [
+            {
+              "url": "/students",
+              "name": "Students",
+              "icon": "circle",
+              "slug": "students"
+            },
+            {
+              "url": "/professional_categories",
+              "name": "Professional Categories",
+              "icon": "circle",
+              "slug": "professional-categories"
+            },
+            {
+              "url": "/level_studies",
+              "name": "Level Studies",
+              "icon": "circle",
+              "slug": "level-studies"
+            }
+          ]
+      },
+      {
+          "name": "Teachers",
+          "icon": "users",
+          "slug": "",
+          "badgeClass": "badge rounded-pill badge-light-danger ms-auto me-1",
+          "submenu": [
+              {
+                  "url": "/teachers",
+                  "name": "Teachers",
+                  "icon": "circle",
+                  "slug": "teachers"
+              },
+              {
+                  "url": "/teacher_areas",
+                  "name": "Teacher Areas",
+                  "icon": "circle",
+                  "slug": "teacher-areas"
+              }
+          ]
+      },
+      {
+          "name": "Companies",
+          "icon": "home",
+          "slug": "",
+          "badgeClass": "badge rounded-pill badge-light-danger ms-auto me-1",
+          "submenu": [
+              {
+                  "url": "/companies",
+                  "name": "Companies",
+                  "icon": "circle",
+                  "slug": "companies"
+              },
+              {
+                  "url": "/cnaes",
+                  "name": "CNAES",
+                  "icon": "circle",
+                  "slug": "cnaes"
+              },
+              {
+                  "url": "/company_types",
+                  "name": "Company Types",
+                  "icon": "circle",
+                  "slug": "company-types"
+              },
+              {
+                  "url": "/provinces",
+                  "name": "Provinces",
+                  "icon": "circle",
+                  "slug": "provinces"
+              }
+          ]
+      },
+      {
+          "url": "/advisors",
+          "name": "Advisors",
+          "icon": "briefcase",
+          "slug": "advisors"
+      },
+      {
+          "name": "Training Actions",
+          "icon": "book",
+          "slug": "",
+          "badgeClass": "badge rounded-pill badge-light-danger ms-auto me-1",
+          "submenu": [
+              {
+                  "url": "/training_actions",
+                  "name": "Training Actions",
+                  "icon": "circle",
+                  "slug": "training-actions"
+              },
+              {
+                  "url": "/professional_areas",
+                  "name": "Professional Areas",
+                  "icon": "circle",
+                  "slug": "professional-areas"
+              },
+              {
+                  "url": "/action_types",
+                  "name": "Action Types",
+                  "icon": "circle",
+                  "slug": "action-types"
+              },
+              {
+                  "url": "/professional_families",
+                  "name": "Professional Families",
+                  "icon": "circle",
+                  "slug": "professional-families"
+              },
+              {
+                  "url": "/modalities",
+                  "name": "Modalities",
+                  "icon": "circle",
+                  "slug": "modalities"
+              },
+              {
+                  "url": "/training_action_levels",
+                  "name": "Training Action Levels",
+                  "icon": "circle",
+                  "slug": "training-action-levels"
+              },
+              {
+                  "url": "/tutorings",
+                  "name": "Tutorings",
+                  "icon": "circle",
+                  "slug": "tutorings"
+              },
+              {
+                  "url": "/training_action_groups",
+                  "name": "Training Action Groups",
+                  "icon": "circle",
+                  "slug": "training-action-groups"
+              },
+              {
+                  "url": "/web_platforms",
+                  "name": "Web Platforms",
+                  "icon": "circle",
+                  "slug": "web-platforms"
+              }
+          ]
+      },
+      {
+          "url": "/providers",
+          "name": "Providers",
+          "icon": "package",
+          "slug": "providers"
+      },
+      {
+          "url": "/users",
+          "name": "Users",
+          "icon": "users",
+          "slug": "users"
+      },
+      {
+          "url": "/roles",
+          "name": "Roles",
+          "icon": "unlock",
+          "slug": "roles"
+      },
+      {
+          "url": "/centers",
+          "name": "Centers",
+          "icon": "home",
+          "slug": "centers"
+      },
+      {
+          "name": "Courses",
+          "icon": "book-open",
+          "slug": "",
+          "badgeClass": "badge rounded-pill badge-light-danger ms-auto me-1",
+          "submenu": [
+              {
+                  "url": "/courses",
+                  "name": "Courses",
+                  "icon": "circle",
+                  "slug": "courses"
+              },
+              {
+                  "url": "/course_types",
+                  "name": "Course Types",
+                  "icon": "circle",
+                  "slug": "course-types"
+              },
+              {
+                  "url": "/course_statuses",
+                  "name": "Course Statuses",
+                  "icon": "circle",
+                  "slug": "course-statuses"
+              }
+          ]
+      },
+      {
+          "name": "Billings",
+          "icon": "credit-card",
+          "slug": "",
+          "badgeClass": "badge rounded-pill badge-light-danger ms-auto me-1",
+          "submenu": [
+              {
+                  "url": "/billings",
+                  "name": "Billings",
+                  "icon": "circle",
+                  "slug": "billings"
+              },
+              {
+                  "url": "/payments",
+                  "name": "Payments",
+                  "icon": "circle",
+                  "slug": "payments"
+              }
+          ]
+      },
+      {
+          "url": "/chores",
+          "name": "Chores",
+          "icon": "file-text",
+          "slug": "chores"
+      },
+      {
+          "url": "/tracings",
+          "name": "Tracings",
+          "icon": "edit-2",
+          "slug": "tracings"
+      },
+      {
+          "url": "/profitabilities",
+          "name": "Profitabilities",
+          "icon": "dollar-sign",
+          "slug": "profitabilities"
+      }
+  ]
+}
