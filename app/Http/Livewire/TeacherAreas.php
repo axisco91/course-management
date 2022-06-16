@@ -15,6 +15,9 @@ class TeacherAreas extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -92,8 +95,8 @@ class TeacherAreas extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = TeacherArea::where('id', $id);
-            $record->delete();
+            $value = TeacherArea::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

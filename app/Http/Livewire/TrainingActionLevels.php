@@ -14,21 +14,14 @@ class TrainingActionLevels extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $training_action_levels = TrainingActionLevel::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($training_action_levels as $training_action_level){
-            $training_action = TrainingAction::where('training_action_level_id', $training_action_level['id'])->first();
-            if ($training_action){
-                $training_action_level['used'] = true;
-            } else {
-                $training_action_level['used'] = false;
-            }
-        }
+        $training_action_levels = TrainingActionLevel::getTrainingActionLevel($keyWord);
         return view('livewire.training-action-levels.view', [
             'trainingActionLevels' => $training_action_levels,
         ]);
@@ -51,9 +44,10 @@ class TrainingActionLevels extends Component
 		'name' => 'required',
         ]);
 
-        TrainingActionLevel::create([
+        $data = [
 			'name' => $this-> name
-        ]);
+        ];
+        TrainingActionLevel::createTrainingActionLevel($data);
 
         $this->resetInput();
 		$this->emit('closeModal');
@@ -77,11 +71,10 @@ class TrainingActionLevels extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = TrainingActionLevel::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name
-            ]);
-
+            $data = [
+                'name' => $this-> name
+            ];
+            TrainingActionLevel::updateTrainingActionLevel($this->selected_id, $data);
             $this->resetInput();
             $this->updateMode = false;
 			session()->flash('message', 'Nivel actualizado con exito.');
@@ -91,8 +84,8 @@ class TrainingActionLevels extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = TrainingActionLevel::where('id', $id);
-            $record->delete();
+            $value = TrainingActionLevel::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

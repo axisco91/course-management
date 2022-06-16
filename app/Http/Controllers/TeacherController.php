@@ -15,4 +15,12 @@ class TeacherController extends Controller
     public function edit($id){
         return view('teachers.update', compact('id'));
     }
+
+    public function create(){
+        return view('teachers.create');
+    }
+
+    public function view($id){
+        return view('teachers.view', compact('id'));
+    }
 }

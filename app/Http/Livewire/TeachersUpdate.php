@@ -7,22 +7,18 @@ use App\Models\Province;
 use App\Models\Teacher;
 use App\Models\TeacherArea;
 use Livewire\Component;
-use Livewire\WithPagination;
 use function session;
 use function view;
 
 class TeachersUpdate extends Component
 {
-    use WithPagination;
 
-    protected $paginationTheme = 'bootstrap';
     public $selected_id, $name, $surname, $dni, $email, $telephone, $user, $password, $observations, $iban, $address,
         $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $inactive, $route;
 
     public function render()
     {
-
-        return view('livewire.teachers.edit');
+        return view('livewire.teachers.update');
     }
 
     public function mount($id){
@@ -55,6 +51,9 @@ class TeachersUpdate extends Component
         $this->route = url()->previous();
     }
 
+    public function hydrate(){
+        $this->emit('select2');
+    }
 
     public function update()
     {

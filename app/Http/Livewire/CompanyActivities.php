@@ -14,21 +14,14 @@ class CompanyActivities extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $companyActivities = CompanyActivity::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($companyActivities as $companyActivity) {
-            $company = Company::where('company_activity_id', $companyActivity['id'])->first();
-            if ($company) {
-                $companyActivity['used'] = true;
-            } else {
-                $companyActivity['used'] = false;
-            }
-        }
+        $companyActivities = CompanyActivity::getCompanyActivities($keyWord);
 
         return view('livewire.company-activities.view', [
             'companyActivities' => $companyActivities,
@@ -52,9 +45,11 @@ class CompanyActivities extends Component
 		'name' => 'required',
         ]);
 
-        CompanyActivity::create([
+        $data = [
 			'name' => $this-> name
-        ]);
+        ];
+
+        CompanyActivity::createCompanyActivity($data);
 
         $this->resetInput();
 		$this->emit('closeModal');
@@ -78,10 +73,11 @@ class CompanyActivities extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = CompanyActivity::find($this->selected_id);
-            $record->update([
+            $data = [
 			'name' => $this-> name
-            ]);
+            ];
+
+            CompanyActivity::updateCompanyActivity($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -92,8 +88,8 @@ class CompanyActivities extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = CompanyActivity::where('id', $id);
-            $record->delete();
+            $value = CompanyActivity::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

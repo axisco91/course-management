@@ -19,9 +19,6 @@ use App\Models\TrainingAction;
 
 class TrainingActionsUpdate extends Component
 {
-    use WithPagination;
-
-    protected $paginationTheme = 'bootstrap';
     public $selected_id, $name, $teacher_id, $action_type_id, $professional_family_id, $professional_area_id,
         $modality_id, $training_action_level_id, $training_action_group_id, $tutoring_id, $course_z, $course_avz, $active = 1,
         $in_catalog = 1, $face_to_face_hours, $teletraining_hours, $total_hours, $price, $objectives, $content, $user,
@@ -31,7 +28,7 @@ class TrainingActionsUpdate extends Component
 
     public function render()
     {
-        return view('livewire.training-actions.edit');
+        return view('livewire.training-actions.update');
     }
 
     public function mount($id){
@@ -45,12 +42,12 @@ class TrainingActionsUpdate extends Component
         $this->web_platforms = WebPlatform::all();
         $this->providers = Provider::select('providers.*')
             ->join('companies', 'companies.id', '=', 'providers.company_id')
-            ->where('companies.inactive', 0)->get();
+            ->where('companies.active', 1)->get();
 
         $record = TrainingAction::findOrFail($id);
 
-        $this->action($id);
         $this->selected_id = $id;
+        $this->formative_action = $record-> formative_action;
         $this->name = $record-> name;
         $this->action_type_id = $record-> action_type_id;
         $this->professional_family_id = $record-> professional_family_id;
@@ -70,7 +67,7 @@ class TrainingActionsUpdate extends Component
         $this->objectives = $record-> objectives;
         $this->content = $record-> content;
         $this->user = $record-> user;
-        $this->password = $record-> pasword;
+        $this->password = $record-> password;
         $this->web_platform_id = $record-> web_platform_id;
         $this->observations = $record-> observations;
         $this->number_activities = $record-> number_activities;
@@ -97,8 +94,7 @@ class TrainingActionsUpdate extends Component
         $total_hours = $this-> face_to_face_hours + $this-> teletraining_hours;
 
         if ($this->selected_id) {
-            $record = TrainingAction::find($this->selected_id);
-            $record->update([
+            $data = [
                 'name' => $this-> name,
                 'action_type_id' => $this-> action_type_id,
                 'professional_family_id' => $this-> professional_family_id != -1 ? $this-> professional_family_id : null,
@@ -124,7 +120,10 @@ class TrainingActionsUpdate extends Component
                 'number_activities' => $this-> number_activities,
                 'number_units' => $this-> number_units,
                 'provider_id' => $this-> provider_id
-            ]);
+            ];
+
+            $training_action = TrainingAction::updateTrainingAction($this->selected_id, $data);
+
             session()->flash('message', 'Acción formativa actualizada con exito.');
             return $this->redirect($this->route);
         }
@@ -132,20 +131,5 @@ class TrainingActionsUpdate extends Component
     public function setTotalHours($face_to_face, $teletraining) {
         $this->total_hours = $face_to_face+$teletraining;
         $this->create_total_hours = $face_to_face+$teletraining;
-    }
-
-    public function action($id = null){
-        if (!$id){
-            $training = TrainingAction::orderBy('id', 'desc')->first();
-            $id = $training['id']+1;
-        }
-        if ($id < 10) {
-            $this->formative_action = '00'.$id;
-        }
-        else if ($id < 100) {
-            $this->formative_action = '0'.$id;
-        } else {
-            $this->formative_action = $id;
-        }
     }
 }

@@ -37,8 +37,8 @@
                             @foreach($chores as $row)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $row->student }}</td>
-                                    <td>{{ $row->company }}</td>
+                                    <td>{{ $row->student_name }}</td>
+                                    <td>{{ $row->company_name }}</td>
                                     <td>{{ $row->membership_tab_status }}</td>
                                     <td>{{ $row->membership_tab_date }}</td>
                                     <td>{{ $row->economic_proposal_status }}</td>
@@ -55,8 +55,7 @@
                                                 Acciones
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-right">
-                                                <a data-bs-toggle="modal" data-bs-target="#updateObservation" class="dropdown-item" wire:click="editObservation({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>
-                                                <a class="dropdown-item" onclick="confirm('Confirmar eliminar observacion: {{$row->onservacion}}? \nNo se puede recuperar!')||event.stopImmediatePropagation()" wire:click="destroyObservation({{$row->id}})"><i class="fa fa-trash"></i> Eliminar </a>
+                                                <a data-bs-toggle="modal" data-bs-target="#updateChore" class="dropdown-item" wire:click="editChore({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
                                             </div>
                                         </div>
                                     </td>
@@ -66,7 +65,7 @@
                     @endif
                 </div>
             </div>
-            <div class="modal-footer">
+              <div class="col-12 text-center mt-2 pt-50">
                 <button type="button" class="btn btn-secondary close-btn" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>

@@ -45,4 +45,41 @@ class Bonus extends Model
         return $this->hasOne('App\Models\Payment', 'id', 'payment_id');
     }
 
+    public function getBonuses($keyWord){
+        $bonuses = Bonus::latest()
+            ->orWhere('course_id', 'LIKE', $keyWord)
+            ->orWhere('company_id', 'LIKE', $keyWord)
+            ->orWhere('course_status_id', 'LIKE', $keyWord)
+            ->orWhere('number_students', 'LIKE', $keyWord)
+            ->orWhere('billing', 'LIKE', $keyWord)
+            ->orWhere('bonus', 'LIKE', $keyWord)
+            ->orWhere('total_training_activity', 'LIKE', $keyWord)
+            ->orWhere('organization_expenses', 'LIKE', $keyWord)
+            ->orWhere('only_organizing_entity', 'LIKE', $keyWord)
+            ->orWhere('average_template', 'LIKE', $keyWord)
+            ->orWhere('salary_cost', 'LIKE', $keyWord)
+            ->orWhere('payment_id', 'LIKE', $keyWord)
+            ->orWhere('start_communication_date', 'LIKE', $keyWord)
+            ->orWhere('close_communication_date', 'LIKE', $keyWord)
+            ->orWhere('invoiced', 'LIKE', $keyWord)
+            ->orWhere('invoice_number', 'LIKE', $keyWord)
+            ->orWhere('invoice_date', 'LIKE', $keyWord)
+            ->orWhere('collection_date', 'LIKE', $keyWord)
+            ->orWhere('status_bonus', 'LIKE', $keyWord)
+            ->orWhere('date', 'LIKE', $keyWord)
+            ->orWhere('company_bonus', 'LIKE', $keyWord)
+            ->orWhere('observations', 'LIKE', $keyWord)
+            ->paginate(10);
+
+        return $bonuses;
+    }
+
+    public function createBonus(){
+
+    }
+
+    public function updateBonus(){
+
+    }
+
 }

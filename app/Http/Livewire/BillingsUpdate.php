@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Chore;
 use App\Models\Company;
 use App\Models\Course;
 use App\Models\Payment;
@@ -14,12 +15,12 @@ class BillingsUpdate extends Component
     use WithPagination;
 
     protected $paginationTheme = 'bootstrap';
-    public $selected_id, $course_id, $company_id, $number_students, $billing, $bonus, $total_training_activity, $expenses, $only_organizing_entity, $salary_costs, $payment_id, $communication_start_date, $comunication_end_date, $invoiced, $billing_number, $billing_date, $collection_date, $bonus_status, $company_bonus, $observation, $is_bonus;
-    public $courses, $companies, $payments, $route;
+    public $selected_id, $course_id, $company_id, $number_students, $billing, $bonus, $total_training_activity, $expenses, $only_organizing_entity, $salary_costs, $payment_id, $communication_start_date, $communication_end_date, $invoiced, $billing_number, $billing_date, $collection_date, $bonus_status, $company_bonus, $observation, $is_bonus, $group;
+    public $courses, $companies, $payments, $route, $tab = 'info';
 
     public function render()
     {
-        return view('livewire.billings.edit');
+        return view('livewire.billings.update');
     }
 
     public function mount($id){
@@ -41,7 +42,7 @@ class BillingsUpdate extends Component
         $this->salary_costs = $record-> salary_costs;
         $this->payment_id = $record-> payment_id;
         $this->communication_start_date = $record-> communication_start_date;
-        $this->comunication_end_date = $record-> comunication_end_date;
+        $this->communication_end_date = $record-> communication_end_date;
         $this->invoiced = $record-> invoiced;
         $this->billing_number = $record-> billing_number;
         $this->billing_date = $record-> billing_date;
@@ -51,7 +52,34 @@ class BillingsUpdate extends Component
         $this->observation = $record-> observation;
         $this->is_bonus = $record-> is_bonus;
 
+        $course = Course::find($this->course_id);
+        $this->group = $course->group;
 
+        $this->route = url()->previous();
+    }
+
+    private function resetInput()
+    {
+        $this->course_id = null;
+        $this->company_id = null;
+        $this->number_students = null;
+        $this->billing = null;
+        $this->bonus = null;
+        $this->total_training_activity = null;
+        $this->expenses = null;
+        $this->only_organizing_entity = null;
+        $this->salary_costs = null;
+        $this->payment_id = null;
+        $this->communication_start_date = null;
+        $this->communication_end_date = null;
+        $this->invoiced = null;
+        $this->billing_number = null;
+        $this->billing_date = null;
+        $this->collection_date = null;
+        $this->bonus_status = null;
+        $this->company_bonus = null;
+        $this->observation = null;
+        $this->is_bonus = null;
     }
 
     public function update()
@@ -62,7 +90,6 @@ class BillingsUpdate extends Component
             'number_students' => 'required',
             'billing' => 'required',
             'bonus' => 'required',
-            'total_training_activity' => 'required',
             'expenses' => 'required',
             'only_organizing_entity' => 'required',
             'salary_costs' => 'required',
@@ -71,9 +98,13 @@ class BillingsUpdate extends Component
             'company_bonus' => 'required',
         ]);
 
+        if ($this->is_bonus) {
+            $this->expenses = Billing::calculateExpenses($this->billing);
+            $this->total_training_activity = Billing::totalTrainingActivity($this->bonus, $this->expenses);
+        }
+
         if ($this->selected_id) {
-            $record = Billing::find($this->selected_id);
-            $record->update([
+            $data = [
                 'course_id' => $this-> course_id,
                 'company_id' => $this-> company_id,
                 'number_students' => $this-> number_students,
@@ -85,7 +116,7 @@ class BillingsUpdate extends Component
                 'salary_costs' => $this-> salary_costs,
                 'payment_id' => $this-> payment_id,
                 'communication_start_date' => $this-> communication_start_date,
-                'comunication_end_date' => $this-> comunication_end_date,
+                'communication_end_date' => $this-> communication_end_date,
                 'invoiced' => $this-> invoiced,
                 'billing_number' => $this-> billing_number,
                 'billing_date' => $this-> billing_date,
@@ -94,9 +125,13 @@ class BillingsUpdate extends Component
                 'company_bonus' => $this-> company_bonus,
                 'observation' => $this-> observation,
                 'is_bonus' => $this-> is_bonus,
-            ]);
+            ];
 
-            session()->flash('message', 'Billing Successfully updated.');
+            $billing = Billing::updateBilling($this->selected_id, $data);
+            Chore::billingDateChore($this->selected_id, $this->billing_date);
+            $this->resetInput();
+            $this->updateMode = false;
+            session()->flash('message', 'Factura Actulizado con exito.');
             return $this->redirect($this->route);
         }
     }

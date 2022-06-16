@@ -15,4 +15,12 @@ class CompanyController extends Controller
     public function edit($id){
         return view('companies.update', compact('id'));
     }
+
+    public function create(){
+        return view('companies.create');
+    }
+
+    public function view($id){
+        return view('companies.view', compact('id'));
+    }
 }

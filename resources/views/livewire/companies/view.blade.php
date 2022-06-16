@@ -1,98 +1,196 @@
-@section('title', __('Companys'))
-<div class="container-fluid">
-	<div class="row justify-content-center">
-		<div class="col-md-12">
-			<div class="card">
-				<div class="card-header">
-					<div style="display: flex; justify-content: space-between; align-items: center;">
-						<div class="float-left">
-							<h4><i class="fab fa-laravel text-info"></i>
-							Empresas </h4>
-						</div>
-						@if (session()->has('message'))
-						<div wire:poll.4s class="btn btn-sm btn-success" style="margin-top:0px; margin-bottom:0px;"> {{ session('message') }} </div>
-						@endif
-						<div>
-							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
-						</div>
-                        <div>
-                            <label for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
-                        </div>
-						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
-						<i class="fa fa-plus"></i>  Añadir Empresa
-						</div>
-					</div>
-				</div>
-
-				<div class="card-body">
-						@include('livewire.companies.create')
-						@include('livewire.companies.update')
-                        @include('livewire.companies.info')
-                        @include('livewire.companies.createObservation')
-                        @include('livewire.companies.observations')
-                        @include('livewire.companies.updateObservation')
-				<div class="table-responsive">
-					<table class="table table-bordered table-sm">
-						<thead class="thead">
-							<tr>
-								<td>#</td>
-								<th>Nombre</th>
-								<th>CIF</th>
-								<th>Tipo</th>
-								<th>Actividad</th>
-								<th>Correo</th>
-								<th>Telefono</th>
-								<th>Representante Legal</th>
-								<th>Asesoria</th>
-                                <th>Estado</th>
-								<td>Acciones</td>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach($companies as $row)
-							<tr>
-								<td>{{ $loop->iteration }}</td>
-                                <td><a data-bs-toggle="modal" data-bs-target="#companiesTabModal" class="dropdown-item" wire:click="general({{$row->id}})">{{ $row->name }}</a></td>
-								<td>{{ $row->nif }}</td>
-								<td>{{ $row->type }}</td>
-								<td>{{ $row->activity }}</td>
-								<td>{{ $row->email }}</td>
-								<td>{{ $row->telephone }}</td>
-								<td>{{ $row->legal_representative }}</td>
-								<td>{{ $row->advisor }}</td>
-                                <td>{{$row->inactive == 1 ? 'Inactivo' : 'Activo'}}</td>
-								<td width="90">
-								<div class="btn-group dropup">
-									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									Acciones
-									</button>
-									<div class="dropdown-menu dropdown-menu-right">
-                                    <!--    <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar </a>-->
-                                        <a href="{{url('/companies/edit/'.$row->id)}}" class="dropdown-item edit"><i class="fa fa-edit"></i> Editar </a>
-                                        <a data-bs-toggle="modal" data-bs-target="#companiesTabModal" class="dropdown-item" wire:click="general({{$row->id}})"><i class="fa fa-watch"></i> Ver </a>
-                                        @if ($row->is_advisor)
-                                            <a class="dropdown-item" onclick="confirm('Confirmar convertir a asesoria: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertAdvisor({{$row->id}})">Convertir Asesoria</a>
-                                        @endif
-                                        @if ($row->is_provider)
-                                            <a class="dropdown-item" onclick="confirm('Confirmar convertir a proveedor: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertProvider({{$row->id}})">Convertir Proveedor</a>
-                                        @endif
-                                        @if ($row->inactivo == 1)
-                                            <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
-                                        @else
-                                            <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
-                                        @endif
-                                        <a data-bs-toggle="modal" data-bs-target="#createObservationModal" class="dropdown-item" wire:click="newObservation({{$row->id}})"><i class="fa fa-edit"></i> Crear Observación </a>
-                                        <a data-bs-toggle="modal" data-bs-target="#observationsModal" class="dropdown-item" wire:click="observations({{$row->id}})"><i class="fa fa-edit"></i> Ver Observaciones </a></a>
-									</div>
-								</div>
-								</td>
-							@endforeach
-						</tbody>
-					</table>
-					{{ $companies->links() }}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+<div class="card-body">
+    @if (session()->has('message'))
+        <input hidden id="success-toast" data-type="success" data-show="true" value="{{ session('message') }}">
+    @endif
+    @if (session()->has('error'))
+        <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
+    @endif
+    <div class="col-12 mb-1">
+        <button type="button" class="btn btn-success right" id="enable_edit_company">Editar</button>
+    </div>
+    <form class="form">
+        <input type="hidden" wire:model.lazy="selected_id">
+        <div class="row">
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="name">Nombre</label>
+                    <input wire:model.lazy="name" type="text" class="form-control @error('name') is-invalid @enderror" id="name" placeholder="Nombre" disabled>
+                    @error('name') <div class="invalid-feedback">Nombre es requerido</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="nif">CIF</label>
+                    <input wire:model.lazy="nif" type="text" class="form-control @error('nif') is-invalid @enderror" id="nif" placeholder="Cif" disabled>
+                    @error('nif') <div class="invalid-feedback">CIF es requerido</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="type_id">Tipo</label>
+                    <select wire:model.lazy="type_id" class="form-select select2 @error('type_id') is-invalid @enderror" id="type_id" disabled>
+                        <option value="">Seleccione un tipo</option>
+                        @foreach($company_types as $type)
+                            <option value="{{$type['id']}}">{{$type['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('type_id') <div class="invalid-feedback">Tipo es requerido</div> @enderror
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="activity_id">Actividad</label>
+                    <select wire:model.lazy="activity_id" class="form-select select2 @error('activity_id') is-invalid @enderror" id="activity_id" disabled>
+                        <option value="">Seleccione una actividad</option>
+                        @foreach($company_activities as $activity)
+                            <option value="{{$activity['id']}}">{{$activity['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('activity_id') <div class="invalid-feedback">Actividad es requerido</div> @enderror
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="email">Correo</label>
+                    <input wire:model.lazy="email" type="email" class="form-control @error('correo') is-invalid @enderror" id="email" placeholder="Correo" disabled>
+                    @error('email') <div class="invalid-feedback">Correo es requerido</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="telephone">Telefono</label>
+                    <input wire:model.lazy="telephone" type="text" class="form-control @error('telephone') is-invalid @enderror" id="telephone" placeholder="Telefono" disabled>
+                    @error('telephone') <div class="invalid-feedback">Telefono es requerido</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="legal_representative">Representante Legal</label>
+                    <input wire:model.lazy="legal_representative" type="text" class="form-control" id="legal_representative" placeholder="Representante Legal" disabled>
+                    @error('legal_representative') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="dni_legal_representative">Dni representante legal</label>
+                    <input wire:model.lazy="dni_legal_representative" type="text" class="form-control" id="dni_legal_representative" placeholder="Dni representante legal" disabled>
+                    @error('dni_legal_representative') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="quote">C. cotización</label>
+                    <input wire:model.lazy="quote" type="text" class="form-control" id="quote" placeholder="C. cotización" disabled>@error('quote') <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div wire:ignore>
+                    <label class="form-label" for="advisor_id">Asesoria</label>
+                    <select wire:model.lazy="advisor_id" class="form-select select2" id="advisor_id" placeholder="Advisor Id" disabled>
+                        <option value="">Selección una Asesoria</option>
+                        @foreach($advisors as $advisor)
+                            <option value="{{$advisor['id']}}">{{$advisor['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('advisor_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="cnae_id">Cnae</label>
+                    <select wire:model.lazy="cnae_id" class="form-select select2" id="cnae_id" disabled>
+                        <option value="">Seleccione una cnae</option>
+                        @foreach($cnaes as $cnae)
+                            <option value="{{$cnae['id']}}">{{$cnae['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('cnae_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="average_template">Plantilla media</label>
+                    <input wire:model.lazy="average_template" type="number" class="form-control" id="average_template" placeholder="Plantilla media" disabled>@error('average_template') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="iban">Iban</label>
+                    <input wire:model.lazy="iban" type="text" class="form-control" id="iban" placeholder="Iban" disabled>@error('iban') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="sepa">Sepa</label>
+                    <input wire:model.lazy="sepa" type="text" class="form-control" id="sepa" placeholder="Sepa" disabled>@error('sepa') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="b2b">B2B</label>
+                    <input wire:model.lazy="b2b" type="text" class="form-control" id="b2b" placeholder="B2B" disabled>@error('b2b') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="address">Dirección</label>
+                    <input wire:model.lazy="address" type="text" class="form-control" id="address" placeholder="Dirección" disabled>@error('address') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="post_code">Código postal</label>
+                    <input wire:model.lazy="post_code" type="text" class="form-control" id="post_code" placeholder="Código postal" disabled>@error('post_code') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="province_id">Provincia</label>
+                    <select wire:model.lazy="province_id" class="form-select select2 @error('province_id') is-invalid @enderror" id="province_id" disabled>
+                        <option value="">Seleccione una provincia</option>
+                        @foreach($provinces as $province)
+                            <option value="{{$province['id']}}">{{$province['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('province_id') <div class="invalid-feedback">Provincia es requerido</div> @enderror
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="mb-1">
+                    <label class="form-label" for="population">Población</label>
+                    <input wire:model.lazy="population" type="text" class="form-control" id="population" placeholder="Población" disabled>@error('population') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <div class="form-check form-check-inline" style="padding-top: 32px;">
+                    <input wire:model.lazy="active" class="form-check-input @error('active') is-invalid @enderror" type="checkbox" id="active" value="active" disabled/>
+                    <label class="form-check-label" for="active">Activo</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <button type="button" wire:click="update()" id="save_company" class="btn btn-primary me-1" style="display: none">Guardar</button>
+        </div>
+    </form>
+@section('vendor-script')
+    <!-- vendor files -->
+        <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+@endsection
+@section('page-script')
+    <!-- Page js files -->
+        <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+    @endsection
+    <script>
+        document.addEventListener('livewire:load', function() {
+            $( document ).ready(
+                setTimeout(function (){
+                    initializeSelect2()
+                }, 100)
+            );
+            $('.select2').on('change', function(){
+            @this.set(this.id, $(this).val())
+            })
+        })
+    </script>
 </div>

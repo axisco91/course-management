@@ -24,7 +24,7 @@ class BillingFactory extends Factory
 			'salary_costs' => $this->faker->name,
 			'payment_id' => $this->faker->name,
 			'communication_start_date' => $this->faker->name,
-			'comunication_end_date' => $this->faker->name,
+			'communication_end_date' => $this->faker->name,
 			'invoiced' => $this->faker->name,
 			'billing_number' => $this->faker->name,
 			'billing_date' => $this->faker->name,

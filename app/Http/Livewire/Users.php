@@ -20,13 +20,9 @@ class Users extends Component
     public function render()
     {
         $keyWord = '%'.$this->keyWord .'%';
+        $users = User::getUsers($keyWord);
         return view('livewire.users.view', [
-            'users' => User::latest()
-                ->orWhere('name', 'LIKE', $keyWord)
-                ->orWhere('surname', 'LIKE', $keyWord)
-                ->orWhere('username', 'LIKE', $keyWord)
-                ->orWhere('email', 'LIKE', $keyWord)
-                ->paginate(10),
+            'users' => $users,
         ]);
     }
 
@@ -61,14 +57,15 @@ class Users extends Component
             'password' => 'required|string|min:8',
         ]);
 
-        User::create([
+        $data = [
             'name' => $this-> name,
             'surname' => $this-> surname,
             'username' => $this-> username,
             'email' => $this-> email,
             'password' => Hash::make($this-> password),
-        ]);
-
+            'role_id' => $this->role_id
+        ];
+        User::createUser($data);
         $this->resetInput();
         $this->emit('closeModal');
         session()->flash('message', 'usuario creado con exito.');
@@ -103,14 +100,14 @@ class Users extends Component
         ]);
 
         if ($this->selected_id) {
-            $record = User::find($this->selected_id);
-            $record->update([
+            $data = [
                 'name' => $this-> name,
                 'surname' => $this-> surname,
                 'username' => $this-> username,
-                'email' => $this-> email
-            ]);
-            $record->syncRoles($this->role_id);
+                'email' => $this-> email,
+                'role_id' => $this->role_id
+            ];
+            User::updateUser($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;

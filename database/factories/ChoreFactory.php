@@ -25,7 +25,7 @@ class ChoreFactory extends Factory
 			'welcome_guid_status' => $this->faker->name,
 			'welcome_guid_date' => $this->faker->name,
 			'registration_status' => $this->faker->name,
-			'registration_status_date' => $this->faker->name,
+			'registration_date' => $this->faker->name,
 			'diploma_status' => $this->faker->name,
 			'diploma_status_date' => $this->faker->name,
 			'start_communication_status' => $this->faker->name,

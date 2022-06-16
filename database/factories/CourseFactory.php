@@ -36,7 +36,7 @@ class CourseFactory extends Factory
 			'course_observation' => $this->faker->name,
 			'reactivated' => $this->faker->name,
 			'welcome_date' => $this->faker->name,
-			'quater_date' => $this->faker->name,
+			'quarter_date' => $this->faker->name,
 			'half_date' => $this->faker->name,
 			'three_quarters_date' => $this->faker->name,
 			'final_date' => $this->faker->name,

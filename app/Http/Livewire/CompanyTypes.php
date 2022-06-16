@@ -14,21 +14,14 @@ class CompanyTypes extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $companyTypes = CompanyType::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($companyTypes as $companyType){
-            $company = Company::where('company_type_id', $companyType['id'])->first();
-            if ($company){
-                $companyType['used'] = true;
-            } else {
-                $companyType['used'] = false;
-            }
-        }
+       $companyTypes = CompanyType::getCompanyTypes($keyWord);
         return view('livewire.company-types.view', [
             'companyTypes' => $companyTypes,
         ]);
@@ -51,9 +44,11 @@ class CompanyTypes extends Component
 		'name' => 'required',
         ]);
 
-        CompanyType::create([
+        $data = [
 			'name' => $this-> name
-        ]);
+        ];
+
+        CompanyType::createCompanyType($data);
 
         $this->resetInput();
 		$this->emit('closeModal');
@@ -77,11 +72,10 @@ class CompanyTypes extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = CompanyType::find($this->selected_id);
-            $record->update([
+			$data = [
 			'name' => $this-> name
-            ]);
-
+            ];
+            CompanyType::updateCompanyType($this->selected_id, $data);
             $this->resetInput();
             $this->updateMode = false;
 			session()->flash('message', 'Tipo actualizado con exito.');
@@ -91,8 +85,8 @@ class CompanyTypes extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = CompanyType::where('id', $id);
-            $record->delete();
+            $value = CompanyType::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

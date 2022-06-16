@@ -14,23 +14,14 @@ class ProfessionalCategories extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-
-        $professional_categories = ProfessionalCategory::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($professional_categories as $professional_category){
-            $student = Student::where('professional_category_id', $professional_category['id'])->first();
-            if ($student) {
-                $professional_category['used'] = true;
-            } else {
-                $professional_category['used'] = false;
-            }
-        }
-
+        $professional_categories = ProfessionalCategory::getProfessionalCategories($keyWord);
         return view('livewire.professional-categories.view', [
             'professionalCategories' => $professional_categories,
         ]);
@@ -53,10 +44,10 @@ class ProfessionalCategories extends Component
 		'name' => 'required',
         ]);
 
-        ProfessionalCategory::create([
+        $data = [
 			'name' => $this-> name
-        ]);
-
+        ];
+        ProfessionalCategory::createProfessionalCategory($data);
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'ProfessionalCategory Successfully created.');
@@ -79,10 +70,10 @@ class ProfessionalCategories extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = ProfessionalCategory::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name
-            ]);
+            $data = [
+                'name' => $this-> name
+            ];
+            ProfessionalCategory::updateProfessionalCategory($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -93,8 +84,8 @@ class ProfessionalCategories extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = ProfessionalCategory::where('id', $id);
-            $record->delete();
+            $value = ProfessionalCategory::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

@@ -2,6 +2,10 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Company;
+use App\Models\Course;
+use App\Models\Student;
+use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Chore;
@@ -11,49 +15,42 @@ class Chores extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $course_id, $company_id, $student_id, $membership_tab_status, $membership_tab_date, $economic_proposal_status, $economic_proposal_date, $student_tab_status, $student_tab_date, $welcome_guid_status, $welcome_guid_date, $registration_status, $registration_status_date, $diploma_status, $diploma_status_date, $start_communication_status, $start_communication_date, $close_communication_status, $close_communication_date, $invoiced_status, $invoiced_date, $bonus_sent_status, $bonus_sent_date;
+    public $selected_id, $keyWord, $course_id, $company_id, $student_id, $membership_tab_status, $membership_tab_date,
+        $economic_proposal_status, $economic_proposal_date, $student_tab_status, $student_tab_date, $welcome_guid_status, $welcome_guid_date,
+        $registration_status, $registration_date, $diploma_status, $diploma_status_date, $start_communication_status,
+        $start_communication_date, $close_communication_status, $close_communication_date, $invoiced_status, $invoiced_date,
+        $bonus_sent_status, $bonus_sent_date;
     public $updateMode = false;
+    public $courses, $companies, $students, $tab = 'info';
+    public $course_search = -1, $company_search = -1, $student_search = -1, $student_name, $name, $surname, $course_name;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        return view('livewire.chores.view', [
-            'chores' => Chore::latest()
-						->orWhere('course_id', 'LIKE', $keyWord)
-						->orWhere('company_id', 'LIKE', $keyWord)
-						->orWhere('student_id', 'LIKE', $keyWord)
-						->orWhere('membership_tab_status', 'LIKE', $keyWord)
-						->orWhere('membership_tab_date', 'LIKE', $keyWord)
-						->orWhere('economic_proposal_status', 'LIKE', $keyWord)
-						->orWhere('economic_proposal_date', 'LIKE', $keyWord)
-						->orWhere('student_tab_status', 'LIKE', $keyWord)
-						->orWhere('student_tab_date', 'LIKE', $keyWord)
-						->orWhere('welcome_guid_status', 'LIKE', $keyWord)
-						->orWhere('welcome_guid_date', 'LIKE', $keyWord)
-						->orWhere('registration_status', 'LIKE', $keyWord)
-						->orWhere('registration_status_date', 'LIKE', $keyWord)
-						->orWhere('diploma_status', 'LIKE', $keyWord)
-						->orWhere('diploma_status_date', 'LIKE', $keyWord)
-						->orWhere('start_communication_status', 'LIKE', $keyWord)
-						->orWhere('start_communication_date', 'LIKE', $keyWord)
-						->orWhere('close_communication_status', 'LIKE', $keyWord)
-						->orWhere('close_communication_date', 'LIKE', $keyWord)
-						->orWhere('invoiced_status', 'LIKE', $keyWord)
-						->orWhere('invoiced_date', 'LIKE', $keyWord)
-						->orWhere('bonus_sent_status', 'LIKE', $keyWord)
-						->orWhere('bonus_sent_date', 'LIKE', $keyWord)
-						->paginate(10),
+
+       $chores = Chore::getChores($keyWord, $this->course_search, $this->company_search, $this->student_search);
+        return view('livewire.chores.list', [
+            'chores' => $chores,
         ]);
     }
-	
+
+    public function mount(){
+        $this->courses = Course::all();
+        $this->companies = Company::all();
+        $this->students = Student::all();
+    }
+
     public function cancel()
     {
         $this->resetInput();
         $this->updateMode = false;
     }
-	
+
     private function resetInput()
-    {		
+    {
 		$this->course_id = null;
 		$this->company_id = null;
 		$this->student_id = null;
@@ -66,7 +63,7 @@ class Chores extends Component
 		$this->welcome_guid_status = null;
 		$this->welcome_guid_date = null;
 		$this->registration_status = null;
-		$this->registration_status_date = null;
+		$this->registration_date = null;
 		$this->diploma_status = null;
 		$this->diploma_status_date = null;
 		$this->start_communication_status = null;
@@ -97,7 +94,7 @@ class Chores extends Component
 		'bonus_sent_status' => 'required',
         ]);
 
-        Chore::create([ 
+        Chore::create([
 			'course_id' => $this-> course_id,
 			'company_id' => $this-> company_id,
 			'student_id' => $this-> student_id,
@@ -110,7 +107,7 @@ class Chores extends Component
 			'welcome_guid_status' => $this-> welcome_guid_status,
 			'welcome_guid_date' => $this-> welcome_guid_date,
 			'registration_status' => $this-> registration_status,
-			'registration_status_date' => $this-> registration_status_date,
+			'registration_date' => $this-> registration_date,
 			'diploma_status' => $this-> diploma_status,
 			'diploma_status_date' => $this-> diploma_status_date,
 			'start_communication_status' => $this-> start_communication_status,
@@ -122,101 +119,61 @@ class Chores extends Component
 			'bonus_sent_status' => $this-> bonus_sent_status,
 			'bonus_sent_date' => $this-> bonus_sent_date
         ]);
-        
+
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Chore Successfully created.');
     }
 
-    public function edit($id)
-    {
-        $record = Chore::findOrFail($id);
-
-        $this->selected_id = $id; 
-		$this->course_id = $record-> course_id;
-		$this->company_id = $record-> company_id;
-		$this->student_id = $record-> student_id;
-		$this->membership_tab_status = $record-> membership_tab_status;
-		$this->membership_tab_date = $record-> membership_tab_date;
-		$this->economic_proposal_status = $record-> economic_proposal_status;
-		$this->economic_proposal_date = $record-> economic_proposal_date;
-		$this->student_tab_status = $record-> student_tab_status;
-		$this->student_tab_date = $record-> student_tab_date;
-		$this->welcome_guid_status = $record-> welcome_guid_status;
-		$this->welcome_guid_date = $record-> welcome_guid_date;
-		$this->registration_status = $record-> registration_status;
-		$this->registration_status_date = $record-> registration_status_date;
-		$this->diploma_status = $record-> diploma_status;
-		$this->diploma_status_date = $record-> diploma_status_date;
-		$this->start_communication_status = $record-> start_communication_status;
-		$this->start_communication_date = $record-> start_communication_date;
-		$this->close_communication_status = $record-> close_communication_status;
-		$this->close_communication_date = $record-> close_communication_date;
-		$this->invoiced_status = $record-> invoiced_status;
-		$this->invoiced_date = $record-> invoiced_date;
-		$this->bonus_sent_status = $record-> bonus_sent_status;
-		$this->bonus_sent_date = $record-> bonus_sent_date;
-		
-        $this->updateMode = true;
-    }
-
-    public function update()
-    {
-        $this->validate([
-		'course_id' => 'required',
-		'company_id' => 'required',
-		'student_id' => 'required',
-		'membership_tab_status' => 'required',
-		'economic_proposal_status' => 'required',
-		'student_tab_status' => 'required',
-		'welcome_guid_status' => 'required',
-		'registration_status' => 'required',
-		'diploma_status' => 'required',
-		'start_communication_status' => 'required',
-		'close_communication_status' => 'required',
-		'invoiced_status' => 'required',
-		'bonus_sent_status' => 'required',
-        ]);
-
-        if ($this->selected_id) {
-			$record = Chore::find($this->selected_id);
-            $record->update([ 
-			'course_id' => $this-> course_id,
-			'company_id' => $this-> company_id,
-			'student_id' => $this-> student_id,
-			'membership_tab_status' => $this-> membership_tab_status,
-			'membership_tab_date' => $this-> membership_tab_date,
-			'economic_proposal_status' => $this-> economic_proposal_status,
-			'economic_proposal_date' => $this-> economic_proposal_date,
-			'student_tab_status' => $this-> student_tab_status,
-			'student_tab_date' => $this-> student_tab_date,
-			'welcome_guid_status' => $this-> welcome_guid_status,
-			'welcome_guid_date' => $this-> welcome_guid_date,
-			'registration_status' => $this-> registration_status,
-			'registration_status_date' => $this-> registration_status_date,
-			'diploma_status' => $this-> diploma_status,
-			'diploma_status_date' => $this-> diploma_status_date,
-			'start_communication_status' => $this-> start_communication_status,
-			'start_communication_date' => $this-> start_communication_date,
-			'close_communication_status' => $this-> close_communication_status,
-			'close_communication_date' => $this-> close_communication_date,
-			'invoiced_status' => $this-> invoiced_status,
-			'invoiced_date' => $this-> invoiced_date,
-			'bonus_sent_status' => $this-> bonus_sent_status,
-			'bonus_sent_date' => $this-> bonus_sent_date
-            ]);
-
-            $this->resetInput();
-            $this->updateMode = false;
-			session()->flash('message', 'Chore Successfully updated.');
-        }
-    }
-
     public function destroy($id)
     {
         if ($id) {
-            $record = Chore::where('id', $id);
-            $record->delete();
+            $value = Chore::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
+    }
+
+    public function general($id){
+        $record = Chore::findOrFail($id);
+
+        $this->selected_id = $id;
+        $this->course_id = $record-> course_id;
+        $this->company_id = $record-> company_id;
+        $this->student_id = $record-> student_id;
+
+        $student = Student::find($this->student_id);
+        $course = Course::find($this->course_id);
+
+        $this->student_name = $student->name .' '. $student->surname;
+        $this->course_name = $course->name;
+        $this->membership_tab_status = $record-> membership_tab_status;
+        $this->membership_tab_date = $record-> membership_tab_date;
+        $this->economic_proposal_status = $record-> economic_proposal_status;
+        $this->economic_proposal_date = $record-> economic_proposal_date;
+        $this->student_tab_status = $record-> student_tab_status;
+        $this->student_tab_date = $record-> student_tab_date;
+        $this->welcome_guid_status = $record-> welcome_guid_status;
+        $this->welcome_guid_date = $record-> welcome_guid_date;
+        $this->registration_status = $record-> registration_status;
+        $this->registration_date = $record-> registration_date;
+        $this->diploma_status = $record-> diploma_status;
+        $this->diploma_status_date = $record-> diploma_status_date;
+        $this->start_communication_status = $record-> start_communication_status;
+        $this->start_communication_date = $record-> start_communication_date;
+        $this->close_communication_status = $record-> close_communication_status;
+        $this->close_communication_date = $record-> close_communication_date;
+        $this->invoiced_status = $record-> invoiced_status;
+        $this->invoiced_date = $record-> invoiced_date;
+        $this->bonus_sent_status = $record-> bonus_sent_status;
+        $this->bonus_sent_date = $record-> bonus_sent_date;
+        $student = Student::find($this->student_id);
+        $course = Course::find($this->course_id);
+        $this->name = $student->name;
+        $this->surname = $student->surname;
+        $this->course_name = $course->name;
+    }
+
+    public function getInfo($id){
+        $this->selected_id = $id;
     }
 }

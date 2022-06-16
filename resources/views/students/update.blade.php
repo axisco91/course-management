@@ -1,10 +1,25 @@
-@extends('layouts.app')
+@extends('layouts/contentLayoutMaster')
+
+@section('vendor-style')
+    <!-- vendor css files -->
+    <link rel="stylesheet" href="{{ asset('app-assets/vendors/css/forms/select/select2.min.css') }}">
+    <link rel="stylesheet" href="{{asset('app-assets/css/plugins/forms/form-validation.css')}}">
+@endsection
+
 @section('content')
-    <div class="container-fluid">
-        <div class="row justify-content-center">
-            <div class="col-md-12">
-                @livewire('students-update', ['id' => $id])
-            </div>
+    <section class="bs-validation" id="multiple-column-form">
+        <div class="row">
+             <div class="col-12">
+                 <div class="card">
+                     <div class="card-header">
+                         Editar Alumno
+                     </div>
+                 </div>
+                 @livewire('students-update', ['id' => $id])
+             </div>
         </div>
-    </div>
+    </section>
+@endsection
+@section('scripts')
+    <!--<script src="{{ asset('app-assets/js/scripts/forms/form-validation.js') }}"></script>-->
 @endsection

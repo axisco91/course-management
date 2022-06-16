@@ -1,73 +1,71 @@
-@section('title', __('Registrations'))
-<div class="container-fluid">
-	<div class="row justify-content-center">
-		<div class="col-md-12">
-			<div class="card">
-				<div class="card-header">
-					<div style="display: flex; justify-content: space-between; align-items: center;">
-						<div class="float-left">
-							<h4><i class="fab fa-laravel text-info"></i>
-							Registration Listing </h4>
-						</div>
-						<div wire:poll.60s>
-							<code><h5>{{ now()->format('H:i:s') }} UTC</h5></code>
-						</div>
-						@if (session()->has('message'))
-						<div wire:poll.4s class="btn btn-sm btn-success" style="margin-top:0px; margin-bottom:0px;"> {{ session('message') }} </div>
-						@endif
-						<div>
-							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Search Registrations">
-						</div>
-						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
-						<i class="fa fa-plus"></i>  Add Registrations
-						</div>
-					</div>
-				</div>
-
-				<div class="card-body">
-						@include('livewire.registrations.create')
-						@include('livewire.registrations.update')
-				<div class="table-responsive">
-					<table class="table table-bordered table-sm">
-						<thead class="thead">
-							<tr>
-								<td>#</td>
-								<th>Course Id</th>
-								<th>Company Id</th>
-								<th>Student Id</th>
-								<th>Tracing Id</th>
-								<th>Chore Id</th>
-								<th>Price</th>
-								<td>Acciones</td>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach($registrations as $row)
-							<tr>
-								<td>{{ $loop->iteration }}</td>
-								<td>{{ $row->course_id }}</td>
-								<td>{{ $row->company_id }}</td>
-								<td>{{ $row->student_id }}</td>
-								<td>{{ $row->tracing_id }}</td>
-								<td>{{ $row->chore_id }}</td>
-								<td>{{ $row->price }}</td>
-								<td width="90">
-								<div class="btn-group">
-									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									Acciones
-									</button>
-									<div class="dropdown-menu dropdown-menu-right">
-									<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="Editar({{$row->id}})"><i class="fa fa-Edit"></i> Editar </a>
-									</div>
-								</div>
-								</td>
-							@endforeach
-						</tbody>
-					</table>
-					{{ $registrations->links() }}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+<div class="modal-content">
+    <div class="modal-header bg-transparent">
+        <button type="button" wire:click.prevent="cancel()" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    @include('livewire.registrations.create')
+    <div class="modal-body pb-5 px-sm-5 pt-50">
+        <div class="text-center mb-2">
+            <h1 class="mb-1">Matriculaciones</h1>
+        </div>
+        <input type="hidden" wire:model="selected_id">
+        <div class="card-body row">
+            <div class="col">
+                <h4>Alumnos no matriculados</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-1">
+                            <label class="form-label">Nombre:</label>
+                            <input wire:model="search_name_unregisterd" type="text" class="form-control dt-input dt-full-name" data-column="1" placeholder="Nombre" data-column-index="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-1">
+                            <label class="form-label">Apellidos:</label>
+                            <input wire:model="search_surname_unregisterd" type="text" class="form-control dt-input" data-column="2" placeholder="Apellidos" data-column-index="1" />
+                        </div>
+                    </div>
+                </div>
+                <div class="unregisterd_students" style="overflow-y:auto;">
+                    @if(isset($students))
+                        @foreach($students as $student)
+                            <div class="unregisterd">
+                                <div class="name">{{$student['name']}} {{$student['surname']}} ({{$student['dni']}})</div>
+                                <div data-bs-toggle="modal" data-bs-target="#createDataModal" class="btn btn-success btn-sm register" wire:click.prevent="edit({{$student->id}})"><i class="fas fa-plus"></i></div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+            <div class="col">
+                <h4>Alumnos matriculados</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-1">
+                            <label class="form-label">Nombre:</label>
+                            <input wire:model="search_name" type="text" class="form-control dt-input dt-full-name" data-column="1" placeholder="Nombre" data-column-index="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-1">
+                            <label class="form-label">Apellidos:</label>
+                            <input wire:model="search_surname" type="text" class="form-control dt-input" data-column="2" placeholder="Apellidos" data-column-index="1" />
+                        </div>
+                    </div>
+                </div>
+                <div class="registerd_students" style="overflow-y:auto;">
+                    @if(isset($registrations))
+                        @foreach($registrations as $registrated)
+                            <div class="registerd">
+                                <div class="name">{{$registrated['name'].' '.$registrated['surname']}} ({{$registrated['dni']}})</div>
+                                <div class="btn btn-danger btn-sm unregister" wire:click="unregister({{$registrated->student_id}})"><i class="fas fa-minus"></i></div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+        </div>
+        <div class="col-12 text-center mt-2 pt-50">
+            <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+    </div>
 </div>

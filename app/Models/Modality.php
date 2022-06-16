@@ -21,4 +21,34 @@ class Modality extends Model
         return $this->hasMany('App\Models\TrainingAction', 'modality_id', 'id');
     }
 
+    public function getModalities($keyWord){
+        $modalities = Modality::
+        orWhere('name', 'LIKE', $keyWord)
+            ->paginate(10);
+        foreach ($modalities as $modality){
+            $training_action = TrainingAction::where('modality_id', $modality['id'])->first();
+            if ($training_action){
+                $modality['used'] = true;
+            } else {
+                $modality['used'] = false;
+            }
+        }
+        return $modalities;
+    }
+
+    public function createModality($data){
+        $modality = Modality::create([
+            'name' => $data['name']
+        ]);
+        return $modality;
+    }
+
+    public function updateModality($id, $data){
+        $modality = Modality::find($id);
+        $modality->update([
+            'name' => $data['name']
+        ]);
+        return $modality;
+    }
+
 }

@@ -49,8 +49,8 @@
 									Acciones
 									</button>
 									<div class="dropdown-menu dropdown-menu-right">
-									<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="Editar({{$row->id}})"><i class="fa fa-Edit"></i> Editar </a>
-									<a class="dropdown-item" onclick="confirm('Confirm eliminar Company Observation {{$row->id}}? \nNo se podra restaurar y se perderar todo la información donde se utilize!')||event.stopImmediatePropagation()" wire:click="destroy({{$row->id}})"><i class="fa fa-trash"></i> Eliminar </a>
+									<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="Editar({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+									<a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
 									</div>
 								</div>
 								</td>
@@ -63,4 +63,60 @@
 			</div>
 		</div>
 	</div>
+    @section('scripts')
+        <script>
+            document.addEventListener('livewire:load', function () {
+                $('body').on('click', '.eliminar', function () {
+                    button = $(this)
+                    const swalWithBootstrapButtons = Swal.mixin({
+                        customClass: {
+                            confirmButton: 'btn btn-success',
+                            cancelButton: 'btn btn-danger'
+                        },
+                        buttonsStyling: false
+                    })
+
+                    swalWithBootstrapButtons.fire({
+                        title: '¿Estas seguro?',
+                        text: "Eliminaras a la observación de la empresa!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Si, eliminalo!',
+                        cancelButtonText: 'No, cancela!',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            id = $(this).data('id');
+                            Livewire.emit('destroy', id)
+                            window.addEventListener('eliminated', e=>{
+                                if (e.detail.value != ''){
+                                    swalWithBootstrapButtons.fire(
+                                        'Eliminado!',
+                                        'Eliminado con exito.',
+                                        'success'
+                                    )
+                                } else{
+                                    swalWithBootstrapButtons.fire(
+                                        'Error',
+                                        'Fallo al eliminar.',
+                                        'error'
+                                    )
+                                }
+                            });
+
+                        } else if (
+                            /* Read more about handling dismissals below */
+                            result.dismiss === Swal.DismissReason.cancel
+                        ) {
+                            swalWithBootstrapButtons.fire(
+                                'Cacelado',
+                                'No se ha podido eliminar.',
+                                'error'
+                            )
+                        }
+                    })
+                })
+            })
+        </script>
+    @endsection
 </div>

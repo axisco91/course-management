@@ -16,4 +16,11 @@ class StudentController extends Controller
         return view('students.update', compact('id'));
     }
 
+    public function create(){
+        return view('students.create');
+    }
+
+    public function view($id){
+        return view('students.view', compact('id'));
+    }
 }

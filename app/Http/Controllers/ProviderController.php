@@ -12,4 +12,12 @@ class ProviderController extends Controller
     public function edit($id){
         return view('providers.update', compact('id'));
     }
+
+    public function create(){
+        return view('providers.create');
+    }
+
+    public function view($id){
+        return view('providers.view', compact('id'));
+    }
 }

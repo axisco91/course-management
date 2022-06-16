@@ -14,21 +14,14 @@ class Modalities extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $modalities = Modality::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($modalities as $modality){
-            $training_action = TrainingAction::where('modality_id', $modality['id'])->first();
-            if ($training_action){
-                $modality['used'] = true;
-            } else {
-                $modality['used'] = false;
-            }
-        }
+        $modalities = Modality::getModalities($keyWord);
         return view('livewire.modalities.view', [
             'modalities' => $modalities,
         ]);
@@ -51,10 +44,10 @@ class Modalities extends Component
 		'name' => 'required',
         ]);
 
-        Modality::create([
+        $data = [
 			'name' => $this-> name
-        ]);
-
+        ];
+        Modality::createModality($data);
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Modalidad creado con exito.');
@@ -77,11 +70,10 @@ class Modalities extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = Modality::find($this->selected_id);
-            $record->update([
+			$data = [
 			'name' => $this-> name
-            ]);
-
+            ];
+            Modality::updateModality($this->selected_id, $data);
             $this->resetInput();
             $this->updateMode = false;
 			session()->flash('message', 'Modalidad actualizado con exito.');
@@ -91,8 +83,8 @@ class Modalities extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = Modality::where('id', $id);
-            $record->delete();
+            $value = Modality::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

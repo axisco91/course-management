@@ -12,17 +12,17 @@
                 <form>
 					<input type="hidden" wire:model="selected_id">
             <div class="form-group">
-                <label for="teacher_id"></label>
-                <input wire:model="teacher_id" type="text" class="form-control" id="teacher_id" placeholder="Teacher Id">@error('teacher_id') <span class="error text-danger">{{ $message }}</span> @enderror
+                <label class="form-label" for="teacher_id"></label>
+                <input wire:model="teacher_id" type="text" class="form-control" id="teacher_id" placeholder="Teacher Id">@error('teacher_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="form-group">
-                <label for="teacher_area_id"></label>
-                <input wire:model="teacher_area_id" type="text" class="form-control" id="teacher_area_id" placeholder="Teacher Area Id">@error('teacher_area_id') <span class="error text-danger">{{ $message }}</span> @enderror
+                <label class="form-label" for="teacher_area_id"></label>
+                <input wire:model="teacher_area_id" type="text" class="form-control" id="teacher_area_id" placeholder="Teacher Area Id">@error('teacher_area_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
 
                 </form>
             </div>
-            <div class="modal-footer">
+              <div class="col-12 text-center mt-2 pt-50">
                 <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" wire:click.prevent="update()" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
             </div>

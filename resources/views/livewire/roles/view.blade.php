@@ -39,15 +39,15 @@
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $row->name }}</td>
-                                        <td width="90">
-                                            <div class="btn-group">
-                                                <button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    Acciones
+                                        <td>
+                                            <div class="dropdown">
+                                                <button type="button" class="btn btn-sm dropdown-toggle hide-arrow py-0" data-bs-toggle="dropdown">
+                                                    <i class="fa-solid fa-ellipsis-vertical"></i>
                                                 </button>
-                                                <div class="dropdown-menu dropdown-menu-right">
-                                                    <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Editar</a>
-                                                    <a data-bs-toggle="modal" data-bs-target="#permissionsModal" class="dropdown-item" wire:click="roleId({{$row->id}})"><i class="fa fa-edit"></i>Permissos</a>
-                                                    <a class="dropdown-item" onclick="confirm('Confirmar eliminar tipo de pago: {{$row->name}}? \nNo se podra restaurar y se perderar todo la información donde se utilize!')||event.stopImmediatePropagation()" wire:click="destroy({{$row->id}})"><i class="fa fa-trash"></i> Eliminar </a>
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar</a>
+                                                    <a data-bs-toggle="modal" data-bs-target="#permissionsModal" class="dropdown-item" wire:click="roleId({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i>Permissos</a>
+                                                    <a class="dropdown-item" onclick="confirm('Confirmar eliminar tipo de pago: {{$row->name}}? \nNo se podra restaurar y se perderar todo la información donde se utilize!')||event.stopImmediatePropagation()" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
                                                 </div>
                                             </div>
                                         </td>

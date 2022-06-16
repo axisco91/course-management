@@ -21,4 +21,26 @@ class Tutoring extends Model
         return $this->hasMany('App\Models\TrainingAction', 'tutoring_id', 'id');
     }
 
+    public function getTutorings($keyWord){
+        $tutorings = Tutoring::
+        orWhere('name', 'LIKE', $keyWord)
+            ->paginate(10);
+        return $tutorings;
+    }
+
+    public function createTutoring($data){
+        $tutoring = Tutoring::create([
+            'name' => $data['name']
+        ]);
+
+        return $tutoring;
+    }
+
+    public function updateTutoring($id, $data){
+        $tutoring = Tutoring::find($id);
+        $tutoring->update([
+            'name' => $data['name']
+        ]);
+    }
+
 }

@@ -3,13 +3,12 @@
 namespace App\Http\Livewire;
 
 use App\Models\AreasTeacherArea;
+use App\Models\Course;
 use App\Models\Province;
 use App\Models\Teacher;
 use App\Models\TeacherArea;
 use Livewire\Component;
 use Livewire\WithPagination;
-use function session;
-use function view;
 
 class Teachers extends Component
 {
@@ -17,32 +16,31 @@ class Teachers extends Component
 
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $inactiveFilter, $name, $surname, $dni, $email, $telephone, $user, $password, $observations, $iban, $address,
-        $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $inactive;
-    public $create_province_id, $create_teacher_area_id = [];
+        $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $active, $tab = 'info';
     public $updateMode = false;
+    public $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $courses, $search_course_name, $search_course_group;
+    protected $listeners = [
+        'changeState' => 'changeState'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
+        $search_name = '%'.$this->search_name.'%';
+        $search_surname = '%'.$this->search_surname.'%';
+        $search_email = '%'.$this->search_email.'%';
+        $search_dni = '%'.$this->search_dni.'%';
+        $search_telephone = '%'.$this->search_telephone.'%';
+        $search_course_name = '%'.$this->search_course_name.'%';
+        $search_course_group = '%'.$this->search_course_group.'%';
 
-        $teachers = Teacher::select('*');
-        if ($this->inactiveFilter != 1) {
-            $teachers = $teachers->where('inactive', 0);
+        if ($this->selected_id){
+            $this->courses = Course::getTeachersCourses($this->selected_id, $search_course_name, $search_course_group);
         }
-        $teachers = $teachers->where(function ($query) use ($keyWord){
-            $query->orWhere('name', 'LIKE', $keyWord)
-                ->orWhere('surname', 'LIKE', $keyWord)
-                ->orWhere('dni', 'LIKE', $keyWord)
-                ->orWhere('email', 'LIKE', $keyWord)
-                ->orWhere('telephone', 'LIKE', $keyWord)
-                ->orWhere('user', 'LIKE', $keyWord)
-                ->orWhere('password', 'LIKE', $keyWord)
-                ->orWhere('observations', 'LIKE', $keyWord)
-                ->orWhere('iban', 'LIKE', $keyWord);
-        })->orderBy('name','desc')
-            ->paginate(10);
 
-        return view('livewire.teachers.view', [
+        $teachers = Teacher::getTeachers($keyWord, $this->inactiveFilter, $search_name, $search_surname, $search_email, $search_dni, $search_telephone);
+
+        return view('livewire.teachers.list', [
             'teachers' => $teachers,
         ]);
     }
@@ -56,6 +54,10 @@ class Teachers extends Component
     public function mount(){
         $this->provinces = Province::all();
         $this->teacher_areas = TeacherArea::all();
+    }
+
+    public function hydrate(){
+        $this->emit('select2');
     }
 
     private function resetInput()
@@ -78,118 +80,47 @@ class Teachers extends Component
         $this->create_teacher_area_id = null;
     }
 
-    public function store()
-    {
-        $this->validate([
-		'name' => 'required',
-		'surname' => 'required',
-		'dni' => 'required',
-		'email' => 'required',
-		'user' => 'required',
-        ]);
-
-        $teacher = Teacher::create([
-			'name' => $this-> name,
-			'surname' => $this-> surname,
-			'dni' => $this-> dni,
-			'email' => $this-> email,
-			'telephone' => $this-> telephone,
-			'user' => $this-> user,
-            'password' => $this-> password,
-			'observations' => $this-> observations,
-			'iban' => $this-> iban,
-            'address' => $this-> address,
-            'post_code' => $this-> post_code,
-            'province_id' => $this-> create_province_id,
-            'population' => $this-> population,
-        ]);
-        if (!empty($this->create_teacher_area_id)){
-        $teacher->teacherAreas()->sync($this->create_teacher_area_id);
-        }
-
-        $this->resetInput();
-		$this->emit('closeModal');
-		session()->flash('message', 'Docente creado con exito.');
-    }
-
-    public function edit($id)
-    {
-        $record = Teacher::findOrFail($id);
-
-        $this->selected_id = $id;
-		$this->name = $record-> name;
-		$this->surname = $record-> surname;
-		$this->dni = $record-> dni;
-		$this->email = $record-> email;
-		$this->telephone = $record-> telephone;
-		$this->user = $record-> user;
-        $this->password = $record-> password;
-		$this->observations = $record-> observations;
-		$this->iban = $record-> iban;
-        $this->address = $record-> address;
-        $this->post_code = $record-> post_code;
-        $this->province_id = $record-> province_id;
-        $this->population = $record-> population;
-        $teachers_areas = AreasTeacherArea::where('teacher_id', $id)->get();
-        $area = [];
-        foreach ($teachers_areas as $teacher_area){
-            array_push($area, $teacher_area['teacher_area_id']);
-        }
-        $this->teacher_area_id = $area;
-
-        $this->updateMode = true;
-    }
-
-    public function update()
-    {
-        $this->validate([
-		'name' => 'required',
-		'surname' => 'required',
-		'dni' => 'required',
-		'email' => 'required',
-		'user' => 'required',
-        ]);
-
-        if ($this->selected_id) {
-			$record = Teacher::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name,
-			'surname' => $this-> surname,
-			'dni' => $this-> dni,
-			'email' => $this-> email,
-			'telephone' => $this-> telephone,
-			'user' => $this-> user,
-            'password' => $this-> password,
-			'observations' => $this-> observations,
-			'iban' => $this-> iban,
-            'address' => $this-> address,
-            'post_code' => $this-> post_code,
-            'province_id' => $this-> province_id,
-            'population' => $this-> population
-            ]);
-
-            if (!empty($this->teacher_area_id)){
-                $record->teacherAreas()->sync($this->teacher_area_id);
-            }
-
-            $this->resetInput();
-            $this->updateMode = false;
-			session()->flash('message', 'Docente Actulizado con exito.');
-        }
-    }
-
     public function changeState($id){
         $teacher = Teacher::find($id);
-        if ($teacher->inactive == 1){
+        if ($teacher->active == 1){
             $teacher->update([
-                'inactive' => 0
+                'active' => 0
             ]);
             session()->flash('message', 'Docente activado con exito.');
+            $value = 'desactivated';
         } else {
             $teacher->update([
-                'inactive' => 1
+                'active' => 1
             ]);
             session()->flash('message', 'Docente desactivado con exito.');
+            $value = 'activated';
+        }
+        $this->dispatchBrowserEvent('status-update', ['value' => $value]);
+    }
+
+    public function general($id){
+        if ($id){
+            $record = Teacher::find($id);
+            $this->selected_id = $id;
+            $this->name = $record-> name;
+            $this->surname = $record-> surname;
+            $this->dni = $record-> dni;
+            $this->email = $record-> email;
+            $this->telephone = $record-> telephone;
+            $this->user = $record-> user;
+            $this->password = $record-> password;
+            $this->observations = $record-> observations;
+            $this->iban = $record-> iban;
+            $this->address = $record-> address;
+            $this->post_code = $record-> post_code;
+            $this->province_id = $record-> province_id;
+            $this->population = $record-> population;
+            $teachers_areas = AreasTeacherArea::where('teacher_id', $id)->get();
+            $area = [];
+            foreach ($teachers_areas as $teacher_area){
+                array_push($area, $teacher_area['teacher_area_id']);
+            }
+            $this->teacher_area_id = $area;
         }
     }
 }

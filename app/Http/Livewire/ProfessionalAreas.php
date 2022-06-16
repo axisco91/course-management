@@ -14,21 +14,14 @@ class ProfessionalAreas extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $professional_areas = ProfessionalArea::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($professional_areas as $professional_area){
-            $training_action = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
-            if ($training_action){
-                $professional_area['used'] = true;
-            } else {
-                $professional_area['used'] = false;
-            }
-        }
+        $professional_areas = ProfessionalArea::getProfessionalAreas($keyWord);
         return view('livewire.professional-areas.view', [
             'professionalAreas' => $professional_areas,
         ]);
@@ -51,10 +44,10 @@ class ProfessionalAreas extends Component
 		'name' => 'required',
         ]);
 
-        ProfessionalArea::create([
+        $data = [
 			'name' => $this-> name
-        ]);
-
+        ];
+        ProfessionalArea::createProfessionalArea($data);
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'ProfessionalArea Successfully created.');
@@ -77,10 +70,10 @@ class ProfessionalAreas extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = ProfessionalArea::find($this->selected_id);
-            $record->update([
-			'name' => $this-> name
-            ]);
+            $data = [
+                'name' => $this-> name
+            ];
+            ProfessionalArea::updateProfessionalArea($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -91,8 +84,8 @@ class ProfessionalAreas extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = ProfessionalArea::where('id', $id);
-            $record->delete();
+            $value = ProfessionalArea::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

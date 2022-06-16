@@ -14,20 +14,14 @@ class LevelStudies extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $level_studies = LevelStudy::orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($level_studies as $level_study){
-            $student = Student::where('level_study_id', $level_study['id'])->first();
-            if ($student){
-                $level_study['used'] = true;
-            } else {
-               $level_study['used'] = false;
-            }
-        }
+        $level_studies = LevelStudy::getLevelStudies($keyWord);
         return view('livewire.level-studies.view', [
             'levelStudies' => $level_studies,
         ]);
@@ -50,9 +44,11 @@ class LevelStudies extends Component
 		'name' => 'required',
         ]);
 
-        LevelStudy::create([
+        $data = [
 			'name' => $this-> name
-        ]);
+        ];
+
+        LevelStudy::createLevelStudy($data);
 
         $this->resetInput();
 		$this->emit('closeModal');
@@ -76,10 +72,11 @@ class LevelStudies extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = LevelStudy::find($this->selected_id);
-            $record->update([
+			$data = [
 			'name' => $this-> name
-            ]);
+            ];
+
+            LevelStudy::updateLevelStudy($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -90,8 +87,8 @@ class LevelStudies extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = LevelStudy::where('id', $id);
-            $record->delete();
+            $value = LevelStudy::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

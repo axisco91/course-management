@@ -49,8 +49,8 @@
 									Acciones
 									</button>
 									<div class="dropdown-menu dropdown-menu-right">
-									<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="Editar({{$row->id}})"><i class="fa fa-Edit"></i> Editar </a>
-									<a class="dropdown-item" onclick="confirm('Confirm eliminar Areas Teacher Area id {{$row->id}}? \nNo se podra restaurar y se perderar todo la información donde se utilize!')||event.stopImmediatePropagation()" wire:click="destroy({{$row->id}})"><i class="fa fa-trash"></i> Eliminar </a>
+									<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="Editar({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+									<a class="dropdown-item" onclick="confirm('Confirm eliminar Areas Teacher Area id {{$row->id}}? \nNo se podra restaurar y se perderar todo la información donde se utilize!')||event.stopImmediatePropagation()" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
 									</div>
 								</div>
 								</td>

@@ -20,12 +20,12 @@ class CompaniesUpdate extends Component
     use WithPagination;
 
     protected $paginationTheme = 'bootstrap';
-    public $selected_id, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $observation, $inactive;
+    public $selected_id, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $observation;
     public $updateMode = false, $createObservationModal = false, $updateObservationModal = false;
     public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null, $route;
     public function render()
     {
-        return view('livewire.companies.edit');
+        return view('livewire.companies.update');
     }
 
     public function mount($id){
@@ -35,7 +35,7 @@ class CompaniesUpdate extends Component
         $this->provinces = Province::all();
         $this->advisors = Advisor::select('advisors.*')
             ->join('companies', 'companies.id', '=', 'advisors.company_id')
-            ->where('companies.inactive', 0)->get();
+            ->where('companies.active', 0)->get();
         $this->company_id = null;
 
         $record = Company::findOrFail($id);
@@ -66,6 +66,10 @@ class CompaniesUpdate extends Component
         $this->route = url()->previous();
     }
 
+    public function hydrate(){
+        $this->emit('select2');
+    }
+
     public function update()
     {
         $this->validate([
@@ -76,8 +80,7 @@ class CompaniesUpdate extends Component
         ]);
 
         if ($this->selected_id) {
-            $record = Company::find($this->selected_id);
-            $record->update([
+            $data = [
                 'name' => $this-> name,
                 'nif' => $this-> nif,
                 'company_type_id' => $this-> type_id != -1 ? $this-> type_id : null,
@@ -98,7 +101,9 @@ class CompaniesUpdate extends Component
                 'population' => $this-> population,
                 'active' => $this-> active == true ? 1 : 0,
                 'advisor_id' => $this-> advisor_id != -1 ? $this-> advisor_id : null
-            ]);
+            ];
+
+            Company::updateCompany($this->selected_id, $data);
 
             $advisor = Advisor::where('company_id', $this->selected_id)->first();
             if ($advisor){
@@ -115,28 +120,6 @@ class CompaniesUpdate extends Component
 
             session()->flash('message', 'Empresa Actulizado con exito.');
             return $this->redirect($this->route);
-        }
-    }
-
-    public function convertAdvisor($id){
-        if ($id) {
-            $record = Company::find($id);
-            Advisor::create([
-                'name' => $record['name'],
-                'company_id' => $record['id']
-            ]);
-            session()->flash('message', 'Empresa convertido a asesoria con exito');
-        }
-    }
-
-    public function convertProvider($id){
-        if ($id) {
-            $record = Company::find($id);
-            Provider::create([
-                'name' => $record['name'],
-                'company_id' => $record['id']
-            ]);
-            session()->flash('message', 'Empresa convertido a proveedor con exito');
         }
     }
 }

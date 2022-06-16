@@ -14,22 +14,15 @@ class CourseStatuses extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $course_statuses = CourseStatus::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-        foreach ($course_statuses as $course_status){
-            $course = Course::where('course_status_id', $course_status['id'])->first();
-            if ($course){
-                $course_status['used'] = true;
-            } else {
-                $course_status['used'] = false;
-            }
-        }
 
+        $course_statuses = CourseStatus::getCourseStatuses($keyWord);
         return view('livewire.course-statuses.view', [
             'courseStatuses' => $course_statuses,
         ]);
@@ -52,9 +45,11 @@ class CourseStatuses extends Component
 		'name' => 'required',
         ]);
 
-        CourseStatus::create([
+        $data = [
 			'name' => $this-> name
-        ]);
+        ];
+
+        CourseStatus::createCourseStatus($data);
 
         $this->resetInput();
 		$this->emit('closeModal');
@@ -78,10 +73,10 @@ class CourseStatuses extends Component
         ]);
 
         if ($this->selected_id) {
-			$record = CourseStatus::find($this->selected_id);
-            $record->update([
+			$data = [
 			'name' => $this-> name
-            ]);
+            ];
+            CourseStatus::updateCourseStatus($this->selected_id, $data);
 
             $this->resetInput();
             $this->updateMode = false;
@@ -92,8 +87,8 @@ class CourseStatuses extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = CourseStatus::where('id', $id);
-            $record->delete();
+            $value = CourseStatus::destroy();
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

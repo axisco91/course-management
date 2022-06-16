@@ -14,17 +14,17 @@
                         <input type="hidden" wire:model="selected_id">
                     @else
                         <div class="form-group">
-                            <label for="company_id"></label>
-                            <input wire:model="company_id" type="text" class="form-control" id="company_id" placeholder="Company Id">@error('company_id') <span class="error text-danger">{{ $message }}</span> @enderror
+                            <label class="form-label" for="company_id"></label>
+                            <input wire:model="company_id" type="text" class="form-control" id="company_id" placeholder="Company Id">@error('company_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     @endif
                     <div class="form-group">
-                        <label for="observation"></label>
-                        <textarea wire:model="observation" class="form-control" id="observation" placeholder="Observation"></textarea>@error('observation') <span class="error text-danger">{{ $message }}</span> @enderror
+                        <label class="form-label" for="observation"></label>
+                        <textarea wire:model="observation" class="form-control" id="observation" placeholder="Observation"></textarea>@error('observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
+              <div class="col-12 text-center mt-2 pt-50">
                 <button type="button" class="btn btn-secondary close-btn" data-bs-dismiss="modal">Close</button>
                 <button type="button" wire:click.prevent="store()" class="btn btn-primary close-modal">Save</button>
             </div>
