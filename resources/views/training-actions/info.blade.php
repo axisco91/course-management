@@ -1,5 +1,5 @@
 <!-- Modal -->
-<div wire:ignore.self class="modal fade" id="trainingActionTabModal" tabindex="-1" aria-hidden="true">
+<div wire:ignore.self class="modal fade" id="trainingActionTabModal" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-student-tab">
         <div class="modal-content">
             <div class="modal-header bg-transparent">
@@ -11,23 +11,24 @@
                 </div>
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
-                        <a class="nav-link active" wire:click="getInfo({{$this->selected_id}})" data-bs-toggle="tab" href="#general">General</a>
+                        <a class="nav-link {{ $tab == 'info' ? 'active' : '' }}" wire:click="$set('tab', 'info')" data-bs-toggle="tab" href="#general">General</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" wire:click="editAction({{$this->selected_id}})" data-bs-toggle="tab" href="#edit">Editar</a>
+                        <a class="nav-link {{ $tab == 'courses' ? 'active' : '' }}" wire:click="$set('tab', 'courses')" data-bs-toggle="tab" href="#courses">Cursos</a>
                     </li>
                     <li class="nav nav-tabs">
                         <a class="nav-link" data-bs-toggle="tab" href="#"></a>
                     </li>
                 </ul>
-                <div class="tab-content">
+                @if($tab == 'info')
                     <div class="tab-pane container active" id="general">
-                        @livewire('training-actions-info')
+                        @include('livewire.training-actions.info')
                     </div>
-                    <div class="tab-pane container" id="edit">
-                        @livewire('training-actions-edit')
+                @elseif($tab == 'courses')
+                    <div class="tab-pane container" id="courses">
+                        @include('livewire.training-actions.course-list')
                     </div>
-                </div>
+                @endif
             </div>
         </div>
     </div>

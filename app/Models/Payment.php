@@ -37,7 +37,7 @@ class Payment extends Model
 
     public function createPayment($data){
         $payment = Payment::create([
-            'name' => $this-> name
+            'name' => $data['name']
         ]);
         return $payment;
     }

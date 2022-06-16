@@ -14,6 +14,9 @@ class LevelStudies extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -84,7 +87,8 @@ class LevelStudies extends Component
     public function destroy($id)
     {
         if ($id) {
-            LevelStudy::destroy($id);
+            $value = LevelStudy::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

@@ -80,8 +80,8 @@
                     <label class="form-label" for="advisor_id">Asesoria</label>
                     <select wire:model.lazy="advisor_id" class="form-select select2" id="advisor_id" placeholder="Advisor Id">
                         <option value="">Selección una Asesoria</option>
-                        @foreach($advisors as $advisor)
-                            <option value="{{$advisor['id']}}">{{$advisor['name']}}</option>
+                        @foreach($company_advisors as $company_advisor)
+                            <option value="{{$company_advisor['id']}}">{{$company_advisor['name']}}</option>
                         @endforeach
                     </select>
                 </div>

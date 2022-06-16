@@ -87,37 +87,38 @@ class ProvidersCreate extends Component
             'create_province_id' => 'required',
         ]);
 
-        $data_company = [
-            'name' => $this->name,
-            'nif' => $this->nif,
-            'company_type_id' => $this->type_id,
-            'company_activity_id' => $this->activity_id,
-            'email' => $this->email,
-            'telephone' => $this->telephone,
-            'legal_representative' => $this->legal_representative,
-            'dni_legal_representative' => $this->dni_legal_representative,
-            'quote' => $this->quote,
-            'cnae_id' => $this->cnae_id,
-            'average_template' => $this->average_template,
-            'iban' => $this->iban,
-            'sepa' => $this->sepa,
-            'b2b' => $this->b2b,
-            'address' => $this->address,
-            'post_code' => $this->post_code,
-            'province_id' => $this->province_id,
-            'population' => $this->population,
-            'active' => $this->active == true ? 1 : 0,
-            'advisor_id' => $this->advisor_id
-        ];
-        $company = Company::createCompany($data_company);
         $data = [
-            'name' => $this->name,
-            'company_id' => $company['id'],
-            'irpf' => $this->irpf,
-            'commission' => $this->commission,
-            'contact_1' => $this->contact_1,
-            'contact_2' => $this->contact_2,
-            'contact_3' => $this->contact_3
+            'name' => $this-> name,
+            'company_id' => $this->company_id,
+            'irpf' => $this-> irpf,
+            'commission' => $this-> commission,
+            'contact_1' => $this-> contact_1,
+            'contact_2' => $this-> contact_2,
+            'contact_3' => $this-> contact_3,
+            'nif' => $this-> nif,
+            'company_type_id' => $this-> type_id,
+            'company_activity_id' => $this-> activity_id,
+            'email' => $this-> email,
+            'telephone' => $this-> telephone,
+            'legal_representative' => $this-> legal_representative,
+            'dni_legal_representative' => $this-> dni_legal_representative,
+            'quote' => $this-> quote,
+            'cnae_id' => $this-> cnae_id,
+            'average_template' => $this-> average_template,
+            'iban' => $this-> iban,
+            'sepa' => $this-> sepa,
+            'b2b' => $this-> b2b,
+            'address' => $this-> address,
+            'post_code' => $this-> post_code,
+            'province_id' => $this-> province_id,
+            'population' => $this-> population,
+            'active' => $this-> active == true ? 1 : 0,
+            'advisor_id' => $this-> advisor_id
+        ];
+        $company = Company::createCompany($data);
+
+        $data = [
+            'company_id' => $company->id
         ];
 
         Provider::createProvider($data);

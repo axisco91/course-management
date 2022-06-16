@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\Advisor;
 use App\Models\Cnae;
+use App\Models\Company;
 use App\Models\CompanyActivity;
 use App\Models\CompanyType;
 use App\Models\Province;
@@ -17,8 +18,8 @@ class Advisors extends Component
 
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $inactiveFilter, $name, $company_id, $irpf, $commission, $contact_1, $contact_2, $contact_3, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $inactive;
-    public $company_types, $company_activities, $cnaes, $provinces, $company_advisors;
-    public $create_type_id, $create_activity_id, $create_cnae_id, $create_province_id, $create_advisor_id;
+    public $company_types, $company_activities, $cnaes, $provinces, $company_advisors, $tab = 'info';
+    public $search_company_name, $companies;
     public $updateMode = false;
 
     public function render()
@@ -27,7 +28,12 @@ class Advisors extends Component
 
         $advisors = Advisor::getAdvisors($keyWord, $this->inactiveFilter);
 
-        return view('livewire.advisors.view', [
+        if ($this->selected_id){
+            $search_company_name = '%'.$this->search_company_name.'%';
+            $this->companies = Company::getAdvisorsCompanies($this->selected_id, $search_company_name);
+        }
+
+        return view('livewire.advisors.list', [
             'advisors' => $advisors,
         ]);
     }
@@ -86,6 +92,41 @@ class Advisors extends Component
     {
         if ($id) {
            Advisor::destroy($id);
+        }
+    }
+
+    public function general($id){
+        if ($id){
+            $advisor = Advisor::find($id);
+            $record = Company::find($advisor->company_id);
+            $this->selected_id = $id;
+            $this->name = $advisor->name;
+            $this->company_id = $advisor->company_id;
+            $this->irpf = $advisor->irpf;
+            $this->commission = $advisor->commission;
+            $this->contact_1 = $advisor->contact_1;
+            $this->contact_2 = $advisor->contact_2;
+            $this->contact_3 = $advisor->contact_3;
+            $this->nif = $record->nif;
+            $this->type_id = $record->company_type_id;
+            $this->activity_id = $record->company_activity_id;
+            $this->email = $record->email;
+            $this->telephone = $record->telephone;
+            $this->legal_representative = $record->legal_representative;
+            $this->dni_legal_representative = $record->dni_legal_representative;
+            $this->quote = $record->quote;
+            $this->cnae_id = $record->cnae_id;
+            $this->average_template = $record->average_template;
+            $this->iban = $record->iban;
+            $this->sepa = $record->sepa;
+            $this->b2b = $record->b2b;
+            $this->address = $record->address;
+            $this->post_code = $record->post_code;
+            $this->population_id = $record->population_id;
+            $this->province_id = $record->province_id;
+            $this->population = $record->population;
+            $this->active = $record->active;
+            $this->advisor_id = $record->advisor_id;
         }
     }
 }

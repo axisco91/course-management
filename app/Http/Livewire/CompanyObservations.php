@@ -13,6 +13,9 @@ class CompanyObservations extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $company_id, $observation;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -88,7 +91,8 @@ class CompanyObservations extends Component
     public function destroy($id)
     {
         if ($id) {
-            CompanyObservation::destroy($id);
+            $value = CompanyObservation::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

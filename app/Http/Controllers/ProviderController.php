@@ -16,4 +16,8 @@ class ProviderController extends Controller
     public function create(){
         return view('providers.create');
     }
+
+    public function view($id){
+        return view('providers.view', compact('id'));
+    }
 }

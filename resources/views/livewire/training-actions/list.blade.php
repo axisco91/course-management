@@ -2,7 +2,7 @@
     <div class="card-header border-bottom">
         <h4 class="card-title">Acciones Formativas</h4>
         @if (session()->has('message'))
-            <input hidden id="toastr" data-type="success" value="{{ session('message') }}">
+            <input hidden id="success-toast" data-type="success" data-show="true" value="{{ session('message') }}">
         @endif
         @if (session()->has('error'))
             <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
@@ -45,11 +45,10 @@
                     <th>Acción Formativa</th>
                     <th>Nombre</th>
                     <th>Horas</th>
-                    <thzFamilia Profesional</th>
+                    <th>Familia Profesional</th>
                     <th>Area Profesional</th>
                     <th>Actvio</th>
-                    <th>En Catalogo</th>
-                    <th>Plataforma</th>
+                    <th>Modalidad</th>
                     <th>Proveedor</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -58,16 +57,15 @@
             <tbody>
                 @foreach($trainingActions as $row)
                 <tr>
-                    <th>{{ $row->formative_action }}</th>
-                    <td><a data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" class="dropdown-item" wire:click="getInfo({{$row->id}})">{{ $row->name }}</a></td>
-                    <td>{{ $row->total_hours }}</td>
-                    <td>{{ $row->professional_family }}</td>
-                    <td>{{ $row->professional_area }}</td>
-                    <td>{{ $row->active == 1 ? 'Si' : 'No' }}</td>
-                    <td>{{ $row->in_catalog == 1 ? 'Si' : 'No' }}</td>
-                    <td>{{ $row->web_platform }}</td>
-                    <td>{{ $row->provider }}</td>
-                    <td><span class="badge rounded-pill badge-light-{{$row->active == 0 ?'danger' : 'success'}} me-1">{{$row->active == 0 ? 'Inactivo' : 'Activo'}}</span></td>
+                    <th data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->formative_action }}</th>
+                    <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->name }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->total_hours }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->professional_family }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->professional_area }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->active == 1 ? 'Si' : 'No' }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->modality }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->provider }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->active == 0 ?'danger' : 'success'}} me-1">{{$row->active == 0 ? 'Inactivo' : 'Activo'}}</span></td>
                     <td>
                         <div class="dropdown">
                             <button type="button" class="btn btn-sm dropdown-toggle hide-arrow py-0" data-bs-toggle="dropdown">
@@ -89,5 +87,25 @@
         </table>
         {{ $trainingActions->links() }}
         </div>
+    @section('vendor-script')
+        <!-- vendor files -->
+            <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+    @endsection
+    @section('page-script')
+        <!-- Page js files -->
+        <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+    @endsection
+    <script>
+        document.addEventListener('livewire:load', function() {
+            $( document ).ready(
+                setTimeout(function (){
+                    initializeSelect2()
+                }, 100)
+            );
+            $('.select2').on('change', function(){
+            @this.set(this.id, $(this).val())
+            })
+        })
+    </script>
     </div>
 </div>

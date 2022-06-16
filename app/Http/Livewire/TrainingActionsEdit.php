@@ -63,7 +63,8 @@ class TrainingActionsEdit extends Component
         return view('livewire.training-actions.edit');
     }
 
-    public function mount(){
+    public function mount($id){
+        $this->selected_id = $id;
         $this->action_types = ActionType::all();
         $this->professional_families = ProfessionalFamily::all();
         $this->professional_areas = ProfessionalArea::all();
@@ -75,6 +76,8 @@ class TrainingActionsEdit extends Component
         $this->providers = Provider::select('providers.*')
             ->join('companies', 'companies.id', '=', 'providers.company_id')
             ->where('companies.active', 1)->get();
+
+        $this->route = url()->previous();
     }
 
 

@@ -14,6 +14,9 @@ class Modalities extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -80,7 +83,8 @@ class Modalities extends Component
     public function destroy($id)
     {
         if ($id) {
-            Modality::destroy($id);
+            $value = Modality::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

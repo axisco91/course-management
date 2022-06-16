@@ -3,13 +3,12 @@
 namespace App\Http\Livewire;
 
 use App\Models\AreasTeacherArea;
+use App\Models\Course;
 use App\Models\Province;
 use App\Models\Teacher;
 use App\Models\TeacherArea;
 use Livewire\Component;
 use Livewire\WithPagination;
-use function session;
-use function view;
 
 class Teachers extends Component
 {
@@ -17,9 +16,12 @@ class Teachers extends Component
 
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $inactiveFilter, $name, $surname, $dni, $email, $telephone, $user, $password, $observations, $iban, $address,
-        $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $active;
+        $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $active, $tab = 'info';
     public $updateMode = false;
-    public $search_name, $search_surname, $search_email, $search_dni, $search_telephone;
+    public $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $courses, $search_course_name, $search_course_group;
+    protected $listeners = [
+        'changeState' => 'changeState'
+    ];
 
     public function render()
     {
@@ -29,10 +31,16 @@ class Teachers extends Component
         $search_email = '%'.$this->search_email.'%';
         $search_dni = '%'.$this->search_dni.'%';
         $search_telephone = '%'.$this->search_telephone.'%';
+        $search_course_name = '%'.$this->search_course_name.'%';
+        $search_course_group = '%'.$this->search_course_group.'%';
+
+        if ($this->selected_id){
+            $this->courses = Course::getTeachersCourses($this->selected_id, $search_course_name, $search_course_group);
+        }
 
         $teachers = Teacher::getTeachers($keyWord, $this->inactiveFilter, $search_name, $search_surname, $search_email, $search_dni, $search_telephone);
 
-        return view('livewire.teachers.view', [
+        return view('livewire.teachers.list', [
             'teachers' => $teachers,
         ]);
     }
@@ -46,6 +54,10 @@ class Teachers extends Component
     public function mount(){
         $this->provinces = Province::all();
         $this->teacher_areas = TeacherArea::all();
+    }
+
+    public function hydrate(){
+        $this->emit('select2');
     }
 
     private function resetInput()
@@ -75,19 +87,20 @@ class Teachers extends Component
                 'active' => 0
             ]);
             session()->flash('message', 'Docente activado con exito.');
+            $value = 'desactivated';
         } else {
             $teacher->update([
                 'active' => 1
             ]);
             session()->flash('message', 'Docente desactivado con exito.');
+            $value = 'activated';
         }
+        $this->dispatchBrowserEvent('status-update', ['value' => $value]);
     }
 
     public function general($id){
         if ($id){
-
-            $record = Teacher::findOrFail($id);
-
+            $record = Teacher::find($id);
             $this->selected_id = $id;
             $this->name = $record-> name;
             $this->surname = $record-> surname;

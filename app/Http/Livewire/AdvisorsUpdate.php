@@ -25,7 +25,7 @@ class AdvisorsUpdate extends Component
     public function render()
     {
 
-        return view('livewire.advisors.edit');
+        return view('livewire.advisors.update');
     }
 
     public function mount($id){
@@ -37,8 +37,8 @@ class AdvisorsUpdate extends Component
             ->join('companies', 'companies.id', '=', 'advisors.company_id')
             ->where('companies.inactive', 0)->get();
 
-        $record = Company::findOrFail($id);
-        $advisor = Advisor::where('company_id', $record-> id)->first();
+        $advisor = Advisor::find($id);
+        $record = Company::findOrFail($advisor->id);
 
         $this->selected_id = $advisor->id;
         $this->name = $advisor-> name;
@@ -82,20 +82,14 @@ class AdvisorsUpdate extends Component
         ]);
 
         if ($this->selected_id) {
-            $data_advisor = [
+            $data = [
                 'name' => $this-> name,
                 'company_id' => $this->company_id,
                 'irpf' => $this-> irpf,
                 'commission' => $this-> commission,
                 'contact_1' => $this-> contact_1,
                 'contact_2' => $this-> contact_2,
-                'contact_3' => $this-> contact_3
-            ];
-
-            $advisor = Advisor::updateAdvisor($this->selected_id, $data_advisor);
-
-            $data_company = [
-                'name' => $this-> name,
+                'contact_3' => $this-> contact_3,
                 'nif' => $this-> nif,
                 'company_type_id' => $this-> type_id,
                 'company_activity_id' => $this-> activity_id,
@@ -117,7 +111,9 @@ class AdvisorsUpdate extends Component
                 'advisor_id' => $this-> advisor_id
             ];
 
-            $company = Company::updateCompany($advisor->company_id, $data_company);
+            $advisor = Advisor::updateAdvisor($this->selected_id, $data);
+
+            $company = Company::updateCompany($advisor->company_id, $data);
 
             session()->flash('message', 'Asesoria creado con exito.');
             return $this->redirect($this->route);

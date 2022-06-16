@@ -82,8 +82,14 @@ class AdvisorsCreate extends Component
             'create_province_id' => 'required',
         ]);
 
-        $data_company = [
+        $data = [
             'name' => $this-> name,
+            'company_id' => $this->company_id,
+            'irpf' => $this-> irpf,
+            'commission' => $this-> commission,
+            'contact_1' => $this-> contact_1,
+            'contact_2' => $this-> contact_2,
+            'contact_3' => $this-> contact_3,
             'nif' => $this-> nif,
             'company_type_id' => $this-> type_id,
             'company_activity_id' => $this-> activity_id,
@@ -105,20 +111,13 @@ class AdvisorsCreate extends Component
             'advisor_id' => $this-> advisor_id
         ];
 
-        $company = Company::createCompany($data_company);
+        $company = Company::createCompany($data);
 
-
-        $data_advisor = [
-            'name' => $this-> name,
-            'company_id' => $company['id'],
-            'irpf' => $this-> irpf,
-            'commission' => $this-> commission,
-            'contact_1' => $this-> contact_1,
-            'contact_2' => $this-> contact_2,
-            'contact_3' => $this-> contact_3
+        $data = [
+            'company_id' => $company->id
         ];
 
-        $advisor = Advisor::createAdvisor($data_advisor);
+        $advisor = Advisor::createAdvisor($data);
 
         $this->resetInput();
         $this->emit('closeModal');

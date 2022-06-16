@@ -11,7 +11,7 @@ class Tracing extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['course_id','company_id','student_id','performed_activities','performed_hours','performed_units','follow_up_date','final_test','questionnaire','welcome_message','quarter_message','half_message','three_quarters_message','final_message','observation'];
+    protected $fillable = ['course_id','company_id','student_id','performed_activities','performed_hours','performed_units','follow_up_date','final_test','questionnaire','welcome_message','quarter_message','half_message','three_quarters_message','final_message','observation', 'welcome_date_sent', 'quarter_date_sent', 'half_date_sent', 'three_quarters_date_sent', 'final_date_sent'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -45,20 +45,22 @@ class Tracing extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public function getTracings($keyWord){
-        $tracings = Tracing::select('tracings.*', 'courses.name as course', 'companies.name as company', 'students.name as student')
+    public function getTracings($keyWord, $course_search, $company_search, $student_search){
+        $tracings = Tracing::select('tracings.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name', 'students.surname as student_surname',
+            'training_actions.number_activities', 'training_actions.number_units', 'training_actions.total_hours')
             ->leftjoin('courses', 'courses.id', '=', 'tracings.course_id')
             ->leftjoin('companies', 'companies.id', '=', 'tracings.company_id')
-            ->leftjoin('students', 'students.id', '=', 'tracings.student_id');
+            ->leftjoin('students', 'students.id', '=', 'tracings.student_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');
 
-        if ($this->course_search != -1){
-            $tracings = $tracings->where('courses.id', $this->course_search);
+        if ($course_search != -1){
+            $tracings = $tracings->where('courses.id', $course_search);
         }
-        if ($this->company_search != -1){
-            $tracings = $tracings->where('companies.id', $this->company_search);
+        if ($company_search != -1){
+            $tracings = $tracings->where('companies.id', $company_search);
         }
-        if ($this->student_search != -1){
-            $tracings = $tracings->where('students.id', 'LIKE', $this->student_search);
+        if ($student_search != -1){
+            $tracings = $tracings->where('students.id', 'LIKE', $student_search);
         }
         $tracings = $tracings->where(function ($query) use ($keyWord) {
             $query->orWhere('performed_activities', 'LIKE', $keyWord)
@@ -73,7 +75,7 @@ class Tracing extends Model
                 ->orWhere('three_quarters_message', 'LIKE', $keyWord)
                 ->orWhere('final_message', 'LIKE', $keyWord)
                 ->orWhere('tracings.observation', 'LIKE', $keyWord);
-        })->paginate(10);
+        })->orderBy('courses.beginning', 'desc')->paginate(10);
         return $tracings;
     }
 
@@ -81,7 +83,7 @@ class Tracing extends Model
         $tracing = Tracing::create([
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
-            'student_id' => $data['id'],
+            'student_id' => $data['student_id'],
         ]);
         return $tracing;
     }
@@ -103,7 +105,12 @@ class Tracing extends Model
             'half_message' => $data['half_message'],
             'three_quarters_message' => $data['three_quarters_message'],
             'final_message' => $data['final_message'],
-            'observation' => $data['observation']
+            'observation' => $data['observation'],
+            'welcome_date_sent' => $data['welcome_date_sent'],
+            'quarter_date_sent' => $data['quarter_date_sent'],
+            'half_date_sent' => $data['half_date_sent'],
+            'three_quarter_date_sent' => $data['three_quarters_date_sent'],
+            'final_date_sent' => $data['final_date_sent']
         ]);
         return $tracing;
     }

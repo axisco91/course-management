@@ -19,4 +19,8 @@ class TeacherController extends Controller
     public function create(){
         return view('teachers.create');
     }
+
+    public function view($id){
+        return view('teachers.view', compact('id'));
+    }
 }

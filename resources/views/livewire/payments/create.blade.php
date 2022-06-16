@@ -17,7 +17,7 @@
                     </div>
                     <div class="col-12 text-center mt-2 pt-50">
                         <button type="button" class="btn btn-secondary close-btn" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="button" wire:click.prevent="store()" class="btn btn-primary close-modal">guardar</button>
+                        <button type="button" wire:click.prevent="store()" class="btn btn-primary close-modal">Guardar</button>
                     </div>
                 </form>
             </div>

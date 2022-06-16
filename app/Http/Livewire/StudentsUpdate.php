@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\LevelStudy;
 use App\Models\ProfessionalCategory;
 use App\Models\Province;
+use App\Models\QuoteGroup;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Student;
@@ -15,9 +16,9 @@ class StudentsUpdate extends Component
     use WithPagination;
 
     protected $paginationTheme = 'bootstrap', $listeners = ['studentsUpdated' => 'studentsUpdated'];
-    public $selected_id, $keyWord, $inactiveFilter, $name, $surname, $dni, $telephone, $email, $company_id, $user, $date_of_birth, $level_study_id, $disabled, $social_security_number, $c_quote, $quote_group, $professional_category_id, $annual_gross_salary, $annual_hours, $hourly_cost_worker_gross, $direction, $post_code, $population_id, $province_id, $population, $observation, $iban, $password, $inactive;
+    public $selected_id, $keyWord, $inactiveFilter, $name, $surname, $dni, $telephone, $email, $company_id, $user, $date_of_birth, $level_study_id, $disabled, $social_security_number, $c_quote, $quote_group_id, $professional_category_id, $annual_gross_salary, $annual_hours, $hourly_cost_worker_gross, $direction, $post_code, $population_id, $province_id, $population, $observation, $iban, $password, $inactive;
     public $route;
-    public $companies, $level_studies, $professional_categories, $provinces;
+    public $companies, $level_studies, $professional_categories, $provinces, $quote_groups;
 
     public function render()
     {
@@ -29,6 +30,7 @@ class StudentsUpdate extends Component
         $this->level_studies = LevelStudy::all();
         $this->professional_categories = ProfessionalCategory::all();
         $this->provinces = Province::all();
+        $this->quote_groups = QuoteGroup::all();
 
         // Obtain student
         $student = new Student();
@@ -60,6 +62,7 @@ class StudentsUpdate extends Component
         $this->observation = $record-> observation;
         $this->iban = $record-> iban;
         $this->password = $record-> password;
+        $this->quote_group_id = $record-> quote_group_id;
 
         $this->route = url()->previous();
     }
@@ -100,7 +103,7 @@ class StudentsUpdate extends Component
                 'disabled' => $this-> disabled == true ? 1 : 0,
                 'social_security_number' => $this-> social_security_number,
                 'c_quote' => $this-> c_quote,
-                'quote_group' => $this-> quote_group,
+                'quote_group_id' => $this-> quote_group_id,
                 'professional_category_id' => $this-> professional_category_id,
                 'annual_gross_salary' => $this-> annual_gross_salary,
                 'annual_hours' => $this-> annual_hours,

@@ -11,7 +11,7 @@ class Student extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['name','surname','dni','telephone','email','company_id','user', 'password','date_of_birth','level_study_id','disabled','social_security_number','c_quote','quote_group','professional_category_id','annual_gross_salary','annual_hours','hourly_cost_worker_gross','direction','post_code','population_id','province_id','population','observation','iban', 'active'];
+    protected $fillable = ['name','surname','dni','telephone','email','company_id','user', 'password','date_of_birth','level_study_id','disabled','social_security_number','c_quote','quote_group_id','professional_category_id','annual_gross_salary','annual_hours','hourly_cost_worker_gross','direction','post_code','population_id','province_id','population','observation','iban', 'active'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -97,7 +97,7 @@ class Student extends Model
             'disabled' => $data['disabled'] == true ? 1 : 0,
             'social_security_number' => $data['social_security_number'],
             'c_quote' => $data['c_quote'],
-            'quote_group' => $data['quote_group'],
+            'quote_group_id' => $data['quote_group_id'],
             'professional_category_id' => $data['professional_category_id'],
             'annual_gross_salary' => $data['annual_gross_salary'],
             'annual_hours' => $data['annual_hours'],
@@ -133,7 +133,7 @@ class Student extends Model
             'disabled' => $data['disabled'] == true ? 1 : 0,
             'social_security_number' => $data['social_security_number'],
             'c_quote' => $data['c_quote'],
-            'quote_group' => $data['quote_group'],
+            'quote_group_id' => $data['quote_group_id'],
             'professional_category_id' => $data['professional_category_id'],
             'annual_gross_salary' => $data['annual_gross_salary'],
             'annual_hours' => $data['annual_hours'],
@@ -175,15 +175,16 @@ class Student extends Model
      */
     public function getStudents($keyWord, $active, $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $search_company){
         $students = Student::select('students.*', 'companies.name as company', 'level_studies.name as level_study',
-            'professional_categories.name as professional_category', 'provinces.name as province')
+            'professional_categories.name as professional_category', 'provinces.name as province', 'quote_groups.name as quote_group')
             ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
             ->leftjoin('level_studies', 'level_studies.id', '=', 'students.level_study_id')
             ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id');
+            ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
+            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id');
         if ($active != 1) {
             $students = $students->where('students.active', 1);
         }
-        $students = $students->where(function ($query) use ($keyWord, $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $search_company){
+        $students = $students->where(function ($query) use ($keyWord){
             $query->orWhere('students.name', 'LIKE', $keyWord)
                 ->orWhere('surname', 'LIKE', $keyWord)
                 ->orWhere('dni', 'LIKE', $keyWord)
@@ -196,7 +197,7 @@ class Student extends Model
                 ->orWhere('disabled', 'LIKE', $keyWord)
                 ->orWhere('social_security_number', 'LIKE', $keyWord)
                 ->orWhere('c_quote', 'LIKE', $keyWord)
-                ->orWhere('quote_group', 'LIKE', $keyWord)
+                ->orWhere('quote_groups.name', 'LIKE', $keyWord)
                 ->orWhere('professional_categories.name', 'LIKE', $keyWord)
                 ->orWhere('annual_gross_salary', 'LIKE', $keyWord)
                 ->orWhere('annual_hours', 'LIKE', $keyWord)
@@ -220,6 +221,30 @@ class Student extends Model
                 $query->orWhere('companies.name', 'LIKE', $search_company);
         })->orderBy('students.name','asc')
             ->paginate(10);
+        return $students;
+    }
+
+    public function getCompanyStudents($id, $search_student_name, $search_student_surname){
+        $students = Student::where('company_id', $id)
+            ->where(function ($query) use ($search_student_name){
+                $query->orWhere('students.name', 'LIKE', $search_student_name);
+            })->where(function ($query) use ($search_student_surname){
+                $query->orWhere('students.surname', 'LIKE', $search_student_surname);
+            })->get();
+
+        return $students;
+    }
+
+    public function getBilledStudent($id, $search_student_name, $search_student_surname){
+        $students = Student::select('students.*')
+            ->join('registrations', 'registrations.student_id', '=', 'students.id')
+            ->where('registrations.billing_id', $id)
+            ->where(function ($query) use ($search_student_name){
+                $query->orWhere('students.name', 'LIKE', $search_student_name);
+            })->where(function ($query) use ($search_student_surname){
+                $query->orWhere('students.surname', 'LIKE', $search_student_surname);
+            })->get();
+
         return $students;
     }
 

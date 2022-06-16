@@ -85,6 +85,59 @@ class TrainingAction extends Model
         return $this->hasOne('App\Models\WebPlatform', 'id', 'web_platform_id');
     }
 
+    public function getTrainingActions($keyWord,$inactiveFilter, $search_formative_actions, $search_name){
+        $trainingActions = TrainingAction::
+        select('training_actions.*',
+            'action_types.name as action_type', 'professional_families.name as professional_family',
+            'professional_areas.name as professional_area', 'modalities.name as modality',
+            'training_action_levels.name as training_action_level', 'training_action_groups.name as training_action_group',
+            'tutorings.name as tutoring', 'web_platforms.name as web_platform', 'providers.name as provider')
+            ->leftjoin('action_types', 'action_types.id', '=', 'training_actions.action_type_id')
+            ->leftjoin('professional_families', 'professional_families.id', '=', 'training_actions.professional_family_id')
+            ->leftjoin('professional_areas', 'professional_areas.id', '=', 'training_actions.professional_area_id')
+            ->leftjoin('modalities', 'modalities.id', '=', 'training_actions.modality_id')
+            ->leftjoin('training_action_levels', 'training_action_levels.id', '=', 'training_actions.training_action_level_id')
+            ->leftjoin('training_action_groups', 'training_action_groups.id', '=', 'training_actions.training_action_group_id')
+            ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
+            ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
+            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
+        if ($inactiveFilter != 1) {
+            $trainingActions = $trainingActions->where('active', 1);
+        }
+        $trainingActions = $trainingActions->where(function ($query) use ($keyWord){
+            $query->orWhere('training_actions.name', 'LIKE', $keyWord)
+                ->orWhere('action_types.name', 'LIKE', $keyWord)
+                ->orWhere('professional_families.name', 'LIKE', $keyWord)
+                ->orWhere('professional_areas.name', 'LIKE', $keyWord)
+                ->orWhere('modalities.name', 'LIKE', $keyWord)
+                ->orWhere('training_action_levels.name', 'LIKE', $keyWord)
+                ->orWhere('training_action_groups.name', 'LIKE', $keyWord)
+                ->orWhere('tutorings.name', 'LIKE', $keyWord)
+                ->orWhere('course_z', 'LIKE', $keyWord)
+                ->orWhere('course_avz', 'LIKE', $keyWord)
+                ->orWhere('active', 'LIKE', $keyWord)
+                ->orWhere('in_catalog', 'LIKE', $keyWord)
+                ->orWhere('face_to_face_hours', 'LIKE', $keyWord)
+                ->orWhere('teletraining_hours', 'LIKE', $keyWord)
+                ->orWhere('total_hours', 'LIKE', $keyWord)
+                ->orWhere('price', 'LIKE', $keyWord)
+                ->orWhere('objectives', 'LIKE', $keyWord)
+                ->orWhere('content', 'LIKE', $keyWord)
+                ->orWhere('training_actions.user', 'LIKE', $keyWord)
+                ->orWhere('web_platforms.name', 'LIKE', $keyWord)
+                ->orWhere('training_actions.observations', 'LIKE', $keyWord)
+                ->orWhere('number_activities', 'LIKE', $keyWord)
+                ->orWhere('number_units', 'LIKE', $keyWord)
+                ->orWhere('providers.name', 'LIKE', $keyWord);
+        })->where(function ($query) use ($search_formative_actions){
+            $query->orWhere('formative_action', 'LIKE', $search_formative_actions);
+        })->where(function ($query) use ($search_name){
+            $query->orWhere('training_actions.name', 'LIKE', $search_name);
+        })->orderby('id', 'asc')
+            ->paginate(10);
+        return $trainingActions;
+    }
+
     public function createTrainingAction($data){
 
     }
@@ -120,6 +173,18 @@ class TrainingAction extends Model
         ]);
 
         return $training_action;
+    }
+
+    public function getProviderTrainingActions($id, $search_training_actions_name, $search_training_actions_action)
+    {
+        $training_acions = TrainingAction::where('provider_id', $id)
+            ->where(function ($query) use ($search_training_actions_name) {
+                $query->orWhere('name', 'LIKE', $search_training_actions_name);
+            })->where(function ($query) use ($search_training_actions_action) {
+                $query->orWhere('formative_action', 'LIKE', $search_training_actions_action);
+            })->get();
+
+        return $training_acions;
     }
 
 }

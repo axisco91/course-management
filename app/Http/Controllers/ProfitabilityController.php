@@ -12,4 +12,8 @@ class ProfitabilityController extends Controller
     public function edit($id){
         return view('profitabilities.update', compact('id'));
     }
+
+    public function view($id){
+        returnview('profitabilities.view', compact('id'));
+    }
 }

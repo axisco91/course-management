@@ -14,6 +14,9 @@ class CourseStatuses extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -84,8 +87,8 @@ class CourseStatuses extends Component
     public function destroy($id)
     {
         if ($id) {
-            $record = CourseStatus::where('id', $id);
-            $record->delete();
+            $value = CourseStatus::destroy();
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

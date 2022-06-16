@@ -85,7 +85,7 @@ class Company extends Model
         return $this->hasMany('App\Models\Student', 'company_id', 'id');
     }
 
-    public function getCompany($keyWord, $search_name, $search_nif){
+    public function getCompanies($keyWord, $inactiveFilter, $search_name, $search_nif){
         $companies = Company::select('companies.*', 'company_types.name as type',
             'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province',
@@ -95,28 +95,28 @@ class Company extends Model
             ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
             ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id');
-        if ($this->inactiveFilter != 1) {
-            $companies = $companies->where('active', 1);
+        if ($inactiveFilter != 1) {
+            $companies = $companies->where('companies.active', 1);
         }
         $companies = $companies->where(function ($query) use ($keyWord){
             $query->orWhere('companies.name', 'LIKE', $keyWord)
-                ->orWhere('nif', 'LIKE', $keyWord)
+                ->orWhere('companies.nif', 'LIKE', $keyWord)
                 ->orWhere('company_types.name', 'LIKE', $keyWord)
                 ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                ->orWhere('email', 'LIKE', $keyWord)
-                ->orWhere('telephone', 'LIKE', $keyWord)
-                ->orWhere('legal_representative', 'LIKE', $keyWord)
-                ->orWhere('dni_legal_representative', 'LIKE', $keyWord)
+                ->orWhere('companies.email', 'LIKE', $keyWord)
+                ->orWhere('companies.telephone', 'LIKE', $keyWord)
+                ->orWhere('companies.legal_representative', 'LIKE', $keyWord)
+                ->orWhere('companies.dni_legal_representative', 'LIKE', $keyWord)
                 ->orWhere('quote', 'LIKE', $keyWord)
                 ->orWhere('cnaes.name', 'LIKE', $keyWord)
                 ->orWhere('average_template', 'LIKE', $keyWord)
-                ->orWhere('iban', 'LIKE', $keyWord)
-                ->orWhere('sepa', 'LIKE', $keyWord)
-                ->orWhere('b2b', 'LIKE', $keyWord)
-                ->orWhere('address', 'LIKE', $keyWord)
-                ->orWhere('post_code', 'LIKE', $keyWord)
+                ->orWhere('companies.iban', 'LIKE', $keyWord)
+                ->orWhere('companies.sepa', 'LIKE', $keyWord)
+                ->orWhere('companies.b2b', 'LIKE', $keyWord)
+                ->orWhere('companies.address', 'LIKE', $keyWord)
+                ->orWhere('companies.post_code', 'LIKE', $keyWord)
                 ->orWhere('provinces.name', 'LIKE', $keyWord)
-                ->orWhere('population', 'LIKE', $keyWord)
+                ->orWhere('companies.population', 'LIKE', $keyWord)
                 ->orWhere('advisors.name', 'LIKE', $keyWord);
         })->where(function ($query) use ($search_name){
             $query->orWhere('companies.name', 'LIKE', $search_name);
@@ -143,8 +143,8 @@ class Company extends Model
         $company = Company::create([
             'name' => $data['name'],
             'nif' => $data['nif'],
-            'company_type_id' => $data['type_id'],
-            'company_activity_id' => $data['activity_id'],
+            'company_type_id' => $data['company_type_id'],
+            'company_activity_id' => $data['company_activity_id'],
             'email' => $data['email'],
             'telephone' => $data['telephone'],
             'legal_representative' => $data['legal_representative'],
@@ -171,8 +171,8 @@ class Company extends Model
         $company->update([
             'name' => $data['name'],
             'nif' => $data['nif'],
-            'company_type_id' => $data['type_id'],
-            'company_activity_id' => $data['activity_id'],
+            'company_type_id' => $data['company_type_id'],
+            'company_activity_id' => $data['company_activity_id'],
             'email' => $data['email'],
             'telephone' => $data['telephone'],
             'legal_representative' => $data['legal_representative'],
@@ -205,6 +205,15 @@ class Company extends Model
         }
 
         return $companies->active;
+    }
+
+    public function getAdvisorsCompanies($id, $search_company_name){
+        $companies = Company::where('advisor_id', $id)
+            ->where(function ($query) use ($search_company_name) {
+                $query->orWhere('name', 'LIKE', $search_company_name);
+            })->get();
+
+        return $companies;
     }
 
 }

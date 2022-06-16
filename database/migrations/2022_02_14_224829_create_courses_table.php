@@ -38,7 +38,7 @@ return new class extends Migration
             $table->text('course_observation')->nullable();
             $table->tinyInteger('reactivated')->nullable();
             $table->date('welcome_date')->nullable();
-            $table->date('quater_date')->nullable();
+            $table->date('quarter_date')->nullable();
             $table->date('half_date')->nullable();
             $table->date('three_quarters_date')->nullable();
             $table->date('final_date')->nullable();

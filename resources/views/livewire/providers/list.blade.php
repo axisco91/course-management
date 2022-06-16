@@ -2,11 +2,12 @@
     <div class="card-header border-bottom">
         <h4 class="card-title">Proveedores</h4>
         @if (session()->has('message'))
-            <input hidden id="toastr" data-type="success" value="{{ session('message') }}">
+            <input hidden id="success-toast" data-type="success" data-show="true" value="{{ session('message') }}">
         @endif
         @if (session()->has('error'))
             <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
         @endif
+        @include('providers.info')
     </div>
     <div class="card-body mt-2">
         <div class="row g-1 mb-md-1">
@@ -43,15 +44,15 @@
             <tbody>
                 @foreach($providers as $row)
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $row->name }}</td>
-                    <td>{{ $row->nif }}</td>
-                    <td>{{ $row->type }}</td>
-                    <td>{{ $row->activity }}</td>
-                    <td>{{ $row->email }}</td>
-                    <td>{{ $row->telephone }}</td>
-                    <td>{{ $row->legal_representative }}</td>
-                    <td>{{ $row->advisor }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $loop->iteration }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->name }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->nif }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->type }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->activity }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->email }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->telephone }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->legal_representative }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->advisor }}</td>
                     <td>
                         <div class="dropdown">
                             <button type="button" class="btn btn-sm dropdown-toggle hide-arrow py-0" data-bs-toggle="dropdown">

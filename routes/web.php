@@ -35,6 +35,8 @@ use App\Http\Controllers\BillingController;
 use App\Http\Controllers\CommandController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfitabilityController;
+use App\Http\Controllers\TestsController;
+use App\Http\Controllers\ChoreController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +61,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
         });
     });
     /**
@@ -69,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
         });
     });
     /**
@@ -79,6 +83,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
         });
     });
     /**
@@ -89,6 +94,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
         });
     });
     /**
@@ -107,6 +113,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
         });
     });
     /**
@@ -117,6 +124,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
         });
     });
     /**
@@ -127,6 +135,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
         });
     });
     /**
@@ -137,6 +146,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
         });
     });
     /**
@@ -173,9 +183,23 @@ Route::middleware(['auth'])->group(function () {
             Route::get('edit/{id}', 'edit');
         });
     });
+    /**
+     * Chores Routes
+     */
+    Route::prefix('chores')->group(function() {
+        Route::controller(ChoreController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
+        });
+    });
 
     Route::prefix('commands')->group(function() {
         Route::controller(CommandController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+    Route::prefix('tests')->group(function() {
+        Route::controller(TestsController::class)->group(function(){
             Route::get('', 'index');
         });
     });
@@ -198,7 +222,6 @@ Route::get('/home', 'HomeController@index')->name('home');
 	Route::view('payments', 'livewire.payments.index')->middleware('auth');
 	Route::view('registrations', 'livewire.registrations.index')->middleware('auth');
 	Route::view('tracings', 'livewire.tracings.index')->middleware('auth');
-	Route::view('chores', 'livewire.chores.index')->middleware('auth');
 	Route::view('professional_categories', 'livewire.professional-categories.index')->middleware('auth');
 	Route::view('course_types', 'livewire.course-types.index')->middleware('auth');
 	Route::view('course_statuses', 'livewire.course-statuses.index')->middleware('auth');

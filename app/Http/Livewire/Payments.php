@@ -14,6 +14,9 @@ class Payments extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -81,7 +84,8 @@ class Payments extends Component
     public function destroy($id)
     {
         if ($id) {
-             Payment::destroy($id);
+            $value = Payment::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

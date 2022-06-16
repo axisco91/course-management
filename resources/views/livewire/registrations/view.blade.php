@@ -29,7 +29,7 @@
                     @if(isset($students))
                         @foreach($students as $student)
                             <div class="unregisterd">
-                                <div class="name">{{$student['name'].' '.$student['surname']}}</div>
+                                <div class="name">{{$student['name']}} {{$student['surname']}} ({{$student['dni']}})</div>
                                 <div data-bs-toggle="modal" data-bs-target="#createDataModal" class="btn btn-success btn-sm register" wire:click.prevent="edit({{$student->id}})"><i class="fas fa-plus"></i></div>
                             </div>
                         @endforeach
@@ -56,7 +56,7 @@
                     @if(isset($registrations))
                         @foreach($registrations as $registrated)
                             <div class="registerd">
-                                <div class="name">{{$registrated['name'].' '.$registrated['surname']}}</div>
+                                <div class="name">{{$registrated['name'].' '.$registrated['surname']}} ({{$registrated['dni']}})</div>
                                 <div class="btn btn-danger btn-sm unregister" wire:click="unregister({{$registrated->student_id}})"><i class="fas fa-minus"></i></div>
                             </div>
                         @endforeach

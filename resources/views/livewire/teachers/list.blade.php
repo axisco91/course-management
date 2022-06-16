@@ -1,13 +1,13 @@
 <div class="card">
     <div class="card-header border-bottom">
-        <h4 class="card-title">Busqueda Avanzada</h4>
+        <h4 class="card-title">Docentes</h4>
         @if (session()->has('message'))
-            <input hidden id="toastr" data-type="success" value="{{ session('message') }}">
+            <input hidden id="success-toast" data-type="success" data-show="true" value="{{ session('message') }}">
         @endif
         @if (session()->has('error'))
             <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
         @endif
-        @include('livewire.teachers.info')
+        @include('teachers.info')
     </div>
     <!--Search Form -->
     <div class="card-body mt-2">
@@ -49,7 +49,7 @@
                 <label class="form-label" for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
             </div>
             <div class="col-md-4">
-                <a class="btn btn-sm btn-info" href="{{url('/teachers/create')}}">
+                <a wire:ignore class="btn btn-sm btn-info" href="{{url('/teachers/create')}}">
                     <i data-feather="plus-circle" class="me-50"></i> Añadir Docente
                 </a>
             </div>
@@ -61,25 +61,25 @@
             <thead>
                 <tr>
                     <td>#</td>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Dni</th>
-                    <th>Correo</th>
-                    <th>Telefono</th>
-                    <th>Estado</th>
+                    <th class="tableHeader" data-header="name">Nombre</th>
+                    <th class="tableHeader" data-header="surname">Apellido</th>
+                    <th class="tableHeader" data-header="dni">Dni</th>
+                    <th class="tableHeader" data-header="email">Correo</th>
+                    <th class="tableHeader" data-header="telephone">Telefono</th>
+                    <th class="tableHeader" data-header="state">Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($teachers as $row)
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td><a data-bs-toggle="modal" data-bs-target="#studentsTabModal" class="dropdown-item" wire:click="general({{$row->id}})">{{ $row->name }}</a></td>
-                    <td>{{ $row->surname }}</td>
-                    <td>{{ $row->dni }}</td>
-                    <td>{{ $row->email }}</td>
-                    <td>{{ $row->telephone }}</td>
-                    <td><span class="badge rounded-pill badge-light-{{$row->active == 0 ?'danger' : 'success'}} me-1">{{$row->active == 0 ? 'Inactivo' : 'Activo'}}</span></td>
+                    <td data-bs-toggle="modal" data-bs-target="#teachersTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#teachersTabModal" wire:click="general({{$row->id}})">{{ $row->name }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#teachersTabModal" wire:click="general({{$row->id}})">{{ $row->surname }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#teachersTabModal" wire:click="general({{$row->id}})">{{ $row->dni }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#teachersTabModal" wire:click="general({{$row->id}})">{{ $row->email }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#teachersTabModal" wire:click="general({{$row->id}})">{{ $row->telephone }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#teachersTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->active == 0 ?'danger' : 'success'}} me-1">{{$row->active == 0 ? 'Inactivo' : 'Activo'}}</span></td>
                     <td>
                         <div class="dropdown">
                             <button type="button" class="btn btn-sm dropdown-toggle hide-arrow py-0" data-bs-toggle="dropdown">
@@ -88,10 +88,10 @@
                             <div class="dropdown-menu dropdown-menu-end">
                                 <!--<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>-->
                                 <a href="{{url('/teachers/edit/'.$row->id)}}" class="dropdown-item"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
-                                @if ($row->activo == 1)
-                                    <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}} {{$row->surname}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
+                                @if ($row->activo === 0)
+                                    <a class="dropdown-item active" data-id="{{$row->id}}"><i class="fa fa-active"></i> Activar </a>
                                 @else
-                                    <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}} {{$row->surname}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
+                                    <a class="dropdown-item desactivate" data-id="{{$row->id}}"><i class="fa fa-active"></i> Desactivar </a>
                                 @endif
                             </div>
                         </div>
@@ -102,4 +102,5 @@
         </table>
         {{ $teachers->links() }}
     </div>
+
 </div>

@@ -14,6 +14,9 @@ class Cnaes extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
     public function render()
     {
 
@@ -83,7 +86,8 @@ class Cnaes extends Component
     public function destroy($id)
     {
         if ($id) {
-            Cnae::destroy($id);
+            $value = Cnae::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

@@ -2,7 +2,7 @@
     <div class="card-header border-bottom">
         <h4 class="card-title">Seguimientos</h4>
         @if (session()->has('message'))
-            <input hidden id="toastr" data-type="success" value="{{ session('message') }}">
+            <input hidden id="success-toast" data-type="success" data-show="true" value="{{ session('message') }}">
         @endif
         @if (session()->has('error'))
             <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
@@ -15,7 +15,7 @@
         <div class="row g-1 mb-md-1">
             <div class="col-md-4">
                 <div wire:ignore>
-                    <label class="form-label" for="course_search"></label>
+                    <label class="form-label" for="course_search">Curso</label>
                     <select wire:model.lazy="course_search" class="form-control select2" id="course_search">
                         <option value="-1">Todos los cursos</option>
                         @foreach($courses as $course)
@@ -26,7 +26,7 @@
             </div>
             <div class="col-md-4">
                 <div wire:ignore>
-                    <label class="form-label" for="company_search"></label>
+                    <label class="form-label" for="company_search">Empresa</label>
                     <select wire:model.lazy="company_search" class="form-control select2" id="company_search">
                         <option value="-1">Todas las empresas</option>
                         @foreach($companies as $company)
@@ -37,9 +37,9 @@
             </div>
             <div class="col-md-4">
                 <div wire:ignore>
-                    <label class="form-label" for="student_search"></label>
+                    <label class="form-label" for="student_search">Alumno</label>
                     <select wire:model.lazy="student_search" class="form-control select2" id="student_search">
-                        <option value="-1">Todas las empresas</option>
+                        <option value="-1">Todos los alumnos</option>
                         @foreach($students as $student)
                             <option value="{{$student['id']}}">{{$student['name']}}</option>
                         @endforeach
@@ -68,29 +68,27 @@
                 <th>Mensaje 50%</th>
                 <th>Mensaje 75%</th>
                 <th>Finalizacion</th>
-                <th>Observaciones</th>
                 <th>Acciones</th>
             </tr>
             </thead>
             <tbody>
             @foreach($tracings as $row)
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td><a data-bs-toggle="modal" data-bs-target="#tracingsTabModal" class="dropdown-item" wire:click="general({{$row->id}})">{{ $row->course }}</a></td>
-                    <td>{{ $row->company }}</td>
-                    <td>{{ $row->student }}</td>
-                    <td>{{ $row->performed_activities }}</td>
-                    <td>{{ $row->performed_hours }}</td>
-                    <td>{{ $row->performed_units }}</td>
-                    <td>{{ $row->follow_up_date }}</td>
-                    <td>{{ $row->final_test }}</td>
-                    <td>{{ $row->questionnaire }}</td>
-                    <td>{{ $row->welcome_message == 1 ? 'Si' : 'No' }}</td>
-                    <td>{{ $row->quarter_message == 1 ? 'Si' : 'No' }}</td>
-                    <td>{{ $row->half_message == 1 ? 'Si' : 'No' }}</td>
-                    <td>{{ $row->three_quarters_message == 1 ? 'Si' : 'No' }}</td>
-                    <td>{{ $row->final_message == 1 ? 'Si' : 'No' }}</td>
-                    <td>{{ $row->observation }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->course }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->company }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->student_name}} {{$row->student_surname}}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->performed_activities }} / {{$row->number_activities}}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->performed_hours }} / {{$row->total_hours}}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->performed_units }} / {{$row->number_units}}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->follow_up_date }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->final_test }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->questionnaire }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->welcome_message == 1 ? 'Si' : 'No' }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->quarter_message == 1 ? 'Si' : 'No' }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->half_message == 1 ? 'Si' : 'No' }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->three_quarters_message == 1 ? 'Si' : 'No' }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->final_message == 1 ? 'Si' : 'No' }}</td>
                     <td>
                         <div class="dropdown">
                             <button type="button" class="btn btn-sm dropdown-toggle hide-arrow py-0" data-bs-toggle="dropdown">
@@ -107,16 +105,21 @@
         </table>
         {{ $tracings->links() }}
     </div>
+    @section('vendor-script')
+        <!-- vendor files -->
+            <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+    @endsection
+    @section('page-script')
+        <!-- Page js files -->
+        <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+    @endsection
     <script>
-        document.addEventListener('livewire:load', function(){
-            $('.select2').select2()
+        document.addEventListener('livewire:load', function() {
+            initializeSelect2()
             $('.select2').on('change', function(){
             @this.set(this.id, this.value)
             })
-            $('.select2').on('change', function(){
-            @this.set(this.id, this.value)
-            })
-            $('#create_training_action_id').on('change', function(){
+            $('#training_action_id').on('change', function(){
             @this.set(this.id, this.value)
             @this.setName()
             })

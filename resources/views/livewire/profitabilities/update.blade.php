@@ -106,7 +106,7 @@
             </div>
         </div>
         <div class="col-12">
-            <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <a href="{{ url()->previous() }}" class="btn btn-secondary">Cerrar</a>
             <button type="button" wire:click.prevent="update()" class="btn btn-primary" data-bs-dismiss="modal">Guardar</button>
         </div>
     </form>

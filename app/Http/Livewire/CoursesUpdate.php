@@ -28,7 +28,7 @@ class CoursesUpdate extends Component
     protected $paginationTheme = 'bootstrap';
     public $selected_id, $name, $training_action_id, $group, $course_type_id, $teacher_id, $nebrija, $beginning,
         $end, $morning_schedule, $afternoon_schedule, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday, $sunday,
-        $formation_center_id, $delivery_center_id, $outsourced, $course_observation, $reactivated, $welcome_date, $quater_date,
+        $formation_center_id, $delivery_center_id, $outsourced, $course_observation, $reactivated, $welcome_date, $quarter_date,
         $half_date, $three_quarters_date, $final_date, $course_status_id,$price;
     public $performed_activities, $performed_hours, $performed_units, $follow_up_date, $final_test, $questionnaire, $welcome_message, $quarter_message, $half_message, $three_quarters_message, $final_message, $observation;
     public $training_actions, $course_types, $teachers, $formation_centers, $delivery_centers, $course_statuses, $registrations = null, $students = null, $tracings = null, $chores = null, $route;
@@ -72,7 +72,7 @@ class CoursesUpdate extends Component
         $this->course_observation = $record-> course_observation;
         $this->reactivated = $record-> reactivated;
         $this->welcome_date = $record-> welcome_date;
-        $this->quater_date = $record-> quater_date;
+        $this->quarter_date = $record-> quarter_date;
         $this->half_date = $record-> half_date;
         $this->three_quarters_date = $record-> three_quarters_date;
         $this->final_date = $record-> final_date;
@@ -97,9 +97,11 @@ class CoursesUpdate extends Component
             'group' => 'required',
             'course_type_id' => 'required',
             'teacher_id' => 'required',
+            'beginning' => 'required',
+            'end' => 'required'
         ]);
 
-        $course_info = $this->course_data($this-> beginning, $this-> end);
+        $course_info = Course::course_data($this-> beginning, $this-> end);
 
         if ($this->selected_id) {
             $data = [
@@ -126,9 +128,9 @@ class CoursesUpdate extends Component
                 'course_observation' => $this-> observation,
                 'reactivated' => $this-> reactivated,
                 'welcome_date' => $this-> beginning,
-                'quater_date' => $course_info['quater'],
+                'quarter_date' => $course_info['quarter'],
                 'half_date' => $course_info['half'],
-                'three_quarters_date' => $course_info['three_quaters'],
+                'three_quarters_date' => $course_info['three_quarters'],
                 'final_date' => $this-> end,
                 'course_status_id' => $course_info['course_status_id'],
                 'price' => $this-> price,

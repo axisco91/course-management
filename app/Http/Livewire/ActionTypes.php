@@ -15,6 +15,10 @@ class ActionTypes extends Component
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
 
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
+
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
@@ -88,7 +92,8 @@ class ActionTypes extends Component
     public function destroy($id)
     {
         if ($id) {
-            ActionType::destroy($id);
+            $value = ActionType::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

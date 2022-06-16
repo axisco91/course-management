@@ -12,4 +12,8 @@ class ChoreController extends Controller
     public function edit($id){
         return view('chores.update', compact('id'));
     }
+
+    public function view($id){
+        return view('chores.view', compact('id'));
+    }
 }

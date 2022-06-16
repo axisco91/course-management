@@ -14,6 +14,9 @@ class CompanyTypes extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -82,7 +85,8 @@ class CompanyTypes extends Component
     public function destroy($id)
     {
         if ($id) {
-            CompanyType::destroy($id);
+            $value = CompanyType::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

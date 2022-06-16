@@ -97,10 +97,21 @@ class Registrations extends Component
                         'total' => $this->price,
                     ];
                     $profitability = Profitability::createProfitability($profitability_data);
+
+                    $billing_data = [
+                        'course_id' => $this->selected_id,
+                        'company_id' => $student['company_id'],
+                        'is_bonus' => $this->is_bonus,
+                        'price' => $this->price,
+                        'student_id' => $student['id']
+                    ];
+                    $billing = Billing::updateBillingRegistrations($billing_data);
+
                     $registration_data = [
                         'course_id' => $this->selected_id,
                         'company_id' => $student['company_id'],
                         'student_id' => $student['id'],
+                        'billing_id' => $billing['id'],
                         'tracing_id' => $tracing['id'],
                         'chore_id' => $chore['id'],
                         'price' => $this->price,
@@ -109,14 +120,6 @@ class Registrations extends Component
                     ];
                     $registration = Registration::createRegistration($registration_data);
                 }
-                $billing_data = [
-                    'course_id' => $this->selected_id,
-                    'company_id' => $student['company_id'],
-                    'is_bonus' => $this->is_bonus,
-                    'price' => $this->price,
-
-                ];
-                $billing = Billing::updateBillingRegistrations($billing_data);
             }
         }
         $this->student_id = null;

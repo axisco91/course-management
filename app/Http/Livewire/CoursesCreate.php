@@ -28,7 +28,7 @@ class CoursesCreate extends Component
     protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name, $training_action_id, $group, $course_type_id, $teacher_id, $nebrija, $beginning,
         $end, $morning_schedule, $afternoon_schedule, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday, $sunday,
-        $formation_center_id, $delivery_center_id, $outsourced, $course_observation, $reactivated, $welcome_date, $quater_date,
+        $formation_center_id, $delivery_center_id, $outsourced, $course_observation, $reactivated, $welcome_date, $quarter_date,
         $half_date, $three_quarters_date, $final_date, $course_status_id,$price, $active;
     public $performed_activities, $performed_hours, $performed_units, $follow_up_date, $final_test, $questionnaire, $welcome_message, $quarter_message, $half_message, $three_quarters_message, $final_message, $observation;
     public $updateMode = false, $updateTracingMode = false;
@@ -89,7 +89,7 @@ class CoursesCreate extends Component
         $this->course_observation = null;
         $this->reactivated = null;
         $this->welcome_date = null;
-        $this->quater_date = null;
+        $this->quarter_date = null;
         $this->half_date = null;
         $this->three_quarters_date = null;
         $this->course_status_id = null;
@@ -120,6 +120,8 @@ class CoursesCreate extends Component
             'group' => 'required',
             'course_type_id' => 'required',
             'teacher_id' => 'required',
+            'beginning' => 'required',
+            'end' => 'required'
         ]);
 
         $course_info = Course::course_data($this-> beginning, $this-> end);
@@ -148,9 +150,9 @@ class CoursesCreate extends Component
             'course_observation' => $this-> observation,
             'reactivated' => $this-> reactivated,
             'welcome_date' => $this-> beginning,
-            'quater_date' => $course_info['quater'],
+            'quarter_date' => $course_info['quarter'],
             'half_date' => $course_info['half'],
-            'three_quarters_date' => $course_info['three_quaters'],
+            'three_quarters_date' => $course_info['three_quarters'],
             'final_date' => $this-> end,
             'course_status_id' => $course_info['course_status_id'],
             'price' => $this-> price,

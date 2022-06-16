@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use App\Models\Company;
 use App\Models\Course;
 use App\Models\Student;
+use App\Models\TrainingAction;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Tracing;
@@ -14,16 +15,19 @@ class Tracings extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $course_id, $company_id, $student_id, $performed_activities, $performed_hours, $performed_units, $follow_up_date, $final_test, $questionnaire, $welcome_message, $quarter_message, $half_message, $three_quarters_message, $final_message, $observation;
+    public $selected_id, $keyWord, $course_id, $company_id, $student_id, $performed_activities, $performed_hours,
+        $performed_units, $follow_up_date, $final_test, $questionnaire, $welcome_message, $quarter_message, $half_message,
+        $three_quarters_message, $final_message, $observation, $welcome_date, $quarter_date, $half_date, $three_quarters_date,
+        $total_hours, $number_activities, $number_unites, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent, $three_quarters_date_sent, $final_date_sent;
     public $updateMode = false;
-    public $courses, $companies, $students;
-    public $course_search = -1, $company_search = -1, $student_search = -1, $student_name, $course_name;
+    public $courses, $companies, $students, $tab = 'info';
+    public $course_search = -1, $company_search = -1, $student_search = -1, $student_name, $name, $surname, $course_name;
 
     public function render()
     {
         $keyWord = '%'.$this->keyWord .'%';
-        $tracings = Tracing::getTracings($keyWord);
-        return view('livewire.tracings.view', [
+        $tracings = Tracing::getTracings($keyWord, $this->course_search, $this->company_search, $this->student_search);
+        return view('livewire.tracings.list', [
             'tracings' => $tracings
         ]);
     }
@@ -79,6 +83,26 @@ class Tracings extends Component
 		$this->three_quarters_message = $record-> three_quarters_message;
 		$this->final_message = $record-> final_message;
 		$this->observation = $record-> observation;
+        $this->welcome_date_sent = $record-> welcome_date_sent;
+        $this->quarter_date_sent = $record-> quarter_date_sent;
+        $this->half_date_sent = $record-> half_date_sent;
+        $this->three_quarters_date_sent = $record-> three_quarters_date_sent;
+        $this->final_date_sent = $record->final_date_sent;
+
+        $course = Course::find($this->course_id);
+        $this->welcome_date = $course->welcome_date;
+        $this->quarter_date = $course->quarter_date;
+        $this->half_date = $course->half_date;
+        $this->three_quarters_date = $course->three_quarters_date;
+        $this->final_date = $course->final_date;
+        $training_action = TrainingAction::find($course->training_action_id);
+        $this->total_hours = $training_action->total_hours;
+        $this->number_activities = $training_action->number_activities;
+        $this->number_unites = $training_action->number_units;
+        $student = Student::find($this->student_id);
+        $this->name = $student->name;
+        $this->surname = $student->surname;
+        $this->course_name = $course->name;
 
         $this->updateMode = true;
     }
@@ -93,21 +117,26 @@ class Tracings extends Component
 
         if ($this->selected_id) {
 			$data = [
-			'course_id' => $this-> course_id,
-			'company_id' => $this-> company_id,
-			'student_id' => $this-> student_id,
-			'performed_activities' => $this-> performed_activities,
-			'performed_hours' => $this-> performed_hours,
-			'performed_units' => $this-> performed_units,
-			'follow_up_date' => $this-> follow_up_date,
-			'final_test' => $this-> final_test,
-			'questionnaire' => $this-> questionnaire,
-			'welcome_message' => $this-> welcome_message,
-			'quarter_message' => $this-> quarter_message,
-			'half_message' => $this-> half_message,
-			'three_quarters_message' => $this-> three_quarters_message,
-			'final_message' => $this-> final_message,
-			'observation' => $this-> observation
+			    'course_id' => $this-> course_id,
+			    'company_id' => $this-> company_id,
+			    'student_id' => $this-> student_id,
+			    'performed_activities' => $this-> performed_activities,
+                'performed_hours' => $this-> performed_hours,
+                'performed_units' => $this-> performed_units,
+                'follow_up_date' => $this-> follow_up_date,
+                'final_test' => $this-> final_test,
+                'questionnaire' => $this-> questionnaire,
+                'welcome_message' => $this-> welcome_message,
+                'quarter_message' => $this-> quarter_message,
+                'half_message' => $this-> half_message,
+                'three_quarters_message' => $this-> three_quarters_message,
+                'final_message' => $this-> final_message,
+                'observation' => $this-> observation,
+                'welcome_date_sent' => $this-> welcome_date_sent,
+                'quarter_date_sent' => $this-> quarter_date_sent,
+                'half_date_sent' => $this-> half_date_sent,
+                'three_quarter_date_sent' => $this-> three_quarters_date_sent,
+                'final_date_sent' => $this-> final_date_sent
             ];
             Tracing::updateTracing($this->selected_id, $data);
             $this->resetInput();
@@ -140,5 +169,22 @@ class Tracings extends Component
         $this->three_quarters_message = $record-> three_quarters_message;
         $this->final_message = $record-> final_message;
         $this->observation = $record-> observation;
+        $this->welcome_date_sent = $record-> welcome_date_sent;
+        $this->quarter_date_sent = $record-> quarter_date_sent;
+        $this->half_date_sent = $record-> half_date_sent;
+        $this->three_quarters_date_sent = $record-> three_quarters_date_sent;
+        $this->final_date_sent = $record->final_date_sent;
+
+        $this->welcome_date = $course->welcome_date;
+        $this->quarter_date = $course->quarter_date;
+        $this->half_date = $course->half_date;
+        $this->three_quarters_date = $course->three_quarters_date;
+        $this->final_date = $course->final_date;
+        $training_action = TrainingAction::find($course->training_action_id);
+        $this->total_hours = $training_action->total_hours;
+        $this->number_activities = $training_action->number_activities;
+        $this->number_unites = $training_action->number_units;
+        $this->name = $student->name;
+        $this->surname = $student->surname;
     }
 }

@@ -14,6 +14,9 @@ class TrainingActionGroups extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -80,7 +83,8 @@ class TrainingActionGroups extends Component
     public function destroy($id)
     {
         if ($id) {
-            TrainingActionGroup::destroy($id);
+            $value = TrainingActionGroup::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

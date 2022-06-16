@@ -23,11 +23,11 @@ class CreateBillingsTable extends Migration
             $table->decimal('bonus')->default(0);
             $table->decimal('total_training_activity')->default(0);
             $table->decimal('expenses')->default(0);
-            $table->decimal('only_organizing_entity')->default(0);
+            $table->tinyInteger('only_organizing_entity')->default(0);
             $table->decimal('salary_costs')->default(0);
             $table->foreignId('payment_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->date('communication_start_date')->nullable();
-            $table->date('comunication_end_date')->nullable();
+            $table->date('communication_end_date')->nullable();
             $table->tinyInteger('invoiced')->default(0);
             $table->string('billing_number')->nullable()->unique();
             $table->date('billing_date')->nullable();

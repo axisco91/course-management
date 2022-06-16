@@ -11,7 +11,7 @@ class Provider extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3'];
+    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3', 'nif', 'company_type_id', 'company_activity_id', 'email', 'telephone', 'legal_representative', 'dni_legal_representative', 'cnae_id', 'iban', 'iban', 'sepa', 'b2b', 'address', 'post_code', 'population_id', 'province_id', 'prpulation', 'active'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -30,19 +30,15 @@ class Provider extends Model
     }
 
     public function getProviders($keyWord, $inactiveFilter){
-        $providers = Company::select('providers.id as provider_id','providers.irpf', 'providers.commission',
-            'providers.contact_1', 'providers.contact_2', 'providers.contact_3', 'companies.*',
-            'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province',
-            'advisors.name as advisor')
-            ->join('providers', 'providers.company_id', '=', 'companies.id')
-            ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
-            ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
-            ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
-            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id');
+        $providers = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
+            'provinces.name as province')
+            ->leftjoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
+            ->leftjoin('company_activities', 'company_activities.id', '=', 'providers.company_activity_id')
+            ->leftjoin('cnaes', 'cnaes.id', '=', 'providers.cnae_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id');
+
         if ($inactiveFilter != 1) {
-            $providers = $providers->where('inactive', 0);
+            $providers = $providers->where('active', 1);
         }
 
         $providers = $providers->where(function ($query) use ($keyWord){
@@ -52,26 +48,20 @@ class Provider extends Model
                 ->orWhere('providers.contact_1', 'LIKE', $keyWord)
                 ->orWhere('providers.contact_2', 'LIKE', $keyWord)
                 ->orWhere('providers.contact_3', 'LIKE', $keyWord)
-                ->orWhere('nif', 'LIKE', $keyWord)
+                ->orWhere('providers.nif', 'LIKE', $keyWord)
                 ->orWhere('company_types.name', 'LIKE', $keyWord)
                 ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                ->orWhere('email', 'LIKE', $keyWord)
-                ->orWhere('telephone', 'LIKE', $keyWord)
-                ->orWhere('legal_representative', 'LIKE', $keyWord)
-                ->orWhere('dni_legal_representative', 'LIKE', $keyWord)
-                ->orWhere('quote', 'LIKE', $keyWord)
+                ->orWhere('providers.email', 'LIKE', $keyWord)
+                ->orWhere('providers.telephone', 'LIKE', $keyWord)
+                ->orWhere('providers.legal_representative', 'LIKE', $keyWord)
+                ->orWhere('providers.dni_legal_representative', 'LIKE', $keyWord)
                 ->orWhere('cnaes.name', 'LIKE', $keyWord)
-                ->orWhere('average_template', 'LIKE', $keyWord)
-                ->orWhere('iban', 'LIKE', $keyWord)
-                ->orWhere('sepa', 'LIKE', $keyWord)
-                ->orWhere('b2b', 'LIKE', $keyWord)
-                ->orWhere('address', 'LIKE', $keyWord)
-                ->orWhere('post_code', 'LIKE', $keyWord)
-                ->orWhere('provinces.name', 'LIKE', $keyWord)
-                ->orWhere('population', 'LIKE', $keyWord)
-                ->orWhere('active', 'LIKE', $keyWord)
-                ->orWhere('advisors.name', 'LIKE', $keyWord);
-        })->orderby('name', 'desc')
+                ->orWhere('providers.address', 'LIKE', $keyWord)
+                ->orWhere('providers.post_code', 'LIKE', $keyWord)
+                ->orWhere('providers.name', 'LIKE', $keyWord)
+                ->orWhere('providers.population', 'LIKE', $keyWord)
+                ->orWhere('providers.active', 'LIKE', $keyWord);
+        })->orderBy('providers.name', 'desc')
             ->paginate(10);
         return $providers;
     }
@@ -84,7 +74,23 @@ class Provider extends Model
             'commission' => $data['commission'],
             'contact_1' => $data['contact_1'],
             'contact_2' => $data['contact_2'],
-            'contact_3' => $data['contact_3']
+            'contact_3' => $data['contact_3'],
+            'nif' => $data['nif'],
+            'company_type_id' => $data['company_type_id'],
+            'company_activity_id' => $data['company_activity_id'],
+            'email' => $data['email'],
+            'telephone' => $data['telephone'],
+            'legal_representative' => $data['legal_representative'],
+            'dni_legal_representative' => $data['dni_legal_representative'],
+            'cnae_id' => $data['cnae_id'],
+            'iban' => $data['iban'],
+            'sepa' => $data['sepa'],
+            'b2b' => $data['b2b'],
+            'address' => $data['address'],
+            'post_code' => $data['post_code'],
+            'province_id' => $data['province_id'],
+            'population' => $data['population'],
+            'active' => $data['active'],
         ]);
         return $provider;
     }
@@ -97,7 +103,23 @@ class Provider extends Model
             'commission' => $data['commission'],
             'contact_1' => $data['contact_1'],
             'contact_2' => $data['contact_2'],
-            'contact_3' => $data['contact_3']
+            'contact_3' => $data['contact_3'],
+            'nif' => $data['nif'],
+            'company_type_id' => $data['company_type_id'],
+            'company_activity_id' => $data['company_activity_id'],
+            'email' => $data['email'],
+            'telephone' => $data['telephone'],
+            'legal_representative' => $data['legal_representative'],
+            'dni_legal_representative' => $data['dni_legal_representative'],
+            'cnae_id' => $data['cnae_id'],
+            'iban' => $data['iban'],
+            'sepa' => $data['sepa'],
+            'b2b' => $data['b2b'],
+            'address' => $data['address'],
+            'post_code' => $data['post_code'],
+            'province_id' => $data['province_id'],
+            'population' => $data['population'],
+            'active' => $data['active'],
         ]);
         return $provider;
     }

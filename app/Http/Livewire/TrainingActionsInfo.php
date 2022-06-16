@@ -31,6 +31,7 @@ class TrainingActionsInfo extends Component
     {
         if ($this->selected_id){
             $training_Action = TrainingAction::find($this->selected_id);
+            $this->formative_action = $training_Action-> formative_action;
             $this->name = $training_Action->name;
             $this->action_type_id = $training_Action-> action_type_id;
             $this->professional_family_id = $training_Action-> professional_family_id;

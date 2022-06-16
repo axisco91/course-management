@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,7 +12,7 @@ class Registration extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['course_id','company_id','student_id','tracing_id','chore_id','price', 'profitability_id', 'is_bonus'];
+    protected $fillable = ['course_id','company_id','student_id','tracing_id','chore_id','price', 'profitability_id', 'is_bonus', 'billing_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -61,6 +62,14 @@ class Registration extends Model
         return $this->hasOne('App\Models\Profitability', 'id', 'profitability_id');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function billing()
+    {
+        return $this->hasOne('App\Models\billing', 'id', 'billing_id');
+    }
+
     public function getRegistrated($course_id, $search_name, $search_surname){
         $registations = Student::leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
             ->where('registrations.course_id', $course_id)
@@ -92,6 +101,7 @@ class Registration extends Model
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
             'student_id' => $data['student_id'],
+            'billing_id' => $data['billing_id'],
             'tracing_id' => $data['tracing_id'],
             'chore_id' => $data['chore_id'],
             'price' => $data['price'],
@@ -133,6 +143,50 @@ class Registration extends Model
             }
             $registration->delete();
         }
+    }
+
+    public function totalRegistrations(){
+        $now = Carbon::now();
+        $total = Registration::where('created_at', '>=', $now->year.'-01-01')
+            ->where('created_at', '<=', $now->year.'-12-31')->get();
+        return $total->count();
+    }
+
+    public function countRegistrations($start, $limit){
+        $registrations = Registration::where('created_at', '>=', $start)
+            ->where('created_at', '<=', $limit)->get();
+
+        return $registrations->count();
+    }
+
+    public function getStudentCourses($id, $search_course_name, $search_group){
+        $registations = Registration::select('courses.*')->leftJoin('courses', 'registrations.course_id', '=', 'courses.id')
+            ->where('registrations.student_id', $id)
+            ->where(function ($query) use ($search_course_name){
+                $query->orWhere('courses.name', 'LIKE', $search_course_name);
+            })->where(function ($query) use ($search_group){
+                $query->orWhere('courses.group', 'LIKE', $search_group);
+            })->get();
+
+        return $registations;
+    }
+
+    public function eliminateBill($id){
+        $registrations = Registration::where('billing_id', $id)->get();
+        if ($registrations){
+            foreach($registrations as $registration){
+                $registration->update([
+                    'billing_id' => null
+                ]);
+            }
+        }
+        return true;
+    }
+
+    public function billingRegistration($billing_id){
+        $registrations = Registration::where('billing_id', $billing_id)->get();
+
+        return $registrations;
     }
 
 }

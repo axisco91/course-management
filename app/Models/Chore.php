@@ -12,7 +12,7 @@ class Chore extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['course_id','company_id','student_id','membership_tab_status','membership_tab_date','economic_proposal_status','economic_proposal_date','student_tab_status','student_tab_date','welcome_guid_status','welcome_guid_date','registration_status','registration_date','diploma_status','diploma_status_date','start_communication_status','start_communication_date','close_communication_status','close_communication_date','invoiced_status','invoiced_date','bonus_sent_status','bonus_sent_date'];
+    protected $fillable = ['course_id','company_id','student_id','membership_tab_status','membership_tab_date','economic_proposal_status','economic_proposal_date','student_tab_status','student_tab_date','welcome_guid_status','welcome_guid_date','registration_status','registration_date','diploma_status','diploma_status_date','start_communication_status','start_communication_date','close_communication_status','close_communication_date','invoiced_status','invoiced_date','bonus_sent_status','bonus_sent_date', 'quarter_date_sent', 'half_date_sent', 'three_quarters_date_sent', 'final_date_sent'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -47,7 +47,7 @@ class Chore extends Model
     }
 
     public function getChores($keyWord, $course_search, $company_search, $student_search){
-        $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student')
+        $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name', 'students.surname as student_surname')
             ->leftjoin('courses', 'courses.id', '=', 'chores.course_id')
             ->leftjoin('companies', 'companies.id', '=', 'chores.company_id')
             ->leftjoin('students', 'students.id', '=', 'chores.student_id');
@@ -82,8 +82,12 @@ class Chore extends Model
                 ->orWhere('invoiced_date', 'LIKE', $keyWord)
                 ->orWhere('bonus_sent_status', 'LIKE', $keyWord)
                 ->orWhere('bonus_sent_date', 'LIKE', $keyWord);
-        })
+        })->orderBy('courses.beginning', 'desc')
             ->paginate(10);
+
+        foreach ($chores as $chore){
+            $chore['student'] = $chore['student_name'].' '.$chore['student_surname'];
+        }
 
         return $chores;
     }
@@ -92,12 +96,16 @@ class Chore extends Model
         $chore = Chore::create([
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
-            'student_id' => $data['id']
+            'student_id' => $data['student_id']
         ]);
         return $chore;
     }
 
     public function updateChore($id, $data){
+        if ($id) {
+            $chore = Chore::find($id);
+            $registration = Registration::where('chore_id', $id)->first();
+
         if ($data['membership_tab_status'] == 0){
             $data['membership_tab_date'] = null;
         } else if ($data['membership_tab_status'] != 0 &&  $data['membership_tab_date'] == null) {
@@ -132,11 +140,17 @@ class Chore extends Model
             $data['start_communication_date'] = null;
         } else if ($data['start_communication_status'] != 0 && $data['start_communication_date'] == null){
             $data['start_communication_date'] = Carbon::now()->toDateString();
+            if ($registration->billing_id){
+                Billing::updateStartCommunicationDate($registration->billing_id, Carbon::now()->toDateString(), $data['start_communication_date']);
+            }
         }
         if ($data['close_communication_status'] == 0){
             $data['close_communication_date'] = null;
         } else if ($data['close_communication_status'] != 0 && $data['close_communication_date'] == null){
             $data['close_communication_date'] = Carbon::now()->toDateString();
+            if ($registration->billing_id){
+                Billing::updateCloseCommunicationDate($registration->billing_id, Carbon::now()->toDateString(), $data['start_communication_date']);
+            }
         }
         if ($data['invoiced_status'] == 0){
             $data['invoiced_date'] = null;
@@ -149,8 +163,6 @@ class Chore extends Model
             $data['bonus_sent_date'] = Carbon::now()->toDateString();
         }
 
-        if ($id) {
-            $chore = Chore::find($id);
             $chore->update([
                 'membership_tab_status' => $data[' membership_tab_status'],
                 'membership_tab_date' => $data[' membership_tab_date'],
@@ -176,6 +188,31 @@ class Chore extends Model
 
             return $chore;
         }
+    }
+
+    public function billingDateChore($id, $date){
+        $registrations = Registration::billingRegistration($id);
+        foreach ($registrations as $registration){
+            $chore = Chore::find($registration->chore_id);
+        }
+
+        return true;
+    }
+
+    public function updateCommunicationStartDate($id, $date,$status){
+        $chore = Chore::find($id);
+        $chore = $chore->update([
+            'start_communication_date' => $date,
+            'start_communication_status' => $status
+        ]);
+    }
+
+    public function updateCommunicationEndDate($id, $date,$status){
+        $chore = Chore::find($id);
+        $chore = $chore->update([
+            'close_communication_date' => $date,
+            'close_communication_status' => $status
+        ]);
     }
 
 }

@@ -2,6 +2,7 @@
 
 @section('vendor-style')
     <!-- vendor css files -->
+    <link rel="stylesheet" href="{{ asset('app-assets/vendors/css/forms/select/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('app-assets/vendors/css/extensions/toastr.min.css') }}">
 @endsection
 @section('page-style')

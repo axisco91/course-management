@@ -7,9 +7,10 @@ use App\Models\Cnae;
 use App\Models\CompanyActivity;
 use App\Models\CompanyObservation;
 use App\Models\CompanyType;
+use App\Models\Course;
 use App\Models\Provider;
 use App\Models\Province;
-use App\Models\Teacher;
+use App\Models\Student;
 use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -22,15 +23,28 @@ class Companies extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $inactiveFilter, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $observation;
     public $updateMode = false, $createObservationModal = false, $updateObservationModal = false;
-    public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null;
-    public $search_name, $search_nif;
+    public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null, $students, $courses, $tab = 'info';
+    public $search_name, $search_nif, $search_student_name, $search_student_surname, $search_course_name, $search_group;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
     public function render()
 
     {
 		$keyWord = '%'.$this->keyWord .'%';
         $search_name = '%'.$this->search_name.'%';
         $search_nif = '%'.$this->search_nif.'%';
-        $companies = Company::getCompanies($keyWord, $search_name, $search_nif);
+        $companies = Company::getCompanies($keyWord, $this->inactiveFilter, $search_name, $search_nif);
+        $companies = Company::getCompanies($keyWord, $this->inactiveFilter, $search_name, $search_nif);
+        if ($this->selected_id){
+            $search_student_name = '%'.$this->search_student_name.'%';
+            $search_student_surname = '%'.$this->search_student_surname.'%';
+            $this->students = Student::getCompanyStudents($this->selected_id, $search_student_name, $search_student_surname);
+
+            $search_course_name = '%'.$this->search_course_name.'%';
+            $search_group = '%'.$this->search_group.'%';
+            $this->courses = Course::getCompanyCourses($this->selected_id, $search_course_name, $search_group);
+        }
 
         if ($this->observations) {
             foreach ($this->observations as $observation){
@@ -38,7 +52,7 @@ class Companies extends Component
             }
         }
 
-        return view('livewire.companies.view', [
+        return view('livewire.companies.list', [
             'companies' => $companies
         ]);
     }
@@ -210,8 +224,11 @@ class Companies extends Component
         $active = Company::changeState($id);
         if ($active == 1){
             session()->flash('message', 'Empresa activado con exito.');
+            $value = 'activado';
         } else {
             session()->flash('message', 'Empresa desactivado con exito.');
+            $value = 'desactivado';
         }
+        $this->dispatchBrowserEvent('status-update', ['value' => $value]);
     }
 }

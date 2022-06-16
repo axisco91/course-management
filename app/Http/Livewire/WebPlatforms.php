@@ -14,6 +14,9 @@ class WebPlatforms extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name, $url;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -87,7 +90,8 @@ class WebPlatforms extends Component
     public function destroy($id)
     {
         if ($id) {
-            WebPlatform::destroy($id);
+            $value = WebPlatform::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

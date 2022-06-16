@@ -65,6 +65,8 @@ class ProvidersUpdate extends Component
         $this->population = $company-> population;
         $this->active = $company-> active;
         $this->advisor_id = $company-> advisor_id;
+
+        $this->route = url()->previous();
     }
 
     public function cancel()
@@ -118,17 +120,13 @@ class ProvidersUpdate extends Component
 
         if ($this->selected_id) {
             $data = [
-                'name' => $this->name,
-                'irpf' => $this->irpf,
-                'commission' => $this->commission,
-                'contact_1' => $this->contact_1,
-                'contact_2' => $this->contact_2,
-                'contact_3' => $this->contact_3
-            ];
-            $provider = Provider::updateProvider($this->selected_id, $data);
-
-            $data_company = [
                 'name' => $this-> name,
+                'company_id' => $this->company_id,
+                'irpf' => $this-> irpf,
+                'commission' => $this-> commission,
+                'contact_1' => $this-> contact_1,
+                'contact_2' => $this-> contact_2,
+                'contact_3' => $this-> contact_3,
                 'nif' => $this-> nif,
                 'company_type_id' => $this-> type_id,
                 'company_activity_id' => $this-> activity_id,
@@ -149,10 +147,13 @@ class ProvidersUpdate extends Component
                 'active' => $this-> active == true ? 1 : 0,
                 'advisor_id' => $this-> advisor_id
             ];
-            $company = Company::createCompany($provider->company_id, $data_company);
+            $provider = Provider::updateProvider($this->selected_id, $data);
+
+            $company = Company::createCompany($provider->company_id, $data);
             $this->resetInput();
             $this->updateMode = false;
             session()->flash('message', 'Proveedor actualizado con exito.');
+            return $this->redirect($this->route);
         }
     }
 }

@@ -19,4 +19,8 @@ class CompanyController extends Controller
     public function create(){
         return view('companies.create');
     }
+
+    public function view($id){
+        return view('companies.view', compact('id'));
+    }
 }

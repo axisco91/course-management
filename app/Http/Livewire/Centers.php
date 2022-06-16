@@ -14,6 +14,9 @@ class Centers extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name, $address, $email, $telephone;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -98,7 +101,8 @@ class Centers extends Component
     public function destroy($id)
     {
         if ($id) {
-            Center::destroy($id);
+            $value = Center::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 

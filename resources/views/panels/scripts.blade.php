@@ -11,9 +11,12 @@
 <!-- BEGIN: Theme JS-->
 <script src="{{asset('app-assets/js/core/app-menu.js')}}"></script>
 <script src="{{asset('app-assets/js/core/app.js')}}"></script>
+<script src="{{ asset('app-assets/vendors/js/extensions/sweetalert2.all.min.js') }}"></script>
+<script src="{{ asset('app-assets/vendors/js/extensions/polyfill.min.js') }}"></script>
 
 <!-- custome scripts file for user -->
 <script src="{{ asset('js/general.js') }}"></script>
+<script src="{{ asset('js/editInfo.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
 
 @if($configData['blankPage'] === false)
@@ -29,4 +32,7 @@
 <!-- END: Theme JS-->
 <!-- BEGIN: Page JS-->
 @yield('page-script')
+<script src="{{ asset('app-assets/js/scripts/extensions/ext-component-sweet-alerts.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@yield('scripts')
 <!-- END: Page JS-->

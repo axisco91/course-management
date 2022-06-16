@@ -108,11 +108,18 @@
                 </div>
             </div>
             <div class="col-md-4 col-12">
-                <div class="mb-1">
-                    <label class="form-label" for="quote_group">Grupo Cotización</label>
-                    <input wire:model.lazy="quote_group" type="text" class="form-control @error('quote_group') is-invalid @enderror" id="quote_group" placeholder="Grupo Cotización">
-                    @error('quote_group') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <div wire:ignore>
+                    <div class="mb-1">
+                        <label class="form-label" for="quote_group_id">Grupo Cotización</label>
+                        <select class="form-select select2 @error('quote_group_id') is-invalid @enderror" wire:model.lazy="quote_group_id" id="quote_group_id">
+                            <option value="">Seleccione un group de cotización</option>
+                            @foreach($quote_groups as $quote_group)
+                                <option value="{{$quote_group['id']}}">{{$quote_group['name']}}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
+                @error('quote_group_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-4 col-12">
                 <div wire:ignore>

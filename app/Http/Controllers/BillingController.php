@@ -15,4 +15,8 @@ class BillingController extends Controller
     public function edit($id){
         return view('billings.update', compact('id'));
     }
+
+    public function view($id){
+        return view('billings.view', compact('id'));
+    }
 }

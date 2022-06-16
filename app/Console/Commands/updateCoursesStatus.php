@@ -44,7 +44,7 @@ class updateCoursesStatus extends Command
 
         foreach ($courses as $course){
 
-            $course_status_id = CourseStatusHelper::updateCourseStatus($course->beggining, $course->end);
+            $course_status_id = CourseStatusHelper::updateCourseStatus($course->beginning, $course->end);
 
             $course->update([
                 'course_status_id' => $course_status_id

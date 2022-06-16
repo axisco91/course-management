@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\LevelStudy;
 use App\Models\ProfessionalCategory;
 use App\Models\Province;
+use App\Models\QuoteGroup;
 use Livewire\Component;
 use App\Models\Student;
 
@@ -13,10 +14,10 @@ class StudentsCreate extends Component
 {
 
     protected $paginationTheme = 'bootstrap';
-    public $name, $surname, $dni, $telephone, $email, $company_id, $user, $date_of_birth, $level_study_id, $disabled, $social_security_number, $c_quote, $quote_group, $professional_category_id, $annual_gross_salary, $annual_hours, $hourly_cost_worker_gross, $direction, $post_code, $population_id, $province_id, $population, $observation, $iban, $password, $inactive;
+    public $name, $surname, $dni, $telephone, $email, $company_id, $user, $date_of_birth, $level_study_id, $disabled, $social_security_number, $c_quote, $quote_group_id, $professional_category_id, $annual_gross_salary, $annual_hours, $hourly_cost_worker_gross, $direction, $post_code, $population_id, $province_id, $population, $observation, $iban, $password, $inactive;
     public $updateMode = false;
     public $route;
-    public $companies, $level_studies, $professional_categories, $provinces;
+    public $companies, $level_studies, $professional_categories, $provinces, $quote_groups;
 
     public function render()
     {
@@ -29,6 +30,7 @@ class StudentsCreate extends Component
         $this->level_studies = LevelStudy::all();
         $this->professional_categories = ProfessionalCategory::all();
         $this->provinces = Province::all();
+        $this->quote_groups = QuoteGroup::all();
 
         $this->route = url()->previous();
     }
@@ -70,6 +72,7 @@ class StudentsCreate extends Component
         $this->observation = null;
         $this->iban = null;
         $this->password = null;
+        $this->quote_group_id = null;
     }
 
     public function store()
@@ -100,7 +103,7 @@ class StudentsCreate extends Component
             'disabled' => $this-> disabled == true ? 1 : 0,
             'social_security_number' => $this-> social_security_number,
             'c_quote' => $this-> c_quote,
-            'quote_group' => $this-> quote_group,
+            'quote_group_id' => $this-> quote_group_id,
             'professional_category_id' => $this-> professional_category_id,
             'annual_gross_salary' => $this-> annual_gross_salary,
             'annual_hours' => $this-> annual_hours,

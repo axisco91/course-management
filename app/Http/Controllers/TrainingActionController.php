@@ -19,4 +19,8 @@ class TrainingActionController extends Controller
     public function create(){
         return view('training-actions.create');
     }
+
+    public function view($id){
+        return view('training-actions.view', compact('id'));
+    }
 }

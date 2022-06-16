@@ -3,16 +3,15 @@
 namespace App\Http\Livewire;
 
 use App\Models\ActionType;
+use App\Models\Course;
 use App\Models\Modality;
 use App\Models\ProfessionalArea;
 use App\Models\ProfessionalFamily;
 use App\Models\Provider;
-use App\Models\Teacher;
 use App\Models\TrainingActionGroup;
 use App\Models\TrainingActionLevel;
 use App\Models\Tutoring;
 use App\Models\WebPlatform;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\TrainingAction;
@@ -28,65 +27,26 @@ class TrainingActions extends Component
         $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password, $formative_action;
     public $updateMode = false;
     public $action_types, $professional_families, $professional_areas, $modalities, $training_action_levels, $training_action_groups,
-    $tutorings, $web_platforms, $providers;
-    public $search_formative_actions, $search_name;
+    $tutorings, $web_platforms, $providers, $tab = 'info';
+    public $search_formative_actions, $search_name, $search_course_name, $search_course_group, $courses;
+    protected $listeners = [
+        'changeState' => 'changeState'
+    ];
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
         $search_formative_actions = '%'.$this->search_formative_actions.'%';
         $search_name = '%'.$this->search_name.'%';
-        $trainingActions = TrainingAction::
-            select('training_actions.*',
-            'action_types.name as action_type', 'professional_families.name as professional_family',
-            'professional_areas.name as professional_area', 'modalities.name as modality',
-            'training_action_levels.name as training_action_level', 'training_action_groups.name as training_action_group',
-            'tutorings.name as tutoring', 'web_platforms.name as web_platform', 'providers.name as provider')
-            ->leftjoin('action_types', 'action_types.id', '=', 'training_actions.action_type_id')
-            ->leftjoin('professional_families', 'professional_families.id', '=', 'training_actions.professional_family_id')
-            ->leftjoin('professional_areas', 'professional_areas.id', '=', 'training_actions.professional_area_id')
-            ->leftjoin('modalities', 'modalities.id', '=', 'training_actions.modality_id')
-            ->leftjoin('training_action_levels', 'training_action_levels.id', '=', 'training_actions.training_action_level_id')
-            ->leftjoin('training_action_groups', 'training_action_groups.id', '=', 'training_actions.training_action_group_id')
-            ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
-            ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
-            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
-        if ($this->inactiveFilter != 1) {
-            $trainingActions = $trainingActions->where('active', 1);
-        }
-        $trainingActions = $trainingActions->where(function ($query) use ($keyWord){
-            $query->orWhere('training_actions.name', 'LIKE', $keyWord)
-                ->orWhere('action_types.name', 'LIKE', $keyWord)
-                ->orWhere('professional_families.name', 'LIKE', $keyWord)
-                ->orWhere('professional_areas.name', 'LIKE', $keyWord)
-                ->orWhere('modalities.name', 'LIKE', $keyWord)
-                ->orWhere('training_action_levels.name', 'LIKE', $keyWord)
-                ->orWhere('training_action_groups.name', 'LIKE', $keyWord)
-                ->orWhere('tutorings.name', 'LIKE', $keyWord)
-                ->orWhere('course_z', 'LIKE', $keyWord)
-                ->orWhere('course_avz', 'LIKE', $keyWord)
-                ->orWhere('active', 'LIKE', $keyWord)
-                ->orWhere('in_catalog', 'LIKE', $keyWord)
-                ->orWhere('face_to_face_hours', 'LIKE', $keyWord)
-                ->orWhere('teletraining_hours', 'LIKE', $keyWord)
-                ->orWhere('total_hours', 'LIKE', $keyWord)
-                ->orWhere('price', 'LIKE', $keyWord)
-                ->orWhere('objectives', 'LIKE', $keyWord)
-                ->orWhere('content', 'LIKE', $keyWord)
-                ->orWhere('training_actions.user', 'LIKE', $keyWord)
-                ->orWhere('web_platforms.name', 'LIKE', $keyWord)
-                ->orWhere('training_actions.observations', 'LIKE', $keyWord)
-                ->orWhere('number_activities', 'LIKE', $keyWord)
-                ->orWhere('number_units', 'LIKE', $keyWord)
-                ->orWhere('providers.name', 'LIKE', $keyWord);
-        })->where(function ($query) use ($search_formative_actions){
-            $query->orWhere('formative_action', 'LIKE', $search_formative_actions);
-        })->where(function ($query) use ($search_name){
-            $query->orWhere('training_actions.name', 'LIKE', $search_name);
-        })->orderby('id', 'asc')
-            ->paginate(10);
+        $trainingActions = TrainingAction::getTrainingActions($keyWord,$this->inactiveFilter, $search_formative_actions, $search_name);
 
-        return view('livewire.training-actions.view', [
+        if ($this->selected_id){
+            $search_course_name = '%'.$this->search_course_name.'%';
+            $search_course_group = '%'.$this->search_course_group.'%';
+            $this->courses = Course::getTrainingActionCourse($this->selected_id, $search_course_name, $search_course_group);
+        }
+
+        return view('livewire.training-actions.list', [
             'trainingActions' => $trainingActions,
         ]);
     }
@@ -148,12 +108,15 @@ class TrainingActions extends Component
                 'active' => 1
             ]);
             session()->flash('message', 'Acción formativa activado con exito.');
+            $value = 'activated';
         } else {
             $trainingActions->update([
                 'active' => 0
             ]);
             session()->flash('message', 'Acción formativa desactivado con exito.');
+            $value = 'desactivated';
         }
+        $this->dispatchBrowserEvent('status-update', ['value' => $value]);
     }
     public function general($id)
     {

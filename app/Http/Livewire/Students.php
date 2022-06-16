@@ -6,6 +6,8 @@ use App\Models\Company;
 use App\Models\LevelStudy;
 use App\Models\ProfessionalCategory;
 use App\Models\Province;
+use App\Models\QuoteGroup;
+use App\Models\Registration;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Student;
@@ -15,9 +17,12 @@ class Students extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $inactiveFilter, $name, $surname, $dni, $telephone, $email, $company_id, $user, $date_of_birth, $level_study_id, $disabled, $social_security_number, $c_quote, $quote_group, $professional_category_id, $annual_gross_salary, $annual_hours, $hourly_cost_worker_gross, $direction, $post_code, $population_id, $province_id, $population, $observation, $iban, $password, $active;
-    public $companies, $level_studies, $professional_categories, $provinces;
-    public $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $search_company;
+    public $selected_id, $keyWord, $inactiveFilter, $name, $surname, $dni, $telephone, $email, $company_id, $user, $date_of_birth,
+        $level_study_id, $disabled, $social_security_number, $c_quote, $quote_group_id, $professional_category_id, $annual_gross_salary,
+        $annual_hours, $hourly_cost_worker_gross, $direction, $post_code, $population_id, $province_id, $population, $observation, $iban,
+        $password, $active, $courses, $course, $tab = 'info';
+    public $companies, $level_studies, $professional_categories, $provinces, $quote_groups;
+    public $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $search_company, $search_course_name, $search_group;
 
     protected $listeners = [
         'changeState' => 'changeState'
@@ -33,9 +38,15 @@ class Students extends Component
         $search_telephone = '%'.$this->search_telephone.'%';
         $search_company = '%'.$this->search_company.'%';
 
+        if ($this->selected_id){
+            $search_course_name = '%'.$this->search_course_name.'%';
+            $search_group = '%'.$this->search_group.'%';
+            $this->courses = Registration::getStudentCourses($this->selected_id, $search_course_name, $search_group);
+        }
+
        $records = Student::getStudents($keyWord, $this->inactiveFilter, $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $search_company);
 
-        return view('livewire.students.view', [
+        return view('livewire.students.list', [
             'students' => $records,
         ]);
     }
@@ -73,10 +84,7 @@ class Students extends Component
         $this->observation = null;
         $this->iban = null;
         $this->password = null;
-        $this->create_company_id = null;
-        $this->create_level_study_id = null;
-        $this->create_profesional_category_id = null;
-        $this->create_province_id = null;
+        $this->quote_group_id = null;
     }
 
     public function mount(){
@@ -84,6 +92,7 @@ class Students extends Component
         $this->level_studies = LevelStudy::all();
         $this->professional_categories = ProfessionalCategory::all();
         $this->provinces = Province::all();
+        $this->quote_groups = QuoteGroup::all();
     }
 
     public function hydrate(){
@@ -96,19 +105,19 @@ class Students extends Component
         if ($record->active == 1){
             $student->activeInactive($id, 0);
             session()->flash('message', 'Alumno desactivado con exito.');
-            $value = 'success';
+            $value = 'state-update';
         } else {
             $student->activeInactive($id, 1);
             session()->flash('message', 'Alumno activado con exito.');
-            $value = 'error';
+            $value = 'activated';
         }
-        $this->dispatchBrowserEvent('name-updated', ['value' => $value]);
+        $this->dispatchBrowserEvent('status-update', ['value' => $value]);
     }
 
     public function general($id){
         if ($id){
             $record = Student::getStudent($id);
-
+            $this->selected_id = $id;
             $this->name = $record-> name;
             $this->surname = $record-> surname;
             $this->dni = $record-> dni;
@@ -121,7 +130,7 @@ class Students extends Component
             $this->disabled = $record-> disabled;
             $this->social_security_number = $record-> social_security_number;
             $this->c_quote = $record-> c_quote;
-            $this->quote_group = $record-> quote_group;
+            $this->quote_group_id = $record-> quote_group_id;
             $this->professional_category_id = $record-> professional_category_id;
             $this->annual_gross_salary = $record-> annual_gross_salary;
             $this->annual_hours = $record-> annual_hours;

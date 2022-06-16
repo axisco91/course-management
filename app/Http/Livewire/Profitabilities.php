@@ -16,14 +16,15 @@ class Profitabilities extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $course_id, $company_id, $student_id, $price, $license, $teacher, $management, $nebrija_title, $discount, $collaborator_commission, $advisor_commission, $total, $benefits, $observations;
     public $updateMode = false;
-    public $courses, $companies, $students;
+    public $courses, $companies, $students, $tab = 'info';
+    public $course_search = -1, $company_search = -1, $student_search = -1, $student_name, $course_name;
 
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
 
-       $profitabilities = Profitability::getProfitabilities($keyWord);
-        return view('livewire.profitabilities.view', [
+       $profitabilities = Profitability::getProfitabilities($keyWord, $this->course_search, $this->company_search, $this->student_search);
+        return view('livewire.profitabilities.list', [
             'profitabilities' => $profitabilities,
         ]);
     }
@@ -56,5 +57,27 @@ class Profitabilities extends Component
 		$this->total = null;
 		$this->benefits = null;
 		$this->observations = null;
+    }
+
+    public function general($id){
+       if ($id){
+           $record = Profitability::find($id);
+
+           $this->selected_id = $id;
+           $this->course_id = $record-> course_id;
+           $this->company_id = $record-> company_id;
+           $this->student_id = $record-> student_id;
+           $this->price = $record-> price;
+           $this->license = $record-> license;
+           $this->teacher = $record-> teacher;
+           $this->management = $record-> management;
+           $this->nebrija_title = $record-> nebrija_title;
+           $this->discount = $record-> discount;
+           $this->collaborator_commission = $record-> collaborator_commission;
+           $this->advisor_commission = $record-> advisor_commission;
+           $this->total = $record-> total;
+           $this->benefits = $record-> benefits;
+           $this->observations = $record-> observations;
+       }
     }
 }

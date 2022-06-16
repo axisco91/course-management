@@ -14,6 +14,9 @@ class TrainingActionLevels extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -81,7 +84,8 @@ class TrainingActionLevels extends Component
     public function destroy($id)
     {
         if ($id) {
-            TrainingActionLevel::destroy($id);
+            $value = TrainingActionLevel::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

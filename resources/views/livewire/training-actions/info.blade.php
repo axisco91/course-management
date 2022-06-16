@@ -1,5 +1,7 @@
  <div class="row">
-     @if(isset($this->selected_id))
+     <div class="col-12 mb-1">
+         <a class="btn btn-success right" href="{{url('/training-actions/edit/'.$this->selected_id)}}" target="_blank"><i class="fa-solid fa-pencil"></i></a>
+     </div>
         <div class="col-12 col-md-3">
             <div class="mb-1">
                 <label class="form-label" for="formative_action">Acción Formativa</label>
@@ -15,7 +17,7 @@
         <div class="col-12 col-md-3 mb-1">
             <div wire:ignore>
                 <label class="form-label" for="action_type_id">Tipo Acción</label>
-                <select wire:model.lazy="action_type_id" class="form-select select2 @error('action_type_id') is-invalid @enderror" id="action_type_id" disabled>
+                <select wire:model.lazy="action_type_id" class="form-select @error('action_type_id') is-invalid @enderror" id="action_type_id" disabled>
                     <option value="-1">Seleccione un tipo de acción</option>
                     @foreach($action_types as $type)
                         <option value="{{$type['id']}}">{{$type['name']}}</option>
@@ -27,7 +29,7 @@
         <div class="col-12 col-md-3 mb-1">
             <div wire:ignore>
                 <label class="form-label" for="professional_family_id">Familia profesional</label>
-                <select wire:model.lazy="professional_family_id" class="form-select select2 @error('professional_family_id') is-invalid @enderror" id="professional_family_id" disabled>
+                <select wire:model.lazy="professional_family_id" class="form-select @error('professional_family_id') is-invalid @enderror" id="professional_family_id" disabled>
                     <option value="-1">Seleccione una familia profesional</option>
                     @foreach($professional_families as $family)
                         <option value="{{$family['id']}}">{{$family['name']}}</option>
@@ -39,7 +41,7 @@
         <div class="col-md-3 col-12 mb-1">
             <div wire:ignore>
                 <label class="form-label" for="professional_area_id">Área profesional</label>
-                <select wire:model.lazy="professional_area_id" class="form-select select2 @error('professional_area_id') is-invalid @enderror" id="professional_area_id" disabled>
+                <select wire:model.lazy="professional_area_id" class="form-select @error('professional_area_id') is-invalid @enderror" id="professional_area_id" disabled>
                     <option value="-1">Seleccione una area profesional</option>
                     @foreach($professional_areas as $area)
                         <option value="{{$area['id']}}">{{$area['name']}}</option>
@@ -51,7 +53,7 @@
         <div class="col-md-3 col-12 mb-1">
             <div wire:ignore>
                 <label class="form-label" for="modality_id">Modalidad</label>
-                <select wire:model.lazy="modality_id" class="form-select select2 @error('modality_id') is-invalid @enderror" id="modality_id" disabled>
+                <select wire:model.lazy="modality_id" class="form-select @error('modality_id') is-invalid @enderror" id="modality_id" disabled>
                     <option value="-1">Seleccione una modalidad</option>
                     @foreach($modalities as $modalidad)
                         <option value="{{$modalidad['id']}}">{{$modalidad['name']}}</option>
@@ -63,7 +65,7 @@
         <div class="col-md-3 col-12 mb-1">
             <div wire:ignore>
                 <label class="form-label" for="training_action_level_id">Nivel</label>
-                <select wire:model.lazy="training_action_level_id" class="form-select select2 @error('training_action_level_id') is-invalid @enderror" id="training_action_level_id" disabled>
+                <select wire:model.lazy="training_action_level_id" class="form-select @error('training_action_level_id') is-invalid @enderror" id="training_action_level_id" disabled>
                     <option value="-1">Seleccione un nivel</option>
                     @foreach($training_action_levels as $level)
                         <option value="{{$level['id']}}">{{$level['name']}}</option>
@@ -75,7 +77,7 @@
         <div class="col-md-3 col-12 mb-1">
             <div wire:ignore>
                 <label class="form-label" for="training_action_group_id">Grupos</label>
-                <select wire:model.lazy="training_action_group_id" class="form-select select2 @error('training_action_group_id') is-invalid @enderror" id="training_action_group_id" disabled>
+                <select wire:model.lazy="training_action_group_id" class="form-select @error('training_action_group_id') is-invalid @enderror" id="training_action_group_id" disabled>
                     <option value="-1">Seleccione un grupo</option>
                     @foreach($training_action_groups as $group)
                         <option value="{{$group['id']}}">{{$group['name']}}</option>
@@ -87,7 +89,7 @@
         <div class="col-md-3 col-12 mb-1">
             <div wire:ignore>
                 <label class="form-label" for="tutoring_id">Tutorización</label>
-                <select wire:model.lazy="tutoring_id" class="form-select select2 @error('tutoring_id') is-invalid @enderror" id="tutoring_id" disabled>
+                <select wire:model.lazy="tutoring_id" class="form-select @error('tutoring_id') is-invalid @enderror" id="tutoring_id" disabled>
                     <option value="-1">Seleccione una tutorización</option>
                     @foreach($tutorings as $tutoring)
                         <option value="{{$tutoring['id']}}">{{$tutoring['name']}}</option>
@@ -178,7 +180,7 @@
         <div class="col-md-4 col-12 mb-1">
             <div wire:ignore>
                 <label class="form-label" for="web_platform_id">Plataforma</label>
-                <select wire:model.lazy="web_platform_id" class="form-select select2 @error('web_platform_id') is-invalid @enderror" id="web_platform_id" disabled>
+                <select wire:model.lazy="web_platform_id" class="form-select @error('web_platform_id') is-invalid @enderror" id="web_platform_id" disabled>
                     <option value="-1">Seleccione una plataforma</option>
                     @foreach($web_platforms as $platform)
                         <option value="{{$platform['id']}}">{{$platform['name']}}</option>
@@ -206,9 +208,9 @@
             </div>
         </div>
         <div class="col-md-4 col-12 mb-1">
+            <label class="form-label" for="provider_id">Proveedor</label> <a href="{{url('/providers/view/'.$this->provider_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
             <div wire:ignore>
-                <label class="form-label" for="provider_id">Proveedor</label>
-                <select wire:model.lazy="provider_id" class="form-select select2 @error('provider_id') is-invalid @enderror" id="provider_id" disabled>
+                <select wire:model.lazy="provider_id" class="form-select @error('provider_id') is-invalid @enderror" id="provider_id" disabled>
                     <option value="-1">Seleecione un proveedor</option>
                     @foreach($providers as $provider)
                         <option value="{{$provider['id']}}">{{$provider['name']}}</option>
@@ -217,5 +219,4 @@
             </div>
             @error('provider_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
-     @endif
 </div>

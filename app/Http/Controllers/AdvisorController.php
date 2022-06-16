@@ -19,4 +19,8 @@ class AdvisorController extends Controller
     public function create(){
         return view('advisors.create');
     }
+
+    public function view($id){
+        return view('advisors.view', compact('id'));
+    }
 }

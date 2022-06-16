@@ -12,7 +12,7 @@ class Roles extends Component
 {
     use WithPagination;
 
-    protected $paginationTheme = 'bootstrap', $listeners = ['updateRolesList' => 'updateRolesList'];
+    protected $paginationTheme = 'bootstrap', $listeners = ['updateRolesList' => 'updateRolesList', 'destroy' => 'destroy'];
     public $selected_id, $keyWord, $permission, $name;
     public $updateMode = false;
 
@@ -74,7 +74,8 @@ class Roles extends Component
     public function destroy($id)
     {
         if ($id) {
-            Role::destroy($id);
+            $value = Role::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 

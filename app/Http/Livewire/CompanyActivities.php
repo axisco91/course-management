@@ -14,6 +14,9 @@ class CompanyActivities extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -85,7 +88,8 @@ class CompanyActivities extends Component
     public function destroy($id)
     {
         if ($id) {
-            CompanyActivity::destroy($id);
+            $value = CompanyActivity::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }

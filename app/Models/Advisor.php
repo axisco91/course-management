@@ -11,7 +11,7 @@ class Advisor extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3'];
+    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3', 'nif', 'company_type_id', 'company_activity_id', 'email', 'telephone', 'legal_representative', 'dni_legal_representative', 'cnae_id', 'iban', 'iban', 'sepa', 'b2b', 'address', 'post_code', 'population_id', 'province_id', 'prpulation', 'active'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -30,21 +30,16 @@ class Advisor extends Model
     }
 
     public function getAdvisors($keyWord, $inactiveFilter){
-        $advisors = Company::select('advisors.id as advisor_id','advisors.irpf', 'advisors.commission',
-            'advisors.contact_1', 'advisors.contact_2', 'advisors.contact_3', 'companies.*',
-            'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province',
-            'advisors.name as advisor')
-            ->join('advisors', 'advisors.company_id', '=', 'companies.id')
-            ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
-            ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
-            ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
-            ->leftjoin('advisors as a', 'advisors.id', '=', 'companies.advisor_id');
+        $advisors = Advisor::select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
+            'provinces.name as province')
+            ->leftjoin('company_types', 'company_types.id', '=', 'advisors.company_type_id')
+            ->leftjoin('company_activities', 'company_activities.id', '=', 'advisors.company_activity_id')
+            ->leftjoin('cnaes', 'cnaes.id', '=', 'advisors.cnae_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id');
 
 
         if ($inactiveFilter != 1) {
-            $advisors = $advisors->where('inactive', 0);
+            $advisors = $advisors->where('active', 1);
         }
 
         $advisors = $advisors->where(function ($query) use ($keyWord){
@@ -54,26 +49,20 @@ class Advisor extends Model
                 ->orWhere('advisors.contact_1', 'LIKE', $keyWord)
                 ->orWhere('advisors.contact_2', 'LIKE', $keyWord)
                 ->orWhere('advisors.contact_3', 'LIKE', $keyWord)
-                ->orWhere('nif', 'LIKE', $keyWord)
+                ->orWhere('advisors.nif', 'LIKE', $keyWord)
                 ->orWhere('company_types.name', 'LIKE', $keyWord)
                 ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                ->orWhere('email', 'LIKE', $keyWord)
-                ->orWhere('telephone', 'LIKE', $keyWord)
-                ->orWhere('legal_representative', 'LIKE', $keyWord)
-                ->orWhere('dni_legal_representative', 'LIKE', $keyWord)
-                ->orWhere('quote', 'LIKE', $keyWord)
+                ->orWhere('advisors.email', 'LIKE', $keyWord)
+                ->orWhere('advisors.telephone', 'LIKE', $keyWord)
+                ->orWhere('advisors.legal_representative', 'LIKE', $keyWord)
+                ->orWhere('advisors.dni_legal_representative', 'LIKE', $keyWord)
                 ->orWhere('cnaes.name', 'LIKE', $keyWord)
-                ->orWhere('average_template', 'LIKE', $keyWord)
-                ->orWhere('iban', 'LIKE', $keyWord)
-                ->orWhere('sepa', 'LIKE', $keyWord)
-                ->orWhere('b2b', 'LIKE', $keyWord)
-                ->orWhere('address', 'LIKE', $keyWord)
-                ->orWhere('post_code', 'LIKE', $keyWord)
+                ->orWhere('advisors.address', 'LIKE', $keyWord)
+                ->orWhere('advisors.post_code', 'LIKE', $keyWord)
                 ->orWhere('provinces.name', 'LIKE', $keyWord)
-                ->orWhere('population', 'LIKE', $keyWord)
-                ->orWhere('active', 'LIKE', $keyWord)
-                ->orWhere('advisors.name', 'LIKE', $keyWord);
-        })->orderBy('name', 'desc')
+                ->orWhere('advisors.population', 'LIKE', $keyWord)
+                ->orWhere('advisors.active', 'LIKE', $keyWord);
+        })->orderBy('advisors.name', 'desc')
             ->paginate(10);
 
         return $advisors;
@@ -87,7 +76,23 @@ class Advisor extends Model
             'commission' => $data['commission'],
             'contact_1' => $data['contact_1'],
             'contact_2' => $data['contact_2'],
-            'contact_3' => $data['contact_3']
+            'contact_3' => $data['contact_3'],
+            'nif' => $data['nif'],
+            'company_type_id' => $data['company_type_id'],
+            'company_activity_id' => $data['company_activity_id'],
+            'email' => $data['email'],
+            'telephone' => $data['telephone'],
+            'legal_representative' => $data['legal_representative'],
+            'dni_legal_representative' => $data['dni_legal_representative'],
+            'cnae_id' => $data['cnae_id'],
+            'iban' => $data['iban'],
+            'sepa' => $data['sepa'],
+            'b2b' => $data['b2b'],
+            'address' => $data['address'],
+            'post_code' => $data['post_code'],
+            'province_id' => $data['province_id'],
+            'population' => $data['population'],
+            'active' => $data['active'],
         ]);
 
         return $advisor;
@@ -102,7 +107,23 @@ class Advisor extends Model
             'commission' => $data['commission'],
             'contact_1' => $data['contact_1'],
             'contact_2' => $data['contact_2'],
-            'contact_3' => $data['contact_3']
+            'contact_3' => $data['contact_3'],
+            'nif' => $data['nif'],
+            'company_type_id' => $data['company_type_id'],
+            'company_activity_id' => $data['company_activity_id'],
+            'email' => $data['email'],
+            'telephone' => $data['telephone'],
+            'legal_representative' => $data['legal_representative'],
+            'dni_legal_representative' => $data['dni_legal_representative'],
+            'cnae_id' => $data['cnae_id'],
+            'iban' => $data['iban'],
+            'sepa' => $data['sepa'],
+            'b2b' => $data['b2b'],
+            'address' => $data['address'],
+            'post_code' => $data['post_code'],
+            'province_id' => $data['province_id'],
+            'population' => $data['population'],
+            'active' => $data['active'],
         ]);
 
         return $advisor;

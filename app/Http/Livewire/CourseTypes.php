@@ -15,6 +15,9 @@ class CourseTypes extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name;
     public $updateMode = false;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {
@@ -85,7 +88,8 @@ class CourseTypes extends Component
     public function destroy($id)
     {
         if ($id) {
-            CourseType::destroy($id);
+            $value = CourseType::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
         }
     }
 }
