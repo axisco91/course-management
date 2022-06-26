@@ -20,7 +20,7 @@
             </div>
               <div class="col-12 text-center mt-2 pt-50">
                 <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" wire:click.prevent="updateObservation()" class="btn btn-primary" data-bs-dismiss="modal">Guardar</button>
+                <button type="button" wire:click.prevent="updateObservation()" class="btn btn-primary close-model">Guardar</button>
             </div>
        </div>
     </div>

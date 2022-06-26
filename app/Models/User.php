@@ -92,4 +92,24 @@ class User extends Authenticatable
         $user->syncRoles($data['role_id']);
         return $user;
     }
+
+    public function findDni($dni, $id = null){
+        $user = User::where('dni', $dni);
+        if ($id){
+            $user = $user->where('id', '!=', $id);
+        }
+        $user = $user->first();
+
+        return $user;
+    }
+
+    public function findUser($user, $id = null){
+        $user = User::where('username', $user);
+        if ($id){
+            $user = $user->where('id', '!=', $id);
+        }
+        $user = $user->first();
+
+        return $user;
+    }
 }

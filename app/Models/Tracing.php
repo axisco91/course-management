@@ -109,7 +109,7 @@ class Tracing extends Model
             'welcome_date_sent' => $data['welcome_date_sent'],
             'quarter_date_sent' => $data['quarter_date_sent'],
             'half_date_sent' => $data['half_date_sent'],
-            'three_quarter_date_sent' => $data['three_quarters_date_sent'],
+            'three_quarters_date_sent' => $data['three_quarters_date_sent'],
             'final_date_sent' => $data['final_date_sent']
         ]);
         return $tracing;

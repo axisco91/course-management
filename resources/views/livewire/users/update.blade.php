@@ -42,12 +42,26 @@
                     </div>
                     <div class="col-12 text-center mt-2 pt-50">
                         <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="button" wire:click.prevent="update()" class="btn btn-primary" data-bs-dismiss="modal">Guardar</button>
+                        <button type="button" wire:click.prevent="update()" class="btn btn-primary close-model">Guardar</button>
                     </div>
                 </form>
             </div>
         </div>
+        @section('scripts')
         <script>
+            Livewire.on('alreadyExists', type => {
+                text = '';
+                if (type == 'dni'){
+                    text = 'DNI';
+                } else if (type == 'user'){
+                    text = 'usuario'
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ya Existe',
+                    text: '¡Ya existe un usuario con ese '+text+'!',
+                })
+            })
             document.addEventListener('livewire:load', function() {
                 $('body').on('show.bs.modal', '#updateModal', function (e) {
                     setTimeout(function (){
@@ -59,5 +73,6 @@
                 })
             })
         </script>
+        @endsection
     </div>
 </div>

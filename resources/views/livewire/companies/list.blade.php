@@ -11,6 +11,9 @@
         @include('livewire.companies.createObservation')
         @include('livewire.companies.observations')
         @include('livewire.companies.updateObservation')
+        @include('livewire.companies.createCredit')
+        @include('livewire.companies.credits')
+        @include('livewire.companies.updateCredit')
     </div>
     <!--Search Form -->
     <div class="card-body mt-2">
@@ -31,10 +34,10 @@
                 <input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
             </div>
             <div class="col-md-4">
-
+                <label class="form-label" for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
             </div>
             <div class="col-md-4">
-                <a class="btn btn-sm btn-info" href="{{url('/companies/create')}}">
+                <a wire:ignore class="btn btn-sm btn-info" href="{{url('/companies/create')}}">
                     <i data-feather="plus-circle" class="me-50"></i>  Añadir Empresa
                 </a>
             </div>
@@ -79,7 +82,6 @@
                             <div class="dropdown-menu dropdown-menu-end">
                             <!--    <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>-->
                                 <a href="{{url('/companies/edit/'.$row->id)}}" class="dropdown-item edit"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
-                                <a data-bs-toggle="modal" data-bs-target="#companiesTabModal" class="dropdown-item" wire:click="general({{$row->id}})"><i class="fa fa-watch"></i> Ver </a>
                                 @if ($row->is_advisor)
                                     <a class="dropdown-item" onclick="confirm('Confirmar convertir a asesoria: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertAdvisor({{$row->id}})">Convertir Asesoria</a>
                                 @endif
@@ -93,6 +95,8 @@
                                 @endif
                                 <a data-bs-toggle="modal" data-bs-target="#createObservationModal" class="dropdown-item" wire:click="newObservation({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Crear Observación </a>
                                 <a data-bs-toggle="modal" data-bs-target="#observationsModal" class="dropdown-item" wire:click="observations({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Ver Observaciones </a></a>
+                                <a data-bs-toggle="modal" data-bs-target="#createCreditModal" class="dropdown-item" wire:click="newCredit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Crear Credito </a></a>
+                                <a data-bs-toggle="modal" data-bs-target="#creditsModal" class="dropdown-item" wire:click="credits({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Ver Creditos </a></a>
                             </div>
                         </div>
                     </td>

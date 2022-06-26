@@ -52,7 +52,8 @@ class LevelStudies extends Component
 
         $this->resetInput();
 		$this->emit('closeModal');
-		session()->flash('message', 'LevelStudy Successfully created.');
+		session()->flash('message', 'Nivel de estudio creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -79,8 +80,10 @@ class LevelStudies extends Component
             LevelStudy::updateLevelStudy($this->selected_id, $data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
-			session()->flash('message', 'LevelStudy Successfully updated.');
+			session()->flash('message', 'Nivel de estudio editado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

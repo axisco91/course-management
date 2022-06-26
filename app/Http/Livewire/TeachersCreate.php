@@ -64,6 +64,21 @@ class TeachersCreate extends Component
             'password' => 'required'
         ]);
 
+        if ($this->dni){
+            $dni = Teacher::findDni($this->dni);
+            if ($dni){
+                $this->emit('alreadyExists', 'dni');
+                return;
+            }
+        }
+        if ($this->user){
+            $user = Teacher::findUser($this->user);
+            if ($user){
+                $this->emit('alreadyExists', 'user');
+                return;
+            }
+        }
+
         $teacher = Teacher::create([
             'name' => $this-> name,
             'surname' => $this-> surname,

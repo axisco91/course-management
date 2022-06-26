@@ -123,6 +123,7 @@ class Chores extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Chore Successfully created.');
+        $this->emit('toastr', 'success');
     }
 
     public function destroy($id)

@@ -8,6 +8,7 @@ use App\Models\CompanyActivity;
 use App\Models\CompanyObservation;
 use App\Models\CompanyType;
 use App\Models\Course;
+use App\Models\Credit;
 use App\Models\Provider;
 use App\Models\Province;
 use App\Models\Student;
@@ -21,8 +22,11 @@ class Companies extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $inactiveFilter, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $observation;
-    public $updateMode = false, $createObservationModal = false, $updateObservationModal = false;
+    public $selected_id, $keyWord, $inactiveFilter, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative,
+        $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id,
+        $province_id, $population, $active, $advisor_id, $observation, $available_credit, $consumed_credit, $year, $credits, $credit_id,
+        $years;
+    public $updateMode = false, $createObservationModal = false, $updateObservationModal = false, $createCreditModal = false;
     public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null, $students, $courses, $tab = 'info';
     public $search_name, $search_nif, $search_student_name, $search_student_surname, $search_course_name, $search_group;
     protected $listeners = [
@@ -35,7 +39,6 @@ class Companies extends Component
         $search_name = '%'.$this->search_name.'%';
         $search_nif = '%'.$this->search_nif.'%';
         $companies = Company::getCompanies($keyWord, $this->inactiveFilter, $search_name, $search_nif);
-        $companies = Company::getCompanies($keyWord, $this->inactiveFilter, $search_name, $search_nif);
         if ($this->selected_id){
             $search_student_name = '%'.$this->search_student_name.'%';
             $search_student_surname = '%'.$this->search_student_surname.'%';
@@ -44,6 +47,8 @@ class Companies extends Component
             $search_course_name = '%'.$this->search_course_name.'%';
             $search_group = '%'.$this->search_group.'%';
             $this->courses = Course::getCompanyCourses($this->selected_id, $search_course_name, $search_group);
+
+            $this->credits = Credit::getCredits($this->selected_id);
         }
 
         if ($this->observations) {
@@ -58,6 +63,15 @@ class Companies extends Component
     }
 
     public function mount(){
+        $actual_year = Carbon::now();
+        $actual_year = $actual_year;
+        $i = 0;
+        while ($i < 5){
+            $this->years[] = $actual_year->year;
+            $actual_year = $actual_year->subYear();
+            $i++;
+        }
+
         $this->company_types = CompanyType::all();
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
@@ -148,6 +162,7 @@ class Companies extends Component
             Advisor::convertAdvisor($id);
 
             session()->flash('message', 'Empresa convertido a asesoria con exito');
+            $this->emit('toastr', 'success');
         }
     }
 
@@ -155,12 +170,13 @@ class Companies extends Component
         if ($id) {
             Provider::convertProvider($id);
             session()->flash('message', 'Empresa convertido a proveedor con exito');
+            $this->emit('toastr', 'success');
         }
     }
     public function newObservation($id) {
         if ($id) {
             $this-> company_id = $id;
-
+            $this->getYears();
             $this->createObservationModal = true;
         }
     }
@@ -180,6 +196,7 @@ class Companies extends Component
         $this->resetInput();
         $this->createObservationModal = false;
         session()->flash('message', 'Obseervación creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function observations($id){
@@ -212,6 +229,7 @@ class Companies extends Component
             $this->resetObservation();
             $this->updateObservationModal = false;
             session()->flash('message', 'Obseervación actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
     public function destroyObservation($id) {
@@ -229,6 +247,97 @@ class Companies extends Component
             session()->flash('message', 'Empresa desactivado con exito.');
             $value = 'desactivado';
         }
+        $this->emit('toastr', 'success');
         $this->dispatchBrowserEvent('status-update', ['value' => $value]);
+    }
+
+    public function newCredit($id) {
+        if ($id) {
+            $this-> company_id = $id;
+            $this->year = Carbon::now()->year;
+            $this->createCreditModal = true;
+        }
+    }
+
+    public function createCredit() {
+        $this->validate([
+            'company_id' => 'required',
+            'available_credit' => 'required',
+            'year' => 'required'
+        ]);
+
+
+        $data = [
+            'company_id' => $this->company_id,
+            'available_credit' => $this->available_credit,
+            'consumed_credit' => $this-> consumed_credit,
+            'year' => $this-> year,
+        ];
+
+        Credit::createCredit($data);
+
+        $this->resetInput();
+        $this->emit('closeModal');
+        session()->flash('message', 'Credito creado con exito.');
+        $this->emit('toastr', 'success');
+    }
+
+    public function credits($id){
+        if ($id){
+            $this-> credits = Credit::getCredits($id);
+        }
+    }
+
+    public function editCredit($id) {
+        if ($id) {
+            $record = Credit::find($id);
+            $this->credit_id = $record-> id;
+            $this->available_credit = $record-> available_credit;
+            $this->consumed_credit = $record->consumed_credit;
+
+            $this->updateCreditModal = true;
+        }
+    }
+    public function updateCredit() {
+        $this->validate([
+            'company_id' => 'required',
+            'available_credit' => 'required',
+            'year' => 'required'
+        ]);
+        if ($this->credit_id) {
+            $data = [
+                'company_id' => $this->company_id,
+                'available_credit' => $this->available_credit,
+                'consumed_credit' => $this-> consumed_credit,
+                'year' => $this-> year,
+            ];
+
+            Credit::updateCredit($this->credit_id, $data);
+
+            $this->resetCredit();
+            $this->updateCreditModal = false;
+            session()->flash('message', 'Credito actualizado con exito.');
+            $this->emit('toastr', 'success');
+        }
+    }
+    public function destroyCredit($id) {
+        if ($id) {
+            Credit::destroy($id);
+        }
+    }
+
+    public function getYears(){
+        $actual_year = Carbon::now();
+        $actual_year = $actual_year->subYear(5);
+        $this->actual_year = $actual_year->year;
+        $years[] = $actual_year->year;
+        $i = 0;
+        $years = [];
+      /*  while ($i < 5){
+            $actual_year = array_push($years, $actual_year->year);
+           // $actual_year = $actual_year->addYear();
+            $i++;
+        }*/
+        return $years = [];
     }
 }

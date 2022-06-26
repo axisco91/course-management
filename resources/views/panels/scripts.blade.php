@@ -28,6 +28,9 @@
     window.livewire.on('closeModal', () => {
         $('#createDataModal').modal('hide');
     });
+    window.livewire.on('closeUpdateModal', () => {
+        $('#updateModal').modal('hide');
+    });
 </script>
 <!-- END: Theme JS-->
 <!-- BEGIN: Page JS-->

@@ -135,4 +135,14 @@ class Provider extends Model
         }
     }
 
+    public function findNif($nif, $id = null){
+        $provider = Provider::where('nif', $nif);
+        if ($id){
+            $provider = $provider->where('id', '!=', $id);
+        }
+        $provider = $provider->first();
+
+        return $provider;
+    }
+
 }

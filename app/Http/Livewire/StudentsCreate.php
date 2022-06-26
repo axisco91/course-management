@@ -89,6 +89,21 @@ class StudentsCreate extends Component
             'company_id' => 'required',
         ]);
 
+        if ($this->dni){
+            $dni = Student::findDni($this->dni);
+            if ($dni){
+                $this->emit('alreadyExists', 'dni');
+                return;
+            }
+        }
+        if ($this->user){
+            $user = Student::findUser($this->user);
+            if ($user){
+                $this->emit('alreadyExists', 'user');
+                return;
+            }
+        }
+
         $data = [
             'name' => $this-> name,
             'surname' => $this-> surname,

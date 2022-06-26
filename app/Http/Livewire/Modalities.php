@@ -51,6 +51,7 @@ class Modalities extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Modalidad creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -75,8 +76,10 @@ class Modalities extends Component
             ];
             Modality::updateModality($this->selected_id, $data);
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'Modalidad actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

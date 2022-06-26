@@ -55,4 +55,24 @@ class Teacher extends Model
 
         return $teachers;
     }
+
+    public function findDni($dni, $id = null){
+        $teacher = Teacher::where('dni', $dni);
+        if ($id){
+            $teacher = $teacher->where('id', '!=', $id);
+        }
+        $teacher = $teacher->first();
+
+        return $teacher;
+    }
+
+    public function findUser($user, $id = null){
+        $teacher = Teacher::where('user', $user);
+        if ($id){
+            $teacher = $teacher->where('id', '!=', $id);
+        }
+        $teacher = $teacher->first();
+
+        return $teacher;
+    }
 }

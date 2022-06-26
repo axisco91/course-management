@@ -51,6 +51,7 @@ class TrainingActionGroups extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Grupo creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -75,8 +76,10 @@ class TrainingActionGroups extends Component
             ];
             TrainingActionGroup::updateTrainingActionGroup($this->selected_id, $data);
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'Grupo actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

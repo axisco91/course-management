@@ -47,6 +47,7 @@ class Provinces extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Provincia creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -72,8 +73,10 @@ class Provinces extends Component
             Province::updateProvince($this->selected_id, $data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'Provincia actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 }

@@ -66,6 +66,21 @@ class TeachersView extends Component
         ]);
 
         if ($this->selected_id) {
+            if ($this->dni){
+                $dni = Teacher::findDni($this->dni);
+                if ($dni){
+                    $this->emit('alreadyExists', 'dni');
+                    return;
+                }
+            }
+            if ($this->user){
+                $user = Teacher::findUser($this->user);
+                if ($user){
+                    $this->emit('alreadyExists', 'user');
+                    return;
+                }
+            }
+
             $record = Teacher::find($this->selected_id);
             $record->update([
                 'name' => $this-> name,

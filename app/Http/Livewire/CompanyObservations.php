@@ -55,6 +55,7 @@ class CompanyObservations extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'CompanyObservation Successfully created.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -83,8 +84,10 @@ class CompanyObservations extends Component
             ]);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'CompanyObservation Successfully updated.');
+            $this->emit('toastr', 'success');
         }
     }
 

@@ -19,7 +19,7 @@
 							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Search Company Observations">
 						</div>
 						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
-						<i class="fa fa-plus"></i>  Add Company Observations
+                            <i data-feather="plus-circle" class="me-50"></i> Add Company Observations
 						</div>
 					</div>
 				</div>
@@ -65,6 +65,21 @@
 	</div>
     @section('scripts')
         <script>
+            Livewire.on('toastr', type => {
+                if (type == 'success'){
+                    toastr['success']($('#success-toast').val(), {
+                        showMethod: 'slideDown',
+                        hideMethod: 'slideUp',
+                        timeOut: 2000,
+                    });
+                } else{
+                    toastr['warning']($('#success-toast').val(), {
+                        showMethod: 'slideDown',
+                        hideMethod: 'slideUp',
+                        timeOut: 2000,
+                    });
+                }
+            })
             document.addEventListener('livewire:load', function () {
                 $('body').on('click', '.eliminar', function () {
                     button = $(this)

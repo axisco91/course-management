@@ -52,7 +52,21 @@
             </div>
         </div>
     </div>
+    @section('scripts')
     <script>
+        Livewire.on('alreadyExists', type => {
+            text = '';
+            if (type == 'dni'){
+                text = 'DNI';
+            } else if (type == 'user'){
+                text = 'usuario'
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Ya Existe',
+                text: '¡Ya existe un usuario con ese '+text+'!',
+            })
+        })
         document.addEventListener('livewire:load', function(){
             $('.select2').select2()
             $('.select2').on('change', function(){
@@ -60,4 +74,5 @@
             })
         })
     </script>
+    @endsection
 </div>

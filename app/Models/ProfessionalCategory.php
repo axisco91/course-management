@@ -36,14 +36,14 @@ class ProfessionalCategory extends Model
         return $professional_categories;
     }
 
-    public function createProfessionalCategories($data){
+    public function createProfessionalCategory($data){
         $professional_category = ProfessionalCategory::create([
             'name' => $this-> name
         ]);
         return $professional_category;
     }
 
-    public function updateProfessionalCategories($id, $data){
+    public function updateProfessionalCategory($id, $data){
         $professional_category = ProfessionalCategory::find($id);
         $professional_category->update([
             'name' => $data['name']

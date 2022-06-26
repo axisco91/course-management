@@ -94,6 +94,14 @@ class CompaniesCreate extends Component
             'province_id' => 'required',
         ]);
 
+        if ($this->nif){
+            $nif = Company::findNif($this->nif);
+            if ($nif){
+                $this->emit('alreadyExists', 'nif');
+                return;
+            }
+        }
+
         $data = [
             'name' => $this-> name,
             'nif' => $this-> nif,

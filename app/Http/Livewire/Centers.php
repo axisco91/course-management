@@ -13,7 +13,6 @@ class Centers extends Component
 
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name, $address, $email, $telephone;
-    public $updateMode = false;
     protected $listeners = [
         'destroy' => 'destroy'
     ];
@@ -61,6 +60,7 @@ class Centers extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Centro creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -93,8 +93,10 @@ class Centers extends Component
             Center::updateCenter($this->selected_id, $data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'Centro actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 
