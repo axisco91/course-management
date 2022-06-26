@@ -81,6 +81,14 @@ class AdvisorsView extends Component
         ]);
 
         if ($this->selected_id) {
+            if ($this->nif){
+                $nif = Advisor::findNif($this->nif);
+                if ($nif){
+                    $this->emit('alreadyExists', 'nif');
+                    return;
+                }
+            }
+
             $data = [
                 'name' => $this-> name,
                 'company_id' => $this->company_id,

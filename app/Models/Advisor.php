@@ -140,4 +140,14 @@ class Advisor extends Model
         }
     }
 
+    public function findNif($nif, $id = null){
+        $advisor = Advisor::where('nif', $nif);
+        if ($id){
+            $advisor = $advisor->where('id', '!=', $id);
+        }
+        $advisor = $advisor->first();
+
+        return $advisor;
+    }
+
 }

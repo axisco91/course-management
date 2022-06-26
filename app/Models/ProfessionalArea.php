@@ -36,14 +36,14 @@ class ProfessionalArea extends Model
         return $professional_areas;
     }
 
-    public function createProfessionalAreas($data){
+    public function createProfessionalArea($data){
         $professional_area = ProfessionalArea::create([
             'name' => $data['name']
         ]);
         return $professional_area;
     }
 
-    public function updateProfessionalAreas($id, $data){
+    public function updateProfessionalArea($id, $data){
         $professional_area = ProfessionalArea::find($id);
         $professional_area->update([
             'name' => $data['name']

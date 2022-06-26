@@ -50,7 +50,7 @@
             </div>
             <div class="col-md-4">
                 <a wire:ignore class="btn btn-sm btn-info" href="{{url('/students/create')}}">
-                    <i data-feather="plus-circle" class="me-50"></i>  Añadir Alumno
+                    <i data-feather="plus-circle" class="me-50"></i> Añadir Alumno
                 </a>
             </div>
         </div>

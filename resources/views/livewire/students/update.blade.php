@@ -72,7 +72,6 @@
             </div>
             <div class="col-md-4 col-12">
                 <div wire:ignore>
-                    <div class="mb-1">
                         <label class="form-label" for="level_study_id">Nivel Estudio</label>
                         <select class="form-select select2 @error('level_study_id') is-invalid @enderror" wire:model.lazy="level_study_id" id="level_study_id">
                             <option value="">Seleccione un nivel de estudio</option>
@@ -80,7 +79,6 @@
                                 <option value="{{$level['id']}}">{{$level['name']}}</option>
                             @endforeach
                         </select>
-                    </div>
                 </div>
                 @error('level_study_id') <div class="invalid-feedback">Nivel de estudio es requerido</div> @enderror
             </div>
@@ -174,7 +172,7 @@
                 <div wire:ignore>
                     <div class="mb-1">
                         <label class="form-label" for="province_id">Provincia</label>
-                        <select class="form-select select2 @error('province-id') is-invalid @enderror" wire:model.lazy="province_id" id="province_id">
+                        <select class="form-select select2 @error('province_id') is-invalid @enderror" wire:model.lazy="province_id" id="province_id">
                             <option value="">Seleccione una provincia</option>
                             @foreach($provinces as $province)
                                 <option value="{{$province['id']}}">{{$province['name']}}</option>
@@ -219,8 +217,21 @@
         <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
     @endsection
-
+    @section('script')
     <script>
+        Livewire.on('alreadyExists', type => {
+            text = '';
+            if (type == 'dni'){
+                text = 'DNI';
+            } else if (type == 'user'){
+                text = 'usuario'
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Ya Existe',
+                text: '¡Ya existe un alumno con ese '+text+'!',
+            })
+        })
         document.addEventListener('livewire:load', function() {
             $( document ).ready(
                 setTimeout(function (){
@@ -232,4 +243,5 @@
             })
         })
     </script>
+    @endsection
 </div>

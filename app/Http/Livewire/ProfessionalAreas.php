@@ -51,6 +51,7 @@ class ProfessionalAreas extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'ProfessionalArea Successfully created.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -76,8 +77,10 @@ class ProfessionalAreas extends Component
             ProfessionalArea::updateProfessionalArea($this->selected_id, $data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
-			session()->flash('message', 'ProfessionalArea Successfully updated.');
+			session()->flash('message', 'Área profesional actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

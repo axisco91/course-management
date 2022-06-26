@@ -45,7 +45,7 @@ class Tracing extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public function getTracings($keyWord, $course_search, $company_search, $student_search){
+    public function getTracings($keyWord, $course_search, $company_search, $student_search, $status_search){
         $tracings = Tracing::select('tracings.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name', 'students.surname as student_surname',
             'training_actions.number_activities', 'training_actions.number_units', 'training_actions.total_hours')
             ->leftjoin('courses', 'courses.id', '=', 'tracings.course_id')
@@ -61,6 +61,9 @@ class Tracing extends Model
         }
         if ($student_search != -1){
             $tracings = $tracings->where('students.id', 'LIKE', $student_search);
+        }
+        if ($status_search != -1){
+            $tracings = $tracings->where('courses.course_status_id', 'LIKE', $status_search);
         }
         $tracings = $tracings->where(function ($query) use ($keyWord) {
             $query->orWhere('performed_activities', 'LIKE', $keyWord)
@@ -109,7 +112,7 @@ class Tracing extends Model
             'welcome_date_sent' => $data['welcome_date_sent'],
             'quarter_date_sent' => $data['quarter_date_sent'],
             'half_date_sent' => $data['half_date_sent'],
-            'three_quarter_date_sent' => $data['three_quarters_date_sent'],
+            'three_quarters_date_sent' => $data['three_quarters_date_sent'],
             'final_date_sent' => $data['final_date_sent']
         ]);
         return $tracing;

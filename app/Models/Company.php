@@ -122,7 +122,7 @@ class Company extends Model
             $query->orWhere('companies.name', 'LIKE', $search_name);
         })->where(function ($query) use ($search_nif){
             $query->orWhere('companies.nif', 'LIKE', $search_nif);
-        })->orderBy('companies.name', 'desc')
+        })->orderBy('companies.name', 'asc')
             ->paginate(10);
 
         foreach ($companies as $company) {
@@ -214,6 +214,16 @@ class Company extends Model
             })->get();
 
         return $companies;
+    }
+
+    public function findNif($nif, $id = null){
+        $company = Company::where('nif', $nif);
+        if ($id){
+            $company = $company->where('id', '!=', $id);
+        }
+        $company = $company->first();
+
+        return $company;
     }
 
 }

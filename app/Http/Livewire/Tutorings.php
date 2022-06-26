@@ -47,6 +47,7 @@ class Tutorings extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Tutorización creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -72,8 +73,10 @@ class Tutorings extends Component
             Tutoring::updateTutoring($this->selected_id, $data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'Tutorización actualziado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 }

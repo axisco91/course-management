@@ -53,6 +53,7 @@ class Cnaes extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Cnae creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -78,8 +79,10 @@ class Cnaes extends Component
             Cnae::updateCnaes($data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'Cnae editado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

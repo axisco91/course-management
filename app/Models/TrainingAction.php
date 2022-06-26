@@ -102,7 +102,7 @@ class TrainingAction extends Model
             ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
             ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
         if ($inactiveFilter != 1) {
-            $trainingActions = $trainingActions->where('active', 1);
+            $trainingActions = $trainingActions->where('training_actions.active', 1);
         }
         $trainingActions = $trainingActions->where(function ($query) use ($keyWord){
             $query->orWhere('training_actions.name', 'LIKE', $keyWord)
@@ -115,7 +115,7 @@ class TrainingAction extends Model
                 ->orWhere('tutorings.name', 'LIKE', $keyWord)
                 ->orWhere('course_z', 'LIKE', $keyWord)
                 ->orWhere('course_avz', 'LIKE', $keyWord)
-                ->orWhere('active', 'LIKE', $keyWord)
+                ->orWhere('training_actions.active', 'LIKE', $keyWord)
                 ->orWhere('in_catalog', 'LIKE', $keyWord)
                 ->orWhere('face_to_face_hours', 'LIKE', $keyWord)
                 ->orWhere('teletraining_hours', 'LIKE', $keyWord)

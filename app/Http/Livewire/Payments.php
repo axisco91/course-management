@@ -50,7 +50,8 @@ class Payments extends Component
         Payment::createPayment($data);
         $this->resetInput();
 		$this->emit('closeModal');
-		session()->flash('message', 'Payment Successfully created.');
+        session()->flash('message', 'Metodos de pago creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -76,8 +77,10 @@ class Payments extends Component
             Payment::updatePayment($data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
-			session()->flash('message', 'Payment Successfully updated.');
+            session()->flash('message', 'Metodos de pago editado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

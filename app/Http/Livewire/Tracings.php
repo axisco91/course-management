@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\Company;
 use App\Models\Course;
+use App\Models\CourseStatus;
 use App\Models\Student;
 use App\Models\TrainingAction;
 use Livewire\Component;
@@ -18,15 +19,16 @@ class Tracings extends Component
     public $selected_id, $keyWord, $course_id, $company_id, $student_id, $performed_activities, $performed_hours,
         $performed_units, $follow_up_date, $final_test, $questionnaire, $welcome_message, $quarter_message, $half_message,
         $three_quarters_message, $final_message, $observation, $welcome_date, $quarter_date, $half_date, $three_quarters_date,
-        $total_hours, $number_activities, $number_unites, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent, $three_quarters_date_sent, $final_date_sent;
+        $total_hours, $number_activities, $number_unites, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent,
+        $three_quarters_date_sent, $final_date_sent;
     public $updateMode = false;
-    public $courses, $companies, $students, $tab = 'info';
-    public $course_search = -1, $company_search = -1, $student_search = -1, $student_name, $name, $surname, $course_name;
+    public $courses, $companies, $students, $course_statuses, $tab = 'info';
+    public $course_search = -1, $company_search = -1, $student_search = -1, $status_search = -1, $student_name, $name, $surname, $course_name;
 
     public function render()
     {
         $keyWord = '%'.$this->keyWord .'%';
-        $tracings = Tracing::getTracings($keyWord, $this->course_search, $this->company_search, $this->student_search);
+        $tracings = Tracing::getTracings($keyWord, $this->course_search, $this->company_search, $this->student_search, $this->status_search);
         return view('livewire.tracings.list', [
             'tracings' => $tracings
         ]);
@@ -36,6 +38,7 @@ class Tracings extends Component
         $this->courses = Course::all();
         $this->companies = Company::all();
         $this->students = Student::all();
+        $this->course_statuses = CourseStatus::all();
     }
 
     public function cancel()
@@ -61,6 +64,22 @@ class Tracings extends Component
 		$this->three_quarters_message = null;
 		$this->final_message = null;
 		$this->observation = null;
+        $this->welcome_date_sent = null;
+        $this->quarter_date_sent = null;
+        $this->half_date_sent = null;
+        $this->three_quarters_date_sent = null;
+        $this->final_date_sent = null;
+        $this->welcome_date = null;
+        $this->quarter_date = null;
+        $this->half_date = null;
+        $this->three_quarters_date = null;
+        $this->final_date = null;
+        $this->total_hours = null;
+        $this->number_activities = null;
+        $this->number_unites = null;
+        $this->name = null;
+        $this->surname = null;
+        $this->course_name = null;
     }
 
     public function edit($id)
@@ -135,13 +154,15 @@ class Tracings extends Component
                 'welcome_date_sent' => $this-> welcome_date_sent,
                 'quarter_date_sent' => $this-> quarter_date_sent,
                 'half_date_sent' => $this-> half_date_sent,
-                'three_quarter_date_sent' => $this-> three_quarters_date_sent,
+                'three_quarters_date_sent' => $this-> three_quarters_date_sent,
                 'final_date_sent' => $this-> final_date_sent
             ];
             Tracing::updateTracing($this->selected_id, $data);
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
-			session()->flash('message', 'Tracing Successfully updated.');
+            session()->flash('message', 'Seguimiento actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

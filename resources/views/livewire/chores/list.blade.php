@@ -12,7 +12,7 @@
     <!--Search Form -->
     <div class="card-body mt-2">
         <div class="row g-1 mb-md-1">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="course_search">Curso</label>
                     <select wire:model.lazy="course_search" class="form-control select2" id="course_search">
@@ -23,7 +23,7 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="company_search">Empresa</label>
                     <select wire:model.lazy="company_search" class="form-control select2" id="company_search">
@@ -34,13 +34,24 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="student_search">Alumno</label>
                     <select wire:model.lazy="student_search" class="form-control select2" id="student_search">
                         <option value="-1">Todas los alumnos</option>
                         @foreach($students as $student)
-                            <option value="{{$student['id']}}">{{$student['name']}}</option>
+                            <option value="{{$student['id']}}">{{$student['name']}} {{$student['surname']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div wire:ignore>
+                    <label class="form-label" for="status_search">Estado</label>
+                    <select wire:model.lazy="status_search" class="form-control select2" id="status_search">
+                        <option value="-1">Todas los estados</option>
+                        @foreach($course_statuses as $status)
+                            <option value="{{$status['id']}}">{{$status['name']}}</option>
                         @endforeach
                     </select>
                 </div>
@@ -76,7 +87,7 @@
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->course }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->company }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->student }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->membership_tab_status == 0 ?'warning' : ($row->membership_tab_status == 1 ? 'info' : $row->membership_tab_status == 2 ? 'success' : 'danger' )}} me-1">{{$row->membership_tab_status == 0 ? 'Pendiente' : ($row->membership_tab_status == 1 ? 'Enviado' : $row->membership_tab_status == 2 ? 'Recibido' : 'No procede')}}</span></td>
+                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->membership_tab_status == 0 ?'warning' : ($row->membership_tab_status == 1 ? 'info' : ($row->membership_tab_status == 2 ? 'success' : 'danger' ))}} me-1">{{$row->membership_tab_status == 0 ? 'Pendiente' : ($row->membership_tab_status == 1 ? 'Enviado' : ($row->membership_tab_status == 2 ? 'Recibido' : 'No procede'))}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->economic_proposal_status == 0 ?'warning' : ($row->economic_proposal_status == 1 ? 'info' : 'success')}} me-1">{{$row->economic_proposal_status == 0 ? 'Pendiente' : ($row->economic_proposal_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->student_tab_status == 0 ?'warning' : ($row->student_tab_status == 1 ? 'info' : 'success')}} me-1">{{$row->student_tab_status == 0 ? 'Pendiente' : ($row->student_tab_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->welcome_guid_status == 0 ?'warning' : ($row->welcome_guid_status == 1 ? 'info' : 'success')}} me-1">{{$row->welcome_guid_status == 0 ? 'Pendiente' : ($row->welcome_guid_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>

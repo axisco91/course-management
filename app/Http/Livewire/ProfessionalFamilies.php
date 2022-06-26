@@ -52,6 +52,7 @@ class ProfessionalFamilies extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Familia creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -76,8 +77,10 @@ class ProfessionalFamilies extends Component
             ];
             ProfessionalFamily::updateProfessionalFamily($this->selected_id, $data);
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'Familia actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

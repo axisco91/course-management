@@ -87,6 +87,14 @@ class ProvidersCreate extends Component
             'create_province_id' => 'required',
         ]);
 
+        if ($this->nif){
+            $nif = Provider::findNif($this->nif);
+            if ($nif){
+                $this->emit('alreadyExists', 'nif');
+                return;
+            }
+        }
+
         $data = [
             'name' => $this-> name,
             'company_id' => $this->company_id,

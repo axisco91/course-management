@@ -50,7 +50,8 @@ class ProfessionalCategories extends Component
         ProfessionalCategory::createProfessionalCategory($data);
         $this->resetInput();
 		$this->emit('closeModal');
-		session()->flash('message', 'ProfessionalCategory Successfully created.');
+		session()->flash('message', 'Categoría profesional creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -76,8 +77,10 @@ class ProfessionalCategories extends Component
             ProfessionalCategory::updateProfessionalCategory($this->selected_id, $data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
-			session()->flash('message', 'ProfessionalCategory Successfully updated.');
+			session()->flash('message', 'Categoría profesional actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

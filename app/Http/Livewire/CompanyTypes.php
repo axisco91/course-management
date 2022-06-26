@@ -53,6 +53,7 @@ class CompanyTypes extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Tipo creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -77,8 +78,10 @@ class CompanyTypes extends Component
             ];
             CompanyType::updateCompanyType($this->selected_id, $data);
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'Tipo actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

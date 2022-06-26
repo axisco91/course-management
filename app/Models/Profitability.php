@@ -50,6 +50,7 @@ class Profitability extends Model
 
     public function getProfitabilities($keyWord, $course_search, $company_search, $student_search){
         $profitabilities = Profitability::select('profitabilities.*', 'companies.name as company_name', 'courses.name as course_name',
+            'courses.group as course_group',
             'students.name as student_name', 'students.surname as student_surname')
             ->leftjoin('companies', 'companies.id', '=', 'profitabilities.company_id')
             ->leftjoin('courses', 'courses.id', '=', 'profitabilities.course_id')

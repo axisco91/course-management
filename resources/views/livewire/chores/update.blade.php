@@ -15,29 +15,31 @@
                 <input wire:model.lazy="course_name" type="text" class="form-control" id="course_name" disabled placeholder="Nombre Curso">@error('course_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-3 col-12 mb-1">
-                <label class="form-label" for="membership_tab_status">Ficha Adhesión</label>
-                <select class="form-select" wire:model.lazy="membership_tab_status" id="membership_tab_status">
-                    <option value="0">Pendiente</option>
-                    <option value="1">Enviada</option>
-                    <option value="2">Recibida</option>
-                    <option value="3">No procede</option>
-                </select>
+                <div wire:ignore>
+                    <label class="form-label" for="membership_tab_status">Ficha Adhesión</label>
+                    <select class="form-select" wire:model.lazy="membership_tab_status" id="membership_tab_status">
+                        <option value="0"><span>Pendiente</span></option>
+                        <option value="1">Enviada</option>
+                        <option value="2">Recibida</option>
+                        <option value="3">No procede</option>
+                    </select>
+                </div>
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="membership_tab_date">Fecha Ficha Adhesión</label>
-                <input type="text" id="membership_tab_date" disabled wire:model.lazy="membership_tab_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
+                <input type="date" id="membership_tab_date" wire:model.lazy="membership_tab_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="economic_proposal_status">Propuesta Económica</label>
                 <select class="form-select" wire:model.lazy="economic_proposal_status" id="economic_proposal_status">
-                    <option value="0">Pendiente</option>
+                    <option value="0"><span class="badge rounded-pill badge-light-warning">Pendiente</span></option>
                     <option value="1">Enviada</option>
                     <option value="2">Recibida</option>
                 </select>
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="economic_proposal_date">Fecha Propuesta Económica</label>
-                <input type="text" id="economic_proposal_date" disabled wire:model.lazy="economic_proposal_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
+                <input type="date" id="economic_proposal_date" wire:model.lazy="economic_proposal_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="student_tab_status">Ficha Alumno</label>
@@ -49,7 +51,7 @@
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="student_tab_date">Fecha Ficha Alumno</label>
-                <input type="text" id="student_tab_date" disabled wire:model.lazy="student_tab_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
+                <input type="date" id="student_tab_date" wire:model.lazy="student_tab_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="welcome_guid_status">Guia Bienvenida</label>
@@ -61,7 +63,7 @@
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="welcome_guid_date">Fecha Guia Bienvenida</label>
-                <input type="text" id="welcome_guid_date" disabled wire:model.lazy="welcome_guid_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
+                <input type="date" id="welcome_guid_date" wire:model.lazy="welcome_guid_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="registration_status">Matriculación</label>
@@ -72,7 +74,7 @@
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="registration_date">Fecha Matriculación</label>
-                <input type="text" id="registration_date" disabled wire:model.lazy="registration_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
+                <input type="date" id="registration_date" wire:model.lazy="registration_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="diploma_status">Diploma</label>
@@ -84,7 +86,7 @@
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="diploma_status_date">Fecha Diploma</label>
-                <input type="text" id="diploma_date" disabled wire:model.lazy="diploma_status_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
+                <input type="date" id="diploma_date" wire:model.lazy="diploma_status_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="start_communication_status">Comunicación Inicio</label>
@@ -96,7 +98,7 @@
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="start_communication_date">Fecha Comunicación Inicio</label>
-                <input type="text" id="start_communication_date" disabled wire:model.lazy="start_communication_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
+                <input type="date" id="start_communication_date" wire:model.lazy="start_communication_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="close_communication_status">Comunicación Cierre</label>
@@ -108,7 +110,7 @@
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="close_communication_date">Fecha Comunicación Cierre</label>
-                <input type="text" id="close_communication_date" disabled wire:model.lazy="close_communication_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
+                <input type="date" id="close_communication_date" wire:model.lazy="close_communication_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="invoiced_status">Facturado</label>
@@ -120,7 +122,7 @@
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="invoiced_date">Fecha Facturado</label>
-                <input type="text" id="invoiced_date" disabled wire:model.lazy="invoiced_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
+                <input type="date" id="invoiced_date" wire:model.lazy="invoiced_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="bonus_sent_status">Bonificacion Enviada</label>
@@ -132,7 +134,7 @@
             </div>
             <div class="col-md-3 col-12 mb-1">
                 <label class="form-label" for="bonus_sent_date">Fecha Bonificacion Enviada</label>
-                <input type="text" id="bonus_sent_date" disabled wire:model.lazy="bonus_sent_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
+                <input type="date" id="bonus_sent_date" wire:model.lazy="bonus_sent_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
         </div>
         <div class="col-12 mb-1">

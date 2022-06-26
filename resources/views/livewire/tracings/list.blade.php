@@ -13,7 +13,7 @@
     <!--Search Form -->
     <div class="card-body mt-2">
         <div class="row g-1 mb-md-1">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="course_search">Curso</label>
                     <select wire:model.lazy="course_search" class="form-control select2" id="course_search">
@@ -24,7 +24,7 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="company_search">Empresa</label>
                     <select wire:model.lazy="company_search" class="form-control select2" id="company_search">
@@ -35,13 +35,24 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="student_search">Alumno</label>
                     <select wire:model.lazy="student_search" class="form-control select2" id="student_search">
                         <option value="-1">Todos los alumnos</option>
                         @foreach($students as $student)
-                            <option value="{{$student['id']}}">{{$student['name']}}</option>
+                            <option value="{{$student['id']}}">{{$student['name']}} {{$student['surname']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div wire:ignore>
+                    <label class="form-label" for="status_search">Estado</label>
+                    <select wire:model.lazy="status_search" class="form-control select2" id="status_search">
+                        <option value="-1">Todas los estados</option>
+                        @foreach($course_statuses as $status)
+                            <option value="{{$status['id']}}">{{$status['name']}}</option>
                         @endforeach
                     </select>
                 </div>
@@ -113,7 +124,23 @@
         <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
     @endsection
+    @section('scripts')
     <script>
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
+        })
         document.addEventListener('livewire:load', function() {
             initializeSelect2()
             $('.select2').on('change', function(){
@@ -125,4 +152,5 @@
             })
         })
     </script>
+        @endsection
 </div>

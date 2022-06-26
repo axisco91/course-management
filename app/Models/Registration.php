@@ -71,7 +71,7 @@ class Registration extends Model
     }
 
     public function getRegistrated($course_id, $search_name, $search_surname){
-        $registations = Student::leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
+        $registations = Student::select('students.*')->leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
             ->where('registrations.course_id', $course_id)
             ->where(function ($query) use ($search_name){
                 $query->orWhere('name', 'LIKE', $search_name);
@@ -167,7 +167,12 @@ class Registration extends Model
             })->where(function ($query) use ($search_group){
                 $query->orWhere('courses.group', 'LIKE', $search_group);
             })->get();
-
+        foreach ($registations as $registation){
+            $beginning = Carbon::parse($registation['beginning'])->format('d/m/Y');
+            $registation['beginning'] = $beginning;
+            $end = Carbon::parse($registation['end'])->format('d/m/Y');
+            $registation['end'] = $end;
+        }
         return $registations;
     }
 

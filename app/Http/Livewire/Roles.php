@@ -67,8 +67,10 @@ class Roles extends Component
             ]);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
             session()->flash('message', 'Rol actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
     public function destroy($id)

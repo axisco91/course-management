@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\Company;
 use App\Models\Course;
+use App\Models\CourseStatus;
 use App\Models\Student;
 use Carbon\Carbon;
 use Livewire\Component;
@@ -21,8 +22,8 @@ class Chores extends Component
         $start_communication_date, $close_communication_status, $close_communication_date, $invoiced_status, $invoiced_date,
         $bonus_sent_status, $bonus_sent_date;
     public $updateMode = false;
-    public $courses, $companies, $students, $tab = 'info';
-    public $course_search = -1, $company_search = -1, $student_search = -1, $student_name, $name, $surname, $course_name;
+    public $courses, $companies, $students, $course_statuses, $tab = 'info';
+    public $course_search = -1, $company_search = -1, $student_search = -1, $status_search = -1, $student_name, $name, $surname, $course_name;
     protected $listeners = [
         'destroy' => 'destroy'
     ];
@@ -31,7 +32,7 @@ class Chores extends Component
     {
 		$keyWord = '%'.$this->keyWord .'%';
 
-       $chores = Chore::getChores($keyWord, $this->course_search, $this->company_search, $this->student_search);
+       $chores = Chore::getChores($keyWord, $this->course_search, $this->company_search, $this->student_search, $this->status_search);
         return view('livewire.chores.list', [
             'chores' => $chores,
         ]);
@@ -41,6 +42,7 @@ class Chores extends Component
         $this->courses = Course::all();
         $this->companies = Company::all();
         $this->students = Student::all();
+        $this->course_statuses = CourseStatus::all();
     }
 
     public function cancel()
@@ -123,6 +125,7 @@ class Chores extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Chore Successfully created.');
+        $this->emit('toastr', 'success');
     }
 
     public function destroy($id)

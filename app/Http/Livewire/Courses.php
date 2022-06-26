@@ -38,7 +38,7 @@ class Courses extends Component
     public $chore_id, $membership_tab_status, $economic_proposal_status,  $registration_status, $tab = 'info',
         $start_communication_date, $close_communication_date, $company_id, $company_name, $student_name;
     public $search_formative_action, $search_name, $search_student_name, $search_surname,
-        $search_group, $search_type, $search_status;
+        $search_group, $search_type, $search_status, $search_company;
 
     public function render()
     {
@@ -63,8 +63,9 @@ class Courses extends Component
         $search_formative_action = '%'.$this->search_formative_action.'%';
         $search_name = '%'.$this->search_name.'%';
         $search_group = '%'.$this->search_group.'%';
+        $search_company = '%'.$this->search_company.'%';
 
-        $courses = Course::getCourses($keyWord, $search_formative_action, $search_name, $search_group, $this->search_type, $this->search_status);
+        $courses = Course::getCourses($keyWord, $search_formative_action, $search_name, $search_group, $this->search_type, $this->search_status, $search_company);
 
 
         return view('livewire.courses.list', [

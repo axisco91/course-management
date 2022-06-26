@@ -26,11 +26,11 @@ class CourseType extends Model
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
         foreach ($course_types as $course_type){
-            $course = Course::where('company_type_id', $course_type['id'])->first();
+            $course = Course::where('course_type_id', $course_type['id'])->first();
             if ($course){
-                $course_types['used'] = true;
+                $course_type['used'] = true;
             } else {
-                $course_types['used'] = false;
+                $course_type['used'] = false;
             }
         }
         return $course_types;

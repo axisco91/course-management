@@ -51,6 +51,10 @@
                     </select>
                 </div>
             </div>
+            <div class="col-md-4">
+            <label class="form-label">Empresa:</label>
+            <input wire:model="search_company" type="text" class="form-control dt-input" data-column="2" placeholder="Empresa" data-column-index="1" />
+        </div>
         </div>
     </div>
     <div class="card-footer">

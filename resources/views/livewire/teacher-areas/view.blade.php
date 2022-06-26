@@ -61,6 +61,21 @@
     </div>
 @section('scripts')
     <script>
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
+        })
         document.addEventListener('livewire:load', function () {
             $('body').on('click', '.eliminar', function () {
                 button = $(this)

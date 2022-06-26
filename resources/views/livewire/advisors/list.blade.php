@@ -19,7 +19,7 @@
             </div>
             <div class="col-md-4">
                 <a class="btn btn-sm btn-info" href="{{url('/advisors/create')}}">
-                    <i class="fa fa-plus"></i>  Añadir Asesoria
+                    <i data-feather="plus-circle" class="me-50"></i>  Añadir Asesoria
                 </a>
             </div>
         </div>

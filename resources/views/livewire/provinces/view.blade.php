@@ -56,4 +56,75 @@
         {{ $provinces->links() }}
         </div>
     </div>
+@section('scripts')
+    <script>
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
+        })
+        document.addEventListener('livewire:load', function () {
+            $('body').on('click', '.eliminar', function () {
+                button = $(this)
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                })
+
+                swalWithBootstrapButtons.fire({
+                    title: '¿Estas seguro?',
+                    text: "Eliminaras a la provincia!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, eliminalo!',
+                    cancelButtonText: 'No, cancela!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        id = $(this).data('id');
+                        Livewire.emit('destroy', id)
+                        window.addEventListener('eliminated', e=>{
+                            if (e.detail.value != ''){
+                                swalWithBootstrapButtons.fire(
+                                    'Eliminado!',
+                                    'Eliminado con exito.',
+                                    'success'
+                                )
+                            } else{
+                                swalWithBootstrapButtons.fire(
+                                    'Error',
+                                    'Fallo al eliminar.',
+                                    'error'
+                                )
+                            }
+                        });
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cacelado',
+                            'No se ha podido eliminar.',
+                            'error'
+                        )
+                    }
+                })
+            })
+        })
+    </script>
+    @endsection
 </div>

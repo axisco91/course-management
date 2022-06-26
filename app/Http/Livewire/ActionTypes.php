@@ -62,6 +62,7 @@ class ActionTypes extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Tipo creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -84,8 +85,9 @@ class ActionTypes extends Component
             ActionType::updateActionType($this->selected_id, $this->name);
 
             $this->resetInput();
-            $this->updateMode = false;
+            $this->emit('closeUpdateModal');
 			session()->flash('message', 'Tipo actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

@@ -154,7 +154,7 @@ class Student extends Model
      * @return Student
      */
     public function getStudent($id){
-        $student = Student::findOrFail($id);
+        $student = Student::find($id);
 
         return $student;
     }
@@ -246,6 +246,26 @@ class Student extends Model
             })->get();
 
         return $students;
+    }
+
+    public function findDni($dni, $id = null){
+        $student = Student::where('dni', $dni);
+        if ($id){
+            $student = $student->where('id', '!=', $id);
+        }
+        $student = $student->first();
+
+        return $student;
+    }
+
+    public function findUser($user, $id = null){
+        $student = Student::where('user', $user);
+        if ($id){
+            $student = $student->where('id', '!=', $id);
+        }
+        $student = $student->first();
+
+        return $student;
     }
 
 }

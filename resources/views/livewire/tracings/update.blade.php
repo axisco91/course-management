@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered modal-edit-user">
         <div class="modal-content">
             <div class="modal-header bg-transparent">
-                <button type="button" wire:click.prevent="cancel()" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body pb-5 px-sm-5 pt-50">
                 <div class="text-center mb-2">
@@ -168,7 +168,7 @@
                     </div>
                     <div class="col-12 text-center mt-2 pt-50">
                         <button type="button" class="btn btn-secondary close-btn" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="button" wire:click.prevent="update()" class="btn btn-primary" data-bs-dismiss="modal">Guardar</button>
+                        <button type="button" wire:click.prevent="update()" class="btn btn-primary close-model">Guardar</button>
                     </div>
                 </form>
             </div>

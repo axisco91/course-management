@@ -57,6 +57,14 @@ class Users extends Component
             'password' => 'required|string|min:8',
         ]);
 
+        if ($this->username){
+            $user = User::findUser($this->username);
+            if ($user){
+                $this->emit('alreadyExists', 'user');
+                return;
+            }
+        }
+
         $data = [
             'name' => $this-> name,
             'surname' => $this-> surname,
@@ -69,6 +77,7 @@ class Users extends Component
         $this->resetInput();
         $this->emit('closeModal');
         session()->flash('message', 'usuario creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -100,18 +109,28 @@ class Users extends Component
         ]);
 
         if ($this->selected_id) {
+            if ($this->username) {
+                $user = User::findUser($this->username, $this->selected_id);
+                if ($user) {
+                    $this->emit('alreadyExists', 'user');
+                    return;
+                }
+            }
+
             $data = [
-                'name' => $this-> name,
-                'surname' => $this-> surname,
-                'username' => $this-> username,
-                'email' => $this-> email,
+                'name' => $this->name,
+                'surname' => $this->surname,
+                'username' => $this->username,
+                'email' => $this->email,
                 'role_id' => $this->role_id
             ];
             User::updateUser($this->selected_id, $data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
             session()->flash('message', 'Usuario editado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 }

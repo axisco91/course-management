@@ -95,7 +95,7 @@ class Course extends Model
         return $this->hasOne('App\Models\TrainingAction', 'id', 'training_action_id');
     }
 
-    public function getCourses($keyWord, $search_formative_action, $search_name, $search_group, $search_type, $search_status){
+    public function getCourses($keyWord, $search_formative_action, $search_name, $search_group, $search_type, $search_status, $search_company){
         $courses = Course::select('courses.*',
             'course_types.name as course_type', 'teachers.name as teacher_name', 'teachers.surname as teacher_surname',
             'fc.name as formation_center',
@@ -106,6 +106,8 @@ class Course extends Model
             ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
             ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
+            ->leftjoin('companies', 'companies.id', '=', 'registrations.company_id')
             ->where(function ($query) use ($keyWord){
                 $query->orWhere('courses.name', 'LIKE', $keyWord)
                     ->orWhere('group', 'LIKE', $keyWord)
@@ -140,6 +142,8 @@ class Course extends Model
                 $query->orWhere('courses.name', 'LIKE', $search_name);
             })->where(function ($query) use ($search_group){
                 $query->orWhere('courses.name', 'LIKE', $search_group);
+            })->where(function ($query) use ($search_company){
+                $query->orWhere('companies.name', 'LIKE', $search_company);
             });
         if ($search_type){
             $courses = $courses->Where('courses.course_type_id', $search_type);
@@ -305,6 +309,13 @@ class Course extends Model
                 $query->orWhere('group', 'LIKE', $search_course_group);
             })->orderBy('beginning', 'DESC')->get();
 
+        foreach ($courses as $course){
+            $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
+            $course['beginning'] = $beginning;
+            $end = Carbon::parse($course['end'])->format('d/m/Y');
+            $course['end'] = $end;
+        }
+
         return $courses;
     }
 
@@ -341,12 +352,18 @@ class Course extends Model
             })->where(function ($query) use ($search_course_group) {
                 $query->orWhere('group', 'LIKE', $search_course_group);
             })->orderBy('beginning', 'DESC')->get();
+        foreach ($courses as $course){
+            $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
+            $course['beginning'] = $beginning;
+            $end = Carbon::parse($course['end'])->format('d/m/Y');
+            $course['end'] = $end;
+        }
 
         return $courses;
     }
 
     public function getCompanyCourses($id, $search_course_name, $search_course_group){
-        $courses = Course::leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
+        $courses = Course::select('courses.*')->leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
             ->where('company_id', $id)
             ->where(function ($query) use ($search_course_name) {
                 $query->orWhere('name', 'LIKE', $search_course_name);
@@ -355,6 +372,12 @@ class Course extends Model
             })
             ->orderBy('beginning', 'DESC')
             ->get();
+        foreach ($courses as $course){
+            $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
+            $course['beginning'] = $beginning;
+            $end = Carbon::parse($course['end'])->format('d/m/Y');
+            $course['end'] = $end;
+        }
         return $courses;
     }
 

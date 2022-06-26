@@ -173,7 +173,19 @@
     <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
     @endsection
+    @section('scripts')
     <script>
+        Livewire.on('alreadyExists', type => {
+            text = '';
+            if (type == 'nif'){
+                text = 'CIF';
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Ya Existe',
+                text: '¡Ya existe una empresa con ese '+text+'!',
+            })
+        })
         document.addEventListener('livewire:load', function() {
             $( document ).ready(
                 setTimeout(function (){
@@ -185,4 +197,5 @@
             })
         })
     </script>
+    @endsection
 </div>
