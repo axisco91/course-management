@@ -20,7 +20,7 @@ class Tracings extends Component
         $performed_units, $follow_up_date, $final_test, $questionnaire, $welcome_message, $quarter_message, $half_message,
         $three_quarters_message, $final_message, $observation, $welcome_date, $quarter_date, $half_date, $three_quarters_date,
         $total_hours, $number_activities, $number_unites, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent,
-        $three_quarters_date_sent, $final_date_sent;
+        $three_quarters_date_sent, $final_date_sent, $beginning, $end, $course_group;
     public $updateMode = false;
     public $courses, $companies, $students, $course_statuses, $tab = 'info';
     public $course_search = -1, $company_search = -1, $student_search = -1, $status_search = -1, $student_name, $name, $surname, $course_name;
@@ -122,6 +122,9 @@ class Tracings extends Component
         $this->name = $student->name;
         $this->surname = $student->surname;
         $this->course_name = $course->name;
+        $this->beginning = $course->beginning;
+        $this->course_group = $course->group;
+        $this->end = $course->end;
 
         $this->updateMode = true;
     }
@@ -178,6 +181,9 @@ class Tracings extends Component
 
         $this->student_name = $student->name .' '. $student->surname;
         $this->course_name = $course->name;
+        $this->beginning = $course->beginning;
+        $this->end = $course->end;
+        $this->course_group = $course->group;
         $this->performed_activities = $record-> performed_activities;
         $this->performed_hours = $record-> performed_hours;
         $this->performed_units = $record-> performed_units;

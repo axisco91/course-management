@@ -62,6 +62,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
             Route::get('view/{id}', 'view');
+            Route::get('/export', 'export');
         });
     });
     /**
@@ -135,6 +136,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
+            Route::get('create/{id}', 'create');
             Route::get('view/{id}', 'view');
         });
     });

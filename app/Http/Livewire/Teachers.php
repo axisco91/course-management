@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\TeachersExport;
 use App\Models\AreasTeacherArea;
 use App\Models\Course;
 use App\Models\Province;
@@ -122,5 +123,9 @@ class Teachers extends Component
             }
             $this->teacher_area_id = $area;
         }
+    }
+
+    public function downloadExcel(){
+        return (new TeachersExport($this->search_name, $this->search_surname, $this->search_email, $this->search_dni, $this->search_telephone, $this->inactiveFilter))->download('docentes.xlsx');
     }
 }

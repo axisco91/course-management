@@ -141,22 +141,25 @@ class Course extends Model
             })->where(function ($query) use ($search_name){
                 $query->orWhere('courses.name', 'LIKE', $search_name);
             })->where(function ($query) use ($search_group){
-                $query->orWhere('courses.name', 'LIKE', $search_group);
-            })->where(function ($query) use ($search_company){
+                $query->orWhere('courses.group', 'LIKE', $search_group);
+            });
+        if ($search_company){
+            $courses = $courses->where(function ($query) use ($search_company){
                 $query->orWhere('companies.name', 'LIKE', $search_company);
             });
+        }
         if ($search_type){
             $courses = $courses->Where('courses.course_type_id', $search_type);
         }
         if ($search_status){
             $courses = $courses->Where('courses.course_status_id', $search_status);
         }
-        $courses = $courses->orderBy('courses.beginning', 'desc')
+        $courses = $courses->orderBy('courses.beginning', 'desc')->distinct()
             ->paginate(10);
 
         foreach ($courses as $course){
-            $registrations = Registration::where('course_id', $course->id)->get();
-            $course['registration'] = $registrations;
+           // $registrations = Registration::where('course_id', $course->id)->get();
+           // $course['registration'] = $registrations;
 
             $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
             $course['beginning'] = $beginning;

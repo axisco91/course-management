@@ -11,6 +11,53 @@
     </div>
     <div class="card-body mt-2">
         <div class="row g-1 mb-md-1">
+            <div class="col-md-4 col-12 mb-1">
+                <label class="form-label">Nombre:</label>
+                <input wire:model="search_name" type="text" class="form-control dt-input dt-full-name" data-column="1" placeholder="Nombre" data-column-index="0" />
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <label class="form-label">CIF:</label>
+                <input wire:model="search_nif" type="text" class="form-control dt-input" data-column="2" placeholder="CIF" data-column-index="1" />
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="search_type_id">Tipo</label>
+                    <select wire:model.lazy="search_type_id" class="form-select select2" id="search_type_id">
+                        <option value="">Seleccione un tipo</option>
+                        @foreach($company_types as $type)
+                            <option value="{{$type['id']}}">{{$type['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="search_activity_id">Actividad</label>
+                    <select wire:model.lazy="search_activity_id" class="form-select select2" id="search_activity_id">
+                        <option value="">Seleccione una actividad</option>
+                        @foreach($company_activities as $activity)
+                            <option value="{{$activity['id']}}">{{$activity['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="search_province_id">Provincia</label>
+                    <select wire:model.lazy="search_province_id" class="form-select select2" id="search_province_id">
+                        <option value="">Seleccione una provincia</option>
+                        @foreach($provinces as $province)
+                            <option value="{{$province['id']}}">{{$province['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row g-1 mb-md-1">
             <div class="col-md-4">
                 <input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
             </div>
@@ -18,9 +65,12 @@
 
             </div>
             <div class="col-md-4">
-                <a class="btn btn-sm btn-info" href="{{url('/advisors/create')}}">
+                <a wire:ignore class="btn btn-sm btn-info" href="{{url('/advisors/create')}}">
                     <i data-feather="plus-circle" class="me-50"></i>  Añadir Asesoria
                 </a>
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
             </div>
         </div>
     </div>

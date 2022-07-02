@@ -11,7 +11,7 @@ class Company extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','nif','company_type_id','company_activity_id','email','telephone','legal_representative','dni_legal_representative','quote','cnae_id','average_template','iban','sepa','b2b','address','post_code','population_id','province_id','population','active','advisor_id', 'active'];
+    protected $fillable = ['name','nif','company_type_id','company_activity_id','email','telephone','legal_representative','dni_legal_representative','quote','cnae_id','average_template','iban','sepa','b2b','address','post_code','population_id','province_id','population','advisor_id', 'active'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -85,7 +85,7 @@ class Company extends Model
         return $this->hasMany('App\Models\Student', 'company_id', 'id');
     }
 
-    public function getCompanies($keyWord, $inactiveFilter, $search_name, $search_nif){
+    public function getCompanies($keyWord, $inactiveFilter, $search_name, $search_nif, $search_type_id, $search_activity_id, $search_advisor_id, $search_province_id){
         $companies = Company::select('companies.*', 'company_types.name as type',
             'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province',
@@ -122,7 +122,29 @@ class Company extends Model
             $query->orWhere('companies.name', 'LIKE', $search_name);
         })->where(function ($query) use ($search_nif){
             $query->orWhere('companies.nif', 'LIKE', $search_nif);
-        })->orderBy('companies.name', 'asc')
+        });
+        if ($search_type_id){
+            $companies = $companies->where(function ($query) use ($search_type_id){
+                $query->orWhere('companies.company_type_id', $search_type_id);
+            });
+        }
+       if ($search_activity_id){
+           $companies = $companies->where(function ($query) use ($search_activity_id){
+               $query->orWhere('companies.company_activity_id', $search_activity_id);
+           });
+       }
+       if ($search_advisor_id){
+           $companies = $companies->where(function ($query) use ($search_advisor_id){
+               $query->orWhere('companies.advisor_id', $search_advisor_id);
+           });
+       }
+       if ($search_province_id){
+           $companies = $companies->where(function ($query) use ($search_province_id){
+               $query->orWhere('companies.province_id', $search_province_id);
+           });
+       }
+
+        $companies = $companies->orderBy('companies.name', 'asc')
             ->paginate(10);
 
         foreach ($companies as $company) {

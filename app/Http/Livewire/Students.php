@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\StudentsExport;
 use App\Models\Company;
 use App\Models\LevelStudy;
 use App\Models\ProfessionalCategory;
@@ -145,4 +146,9 @@ class Students extends Component
             $this->password = $record-> password;
         }
     }
+
+    public function downloadExcel(){
+        return (new StudentsExport($this->search_name, $this->search_surname, $this->search_email, $this->search_dni, $this->search_telephone, $this->search_company, $this->inactiveFilter))->download('docentes.xlsx');
+    }
+
 }

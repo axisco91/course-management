@@ -67,6 +67,7 @@
                 <th>Curso</th>
                 <th>Empresa</th>
                 <th>Alumno</th>
+                <th>Estado</th>
                 <th>Ficha Adhesión</th>
                 <th>Propuesta Económica</th>
                 <th>Ficha Alumno</th>
@@ -84,9 +85,10 @@
             @foreach($chores as $row)
                 <tr>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->course }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ str_replace( ' -', '/'.$row->course_group.' -', $row->course) }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->company }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->student }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->status }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->membership_tab_status == 0 ?'warning' : ($row->membership_tab_status == 1 ? 'info' : ($row->membership_tab_status == 2 ? 'success' : 'danger' ))}} me-1">{{$row->membership_tab_status == 0 ? 'Pendiente' : ($row->membership_tab_status == 1 ? 'Enviado' : ($row->membership_tab_status == 2 ? 'Recibido' : 'No procede'))}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->economic_proposal_status == 0 ?'warning' : ($row->economic_proposal_status == 1 ? 'info' : 'success')}} me-1">{{$row->economic_proposal_status == 0 ? 'Pendiente' : ($row->economic_proposal_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->student_tab_status == 0 ?'warning' : ($row->student_tab_status == 1 ? 'info' : 'success')}} me-1">{{$row->student_tab_status == 0 ? 'Pendiente' : ($row->student_tab_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>

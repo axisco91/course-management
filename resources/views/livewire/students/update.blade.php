@@ -40,7 +40,7 @@
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
                     <label class="form-label" for="company_id">Empresa</label>
-                    <select class="form-select select2 @error('comapny_id') is-invalid @enderror" wire:model.lazy="company_id" id="company_id">
+                    <select class="form-select select2 @error('company_id') is-invalid @enderror" wire:model.lazy="company_id" id="company_id">
                         <option value="">Seleccione una empresa</option>
                         @foreach($companies as $company)
                             <option value="{{$company['id']}}">{{$company['name']}}</option>
@@ -209,39 +209,39 @@
             <button type="button" wire:click.prevent="update()" class="btn btn-primary me-1">Guardar</button>
         </div>
     </form>
-    @section('vendor-script')
-        <!-- vendor files -->
+@section('vendor-script')
+    <!-- vendor files -->
         <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
-    @endsection
-    @section('page-script')
-        <!-- Page js files -->
+@endsection
+@section('page-script')
+    <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
     @endsection
-    @section('script')
-    <script>
-        Livewire.on('alreadyExists', type => {
-            text = '';
-            if (type == 'dni'){
-                text = 'DNI';
-            } else if (type == 'user'){
-                text = 'usuario'
-            }
-            Swal.fire({
-                icon: 'error',
-                title: 'Ya Existe',
-                text: '¡Ya existe un alumno con ese '+text+'!',
+    @section('scripts')
+        <script>
+            Livewire.on('alreadyExists', type => {
+                text = '';
+                if (type == 'dni'){
+                    text = 'DNI';
+                } else if (type == 'user'){
+                    text = 'usuario'
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ya Existe',
+                    text: '¡Ya existe un alumno con ese '+text+'!',
+                })
             })
-        })
-        document.addEventListener('livewire:load', function() {
-            $( document ).ready(
-                setTimeout(function (){
-                    initializeSelect2()
-                }, 100)
-            );
-            $('.select2').on('change', function(){
-            @this.set(this.id, $(this).val())
+            document.addEventListener('livewire:load', function() {
+                $( document ).ready(
+                    setTimeout(function (){
+                        initializeSelect2()
+                    }, 100)
+                );
+                $('.select2').on('change', function(){
+                @this.set(this.id, $(this).val())
+                })
             })
-        })
-    </script>
+        </script>
     @endsection
 </div>

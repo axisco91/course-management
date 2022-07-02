@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
+use App\Exports\CompaniesExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CompanyController extends Controller
 {
@@ -22,5 +24,9 @@ class CompanyController extends Controller
 
     public function view($id){
         return view('companies.view', compact('id'));
+    }
+
+    public function export(){
+        return (new CompaniesExport())->download('empresas.xlsx');
     }
 }

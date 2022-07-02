@@ -10,7 +10,7 @@
         @include('registrations.index')
         @include('livewire.courses.tracings')
         @include('livewire.courses.chores')
-        @include('livewire.courses.updateChore')
+        @include('livewire.courses.update-chore')
         @include('courses.info')
     </div>
     <div class="card-body mt-2">
@@ -66,9 +66,12 @@
 
             </div>
             <div class="col-md-4">
-                <a class="btn btn-sm btn-info" href="{{url('/courses/create')}}">
+                <a wire:ignore class="btn btn-sm btn-info" href="{{url('/courses/create')}}">
                     <i data-feather="plus-circle" class="me-50"></i> Añadir curso
                 </a>
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
             </div>
         </div>
     </div>

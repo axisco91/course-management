@@ -196,4 +196,5 @@
             })
         })
     </script>
+        @endsection
 </div>

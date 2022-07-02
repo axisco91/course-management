@@ -9,6 +9,7 @@
         @endif
         @include('livewire.users.create')
         @include('livewire.users.update')
+        @include('livewire.users.changePassword')
     </div>
     <div class="card-body mt-2">
         <div class="row g-1 mb-md-1">
@@ -19,8 +20,8 @@
 
             </div>
             <div class="col-md-4">
-                <div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
-                    <i class="fa fa-plus"></i>  Añadir Usuario
+                <div wire:ignore class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
+                    <i data-feather="plus-circle" class="me-50"></i> Añadir Usuario
                 </div>
             </div>
         </div>
@@ -53,6 +54,7 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
                                 <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                                <a data-bs-toggle="modal" data-bs-target="#passwordModal" class="dropdown-item" wire:click="changePassword({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Cambiar Contraseña</a>
                             </div>
                         </div>
                     </td>

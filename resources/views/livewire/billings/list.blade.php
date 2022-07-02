@@ -137,7 +137,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         id = $(this).data('id');
-                        Livewire.emit('destroy', id)
+                        Livewire.emit('destroy', 30)
                         window.addEventListener('eliminated', e=>{
                             if (e.detail.value != ''){
                                 swalWithBootstrapButtons.fire(

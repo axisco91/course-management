@@ -47,8 +47,9 @@ class Tracing extends Model
 
     public function getTracings($keyWord, $course_search, $company_search, $student_search, $status_search){
         $tracings = Tracing::select('tracings.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name', 'students.surname as student_surname',
-            'training_actions.number_activities', 'training_actions.number_units', 'training_actions.total_hours')
+            'training_actions.number_activities', 'training_actions.number_units', 'training_actions.total_hours', 'course_statuses.name as status', 'courses.group as course_group')
             ->leftjoin('courses', 'courses.id', '=', 'tracings.course_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', 'courses.course_status_id')
             ->leftjoin('companies', 'companies.id', '=', 'tracings.company_id')
             ->leftjoin('students', 'students.id', '=', 'tracings.student_id')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');

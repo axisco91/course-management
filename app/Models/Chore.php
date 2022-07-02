@@ -47,8 +47,10 @@ class Chore extends Model
     }
 
     public function getChores($keyWord, $course_search, $company_search, $student_search, $status_search){
-        $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name', 'students.surname as student_surname')
+        $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name',
+            'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group')
             ->leftjoin('courses', 'courses.id', '=', 'chores.course_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
             ->leftjoin('companies', 'companies.id', '=', 'chores.company_id')
             ->leftjoin('students', 'students.id', '=', 'chores.student_id');
 

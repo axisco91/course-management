@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\CoursesExport;
 use App\Helpers\CourseStatusHelper;
 use App\Models\Billing;
 use App\Models\Center;
@@ -198,5 +199,10 @@ class Courses extends Component
             $this->create_formation_center_id = $record->create_formation_center_id;
             $this->create_teacher_id = $record->create_teacher_id;
         }
+    }
+
+    public function downloadExcel(){
+        $this->excelModal = false;
+        return (new CoursesExport($this->search_formative_action, $this->search_name, $this->search_group, $this->search_type, $this->search_status, $this->search_company))->download('courses.xlsx');
     }
 }

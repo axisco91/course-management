@@ -85,7 +85,7 @@ class TrainingAction extends Model
         return $this->hasOne('App\Models\WebPlatform', 'id', 'web_platform_id');
     }
 
-    public function getTrainingActions($keyWord,$inactiveFilter, $search_formative_actions, $search_name){
+    public function getTrainingActions($keyWord,$inactiveFilter, $search_formative_actions, $search_name, $search_professional_family_id, $search_professional_area_id, $search_modality_id, $search_provider_id){
         $trainingActions = TrainingAction::
         select('training_actions.*',
             'action_types.name as action_type', 'professional_families.name as professional_family',
@@ -133,7 +133,29 @@ class TrainingAction extends Model
             $query->orWhere('formative_action', 'LIKE', $search_formative_actions);
         })->where(function ($query) use ($search_name){
             $query->orWhere('training_actions.name', 'LIKE', $search_name);
-        })->orderby('id', 'asc')
+        });
+        if ($search_professional_family_id){
+            $trainingActions = $trainingActions->where(function ($query) use ($search_professional_family_id){
+                $query->orWhere('training_actions.professional_family_id', $search_professional_family_id);
+            });
+        }
+        if ($search_professional_area_id){
+            $trainingActions = $trainingActions ->where(function ($query) use ($search_professional_area_id){
+                $query->orWhere('training_actions.professional_area_id', $search_professional_area_id);
+            });
+        }
+        if ($search_modality_id){
+            $trainingActions = $trainingActions->where(function ($query) use ($search_modality_id){
+                $query->orWhere('training_actions.modality_id', $search_modality_id);
+            });
+        }
+       if ($search_provider_id){
+           $trainingActions = $trainingActions->where(function ($query) use ($search_provider_id){
+               $query->orWhere('training_actions.provider_id', $search_provider_id);
+           });
+       }
+
+        $trainingActions = $trainingActions->orderby('id', 'asc')
             ->paginate(10);
         return $trainingActions;
     }

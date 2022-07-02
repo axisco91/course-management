@@ -7,7 +7,7 @@
             </div>
             <div class="modal-body pb-5 px-sm-5 pt-50">
                 <div class="text-center mb-2">
-                    <h1 class="mb-1">{{$this-> course_name}} - {{$this-> student_name}}</h1>
+                    <h1 class="mb-1">{{ str_replace( ' -', '/'.$this->course_group.' -', $this->course_name)}} - {{$this-> student_name}} - {{$this-> beginning}} / {{$this-> end}}</h1>
                 </div>
                 <ul class="nav nav-tabs">
                     <li class="nav-item">

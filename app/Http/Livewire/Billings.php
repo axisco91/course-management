@@ -20,6 +20,9 @@ class Billings extends Component
     public $courses, $companies, $payments, $tab = 'info', $students, $search_student_name, $search_surname;
     public $updateMode = false;
     public $course_search = -1, $company_search = -1, $student_search = -1, $is_bonus_search = -1;
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
 
     public function render()
     {

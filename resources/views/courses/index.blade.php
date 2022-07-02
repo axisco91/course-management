@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ asset('app-assets/vendors/css/forms/select/select2.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/pickadate/pickadate.css')}}">
     <link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{asset('css/register.css')}}">
 @endsection
 
 @section('content')
@@ -26,4 +27,3 @@
     <script src="{{asset('app-assets/js/scripts/forms/pickers/form-pickers.js')}}"></script>
     <script src="{{asset('app-assets/vendors/js/pickers/pickadate/picker.time.js')}}"></script>
     <script src="{{asset('app-assets/vendors/js/pickers/pickadate/legacy.js')}}"></script>
-@endsection

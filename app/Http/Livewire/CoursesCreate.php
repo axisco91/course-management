@@ -46,7 +46,8 @@ class CoursesCreate extends Component
         $this->updateMode = false;
     }
 
-    public function mount(){
+    public function mount($id){
+        $this->training_action_id = $id;
         $this->training_actions = TrainingAction::where('active', 1)->get();
         $this->course_types = CourseType::all();
         $this->teachers = Teacher::where('active', 1)->get();

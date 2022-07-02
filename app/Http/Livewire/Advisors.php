@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\AdvisorsExport;
 use App\Models\Advisor;
 use App\Models\Cnae;
 use App\Models\Company;
@@ -19,17 +20,18 @@ class Advisors extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $inactiveFilter, $name, $company_id, $irpf, $commission, $contact_1, $contact_2, $contact_3, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $inactive;
     public $company_types, $company_activities, $cnaes, $provinces, $company_advisors, $tab = 'info';
-    public $search_company_name, $companies;
+    public $search_name, $companies, $search_nif, $search_type_id, $search_activity_id, $search_province_id, $search_company_name;
     public $updateMode = false;
 
     public function render()
     {
         $keyWord = '%'.$this->keyWord .'%';
+        $search_name = '%'.$this->search_name.'%';
+        $search_nif = '%'.$this->search_nif.'%';
 
-        $advisors = Advisor::getAdvisors($keyWord, $this->inactiveFilter);
-
+        $advisors = Advisor::getAdvisors($keyWord, $this->inactiveFilter, $search_name, $search_nif, $this->search_type_id, $this->search_activity_id, $this->search_province_id);
+        $search_company_name = '%'.$this->search_company_name.'%';
         if ($this->selected_id){
-            $search_company_name = '%'.$this->search_company_name.'%';
             $this->companies = Company::getAdvisorsCompanies($this->selected_id, $search_company_name);
         }
 
@@ -46,6 +48,10 @@ class Advisors extends Component
         $this->company_advisors = Advisor::select('advisors.*')
             ->join('companies', 'companies.id', '=', 'advisors.company_id')
             ->where('companies.inactive', 0)->get();
+    }
+
+    public function hydrate(){
+        $this->emit('select2');
     }
 
     public function cancel()
@@ -128,5 +134,10 @@ class Advisors extends Component
             $this->active = $record->active;
             $this->advisor_id = $record->advisor_id;
         }
+    }
+
+    public function downloadExcel(){
+        $this->excelModal = false;
+        return (new AdvisorsExport($this->search_name, $this->search_nif, $this->search_type_id, $this->search_activity_id, $this->search_province_id, $this->inactiveFilter))->download('asesorias.xlsx');
     }
 }

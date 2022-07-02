@@ -126,11 +126,15 @@ class Users extends Component
             ];
             User::updateUser($this->selected_id, $data);
 
-            $this->resetInput();
+           // $this->resetInput();
             $this->emit('closeUpdateModal');
             $this->updateMode = false;
             session()->flash('message', 'Usuario editado con exito.');
             $this->emit('toastr', 'success');
         }
+    }
+
+    public function changePassword(){
+
     }
 }

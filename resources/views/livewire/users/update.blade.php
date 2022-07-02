@@ -1,5 +1,5 @@
-<div wire:ignore.self class="modal fade" id="updateModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-edit-user">
+<div wire:ignore.self class="modal fade" id="updateModal" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-edit-user">
         <div class="modal-content">
             <div class="modal-header bg-transparent">
                 <button type="button" wire:click.prevent="cancel()" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -47,32 +47,38 @@
                 </form>
             </div>
         </div>
+    @section('vendor-script')
+        <!-- vendor files -->
+            <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+    @endsection
+    @section('page-script')
+        <!-- Page js files -->
+            <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+        @endsection
         @section('scripts')
-        <script>
-            Livewire.on('alreadyExists', type => {
-                text = '';
-                if (type == 'dni'){
-                    text = 'DNI';
-                } else if (type == 'user'){
-                    text = 'usuario'
-                }
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Ya Existe',
-                    text: '¡Ya existe un usuario con ese '+text+'!',
+            <script>
+                Livewire.on('alreadyExists', type => {
+                    text = '';
+                    if (type == 'user'){
+                        text = 'usuario'
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Ya Existe',
+                        text: '¡Ya existe un usuario con ese '+text+'!',
+                    })
                 })
-            })
-            document.addEventListener('livewire:load', function() {
-                $('body').on('show.bs.modal', '#updateModal', function (e) {
-                    setTimeout(function (){
-                        initializeSelect2()
-                    }, 100)
-                });
-                $('.select2').on('change', function(){
-                @this.set(this.id, $(this).val())
+                document.addEventListener('livewire:load', function() {
+                    $( document ).ready(
+                        setTimeout(function (){
+                            initializeSelect2()
+                        }, 100)
+                    );
+                    $('.select2').on('change', function(){
+                    @this.set(this.id, $(this).val())
+                    })
                 })
-            })
-        </script>
+            </script>
         @endsection
     </div>
 </div>

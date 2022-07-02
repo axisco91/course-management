@@ -26,7 +26,7 @@
                     </div>
                 @elseif($tab == 'courses')
                     <div class="tab-pane container" id="courses">
-                        @include('livewire.training-actions.course-list')
+                        @include('livewire.training-actions.courseList')
                     </div>
                 @endif
             </div>

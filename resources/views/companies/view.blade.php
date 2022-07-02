@@ -20,6 +20,3 @@
         </div>
     </section>
 @endsection
-@section('scripts')
-    <script src="{{ asset('app-assets/js/scripts/forms/form-validation.js') }}"></script>
-@endsection

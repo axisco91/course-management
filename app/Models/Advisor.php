@@ -11,7 +11,7 @@ class Advisor extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3', 'nif', 'company_type_id', 'company_activity_id', 'email', 'telephone', 'legal_representative', 'dni_legal_representative', 'cnae_id', 'iban', 'iban', 'sepa', 'b2b', 'address', 'post_code', 'population_id', 'province_id', 'prpulation', 'active'];
+    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3', 'nif', 'company_type_id', 'company_activity_id', 'email', 'telephone', 'legal_representative', 'dni_legal_representative', 'cnae_id', 'iban', 'sepa', 'b2b', 'address', 'post_code', 'population_id', 'province_id', 'population', 'active'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -29,7 +29,7 @@ class Advisor extends Model
         return $this->hasOne('App\Models\Company', 'id', 'company_id');
     }
 
-    public function getAdvisors($keyWord, $inactiveFilter){
+    public function getAdvisors($keyWord, $inactiveFilter, $search_name, $search_nif, $search_type_id, $search_activity_id, $search_province_id){
         $advisors = Advisor::select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province')
             ->leftjoin('company_types', 'company_types.id', '=', 'advisors.company_type_id')
@@ -62,7 +62,27 @@ class Advisor extends Model
                 ->orWhere('provinces.name', 'LIKE', $keyWord)
                 ->orWhere('advisors.population', 'LIKE', $keyWord)
                 ->orWhere('advisors.active', 'LIKE', $keyWord);
-        })->orderBy('advisors.name', 'desc')
+        })->where(function ($query) use ($search_name){
+            $query->orWhere('advisors.name', 'LIKE', $search_name);
+        })->where(function ($query) use ($search_nif){
+            $query->orWhere('advisors.nif', 'LIKE', $search_nif);
+        });
+        if ($search_type_id){
+            $advisors = $advisors->where(function ($query) use ($search_type_id){
+                $query->orWhere('advisors.company_type_id', $search_type_id);
+            });
+        }
+        if ($search_activity_id){
+            $advisors = $advisors->where(function ($query) use ($search_activity_id){
+                $query->orWhere('advisors.company_activity_id', $search_activity_id);
+            });
+        }
+       if ($search_province_id){
+           $advisors = $advisors->where(function ($query) use ($search_province_id){
+               $query->orWhere('advisors.province_id', $search_province_id);
+           });
+       }
+        $advisors = $advisors->orderBy('advisors.name', 'desc')
             ->paginate(10);
 
         return $advisors;
@@ -108,6 +128,32 @@ class Advisor extends Model
             'contact_1' => $data['contact_1'],
             'contact_2' => $data['contact_2'],
             'contact_3' => $data['contact_3'],
+            'nif' => $data['nif'],
+            'company_type_id' => $data['company_type_id'],
+            'company_activity_id' => $data['company_activity_id'],
+            'email' => $data['email'],
+            'telephone' => $data['telephone'],
+            'legal_representative' => $data['legal_representative'],
+            'dni_legal_representative' => $data['dni_legal_representative'],
+            'cnae_id' => $data['cnae_id'],
+            'iban' => $data['iban'],
+            'sepa' => $data['sepa'],
+            'b2b' => $data['b2b'],
+            'address' => $data['address'],
+            'post_code' => $data['post_code'],
+            'province_id' => $data['province_id'],
+            'population' => $data['population'],
+            'active' => $data['active'],
+        ]);
+
+        return $advisor;
+    }
+
+    public function updateAdvisorCompany($id, $data){
+        $advisor = Advisor::find($id);
+        $advisor->update([
+            'name' => $data['name'],
+            'company_id' => $data['company_id'],
             'nif' => $data['nif'],
             'company_type_id' => $data['company_type_id'],
             'company_activity_id' => $data['company_activity_id'],
