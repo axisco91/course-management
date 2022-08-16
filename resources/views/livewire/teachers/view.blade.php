@@ -1,6 +1,6 @@
 <div class="card-body">
     <div class="col-12 mb-1">
-        <button type="button" class="btn btn-success right" id="enable_edit_teacher">Editar</button>
+        <a href="{{url('/teachers/edit/'.$this->selected_id)}}" class="btn btn-success right">Editar</a>
     </div>
     <form class="form">
         <input type="hidden" wire:model.lazy="selected_id">
@@ -105,13 +105,13 @@
             <div class="col-12">
                 <div class="mb-1">
                     <label class="form-label" for="observation">Observación</label>
-                    <textarea wire:model.lazy="observation" class="form-control @error('observation') is-invalid @enderror" rows="4" id="observation" placeholder="observaciones" disabled></textarea>
-                    @error('observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    <textarea wire:model.lazy="observations" class="form-control @error('observations') is-invalid @enderror" rows="4" id="observation" placeholder="observaciones" disabled></textarea>
+                    @error('observations') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
             </div>
         </div>
         <div class="col-12">
-            <button type="button" wire:click.prevent="update()" class="btn btn-primary me-1">Guardar</button>
+
         </div>
     </form>
     @section('vendor-script')

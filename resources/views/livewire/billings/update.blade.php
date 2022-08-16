@@ -121,8 +121,6 @@
                         <input wire:model.lazy="communication_start_date" type="date" class="form-control" id="communication_start_date">@error('communication_start_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
-                @endif
-                @if($is_bonus)
                 <div class="col-md-4 col-12">
                     <div class="mb-1">
                         <label class="form-label" for="communication_end_date">Fecha Comunicación Cierre</label>
@@ -178,7 +176,7 @@
                 </div>
             </div>
             <div class="col-12">
-                <a href="{{ url()->previous() }}" class="btn btn-secondary">Volver</a>
+                <a href="{{url('/billings')}}" class="btn btn-secondary">Volver</a>
                 <button type="button" wire:click.prevent="update()" class="btn btn-primary">Guardar</button>
             </div>
         </form>

@@ -76,7 +76,9 @@ class Billings extends Component
 
     public function destroy($id)
     {
+        $prueba = 'entra';
         if ($id) {
+            $prueba = 'entra';
             Registration::eliminateBill($id);
             $value = Billing::destroy($id);
             $this->dispatchBrowserEvent('eliminated', ['value' => $value]);

@@ -82,9 +82,9 @@ class ProvidersCreate extends Component
     {
         $this->validate([
             'name' => 'required',
-            'create_type_id' => 'required',
-            'create_activity_id' => 'required',
-            'create_province_id' => 'required',
+            'type_id' => 'required',
+            'activity_id' => 'required',
+            'province_id' => 'required',
         ]);
 
         if ($this->nif){

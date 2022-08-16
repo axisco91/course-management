@@ -54,7 +54,7 @@
                 <tr>
                     <td>#</td>
                     <th>Curso</th>
-                    <th>Grupo</th>
+                    <th>Año</th>
                     <th>Empresa</th>
                     <th>Alumno</th>
                     <th>Beneficios</th>
@@ -65,8 +65,8 @@
                 @foreach($profitabilities as $row)
                 <tr>
                     <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->course_name }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->course_group }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ str_replace( ' -', '/'.$row->course_group.' -', $row->course_name) }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->beginning ? Carbon\Carbon::parse($row->beginning)->year : '' }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->company_name }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->student_name }} {{$row->student_surname}}</td>
                     <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->benefits }}</td>

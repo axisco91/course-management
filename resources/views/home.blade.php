@@ -1,7 +1,6 @@
-
 @extends('layouts/contentLayoutMaster')
 
-@section('title', 'Dashboard Analytics')
+@section('title', 'Home')
 
 @section('vendor-style')
     <!-- vendor css files -->
@@ -16,6 +15,7 @@
     <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/charts/chart-apex.css')}}">
     <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/extensions/ext-component-toastr.css')}}">
     <link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/pages/app-invoice-list.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{asset('app-assets/fullcalendar/main.css')}}"/>
 @endsection
 
 @section('content')
@@ -34,8 +34,4 @@
     <script src="{{asset('app-assets/vendors/js/tables/datatable/dataTables.bootstrap5.min.js')}}"></script>
     <script src="{{asset('app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js')}}"></script>
     <script src="{{asset('app-assets/vendors/js/tables/datatable/responsive.bootstrap5.js')}}"></script>
-@endsection
-@section('page-script')
-    <!-- Page js files -->
-    <script src="{{asset('app-assets/js/scripts/pages/app-invoice-list.js')}}"></script>
 @endsection

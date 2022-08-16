@@ -6,7 +6,7 @@
         <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
     @endif
     <div class="col-12 mb-1">
-        <button type="button" class="btn btn-success right" id="enable_edit_provider">Editar</button>
+        <a href="{{url('/providers/edit/'.$this->selected_id)}}" class="btn btn-success right">Editar</a>
     </div>
     <form class="form needs-validation" novalidate>
         <input type="hidden" wire:model="selected_id">
@@ -202,8 +202,7 @@
             </div>
         </div>
         <div class="col-12">
-            <a href="{{ url()->previous() }}" class="btn btn-secondary">Volver</a>
-            <button type="button" wire:click.prevent="update()" class="btn btn-primary" data-bs-dismiss="modal">Guardar</button>
+            <a href="{{url('/providers')}}" class="btn btn-secondary">Volver</a>
         </div>
     </form>
     @section('vendor-script')

@@ -1,6 +1,6 @@
 <div class="card-body">
     <div class="col-12 mb-1">
-        <button type="button" class="btn btn-success right" id="enable_edit_student">Editar</button>
+        <a href="{{url('/students/edit/'.$this->selected_id)}}" class="btn btn-success right">Editar</a>
     </div>
     <form class="form needs-validation" novalidate>
         <input type="hidden" wire:model.lazy="selected_id">
@@ -42,7 +42,7 @@
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
-                    <label class="form-label" for="company_id">Empresa</label>
+                    <label class="form-label" for="company_id">Empresa</label> <a href="{{url('/companies/view/'.$this->company_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
                     <select class="form-select select2 @error('comapny_id') is-invalid @enderror" wire:model.lazy="company_id" id="company_id" disabled>
                         <option value="">Seleccione una empresa</option>
                         @foreach($companies as $company)
@@ -210,7 +210,7 @@
             </div>
         </div>
         <div class="col-12 mb-1">
-            <button type="button" wire:click.prevent="update()" id="save_student" class="btn btn-primary me-1" style="display: none">Guardar</button>
+            <a href="{{url('/students')}}" class="btn btn-secondary">Volver</a>
         </div>
     </form>
 @section('vendor-script')

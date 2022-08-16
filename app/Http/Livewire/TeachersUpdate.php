@@ -67,14 +67,14 @@ class TeachersUpdate extends Component
 
         if ($this->selected_id) {
             if ($this->dni){
-                $dni = Teacher::findDni($this->dni);
+                $dni = Teacher::findDni($this->dni, $this->selected_id);
                 if ($dni){
                     $this->emit('alreadyExists', 'dni');
                     return;
                 }
             }
             if ($this->user){
-                $user = Teacher::findUser($this->user);
+                $user = Teacher::findUser($this->user, $this->selected_id);
                 if ($user){
                     $this->emit('alreadyExists', 'user');
                     return;

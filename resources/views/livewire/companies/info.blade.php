@@ -76,7 +76,7 @@
         </div>
     </div>
     <div class="col-md-4 col-12">
-      <label class="form-label" for="advisor_id">Asesoria</label> @if($this->advisor_id)<a href="{{url('/advisors/view/'.$this->selected_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
+      <label class="form-label" for="advisor_id">Asesoria</label> @if($this->advisor_id)<a href="{{url('/advisors/view/'.$this->advisor_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
         @endif
         <div wire:ignore>
             <select wire:model.lazy="advisor_id" class="form-select" id="advisor_id" placeholder="Advisor Id" disabled>

@@ -57,8 +57,7 @@
                 <label class="form-label" for="welcome_guid_status">Guia Bienvenida</label>
                 <select class="form-select" wire:model.lazy="welcome_guid_status" id="welcome_guid_status">
                     <option value="0">Pendiente</option>
-                    <option value="1">Enviada</option>
-                    <option value="2">Recibida</option>
+                    <option value="1">Enviada</option>+
                 </select>
             </div>
             <div class="col-md-3 col-12 mb-1">
@@ -121,7 +120,7 @@
                 </select>
             </div>
             <div class="col-md-3 col-12 mb-1">
-                <label class="form-label" for="invoiced_date">Fecha Facturado</label>
+                <label class="form-label" for="invoiced_status">Fecha Facturado</label>
                 <input type="date" id="invoiced_date" wire:model.lazy="invoiced_date" class="form-control flatpickr-basic" placeholder="YYYY-MM-DD" />
             </div>
             <div class="col-md-3 col-12 mb-1">
@@ -138,7 +137,7 @@
             </div>
         </div>
         <div class="col-12 mb-1">
-            <a href="{{ url()->previous() }}" class="btn btn-secondary">Volver</a>
+            <a href="{{url('/chores')}}" class="btn btn-secondary">Volver</a>
             <button type="button" wire:click.prevent="update()" class="btn btn-primary">Guardar</button>
         </div>
     </form>

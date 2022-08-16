@@ -19,14 +19,14 @@
             <div class="col-md-4 col-12">
                 <div class="mb-1">
                     <label class="form-label" for="dni">DNI</label>
-                    <input wire:model.lazy="dni" type="text" class="form-control" id="dni" placeholder="Dni">
+                    <input wire:model.lazy="dni" type="text" class="form-control @error('dni') is-invalid @enderror" id="dni" placeholder="Dni">
                     @error('dni') <div class="invalid-feedback">DNI es requerido</div> @enderror
                 </div>
             </div>
             <div class="col-md-4 col-12">
                 <div class="mb-1">
                     <label class="form-label" for="email">Correo</label>
-                    <input wire:model.lazy="email" type="email" class="form-control" id="email" placeholder="Correo">
+                    <input wire:model.lazy="email" type="email" class="form-control @error('email') is-invalid @enderror" id="email" placeholder="Correo">
                     @error('email') <div class="invalid-feedback">Correo es requerido</div> @enderror
                 </div>
             </div>
@@ -40,14 +40,14 @@
             <div class="col-md-4 col-12">
                 <div class="mb-1">
                     <label class="form-label" for="user">Usuario</label>
-                    <input wire:model.lazy="user" type="text" class="form-control" id="user" placeholder="Usuario">
+                    <input wire:model.lazy="user" type="text" class="form-control @error('user') is-invalid @enderror" id="user" placeholder="Usuario">
                     @error('user') <div class="invalid-feedback">Usuario es requerido</div> @enderror
                 </div>
             </div>
             <div class="col-md-4 col-12">
                 <div class="mb-1">
                     <label class="form-label" for="password">Contraseña</label>
-                    <input wire:model.lazy="password" type="text" class="form-control" id="password" placeholder="Contraseña">
+                    <input wire:model.lazy="password" type="text" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Contraseña">
                     @error('user') <div class="invalid-feedback">Contraseña es requerido</div> @enderror
                 </div>
             </div>
@@ -102,14 +102,14 @@
             <div class="col-12">
                 <div class="mb-1">
                     <label class="form-label" for="observation">Observación</label>
-                    <textarea wire:model.lazy="observation" class="form-control @error('observation') is-invalid @enderror" rows="4" placeholder="observaciones"></textarea>
-                    @error('observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    <textarea wire:model.lazy="observations" class="form-control @error('observations') is-invalid @enderror" rows="4" placeholder="observaciones"></textarea>
+                    @error('observations') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
             </div>
         </div>
         <div class="col-12">
-            <a href="{{ url()->previous() }}" class="btn btn-outlined-secondary">Volver</a>
-            <button type="button" wire:click.prevent="update()" class="btn btn-primary me-1">Guardar</button>
+            <a href="{{url('/teachers')}}" class="btn btn-outlined-secondary">Volver</a>
+            <button id="save" type="button" wire:click.prevent="update()" class="btn btn-primary me-1">Guardar</button>
         </div>
     </form>
     @section('vendor-script')
@@ -144,6 +144,38 @@
             $('.select2').on('change', function(){
             @this.set(this.id, $(this).val())
             })
+        })
+        $('body').on('click', '#save', function(){
+            content = ''
+            if ($('#name').val() == ''){
+                content += 'El nombre es requerido<br>'
+            }
+            if ($('#surname').val() == ''){
+                content += 'El apellido es requerido<br>'
+            }
+            if ($('#dni').val() == ''){
+                content += 'El DNI es requerido<br>'
+            }
+            if ($('#email').val() == ''){
+                content += 'El correo es requerido<br>'
+            }
+            if ($('#user').val() == ''){
+                content += 'El usuario es requerido<br>'
+            }
+            if ($('#password').val()== ''){
+                content += 'La contraseña es requerido<br>'
+            }
+            if (content != ''){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Falta datos',
+                    html: '<div>'+content+'</div>',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                    buttonsStyling: false
+                });
+            }
         })
     </script>
     @endsection

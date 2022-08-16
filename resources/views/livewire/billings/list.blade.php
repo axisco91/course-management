@@ -64,9 +64,8 @@
                 <tr>
                     <td>#</td>
                     <th>Nº Factura</th>
-                    <th>Acción</th>
-                    <th>Grupo</th>
                     <th>Curso</th>
+                    <th>Año</th>
                     <th>Tipo</th>
                     <th>Empresa</th>
                     <th>Numero Alumnos</th>
@@ -79,9 +78,8 @@
                 <tr>
                     <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->billing_number }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->training_action }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->group}}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->course }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->training_action}}/{{$row->group}} {{$row->course }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->billing_date ? Carbon\Carbon::parse($row->billing_date)->year : ''}}</td>
                     <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->is_bonus == 0 ? 'No bonificada' : 'Bonificada' }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->company }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->number_students }}</td>

@@ -93,6 +93,9 @@
                                 @else
                                     <a class="dropdown-item desactivate" data-id="{{$row->id}}"><i class="fa fa-active"></i> Desactivar </a>
                                 @endif
+                                @if (!$row->used)
+                                    <a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
+                                @endif
                             </div>
                         </div>
                     </td>
@@ -102,5 +105,60 @@
         </table>
         {{ $teachers->links() }}
     </div>
+    @section('scripts')
+        <script>
+            document.addEventListener('livewire:load', function () {
+                $('body').on('click', '.eliminar', function () {
+                    button = $(this)
+                    const swalWithBootstrapButtons = Swal.mixin({
+                        customClass: {
+                            confirmButton: 'btn btn-success',
+                            cancelButton: 'btn btn-danger'
+                        },
+                        buttonsStyling: false
+                    })
 
+                    swalWithBootstrapButtons.fire({
+                        title: '¿Estas seguro?',
+                        text: "Eliminaras al docente!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Si, eliminalo!',
+                        cancelButtonText: 'No, cancela!',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            id = $(this).data('id');
+                            Livewire.emit('destroy', id)
+                            window.addEventListener('eliminated', e=>{
+                                if (e.detail.value != ''){
+                                    swalWithBootstrapButtons.fire(
+                                        'Eliminado!',
+                                        'Eliminado con exito.',
+                                        'success'
+                                    )
+                                } else{
+                                    swalWithBootstrapButtons.fire(
+                                        'Error',
+                                        'Fallo al eliminar.',
+                                        'error'
+                                    )
+                                }
+                            });
+
+                        } else if (
+                            /* Read more about handling dismissals below */
+                            result.dismiss === Swal.DismissReason.cancel
+                        ) {
+                            swalWithBootstrapButtons.fire(
+                                'Cacelado',
+                                'No se ha podido eliminar.',
+                                'error'
+                            )
+                        }
+                    })
+                })
+            })
+        </script>
+    @endsection
 </div>

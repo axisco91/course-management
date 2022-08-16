@@ -8,7 +8,7 @@
             <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
         @endif
         @include('livewire.tracings.info')
-        @include('livewire.tracings.update')
+        @include('livewire.tracings.update-modal')
     </div>
     <!--Search Form -->
     <div class="card-body mt-2">
@@ -68,8 +68,9 @@
                 <th>Curso</th>
                 <th>Empresa</th>
                 <th>Alumno</th>
-                <th>Actividades Realizadas</th>
+                <th>Estado</th>
                 <th>Horas Realizadas</th>
+                <th>Actividades Realizadas</th>
                 <th>Unidades Realizadas</th>
                 <th>Fecha Seguimiento</th>
                 <th>Test Final</th>
@@ -86,13 +87,14 @@
             @foreach($tracings as $row)
                 <tr>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->course }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ str_replace( ' -', '/'.$row->course_group.' -', $row->course) }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->company }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->student_name}} {{$row->student_surname}}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->performed_activities }} / {{$row->number_activities}}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->status }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->performed_hours }} / {{$row->total_hours}}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->performed_activities }} / {{$row->number_activities}}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->performed_units }} / {{$row->number_units}}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->follow_up_date }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ Carbon\Carbon::parse($row->follow_up_date)->format('d/m/Y') }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->final_test }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->questionnaire }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->welcome_message == 1 ? 'Si' : 'No' }}</td>

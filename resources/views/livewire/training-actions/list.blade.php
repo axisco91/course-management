@@ -13,12 +13,56 @@
     <div class="card-body mt-2">
         <div class="row g-1 mb-md-1">
             <div class="col-md-4">
-                <label class="form-label">Accion Formativa:</label>
-                <input wire:model="search_formative_actions" type="text" class="form-control dt-input" data-column="2" placeholder="Apellidos" data-column-index="1" />
+                <label class="form-label">Acción Formativa:</label>
+                <input wire:model="search_formative_actions" type="text" class="form-control dt-input" data-column="2" placeholder="Acción Formativa" data-column-index="1" />
             </div>
             <div class="col-md-4">
                 <label class="form-label">Nombre:</label>
                 <input wire:model="search_name" type="text" class="form-control dt-input dt-full-name" data-column="1" placeholder="Nombre" data-column-index="0" />
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="form-label" for="search_professional_family_id">Familia profesional</label>
+                <div wire:ignore>
+                    <select wire:model.lazy="search_professional_family_id" class="form-select select2" id="search_professional_family_id" placeholder="Familia profesional Id">
+                        <option value="">Selección una familia profesional</option>
+                        @foreach($professional_families as $professional_family)
+                            <option value="{{$professional_family['id']}}">{{$professional_family['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="form-label" for="search_professional_area_id">Area profesional</label>
+                <div wire:ignore>
+                    <select wire:model.lazy="search_professional_area_id" class="form-select select2" id="search_professional_area_id" placeholder="Area profesional Id">
+                        <option value="">Selección una area profesional</option>
+                        @foreach($professional_areas as $professional_area)
+                            <option value="{{$professional_area['id']}}">{{$professional_area['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="form-label" for="search_modality_id">Modalidad</label>
+                <div wire:ignore>
+                    <select wire:model.lazy="search_modality_id" class="form-select select2" id="search_modality_id" placeholder="Modalidad">
+                        <option value="">Selección una modalidad</option>
+                        @foreach($modalities as $modality)
+                            <option value="{{$modality['id']}}">{{$modality['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="form-label" for="search_provider_id">Proveedor</label>
+                <div wire:ignore>
+                    <select wire:model.lazy="search_provider_id" class="form-select select2" id="search_provider_id" placeholder="Proveedor">
+                        <option value="">Selección un proveedor</option>
+                        @foreach($providers as $provider)
+                            <option value="{{$provider['id']}}">{{$provider['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -28,12 +72,15 @@
                 <input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
             </div>
             <div class="col-md-4">
-
+                <label class="form-label" for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
             </div>
             <div class="col-md-4">
                 <a wire:ignore class="btn btn-sm btn-info" href="{{url('/training-actions/create')}}">
-                    <i class="fa fa-plus"></i>  Añadir Acción Formativa
+                    <i data-feather="plus-circle" class="me-50"></i> Añadir Acción Formativa
                 </a>
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
             </div>
         </div>
     </div>
@@ -47,7 +94,6 @@
                     <th>Horas</th>
                     <th>Familia Profesional</th>
                     <th>Area Profesional</th>
-                    <th>Actvio</th>
                     <th>Modalidad</th>
                     <th>Proveedor</th>
                     <th>Estado</th>
@@ -62,7 +108,6 @@
                     <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->total_hours }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->professional_family }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->professional_area }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->active == 1 ? 'Si' : 'No' }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->modality }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})">{{ $row->provider }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#trainingActionTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->active == 0 ?'danger' : 'success'}} me-1">{{$row->active == 0 ? 'Inactivo' : 'Activo'}}</span></td>
@@ -78,6 +123,10 @@
                                     <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
                                 @else
                                     <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
+                                @endif
+                                <a class="dropdown-item" href="{{url('/courses/create/'.$row->id)}}"><i data-feather="plus-circle" class="me-50"></i> Crear Curso</a>
+                                @if (!$row->used)
+                                    <a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
                                 @endif
                             </div>
                         </div>
@@ -97,6 +146,56 @@
     @endsection
     <script>
         document.addEventListener('livewire:load', function() {
+            $('body').on('click', '.eliminar', function () {
+                button = $(this)
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                })
+
+                swalWithBootstrapButtons.fire({
+                    title: '¿Estas seguro?',
+                    text: "Eliminaras a la acción formativa!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, eliminalo!',
+                    cancelButtonText: 'No, cancela!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        id = $(this).data('id');
+                        Livewire.emit('destroy', id)
+                        window.addEventListener('eliminated', e=>{
+                            if (e.detail.value != ''){
+                                swalWithBootstrapButtons.fire(
+                                    'Eliminado!',
+                                    'Eliminado con exito.',
+                                    'success'
+                                )
+                            } else{
+                                swalWithBootstrapButtons.fire(
+                                    'Error',
+                                    'Fallo al eliminar.',
+                                    'error'
+                                )
+                            }
+                        });
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cacelado',
+                            'No se ha podido eliminar.',
+                            'error'
+                        )
+                    }
+                })
+            })
             $( document ).ready(
                 setTimeout(function (){
                     initializeSelect2()

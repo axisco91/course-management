@@ -7,7 +7,7 @@
          <input wire:model.lazy="name" type="text" class="form-control" id="name" disabled placeholder="Nombre">@error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
      <div class="col-md-4 col-12 mb-1">
-         <label class="form-label" for="training_action_id">Acción Formativa</label>  <a href="{{url('/training-actions/view/'.$this->training_action_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
+         <label class="form-label" for="training_action_id">Acción Formativa</label> <a href="{{url('/training-actions/view/'.$this->training_action_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
          <div wire:ignore>
              <select wire:model.lazy="training_action_id" class="form-control" id="training_action_id" disabled>
                  <option value="">Selección una acción formativa</option>
@@ -56,7 +56,11 @@
      </div>
      <div class="col-md-4 col-12 mb-1">
          <label class="form-label" for="nebrija">Nebrija</label>
-         <input wire:model.lazy="nebrija" type="text" class="form-control" id="nebrija" placeholder="Nebrija" disabled>@error('nebrija') <div class="invalid-feedback">{{ $message }}</div> @enderror
+         <select wire:model.lazy="nebrija" class="form-control" id="nebrija" disabled>
+             <option vale="0">No</option>
+             <option value="1">Si</option>
+         </select>
+         @error('nebrija') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
      <div class="col-md-4 col-12 mb-1">
          <div wire:ignore>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\CompaniesExport;
 use App\Models\Advisor;
 use App\Models\Cnae;
 use App\Models\CompanyActivity;
@@ -28,7 +29,7 @@ class Companies extends Component
         $years;
     public $updateMode = false, $createObservationModal = false, $updateObservationModal = false, $createCreditModal = false;
     public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null, $students, $courses, $tab = 'info';
-    public $search_name, $search_nif, $search_student_name, $search_student_surname, $search_course_name, $search_group;
+    public $search_name, $search_nif, $search_type_id, $search_activity_id, $search_advisor_id, $search_province_id, $search_student_name, $search_student_surname, $search_course_name, $search_group;
     protected $listeners = [
         'destroy' => 'destroy'
     ];
@@ -38,7 +39,7 @@ class Companies extends Component
 		$keyWord = '%'.$this->keyWord .'%';
         $search_name = '%'.$this->search_name.'%';
         $search_nif = '%'.$this->search_nif.'%';
-        $companies = Company::getCompanies($keyWord, $this->inactiveFilter, $search_name, $search_nif);
+        $companies = Company::getCompanies($keyWord, $this->inactiveFilter, $search_name, $search_nif, $this->search_type_id, $this->search_activity_id, $this->search_advisor_id, $this->search_province_id);
         if ($this->selected_id){
             $search_student_name = '%'.$this->search_student_name.'%';
             $search_student_surname = '%'.$this->search_student_surname.'%';
@@ -54,6 +55,25 @@ class Companies extends Component
         if ($this->observations) {
             foreach ($this->observations as $observation){
                 $observation['date'] = Carbon::createFromFormat('Y-m-d H:i:s', $observation['created_at'])->format('d/m/Y');
+            }
+        }
+
+        foreach ($companies as $company){
+            $student = Student::where('company_id', $company->id)->first();
+            if ($student) {
+                $company['used'] = true;
+            } else {
+                $advisor = Advisor::where('company_id', $company->id)->first();
+                if ($advisor){
+                    $company['used'] = true;
+                } else {
+                    $provider = Provider::where('company_id', $company->id)->first();
+                    if ($provider) {
+                        $company['used'] = true;
+                    } else {
+                        $company['used'] = false;
+                    }
+                }
             }
         }
 
@@ -76,9 +96,7 @@ class Companies extends Component
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
         $this->provinces = Province::all();
-        $this->advisors = Advisor::select('advisors.*')
-            ->join('companies', 'companies.id', '=', 'advisors.company_id')
-            ->where('companies.active', 1)->get();
+        $this->advisors = Advisor::all();
         $this->company_id = null;
     }
 
@@ -339,5 +357,33 @@ class Companies extends Component
             $i++;
         }*/
         return $years = [];
+    }
+
+    public function downloadExcel(){
+        $this->excelModal = false;
+        return (new CompaniesExport($this->search_name, $this->search_nif, $this->search_type_id, $this->search_activity_id, $this->search_advisor_id, $this->search_province_id, $this->inactiveFilter))->download('empresas.xlsx');
+    }
+
+    public function destroy($id)
+    {
+
+        if ($id) {
+            $student = Student::where('company_id', $id)->first();
+            if ($student) {
+
+            } else {
+                $advisor = Advisor::where('company_id', $id)->first();
+                if ($advisor){
+
+                } else {
+                    $provider = Provider::where('company_id', $id)->first();
+                    if ($provider) {
+
+                    } else {
+                        Company::destroy($id);
+                    }
+                }
+            }
+        }
     }
 }

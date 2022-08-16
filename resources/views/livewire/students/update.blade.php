@@ -1,4 +1,10 @@
 <div class="card-body">
+    @if (session()->has('message'))
+        <input hidden id="success-toast" data-type="success" data-show="true" value="{{ session('message') }}">
+    @endif
+    @if (session()->has('error'))
+        <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
+    @endif
     <form class="form needs-validation" novalidate>
         <input type="hidden" wire:model.lazy="selected_id">
         <div class="row">
@@ -40,7 +46,7 @@
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
                     <label class="form-label" for="company_id">Empresa</label>
-                    <select class="form-select select2 @error('comapny_id') is-invalid @enderror" wire:model.lazy="company_id" id="company_id">
+                    <select class="form-select select2 @error('company_id') is-invalid @enderror" wire:model.lazy="company_id" id="company_id">
                         <option value="">Seleccione una empresa</option>
                         @foreach($companies as $company)
                             <option value="{{$company['id']}}">{{$company['name']}}</option>
@@ -205,43 +211,84 @@
             </div>
         </div>
         <div class="col-12">
-            <a href="{{ url()->previous() }}" class="btn btn-outlined-secondary">Volver</a>
-            <button type="button" wire:click.prevent="update()" class="btn btn-primary me-1">Guardar</button>
+            <a href="{{url('/students')}}" class="btn btn-outlined-secondary">Volver</a>
+            <button id="save" type="button" wire:click.prevent="update()" class="btn btn-primary me-1">Guardar</button>
         </div>
     </form>
-    @section('vendor-script')
-        <!-- vendor files -->
+@section('vendor-script')
+    <!-- vendor files -->
         <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
-    @endsection
-    @section('page-script')
-        <!-- Page js files -->
+@endsection
+@section('page-script')
+    <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
     @endsection
-    @section('script')
-    <script>
-        Livewire.on('alreadyExists', type => {
-            text = '';
-            if (type == 'dni'){
-                text = 'DNI';
-            } else if (type == 'user'){
-                text = 'usuario'
-            }
-            Swal.fire({
-                icon: 'error',
-                title: 'Ya Existe',
-                text: '¡Ya existe un alumno con ese '+text+'!',
+    @section('scripts')
+        <script>
+            Livewire.on('alreadyExists', type => {
+                text = '';
+                if (type == 'dni'){
+                    text = 'DNI';
+                } else if (type == 'user'){
+                    text = 'usuario'
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ya Existe',
+                    text: '¡Ya existe un alumno con ese '+text+'!',
+                })
             })
-        })
-        document.addEventListener('livewire:load', function() {
-            $( document ).ready(
-                setTimeout(function (){
-                    initializeSelect2()
-                }, 100)
-            );
-            $('.select2').on('change', function(){
-            @this.set(this.id, $(this).val())
+            document.addEventListener('livewire:load', function() {
+                $( document ).ready(
+                    setTimeout(function (){
+                        initializeSelect2()
+                    }, 100)
+                );
+                $('.select2').on('change', function(){
+                @this.set(this.id, $(this).val())
+                })
             })
-        })
-    </script>
+            $('body').on('click', '#save', function(){
+                content = ''
+                if ($('#name').val() == ''){
+                    content += 'El nombre es requerido<br>'
+                }
+                if ($('#surname').val() == ''){
+                    content += 'El apellido es requerido<br>'
+                }
+                if ($('#dni').val() == ''){
+                    content += 'El DNI es requerido<br>'
+                }
+                if ($('#telephone').val() == ''){
+                    content += 'El telefono es requerido<br>'
+                }
+                if ($('#email').val() == ''){
+                    content += 'El correo es requerido<br>'
+                }
+                if ($('#user').val() == ''){
+                    content += 'El usuario es requerido<br>'
+                }
+                if ($('#level_study_id').val() == ''){
+                    content += 'El nivel de estudio es requerido<br>'
+                }
+                if ($('#password').val()== ''){
+                    content += 'La contraseña es requerido<br>'
+                }
+                if ($('#company_id').val() == ''){
+                    content += 'La empresa es requerido'
+                }
+                if (content != ''){
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Falta datos',
+                        html: '<div>'+content+'</div>',
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        },
+                        buttonsStyling: false
+                    });
+                }
+            })
+        </script>
     @endsection
 </div>

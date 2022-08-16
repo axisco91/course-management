@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\StudentsExport;
 use App\Models\Company;
 use App\Models\LevelStudy;
 use App\Models\ProfessionalCategory;
@@ -25,7 +26,8 @@ class Students extends Component
     public $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $search_company, $search_course_name, $search_group;
 
     protected $listeners = [
-        'changeState' => 'changeState'
+        'changeState' => 'changeState',
+        'destroy' => 'destroy'
     ];
 
     public function render()
@@ -44,10 +46,19 @@ class Students extends Component
             $this->courses = Registration::getStudentCourses($this->selected_id, $search_course_name, $search_group);
         }
 
-       $records = Student::getStudents($keyWord, $this->inactiveFilter, $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $search_company);
+       $students = Student::getStudents($keyWord, $this->inactiveFilter, $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $search_company);
+
+        foreach ($students as $student) {
+            $registration = Registration::where('student_id', $student->id)->first();
+            if ($registration){
+                $student['used'] = true;
+            } else {
+                $student['used'] = false;
+            }
+        }
 
         return view('livewire.students.list', [
-            'students' => $records,
+            'students' => $students,
         ]);
     }
 
@@ -145,4 +156,21 @@ class Students extends Component
             $this->password = $record-> password;
         }
     }
+
+    public function downloadExcel(){
+        return (new StudentsExport($this->search_name, $this->search_surname, $this->search_email, $this->search_dni, $this->search_telephone, $this->search_company, $this->inactiveFilter))->download('docentes.xlsx');
+    }
+
+    public function destroy($id)
+    {
+        if ($id) {
+            $registration = Registration::where('student_id', $id)->first();
+            if ($registration){
+
+            } else {
+                Student::destroy($id);
+            }
+        }
+    }
+
 }

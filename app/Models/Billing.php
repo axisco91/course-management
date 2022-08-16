@@ -42,7 +42,8 @@ class Billing extends Model
 
     public function getBillings($keyWord, $course_search, $company_search, $student_search, $is_bonus_search){
         $billings = Billing::latest()
-            ->select('billings.*', 'training_actions.name as course', 'training_actions.formative_action as training_action', 'courses.group as group', 'companies.name as company', 'payments.name as payment')
+            ->select('billings.*', 'training_actions.name as course', 'training_actions.formative_action as training_action',
+                'courses.group as group', 'companies.name as company', 'payments.name as payment')
             ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
             ->leftjoin('companies', 'companies.id', '=', 'billings.company_id')
             ->leftjoin('payments', 'payments.id', '=', 'billings.payment_id')
@@ -91,10 +92,18 @@ class Billing extends Model
         $billing = Billing::find($id);
 
         if ($billing->communication_start_date != $data['communication_start_date']){
-            Billing::updateCloseCommunicationDate($id, $data['communication_start_date'], 1);
+            $status = 0;
+            if ($data['communication_start_date']){
+                $status = 1;
+            }
+            Billing::updateStartCommunicationDate($id, $data['communication_start_date'], $status);
         }
         if ($billing->communication_end_date != $data['communication_end_date']){
-            Billing::updateCloseCommunicationDate($id, $data['communication_end_date'], 1);
+            $status = 0;
+            if ($data['communication_end_date']){
+                $status = 1;
+            }
+            Billing::updateCloseCommunicationDate($id, $data['communication_end_date'], $status);
         }
 
         $billing->update([
@@ -148,8 +157,8 @@ class Billing extends Model
                 'total_training_activity' => $data['price'],
                 'expenses' => $expenses
             ]);
-            if ($company['name'] != 'SIN EMPRESA'){
-                $billing = $billing->update([
+            if ($company['name'] == 'SIN EMPRESA'){
+                $billing->update([
                     'student_id' => $data['student_id']
                 ]);
             }
@@ -166,22 +175,35 @@ class Billing extends Model
 
     public function updateStartCommunicationDate($id, $date, $status){
         $billing = Billing::find($id);
-        $billing = $billing->update([
+        $billing->update([
             'communication_start_date' => $date
         ]);
         $registrations = Registration::billingRegistration($id);
         foreach ($registrations as $registration) {
-            Chore::updateCommunicationStartDate($registration->id, $date, $status);
+            Chore::updateCommunicationStartDate($registration->chore_id, $date, $status);
         }
     }
     public function updateCloseCommunicationDate($id, $date, $status){
         $billing = Billing::find($id);
-        $billing = $billing->update([
+        $billing->update([
             'communication_end_date' => $date
         ]);
         $registrations = Registration::billingRegistration($id);
         foreach ($registrations as $registration) {
-            Chore::updateCommunicationEndDate($registration->id, $date, $status);
+            Chore::updateCommunicationEndDate($registration->chore_id, $date, $status);
+        }
+    }
+
+    public function updateInvicedDate($id, $date, $status){
+        $billing = Billing::find($id);
+        $billing->update([
+            'billing_date' => $date,
+            'invoiced' => $status,
+            'bonus_status' => $status
+        ]);
+        $registrations = Registration::billingRegistration($id);
+        foreach ($registrations as $registration) {
+            Chore::billingDateChore($registration->chore_id, $date, $status);
         }
     }
 }

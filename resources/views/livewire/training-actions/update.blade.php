@@ -139,7 +139,7 @@
                 <div class="mb-1">
                     <label class="form-label" for="teletraining_hours">Horas Teleformaicón</label>
                     <input wire:model.lazy="teletraining_hours" type="text" class="form-control @error('teletraining_hours') is-invalid @enderror" id="teletraining_hours" placeholder="Horas Teleformaicón">
-                    @error('teletraining_hours') <div class="invalid-feedback">Horas Teleformaicón requerido</div> @enderror
+                    @error('teletraining_hours') <div class="invalid-feedback">Horas Teleformaicón es requerido</div> @enderror
                 </div>
             </div>
             <div class="col-12 col-md-3">
@@ -151,7 +151,7 @@
             <div class="col-12 col-md-3">
                 <div class="mb-1">
                     <label class="form-label" for="price">Precio</label>
-                    <input wire:model.lazy="price" type="text" class="form-control @error('price') is-invalid @enderror" id="price" placeholder="Precio">@error('price') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    <input wire:model.lazy="price" type="text" class="form-control @error('price') is-invalid @enderror" id="price" placeholder="Precio">@error('price') <div class="invalid-feedback">Precio es requerido</div> @enderror
                 </div>
             </div>
             <div class="col-md-12">
@@ -221,8 +221,8 @@
             </div>
         </div>
         <div class="col-12">
-            <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            <button type="button" wire:click.prevent="update()" class="btn btn-primary" data-bs-dismiss="modal">Guardar</button>
+            <a href="{{url('/training-actions')}}" class="btn btn-outlined-secondary">Volver</a>
+            <button id="save" type="button" wire:click.prevent="update()" class="btn btn-primary" data-bs-dismiss="modal">Guardar</button>
         </div>
     </form>
     @section('vendor-script')
@@ -244,6 +244,44 @@
             $('.select2').on('change', function(){
             @this.set(this.id, $(this).val())
             })
+        })
+        $('body').on('click', '#save', function(){
+            content = ''
+            if ($('#name').val() == ''){
+                content += 'El nombre es requerido<br>'
+            }
+            if ($('#action_type_id').val() == ''){
+                content += 'El tipo es requerido<br>'
+            }
+            if ($('#modality_id').val() == ''){
+                content += 'La modalidad es requerido<br>'
+            }
+            if ($('#training_action_level_id').val() == ''){
+                content += 'El nivel es requerido<br>'
+            }
+            if ($('#tutoring_id').val() == ''){
+                content += 'La tutoria es requerido<br>'
+            }
+            if ($('#face_to_face_hours').val() == ''){
+                content += 'Las horas presenciales son requeridos<br>'
+            }
+            if ($('#teletraining_hours').val() == ''){
+                content += 'Las horas de teletrabajo son requeridos<br>'
+            }
+            if ($('#price').val() == ''){
+                content += 'El precio es requerido<br>'
+            }
+            if (content != ''){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Falta datos',
+                    html: '<div>'+content+'</div>',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                    buttonsStyling: false
+                });
+            }
         })
     </script>
 </div>

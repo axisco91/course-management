@@ -161,7 +161,7 @@
         </div>
         <div class="col-12">
             <a href="{{ url()->previous() }}" class="btn btn-outlined-secondary">Volver</a>
-            <button type="button" wire:click.prevent="store()" class="btn btn-primary me-1">Guardar</button>
+            <button id="save" type="button" wire:click.prevent="store()" class="btn btn-primary me-1">Guardar</button>
         </div>
     </form>
     @section('vendor-script')
@@ -194,6 +194,32 @@
             $('.select2').on('change', function(){
             @this.set(this.id, $(this).val())
             })
+        })
+        $('body').on('click', '#save', function(){
+            content = ''
+            if ($('#name').val() == ''){
+                content += 'El nombre es requerido<br>'
+            }
+            if ($('#type_id').val() == ''){
+                content += 'El tipo es requerido<br>'
+            }
+            if ($('#activity_id').val() == ''){
+                content += 'La actividad es requerido<br>'
+            }
+            if ($('#province_id').val() == ''){
+                content += 'La provincia es requerido<br>'
+            }
+            if (content != ''){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Falta datos',
+                    html: '<div>'+content+'</div>',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                    buttonsStyling: false
+                });
+            }
         })
     </script>
 </div>

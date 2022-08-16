@@ -6,7 +6,7 @@
         <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
     @endif
     <div class="col-12 mb-1">
-        <button type="button" class="btn btn-success right" id="enable_edit_company">Editar</button>
+        <a href="{{url('/companies/edit/'.$this->selected_id)}}" class="btn btn-success right">Editar</a>
     </div>
     <form class="form">
         <input type="hidden" wire:model.lazy="selected_id">
@@ -86,7 +86,8 @@
             </div>
             <div class="col-md-4 col-12">
                 <div wire:ignore>
-                    <label class="form-label" for="advisor_id">Asesoria</label>
+                    <label class="form-label" for="advisor_id">Asesoria</label> @if($this->advisor_id)<a href="{{url('/advisors/view/'.$this->advisor_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
+                    @endif
                     <select wire:model.lazy="advisor_id" class="form-select select2" id="advisor_id" placeholder="Advisor Id" disabled>
                         <option value="">Selección una Asesoria</option>
                         @foreach($advisors as $advisor)
