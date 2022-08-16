@@ -96,6 +96,7 @@ class Course extends Model
     }
 
     public function getCourses($keyWord, $search_formative_action, $search_name, $search_group, $search_type, $search_status, $search_company){
+
         $courses = Course::select('courses.*',
             'course_types.name as course_type', 'teachers.name as teacher_name', 'teachers.surname as teacher_surname',
             'fc.name as formation_center',
@@ -106,8 +107,6 @@ class Course extends Model
             ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
             ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
-            ->leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
-            ->leftjoin('companies', 'companies.id', '=', 'registrations.company_id')
             ->where(function ($query) use ($keyWord){
                 $query->orWhere('courses.name', 'LIKE', $keyWord)
                     ->orWhere('group', 'LIKE', $keyWord)
@@ -143,9 +142,11 @@ class Course extends Model
             })->where(function ($query) use ($search_group){
                 $query->orWhere('courses.group', 'LIKE', $search_group);
             });
-        if ($search_company){
-            $courses = $courses->where(function ($query) use ($search_company){
-                $query->orWhere('companies.name', 'LIKE', $search_company);
+
+       if ($search_company != ''){
+           $registrations = Registration::where('company_id', $search_company)->groupBy('course_id')->pluck('course_id')->toArray();
+            $courses = $courses->where(function ($query) use ($registrations){
+                $query->WhereIn('courses.id', $registrations);
             });
         }
         if ($search_type){
@@ -154,8 +155,9 @@ class Course extends Model
         if ($search_status){
             $courses = $courses->Where('courses.course_status_id', $search_status);
         }
-        $courses = $courses->orderBy('courses.beginning', 'desc')->distinct()
-            ->paginate(10);
+        $courses = $courses->orderBy('courses.beginning', 'desc');
+
+		$courses = $courses->paginate(10);
 
         foreach ($courses as $course){
            // $registrations = Registration::where('course_id', $course->id)->get();
@@ -366,8 +368,11 @@ class Course extends Model
     }
 
     public function getCompanyCourses($id, $search_course_name, $search_course_group){
-        $courses = Course::select('courses.*')->leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
-            ->where('company_id', $id)
+        $registrations = Registration::where('company_id', $id)->groupBy('course_id')->pluck('course_id')->toArray();
+        $courses = Course::select('courses.*')
+            ->where(function ($query) use ($registrations){
+                $query->WhereIn('courses.id', $registrations);
+            })
             ->where(function ($query) use ($search_course_name) {
                 $query->orWhere('name', 'LIKE', $search_course_name);
             })->where(function ($query) use ($search_course_group) {
@@ -382,6 +387,21 @@ class Course extends Model
             $course['end'] = $end;
         }
         return $courses;
+    }
+
+    public function getNumberCourses($year){
+        $courses = Course::WhereYear('beginning', $year)->get();
+        return count($courses);
+    }
+
+    public function getNumberCoursesPermonth($year){
+        $per_month = [];
+        for($i = 1; $i <= 12; $i++){
+            $courses = Course::WhereYear('beginning', $year)
+                    ->WhereMonth('beginning', $i)->get();
+            $per_month[] = count($courses);
+        }
+        return $per_month;
     }
 
 }

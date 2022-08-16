@@ -58,6 +58,25 @@ class Companies extends Component
             }
         }
 
+        foreach ($companies as $company){
+            $student = Student::where('company_id', $company->id)->first();
+            if ($student) {
+                $company['used'] = true;
+            } else {
+                $advisor = Advisor::where('company_id', $company->id)->first();
+                if ($advisor){
+                    $company['used'] = true;
+                } else {
+                    $provider = Provider::where('company_id', $company->id)->first();
+                    if ($provider) {
+                        $company['used'] = true;
+                    } else {
+                        $company['used'] = false;
+                    }
+                }
+            }
+        }
+
         return view('livewire.companies.list', [
             'companies' => $companies
         ]);
@@ -77,9 +96,7 @@ class Companies extends Component
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
         $this->provinces = Province::all();
-        $this->advisors = Advisor::select('advisors.*')
-            ->join('companies', 'companies.id', '=', 'advisors.company_id')
-            ->where('companies.active', 1)->get();
+        $this->advisors = Advisor::all();
         $this->company_id = null;
     }
 
@@ -345,5 +362,28 @@ class Companies extends Component
     public function downloadExcel(){
         $this->excelModal = false;
         return (new CompaniesExport($this->search_name, $this->search_nif, $this->search_type_id, $this->search_activity_id, $this->search_advisor_id, $this->search_province_id, $this->inactiveFilter))->download('empresas.xlsx');
+    }
+
+    public function destroy($id)
+    {
+
+        if ($id) {
+            $student = Student::where('company_id', $id)->first();
+            if ($student) {
+
+            } else {
+                $advisor = Advisor::where('company_id', $id)->first();
+                if ($advisor){
+
+                } else {
+                    $provider = Provider::where('company_id', $id)->first();
+                    if ($provider) {
+
+                    } else {
+                        Company::destroy($id);
+                    }
+                }
+            }
+        }
     }
 }

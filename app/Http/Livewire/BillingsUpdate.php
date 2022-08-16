@@ -128,7 +128,7 @@ class BillingsUpdate extends Component
             ];
 
             $billing = Billing::updateBilling($this->selected_id, $data);
-            Chore::billingDateChore($this->selected_id, $this->billing_date);
+            Chore::billingDateChore($this->selected_id, $this-> billing_date, $this-> invoiced);
             $this->resetInput();
             $this->updateMode = false;
             session()->flash('message', 'Factura Actulizado con exito.');

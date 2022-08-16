@@ -38,7 +38,7 @@ class AdvisorsUpdate extends Component
             ->where('companies.inactive', 0)->get();
 
         $advisor = Advisor::find($id);
-        $record = Company::findOrFail($advisor->id);
+        $record = Company::findOrFail($advisor->company_id);
 
         $this->selected_id = $advisor->id;
         $this->name = $advisor-> name;

@@ -22,6 +22,10 @@ class Providers extends Component
     public $company_types, $company_activities, $cnaes, $provinces, $advisors, $tab = 'info';
     public $updateMode = false, $search_training_actions_name, $search_training_actions_action, $training_actions;
 
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
+
     public function render()
     {
 		$keyWord = '%'.$this->keyWord .'%';
@@ -32,6 +36,15 @@ class Providers extends Component
             $search_training_actions_name = '%'.$this->search_training_actions_name.'%';
             $search_training_actions_action = '%'.$this->search_training_actions_action.'%';
             $this->training_actions = TrainingAction::getProviderTrainingActions($this->selected_id, $search_training_actions_name, $search_training_actions_action);
+        }
+
+        foreach ($providers as $provider) {
+            $training_action = TrainingAction::where('provider_id', $provider->id)->first();
+            if ($training_action) {
+                $provider['used'] = true;
+            } else {
+                $provider['used'] = false;
+            }
         }
 
         return view('livewire.providers.list', [
@@ -123,6 +136,18 @@ class Providers extends Component
             $this->population = $company-> population;
             $this->active = $company-> active;
             $this->advisor_id = $company-> advisor_id;
+        }
+    }
+
+    public function destroy($id)
+    {
+        if ($id) {
+            $training_action = TrainingAction::where('provider_id', $id)->first();
+            if ($training_action) {
+
+            } else {
+                Provider::destroy($id);
+            }
         }
     }
 }

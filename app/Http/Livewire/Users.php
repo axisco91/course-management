@@ -13,7 +13,7 @@ class Users extends Component
     use WithPagination;
 
     protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $name, $surname, $username, $email, $create_role_id, $role_id, $password;
+    public $selected_id, $keyWord, $name, $surname, $username, $email, $create_role_id, $role_id, $password, $password_confirmation;
     public $updateMode = false;
     public $roles;
 
@@ -45,6 +45,7 @@ class Users extends Component
         $this->create_role_id = null;
         $this->role_id = null;
         $this->password = null;
+        $this->password_confirmation = null;
     }
 
     public function store()
@@ -134,7 +135,27 @@ class Users extends Component
         }
     }
 
-    public function changePassword(){
+    public function changePassword($id){
+        $this->selected_id = $id;
+        $this->password = '';
+        $this->password_confirmation = '';
+    }
 
+    public function saveChangePassword(){
+        $this->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed']
+            ]);
+
+        if ($this->selected_id){
+            $this->prueba = 'llega';
+            $user = User::find($this->selected_id);
+            $user->update([
+                'password' => Hash::make($this->password),
+            ]);
+            $this->emit('closePasswordModal');
+            $this->updateMode = false;
+            session()->flash('message', 'Contraseña cambiado con exito.');
+            $this->emit('toastr', 'success');
+        }
     }
 }

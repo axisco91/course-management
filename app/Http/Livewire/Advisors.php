@@ -23,6 +23,10 @@ class Advisors extends Component
     public $search_name, $companies, $search_nif, $search_type_id, $search_activity_id, $search_province_id, $search_company_name;
     public $updateMode = false;
 
+    protected $listeners = [
+        'destroy' => 'destroy'
+    ];
+
     public function render()
     {
         $keyWord = '%'.$this->keyWord .'%';
@@ -33,6 +37,15 @@ class Advisors extends Component
         $search_company_name = '%'.$this->search_company_name.'%';
         if ($this->selected_id){
             $this->companies = Company::getAdvisorsCompanies($this->selected_id, $search_company_name);
+        }
+
+        foreach ($advisors as $advisor){
+            $company = Company::where('advisor_id', $advisor->id)->first();
+            if ($company){
+                $advisor['used'] = true;
+            } else{
+                $advisor['used'] = false;
+            }
         }
 
         return view('livewire.advisors.list', [
@@ -96,8 +109,13 @@ class Advisors extends Component
 
     public function destroy($id)
     {
-        if ($id) {
-           Advisor::destroy($id);
+        if ($id){
+            $company = Company::where('advisor_id', $id)->first();
+            if ($company){
+
+            } else{
+                Advisor::destroy($id);
+            }
         }
     }
 

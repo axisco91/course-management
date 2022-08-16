@@ -8,9 +8,9 @@ $configData = Helper::applClasses();
     <ul class="nav navbar-nav flex-row">
       <li class="nav-item me-auto">
         <a class="navbar-brand" href="{{ url('/') }}">
-          <span class="brand-logo">
+          <!--<span class="brand-logo">
             <img src="{{URL::asset('images/logo/logo.png')}}">
-          </span>
+          </span>-->
           <h2 class="brand-text">AVZ</h2>
         </a>
       </li>

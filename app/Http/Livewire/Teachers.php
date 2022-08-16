@@ -21,7 +21,8 @@ class Teachers extends Component
     public $updateMode = false;
     public $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $courses, $search_course_name, $search_course_group;
     protected $listeners = [
-        'changeState' => 'changeState'
+        'changeState' => 'changeState',
+        'destroy' => 'destroy'
     ];
 
     public function render()
@@ -40,6 +41,15 @@ class Teachers extends Component
         }
 
         $teachers = Teacher::getTeachers($keyWord, $this->inactiveFilter, $search_name, $search_surname, $search_email, $search_dni, $search_telephone);
+
+        foreach ($teachers as $teacher) {
+            $course = Course::where('teacher_id', $teacher->id)->first();
+            if ($course) {
+                $teacher['used'] = true;
+            } else {
+                $teacher['used'] = false;
+            }
+        }
 
         return view('livewire.teachers.list', [
             'teachers' => $teachers,
@@ -127,5 +137,17 @@ class Teachers extends Component
 
     public function downloadExcel(){
         return (new TeachersExport($this->search_name, $this->search_surname, $this->search_email, $this->search_dni, $this->search_telephone, $this->inactiveFilter))->download('docentes.xlsx');
+    }
+
+    public function destroy($id)
+    {
+        if ($id) {
+            $course = Course::where('teacher_id', $id)->first();
+            if ($course) {
+
+            } else {
+                Teacher::destroy($id);
+            }
+        }
     }
 }

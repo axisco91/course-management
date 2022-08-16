@@ -12,7 +12,15 @@ class Registration extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['course_id','company_id','student_id','tracing_id','chore_id','price', 'profitability_id', 'is_bonus', 'billing_id'];
+    protected $fillable = ['course_id',
+        'company_id',
+        'student_id',
+        'tracing_id',
+        'chore_id',
+        'price',
+        'profitability_id',
+        'is_bonus',
+        'billing_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -147,14 +155,14 @@ class Registration extends Model
 
     public function totalRegistrations(){
         $now = Carbon::now();
-        $total = Registration::where('created_at', '>=', $now->year.'-01-01')
-            ->where('created_at', '<=', $now->year.'-12-31')->get();
+        $total = Registration::leftJoin('courses', 'registrations.course_id', '=', 'courses.id')->where('courses.beginning', '>=', $now->year.'-01-01')
+            ->where('courses.beginning', '<=', $now->year.'-12-31')->get();
         return $total->count();
     }
 
     public function countRegistrations($start, $limit){
-        $registrations = Registration::where('created_at', '>=', $start)
-            ->where('created_at', '<=', $limit)->get();
+        $registrations = Registration::leftJoin('courses', 'registrations.course_id', '=', 'courses.id')->where('courses.beginning', '>=', $start)
+            ->where('courses.beginning', '<=', $limit)->get();
 
         return $registrations->count();
     }

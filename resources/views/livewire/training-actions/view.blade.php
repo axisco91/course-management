@@ -1,6 +1,6 @@
 <div class="card-body">
     <div class="col-12 mb-1">
-        <button type="button" class="btn btn-success right" id="enable_edit_training_action">Editar</button>
+        <a href="{{url('/training-actions/edit/'.$this->selected_id)}}" class="btn btn-success right">Editar</a>
     </div>
     <form class="form needs-validation" novalidate>
         <input type="hidden" wire:model="selected_id">
@@ -212,7 +212,7 @@
             </div>
            <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
-                    <label class="form-label" for="provider_id">Proveedor</label>
+                    <label class="form-label" for="provider_id">Proveedor</label> <a href="{{url('/providers/view/'.$this->provider_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
                     <select wire:model.lazy="provider_id" class="form-select select2 @error('provider_id') is-invalid @enderror" id="provider_id" disabled>
                         <option value="-1">Seleecione un proveedor</option>
                         @foreach($providers as $provider)
@@ -224,7 +224,7 @@
             </div>
         </div>
         <div class="col-12">
-            <button type="button" wire:click.prevent="update()" id="saveTrainingAction" class="btn btn-primary me-1" style="display: none">Guardar</button>
+
         </div>
     </form>
     @section('vendor-script')

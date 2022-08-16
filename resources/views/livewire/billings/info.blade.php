@@ -110,13 +110,13 @@
                 <input wire:model.lazy="communication_start_date" type="date" class="form-control" id="communication_start_date" disabled>@error('communication_start_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
         </div>
-     @endif
-    <div class="col-md-4 col-12">
-        <div class="mb-1">
-            <label class="form-label" for="communication_end_date">Fecha Comunicación Cierre</label>
-            <input wire:model.lazy="communication_end_date" type="date" class="form-control" id="communication_end_date"disabled>@error('communication_end_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div class="col-md-4 col-12">
+            <div class="mb-1">
+                <label class="form-label" for="communication_end_date">Fecha Comunicación Cierre</label>
+                <input wire:model.lazy="communication_end_date" type="date" class="form-control" id="communication_end_date"disabled>@error('communication_end_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
         </div>
-    </div>
+     @endif
     <div class="col-md-4 col-12 mb-1">
         <label class="form-label" for="invoiced">Facturado</label>
         <select wire:model.lazy="invoiced" class="form-control" id="invoiced" disabled>

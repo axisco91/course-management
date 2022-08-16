@@ -27,7 +27,7 @@ use App\Http\Controllers\TrainingActionLevelController;
 use App\Http\Controllers\TrainingActionGroupController;
 use App\Http\Controllers\TutoringController;
 use App\Http\Controllers\CourseStatusController;
-use App\Http\Controllers\Tracingcontroller;
+use App\Http\Controllers\TracingController;
 use App\Http\Controllers\CompanyobservationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
@@ -37,6 +37,8 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfitabilityController;
 use App\Http\Controllers\TestsController;
 use App\Http\Controllers\ChoreController;
+use App\Http\Controllers\ProfileController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -160,6 +162,15 @@ Route::middleware(['auth'])->group(function () {
         });
     });
     /**
+     * Users User
+     */
+    Route::prefix('user')->group(function() {
+        Route::controller(ProfileController::class)->group(function(){
+            Route::get('profile', 'index');
+            Route::get('setting_profile', 'edit');
+        });
+    });
+    /**
      * Roles Routes
      */
     Route::prefix('roles')->group(function() {
@@ -194,6 +205,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('edit/{id}', 'edit');
         });
     });
+    /**
+     * Chores Routes
+     */
+    Route::prefix('tracings')->group(function() {
+        Route::controller(TracingController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
+        });
+    });
 
     Route::prefix('commands')->group(function() {
         Route::controller(CommandController::class)->group(function(){
@@ -223,7 +243,6 @@ Route::get('/home', 'HomeController@index')->name('home');
 	Route::view('bonuses', 'livewire.bonuses.index')->middleware('auth');
 	Route::view('payments', 'livewire.payments.index')->middleware('auth');
 	Route::view('registrations', 'livewire.registrations.index')->middleware('auth');
-	Route::view('tracings', 'livewire.tracings.index')->middleware('auth');
 	Route::view('professional_categories', 'livewire.professional-categories.index')->middleware('auth');
 	Route::view('course_types', 'livewire.course-types.index')->middleware('auth');
 	Route::view('course_statuses', 'livewire.course-statuses.index')->middleware('auth');

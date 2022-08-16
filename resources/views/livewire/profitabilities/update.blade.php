@@ -106,7 +106,7 @@
             </div>
         </div>
         <div class="col-12">
-            <a href="{{ url()->previous() }}" class="btn btn-secondary">Cerrar</a>
+            <a href="{{url('/profitabilities')}}" class="btn btn-secondary">Volver</a>
             <button type="button" wire:click.prevent="update()" class="btn btn-primary" data-bs-dismiss="modal">Guardar</button>
         </div>
     </form>

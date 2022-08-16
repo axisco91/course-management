@@ -1,4 +1,8 @@
 <div class="card-body">
+    @error('name')
+    <input hidden id="error_name" value="1">
+    @enderror
+
     <form class="form needs-validation" novalidate>
         <div class="row">
             <div class="col-md-4 col-12">
@@ -205,7 +209,7 @@
         </div>
         <div class="col-12">
             <a href="{{ url()->previous() }}" class="btn btn-outlined-secondary">Volver</a>
-            <button type="button" wire:click.prevent="store()" class="btn btn-primary me-1">Guardar</button>
+            <button id="save" type="button" wire:click.prevent="store()" class="btn btn-primary me-1">Guardar</button>
         </div>
     </form>
     @section('vendor-script')
@@ -240,6 +244,50 @@
             $('.select2').on('change', function(){
             @this.set(this.id, $(this).val())
             })
+            if ($('#error_name') == 1){
+                console.log('wefwefwf')
+            }
+        })
+        $('body').on('click', '#save', function(){
+            content = ''
+           if ($('#name').val() == ''){
+              content += 'El nombre es requerido<br>'
+           }
+           if ($('#surname').val() == ''){
+               content += 'El apellido es requerido<br>'
+           }
+           if ($('#dni').val() == ''){
+               content += 'El DNI es requerido<br>'
+           }
+           if ($('#telephone').val() == ''){
+               content += 'El telefono es requerido<br>'
+           }
+           if ($('#email').val() == ''){
+               content += 'El correo es requerido<br>'
+           }
+           if ($('#user').val() == ''){
+               content += 'El usuario es requerido<br>'
+           }
+           if ($('#level_study_id').val() == ''){
+               content += 'El nivel de estudio es requerido<br>'
+           }
+           if ($('#password').val()== ''){
+               content += 'La contraseña es requerido<br>'
+           }
+           if ($('#company_id').val() == ''){
+               content += 'La empresa es requerido'
+           }
+           if (content != ''){
+               Swal.fire({
+                   icon: 'error',
+                   title: 'Falta datos',
+                   html: '<div>'+content+'</div>',
+                   customClass: {
+                       confirmButton: 'btn btn-primary'
+                   },
+                   buttonsStyling: false
+               });
+           }
         })
     </script>
     @endsection

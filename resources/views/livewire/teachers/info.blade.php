@@ -108,8 +108,8 @@
     <div class="col-12">
         <div class="mb-1">
             <label class="form-label" for="observation">Observación</label>
-            <textarea wire:model.lazy="observation" class="form-control @error('observation') is-invalid @enderror" rows="4" placeholder="observaciones" disabled></textarea>
-            @error('observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            <textarea wire:model.lazy="observations" class="form-control @error('observations') is-invalid @enderror" rows="4" placeholder="observaciones" disabled></textarea>
+            @error('observations') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>
  </div>

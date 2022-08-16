@@ -31,7 +31,8 @@ class TrainingActions extends Component
     $tutorings, $web_platforms, $providers, $tab = 'info';
     public $search_formative_actions, $search_name, $search_course_name, $search_course_group, $courses, $search_professional_family_id, $search_professional_area_id, $search_modality_id, $search_provider_id;
     protected $listeners = [
-        'changeState' => 'changeState'
+        'changeState' => 'changeState',
+        'destroy' => 'destroy'
     ];
 
     public function render()
@@ -144,7 +145,7 @@ class TrainingActions extends Component
         $this->objectives = $record-> objectives;
         $this->content = $record-> content;
         $this->user = $record-> user;
-        $this->password = $record-> pasword;
+        $this->password = $record-> password;
         $this->web_platform_id = $record-> web_platform_id;
         $this->observations = $record-> observations;
         $this->number_activities = $record-> number_activities;

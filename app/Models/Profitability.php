@@ -50,7 +50,7 @@ class Profitability extends Model
 
     public function getProfitabilities($keyWord, $course_search, $company_search, $student_search){
         $profitabilities = Profitability::select('profitabilities.*', 'companies.name as company_name', 'courses.name as course_name',
-            'courses.group as course_group',
+            'courses.group as course_group', 'courses.beginning as beginning',
             'students.name as student_name', 'students.surname as student_surname')
             ->leftjoin('companies', 'companies.id', '=', 'profitabilities.company_id')
             ->leftjoin('courses', 'courses.id', '=', 'profitabilities.course_id')
@@ -82,7 +82,7 @@ class Profitability extends Model
                 ->orWhere('total', 'LIKE', $keyWord)
                 ->orWhere('benefits', 'LIKE', $keyWord)
                 ->orWhere('observations', 'LIKE', $keyWord);
-        })->paginate(10);
+        })->orderBy('courses.beginning')->paginate(10);
         return $profitabilities;
     }
 

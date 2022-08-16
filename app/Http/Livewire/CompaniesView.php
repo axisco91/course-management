@@ -33,9 +33,7 @@ class CompaniesView extends Component
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
         $this->provinces = Province::all();
-        $this->advisors = Advisor::select('advisors.*')
-            ->join('companies', 'companies.id', '=', 'advisors.company_id')
-            ->where('companies.active', 0)->get();
+        $this->advisors = Advisor::all();
         $this->company_id = null;
 
         $record = Company::findOrFail($id);

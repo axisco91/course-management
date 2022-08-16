@@ -1,6 +1,6 @@
 <div class="card-body">
     <div class="col-12 mb-1">
-        <button type="button" class="btn btn-success right" id="enable_edit_course">Editar</button>
+        <a href="{{url('/courses/edit/'.$this->selected_id)}}" class="btn btn-success right">Editar</a>
     </div>
     <form class="form needs-validation" novalidate>
         <input type="hidden" wire:model.lazy="selected_id">
@@ -13,7 +13,7 @@
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
-                    <label class="form-label" for="training_action_id">Acción Formativa</label>
+                    <label class="form-label" for="training_action_id">Acción Formativa</label> <a href="{{url('/training-actions/view/'.$this->training_action_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
                     <select wire:model.lazy="training_action_id" class="form-control select2" id="training_action_id" disabled>
                         <option value="">Selección una acción formativa</option>
                         @foreach($training_actions as $action)
@@ -51,7 +51,7 @@
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
-                    <label class="form-label" for="teacher_id">Docente</label>
+                    <label class="form-label" for="teacher_id">Docente</label> <a href="{{url('/teachers/view/'.$this->teacher_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
                     <br>
                     <select wire:model.lazy="teacher_id" class="form-control select2" id="teacher_id" disabled>
                         <option>Seleccione un docente</option>
@@ -65,7 +65,11 @@
             <div class="col-md-4 col-12">
                 <div class="mb-1">
                     <label class="form-label" for="nebrija">Nebrija</label>
-                    <input wire:model.lazy="nebrija" type="text" class="form-control" id="nebrija" placeholder="Nebrija" disabled>@error('nebrija') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    <select wire:model.lazy="nebrija" class="form-control" id="nebrija" disabled>
+                        <option vale="0">No</option>
+                        <option value="1">Si</option>
+                    </select>
+                    @error('nebrija') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="col-md-4 col-12 mb-1">
@@ -191,7 +195,7 @@
         </div>
         <div class="col-12">
             <div class="mb-1">
-                <button type="button" wire:click.prevent="update()" id="save_course" class="btn btn-primary me-1" style="display: none">Guardar</button>
+                <a href="{{url('/courses')}}" class="btn btn-secondary">Volver</a>
             </div>
         </div>
     </form>

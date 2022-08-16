@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\CourseStatus;
 use App\Models\Student;
 use App\Models\TrainingAction;
+use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Tracing;
@@ -19,7 +20,7 @@ class Tracings extends Component
     public $selected_id, $keyWord, $course_id, $company_id, $student_id, $performed_activities, $performed_hours,
         $performed_units, $follow_up_date, $final_test, $questionnaire, $welcome_message, $quarter_message, $half_message,
         $three_quarters_message, $final_message, $observation, $welcome_date, $quarter_date, $half_date, $three_quarters_date,
-        $total_hours, $number_activities, $number_unites, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent,
+        $total_hours, $number_activities, $number_units, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent,
         $three_quarters_date_sent, $final_date_sent, $beginning, $end, $course_group;
     public $updateMode = false;
     public $courses, $companies, $students, $course_statuses, $tab = 'info';
@@ -76,7 +77,7 @@ class Tracings extends Component
         $this->final_date = null;
         $this->total_hours = null;
         $this->number_activities = null;
-        $this->number_unites = null;
+        $this->number_units = null;
         $this->name = null;
         $this->surname = null;
         $this->course_name = null;
@@ -117,14 +118,14 @@ class Tracings extends Component
         $training_action = TrainingAction::find($course->training_action_id);
         $this->total_hours = $training_action->total_hours;
         $this->number_activities = $training_action->number_activities;
-        $this->number_unites = $training_action->number_units;
+        $this->number_units = $training_action->number_units;
         $student = Student::find($this->student_id);
         $this->name = $student->name;
         $this->surname = $student->surname;
         $this->course_name = $course->name;
-        $this->beginning = $course->beginning;
+        $this->beginning = Carbon::parse($course->beginning)->format('d/m/Y');
+        $this->end = Carbon::parse($course->end)->format('d/m/Y');
         $this->course_group = $course->group;
-        $this->end = $course->end;
 
         $this->updateMode = true;
     }
@@ -169,6 +170,43 @@ class Tracings extends Component
         }
     }
 
+    public function updateInfo()
+    {
+        $this->validate([
+            'course_id' => 'required',
+            'company_id' => 'required',
+            'student_id' => 'required',
+        ]);
+
+        if ($this->selected_id) {
+            $data = [
+                'course_id' => $this-> course_id,
+                'company_id' => $this-> company_id,
+                'student_id' => $this-> student_id,
+                'performed_activities' => $this-> performed_activities,
+                'performed_hours' => $this-> performed_hours,
+                'performed_units' => $this-> performed_units,
+                'follow_up_date' => $this-> follow_up_date,
+                'final_test' => $this-> final_test,
+                'questionnaire' => $this-> questionnaire,
+                'welcome_message' => $this-> welcome_message,
+                'quarter_message' => $this-> quarter_message,
+                'half_message' => $this-> half_message,
+                'three_quarters_message' => $this-> three_quarters_message,
+                'final_message' => $this-> final_message,
+                'observation' => $this-> observation,
+                'welcome_date_sent' => $this-> welcome_date_sent,
+                'quarter_date_sent' => $this-> quarter_date_sent,
+                'half_date_sent' => $this-> half_date_sent,
+                'three_quarters_date_sent' => $this-> three_quarters_date_sent,
+                'final_date_sent' => $this-> final_date_sent
+            ];
+            Tracing::updateTracing($this->selected_id, $data);
+            session()->flash('message', 'Seguimiento actualizado con exito.');
+            $this->emit('toastr', 'success');
+        }
+    }
+
     public function general($id){
         $record = Tracing::findOrFail($id);
 
@@ -181,8 +219,8 @@ class Tracings extends Component
 
         $this->student_name = $student->name .' '. $student->surname;
         $this->course_name = $course->name;
-        $this->beginning = $course->beginning;
-        $this->end = $course->end;
+        $this->beginning = Carbon::parse($course->beginning)->format('d/m/Y');
+        $this->end = Carbon::parse($course->end)->format('d/m/Y');
         $this->course_group = $course->group;
         $this->performed_activities = $record-> performed_activities;
         $this->performed_hours = $record-> performed_hours;
@@ -210,7 +248,7 @@ class Tracings extends Component
         $training_action = TrainingAction::find($course->training_action_id);
         $this->total_hours = $training_action->total_hours;
         $this->number_activities = $training_action->number_activities;
-        $this->number_unites = $training_action->number_units;
+        $this->number_units = $training_action->number_units;
         $this->name = $student->name;
         $this->surname = $student->surname;
     }

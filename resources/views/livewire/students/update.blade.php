@@ -1,4 +1,10 @@
 <div class="card-body">
+    @if (session()->has('message'))
+        <input hidden id="success-toast" data-type="success" data-show="true" value="{{ session('message') }}">
+    @endif
+    @if (session()->has('error'))
+        <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
+    @endif
     <form class="form needs-validation" novalidate>
         <input type="hidden" wire:model.lazy="selected_id">
         <div class="row">
@@ -205,8 +211,8 @@
             </div>
         </div>
         <div class="col-12">
-            <a href="{{ url()->previous() }}" class="btn btn-outlined-secondary">Volver</a>
-            <button type="button" wire:click.prevent="update()" class="btn btn-primary me-1">Guardar</button>
+            <a href="{{url('/students')}}" class="btn btn-outlined-secondary">Volver</a>
+            <button id="save" type="button" wire:click.prevent="update()" class="btn btn-primary me-1">Guardar</button>
         </div>
     </form>
 @section('vendor-script')
@@ -241,6 +247,47 @@
                 $('.select2').on('change', function(){
                 @this.set(this.id, $(this).val())
                 })
+            })
+            $('body').on('click', '#save', function(){
+                content = ''
+                if ($('#name').val() == ''){
+                    content += 'El nombre es requerido<br>'
+                }
+                if ($('#surname').val() == ''){
+                    content += 'El apellido es requerido<br>'
+                }
+                if ($('#dni').val() == ''){
+                    content += 'El DNI es requerido<br>'
+                }
+                if ($('#telephone').val() == ''){
+                    content += 'El telefono es requerido<br>'
+                }
+                if ($('#email').val() == ''){
+                    content += 'El correo es requerido<br>'
+                }
+                if ($('#user').val() == ''){
+                    content += 'El usuario es requerido<br>'
+                }
+                if ($('#level_study_id').val() == ''){
+                    content += 'El nivel de estudio es requerido<br>'
+                }
+                if ($('#password').val()== ''){
+                    content += 'La contraseña es requerido<br>'
+                }
+                if ($('#company_id').val() == ''){
+                    content += 'La empresa es requerido'
+                }
+                if (content != ''){
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Falta datos',
+                        html: '<div>'+content+'</div>',
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        },
+                        buttonsStyling: false
+                    });
+                }
             })
         </script>
     @endsection

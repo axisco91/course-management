@@ -2,24 +2,14 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\Billing;
 use App\Models\Center;
-use App\Models\Chore;
 use App\Models\CourseStatus;
 use App\Models\CourseType;
-use App\Models\Profitability;
-use App\Models\Registration;
-use App\Models\Student;
 use App\Models\Teacher;
-use App\Models\Tracing;
 use App\Models\TrainingAction;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Course;
-use App\Helpers\CourseStatusHelper;
 
 class CoursesCreate extends Component
 {
@@ -54,6 +44,9 @@ class CoursesCreate extends Component
         $this->formation_centers = Center::all();
         $this->delivery_centers = Center::all();
         $this->course_statuses = CourseStatus::all();
+        if ($id){
+            $this->setName();
+        }
 
         $this->route = url()->previous();
     }

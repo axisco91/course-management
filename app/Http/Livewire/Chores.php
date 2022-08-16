@@ -172,6 +172,8 @@ class Chores extends Component
         $this->bonus_sent_date = $record-> bonus_sent_date;
         $this->name = $student->name;
         $this->surname = $student->surname;
+        $this->beginning = Carbon::parse($course->beginning)->format('d/m/Y');
+        $this->end = Carbon::parse($course->end)->format('d/m/Y');
     }
 
     public function getInfo($id){

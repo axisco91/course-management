@@ -58,7 +58,6 @@
         <select class="form-select" wire:model.lazy="welcome_guid_status" id="welcome_guid_status" disabled>
             <option value="0">Pendiente</option>
             <option value="1">Enviada</option>
-            <option value="2">Recibida</option>
         </select>
     </div>
     <div class="col-md-3 col-12 mb-1">

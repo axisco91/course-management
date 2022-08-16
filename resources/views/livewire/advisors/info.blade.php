@@ -169,8 +169,8 @@
     </div>
     <div class="col-md-4 col-12">
         <div class="mb-1">
-            <label class="form-label" for="commission">Commisiones</label>
-            <input wire:model.lazy="commission" type="text" class="form-control" id="commission" placeholder="Commisiones" disabled>@error('commission') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            <label class="form-label" for="commission">Comisiones</label>
+            <input wire:model.lazy="commission" type="text" class="form-control" id="commission" placeholder="Comisiones" disabled>@error('commission') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>
     <div class="col-md-4 col-12">

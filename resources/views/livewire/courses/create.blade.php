@@ -4,7 +4,7 @@
             <div class="col-md-4 col-12">
                 <div class="mb-1">
                     <label class="form-label" for="name">Nombre</label>
-                    <input wire:model.lazy="name" type="text" class="form-control" id="name" disabled placeholder="Nombre">@error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    <input wire:model.lazy="name" type="text" class="form-control" id="name" disabled placeholder="Nombre">@error('name') <div class="invalid-feedback">Nombre es requerido</div> @enderror
                 </div>
             </div>
             <div class="col-md-4 col-12 mb-1">
@@ -25,11 +25,11 @@
                         @endforeach
                     </select>
                 </div>
-                @error('training_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @error('training_id') <div class="invalid-feedback">Acción formativa es requerido</div> @enderror
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <label class="form-label" for="group">Grupo</label>
-                <input wire:model.lazy="group" type="text" class="form-control" id="group" placeholder="Grupo" disabled>@error('group') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <input wire:model.lazy="group" type="text" class="form-control" id="group" placeholder="Grupo" disabled>@error('group') <div class="invalid-feedback">Grupo es requerido</div> @enderror
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
@@ -41,7 +41,7 @@
                         @endforeach
                     </select>
                 </div>
-                @error('course_type_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @error('course_type_id') <div class="invalid-feedback">Tipo de curso es requerido</div> @enderror
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
@@ -54,11 +54,15 @@
                         @endforeach
                     </select>
                 </div>
-                @error('teacher_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                @error('teacher_id') <div class="invalid-feedback">Docente es requerido</div> @enderror
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <label class="form-label" for="nebrija">Nebrija</label>
-                <input wire:model.lazy="nebrija" type="text" class="form-control" id="nebrija" placeholder="Nebrija">@error('nebrija') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <select wire:model.lazy="nebrija" class="form-control" id="nebrija">
+                    <option vale="0">No</option>
+                    <option value="1">Si</option>
+                </select>
+                @error('nebrija') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
@@ -86,11 +90,11 @@
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <label class="form-label" for="beginning">Fecha Inicio</label>
-                <input wire:model.lazy="beginning" type="date" class="form-control" id="beginning">@error('beginning') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <input wire:model.lazy="beginning" type="date" class="form-control" id="beginning">@error('beginning') <div class="invalid-feedback">Fecha de inicio es requerido</div> @enderror
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <label class="form-label" for="end">Fecha Fin</label>
-                <input wire:model.lazy="end" type="date" class="form-control" id="end">@error('end') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <input wire:model.lazy="end" type="date" class="form-control" id="end">@error('end') <div class="invalid-feedback">Fecha de fin es requerido</div> @enderror
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <label class="form-label" for="morning_schedule">Horario Mañana</label>
@@ -162,7 +166,7 @@
         </div>
         <div class="col-12">
             <a href="{{ url()->previous() }}" class="btn btn-secondary">Volver</a>
-            <button type="button" wire:click.prevent="store()" class="btn btn-primary">Guardar</button>
+            <button id="save" type="button" wire:click.prevent="store()" class="btn btn-primary">Guardar</button>
         </div>
     </form>
     @section('vendor-script')
@@ -183,6 +187,41 @@
             @this.set(this.id, this.value)
             @this.setName()
             })
+        })
+        $('body').on('click', '#save', function(){
+            content = ''
+            if ($('#name').val() == ''){
+                content += 'El nombre es requerido<br>'
+            }
+            if ($('#training_action_id').val() == ''){
+                content += 'La acción formativa es requerido<br>'
+            }
+            if ($('#group').val() == ''){
+                content += 'El grupo es requerido<br>'
+            }
+            if ($('#course_type_id').val() == ''){
+                content += 'El tipo de curso es requerido<br>'
+            }
+            if ($('#teacher_id').val() == ''){
+                content += 'El docente es requerido<br>'
+            }
+            if ($('#beginning').val() == ''){
+                content += 'La fecha de inicio es requerido<br>'
+            }
+            if ($('#end').val() == ''){
+                content += 'La fecha de fin es requerido<br>'
+            }
+            if (content != ''){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Falta datos',
+                    html: '<div>'+content+'</div>',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                    buttonsStyling: false
+                });
+            }
         })
     </script>
 </div>

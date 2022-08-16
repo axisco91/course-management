@@ -4,9 +4,11 @@ namespace App\Http\Livewire;
 
 use App\Exports\CoursesExport;
 use App\Helpers\CourseStatusHelper;
+use App\Models\Advisor;
 use App\Models\Billing;
 use App\Models\Center;
 use App\Models\Chore;
+use App\Models\Company;
 use App\Models\CourseStatus;
 use App\Models\CourseType;
 use App\Models\Profitability;
@@ -21,12 +23,13 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Course;
+use function PHPUnit\Framework\isEmpty;
 
 class Courses extends Component
 {
     use WithPagination;
 
-    protected $listeners = ['refreshComponent' => '$refresh'];
+    protected $listeners = ['refreshComponent' => '$refresh', 'destroy' => 'destroy'];
 	protected $paginationTheme = 'bootstrap';
     public $selected_id = null, $keyWord, $name, $training_action_id, $group, $course_type_id, $teacher_id, $nebrija, $beginning,
         $end, $morning_schedule, $afternoon_schedule, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday, $sunday,
@@ -39,7 +42,7 @@ class Courses extends Component
     public $chore_id, $membership_tab_status, $economic_proposal_status,  $registration_status, $tab = 'info',
         $start_communication_date, $close_communication_date, $company_id, $company_name, $student_name;
     public $search_formative_action, $search_name, $search_student_name, $search_surname,
-        $search_group, $search_type, $search_status, $search_company;
+        $search_group, $search_type, $search_status, $search_company, $companies;
 
     public function render()
     {
@@ -64,10 +67,17 @@ class Courses extends Component
         $search_formative_action = '%'.$this->search_formative_action.'%';
         $search_name = '%'.$this->search_name.'%';
         $search_group = '%'.$this->search_group.'%';
-        $search_company = '%'.$this->search_company.'%';
 
-        $courses = Course::getCourses($keyWord, $search_formative_action, $search_name, $search_group, $this->search_type, $this->search_status, $search_company);
+        $courses = Course::getCourses($keyWord, $search_formative_action, $search_name, $search_group, $this->search_type, $this->search_status, $this->search_company);
 
+        foreach ($courses as $course) {
+            $registration = Registration::where('course_id', $course->id)->first();
+            if ($registration) {
+                $course['used'] = true;
+            } else {
+                $course['used'] = false;
+            }
+        }
 
         return view('livewire.courses.list', [
             'courses' => $courses]);
@@ -86,6 +96,7 @@ class Courses extends Component
         $this->formation_centers = Center::all();
         $this->delivery_centers = Center::all();
         $this->course_statuses = CourseStatus::all();
+        $this->companies = Company::where('active', 1)->get();
     }
 
     private function resetInput()
@@ -204,5 +215,43 @@ class Courses extends Component
     public function downloadExcel(){
         $this->excelModal = false;
         return (new CoursesExport($this->search_formative_action, $this->search_name, $this->search_group, $this->search_type, $this->search_status, $this->search_company))->download('courses.xlsx');
+    }
+
+    public function destroy($id)
+    {
+        if ($id) {
+            $registrations = Registration::where('course_id', $id)->get();
+            if ($registrations) {
+                $billings_id = [];
+                foreach ($registrations as $registration){
+                    if ($registration->billing_id){
+                        if (!in_array($registration->billing_id, $billings_id)){
+                            array_push($billings_id, $registration->billing_id);
+                        }
+                        $registration['billing_id'] = null;
+                    }
+                }
+                if (!isEmpty($billings_id)){
+                    foreach ($billings_id as $id){
+                        Billing::destroy($id);
+                    }
+                }
+                foreach ($registrations as $registration){
+                    Registration::destroy($registration->id);
+                    if ($registration->tracing_id){
+                        Tracing::destroy($registration->traicing_id);
+                    }
+                    if ($registration->chore_id){
+                        Chore::destroy($registration->chore_id);
+                    }
+                    if ($registration->profitability_id){
+                        Profitability::destroy($registration->profitality_id);
+                    }
+                }
+            }
+           else {
+                Course::destroy($id);
+            }
+        }
     }
 }

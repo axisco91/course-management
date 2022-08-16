@@ -1,12 +1,8 @@
 <div class="card">
     <div class="card-header border-bottom">
         <h4 class="card-title">Alumnos</h4>
-        @if (session()->has('message'))
             <input hidden id="success-toast" data-type="success" data-show="true" value="{{ session('message') }}">
-        @endif
-        @if (session()->has('error'))
-            <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
-        @endif
+
         @include('students.info')
     </div>
     <!--Search Form -->
@@ -97,6 +93,9 @@
                             @else
                                 <a class="dropdown-item desactivate" data-id="{{$row->id}}"><i class="fa-regular fa-eye-slash"></i> Desactivar </a>
                             @endif
+                            @if (!$row->used)
+                                <a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
+                            @endif
                         </div>
                     </div>
                 </td>
@@ -117,6 +116,56 @@
     @section('scripts')
         <script>
             document.addEventListener('livewire:load', function () {
+                $('body').on('click', '.eliminar', function () {
+                    button = $(this)
+                    const swalWithBootstrapButtons = Swal.mixin({
+                        customClass: {
+                            confirmButton: 'btn btn-success',
+                            cancelButton: 'btn btn-danger'
+                        },
+                        buttonsStyling: false
+                    })
+
+                    swalWithBootstrapButtons.fire({
+                        title: '¿Estas seguro?',
+                        text: "Eliminaras al alumno!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Si, eliminalo!',
+                        cancelButtonText: 'No, cancela!',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            id = $(this).data('id');
+                            Livewire.emit('destroy', id)
+                            window.addEventListener('eliminated', e=>{
+                                if (e.detail.value != ''){
+                                    swalWithBootstrapButtons.fire(
+                                        'Eliminado!',
+                                        'Eliminado con exito.',
+                                        'success'
+                                    )
+                                } else{
+                                    swalWithBootstrapButtons.fire(
+                                        'Error',
+                                        'Fallo al eliminar.',
+                                        'error'
+                                    )
+                                }
+                            });
+
+                        } else if (
+                            /* Read more about handling dismissals below */
+                            result.dismiss === Swal.DismissReason.cancel
+                        ) {
+                            swalWithBootstrapButtons.fire(
+                                'Cacelado',
+                                'No se ha podido eliminar.',
+                                'error'
+                            )
+                        }
+                    })
+                })
                 $('body').on('click', '.desactivate', function () {
                     button = $(this)
                     const swalWithBootstrapButtons = Swal.mixin({

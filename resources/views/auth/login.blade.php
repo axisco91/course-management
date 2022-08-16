@@ -40,13 +40,13 @@
                                     </div>
                                     <div class="mb-1">
                                         <div class="d-flex justify-content-between">
-                                            <label class="form-label" for="password">Contraseña</label><a href="auth-forgot-password-cover.html"><small>¿Olvidado contraseña?</small></a>
+                                            <label class="form-label" for="password">Contraseña</label><a class="font-bold" href="{{ route('password.request') }}"><small>¿Has olvidado tu contraseña?</small></a>
                                         </div>
                                         <div class="input-group input-group-merge form-password-toggle">
                                             <input class="form-control form-control-merge" id="password" type="password" name="password" placeholder="············" aria-describedby="password" tabindex="2" /><span class="input-group-text cursor-pointer"><i data-feather="eye"></i></span>
                                             @error('password')
                                             <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
+                                        <strong>Contraseña es requerido</strong>
                                     </span>
                                             @enderror
                                         </div>
@@ -54,10 +54,10 @@
                                     <div class="mb-1">
                                         <div class="form-check">
                                             <input class="form-check-input" id="remember-me" type="checkbox" tabindex="3" />
-                                            <label class="form-check-label" for="remember-me"> Recuerdame</label>
+                                            <label class="form-check-label" for="remember-me"> Recuérdame</label>
                                         </div>
                                     </div>
-                                    <button class="btn btn-primary w-100" tabindex="4">{{ __('Login') }}</button>
+                                    <button class="btn btn-primary w-100" tabindex="4">Acceder</button>
                                 </form>
                                 <!--
                                 <p class="text-center mt-2"><span>New on our platform?</span><a href="auth-register-cover.html"><span>&nbsp;Create an account</span></a></p>

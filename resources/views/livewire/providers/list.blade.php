@@ -44,15 +44,15 @@
             <tbody>
                 @foreach($providers as $row)
                 <tr>
-                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $loop->iteration }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->name }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->nif }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->type }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->activity }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->email }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->telephone }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->legal_representative }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->provider_id}})">{{ $row->advisor }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->id}})">{{ $row->name }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->id}})">{{ $row->nif }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->id}})">{{ $row->type }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->id}})">{{ $row->activity }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->id}})">{{ $row->email }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->id}})">{{ $row->telephone }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->id}})">{{ $row->legal_representative }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#providersTabModal" wire:click="general({{$row->id}})">{{ $row->advisor }}</td>
                     <td>
                         <div class="dropdown">
                             <button type="button" class="btn btn-sm dropdown-toggle hide-arrow py-0" data-bs-toggle="dropdown">
@@ -60,6 +60,9 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
                                 <a href="{{url('/providers/edit/'.$row->id)}}" class="dropdown-item"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                                @if (!$row->used)
+                                    <a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
+                                @endif
                             </div>
                         </div>
                     </td>
@@ -69,7 +72,60 @@
         {{ $providers->links() }}
         </div>
     </div>
-</div>
-		</div>
-	</div>
+@section('scripts')
+    <script>
+        document.addEventListener('livewire:load', function () {
+            $('body').on('click', '.eliminar', function () {
+                button = $(this)
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                })
+
+                swalWithBootstrapButtons.fire({
+                    title: '¿Estas seguro?',
+                    text: "Eliminaras al proveedor!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, eliminalo!',
+                    cancelButtonText: 'No, cancela!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        id = $(this).data('id');
+                        Livewire.emit('destroy', id)
+                        window.addEventListener('eliminated', e=>{
+                            if (e.detail.value != ''){
+                                swalWithBootstrapButtons.fire(
+                                    'Eliminado!',
+                                    'Eliminado con exito.',
+                                    'success'
+                                )
+                            } else{
+                                swalWithBootstrapButtons.fire(
+                                    'Error',
+                                    'Fallo al eliminar.',
+                                    'error'
+                                )
+                            }
+                        });
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cacelado',
+                            'No se ha podido eliminar.',
+                            'error'
+                        )
+                    }
+                })
+            })
+        })
+    </script>
+    @endsection
 </div>

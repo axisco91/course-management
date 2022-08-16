@@ -172,7 +172,6 @@
                 </div>
                 <div class="col-12">
                     <a href="{{ url()->previous() }}" class="btn btn-secondary">Volver</a>
-                    <button type="button" wire:click.prevent="update()" class="btn btn-primary">Guardar</button>
                 </div>
             </form>
         </div>

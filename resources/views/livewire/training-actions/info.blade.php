@@ -164,7 +164,7 @@
         <div class="col-12">
             <div class="mb-1">
                 <label class="form-label" for="content">Contenido</label>
-                <textarea wire:model.lazy="content @error('content') is-invalid @enderror" rows="20" class="form-control" id="content" placeholder="Contenido" disabled></textarea>@error('content') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <textarea wire:model.lazy="content" rows="20" class="form-control @error('content') is-invalid @enderror" id="content" placeholder="Contenido" disabled></textarea>@error('content') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
         </div>
         <div class="col-md-4 col-12">

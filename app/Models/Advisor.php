@@ -180,7 +180,23 @@ class Advisor extends Model
             $record = Company::find($id);
             $advisor = Advisor::create([
                 'name' => $record['name'],
-                'company_id' => $record['id']
+                'company_id' => $id,
+                'nif' => $record['nif'],
+                'company_type_id' => $record['company_type_id'],
+                'company_activity_id' => $record['company_activity_id'],
+                'email' => $record['email'],
+                'telephone' => $record['telephone'],
+                'legal_representative' => $record['legal_representative'],
+                'dni_legal_representative' => $record['dni_legal_representative'],
+                'cnae_id' => $record['cnae_id'],
+                'iban' => $record['iban'],
+                'sepa' => $record['sepa'],
+                'b2b' => $record['b2b'],
+                'address' => $record['address'],
+                'post_code' => $record['post_code'],
+                'province_id' => $record['province_id'],
+                'population' => $record['population'],
+                'active' => $record['active'],
             ]);
            return $advisor;
         }
