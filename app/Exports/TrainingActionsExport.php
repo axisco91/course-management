@@ -57,6 +57,18 @@ class TrainingActionsExport implements FromCollection, WithHeadings
         ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
         ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
 
+        if ($this->professional_family_id){
+            $training_actions = $training_actions->Where('training_actions.professional_family_id', $this->professional_family_id);
+        }
+        if ($this->professional_area_id){
+            $training_actions = $training_actions->Where('training_actions.professional_area_id', $this->professional_area_id);
+        }
+        if ($this->modality_id){
+            $training_actions = $training_actions->Where('training_actions.modality_id', $this->modality_id);
+        }
+        if ($this->provider_id){
+            $training_actions = $training_actions->Where('training_actions.provider_id', $this->provider_id);
+        }
 
         $training_actions = $training_actions->get();
 

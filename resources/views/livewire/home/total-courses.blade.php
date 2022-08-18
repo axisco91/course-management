@@ -12,6 +12,9 @@
             <th wire:click="sortBy('students.name')">Alumno
                 @include('partials._sort-icon', ['field' => 'students.name'])
             </th>
+            <th wire:click="sortBy('students.name')">Fecha inicio
+                @include('partials._sort-icon', ['field' => 'courses.beginning'])
+            </th>
         </tr>
         </thead>
         <tbody>
@@ -21,6 +24,7 @@
                 <td>{{ substr(str_replace( ' -', '/'.$row->course_group.' -', $row->course), 0 ,20) }}...</td>
                 <td>{{ $row->company }}</td>
                 <td>{{ $row->student }}</td>
+                <td>{{ \Carbon\Carbon::parse($row->beginning)->format('d/m/Y') }}</td>
             </tr>
         @endforeach
         </tbody>

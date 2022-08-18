@@ -131,6 +131,7 @@ class Chore extends Model
 
     public function getChoresSendWelcome($sortBy, $sortDitection){
         $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name',
+            'courses.beginning',
             'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group')
             ->leftjoin('courses', 'courses.id', '=', 'chores.course_id')
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
