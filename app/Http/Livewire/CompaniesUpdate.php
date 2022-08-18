@@ -79,7 +79,7 @@ class CompaniesUpdate extends Component
 
         if ($this->selected_id) {
             if ($this->nif){
-                $nif = Company::findNif($this->nif);
+                $nif = Company::findNif($this->nif, $this->selected_id);
                 if ($nif){
                     $this->emit('alreadyExists', 'nif');
                     return;
@@ -113,9 +113,8 @@ class CompaniesUpdate extends Component
 
             $advisor = Advisor::where('company_id', $this->selected_id)->first();
             if ($advisor){
-                $advisor->update([
-                    'name' => $this-> name,
-                ]);
+                $data['company_id'] = $this->selected_id;
+                $advisor->updateAdvisorCompany($advisor->id, $data);
             }
             $provider = Provider::where('company_id', $this->selected_id)->first();
             if ($provider){

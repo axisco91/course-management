@@ -34,10 +34,6 @@
                 <label class="form-label">Correo:</label>
                 <input wire:model="search_email" type="text" class="form-control dt-input" data-column="5" placeholder="Correo" data-column-index="4" />
             </div>
-            <div class="col-md-4">
-                <label class="form-label">Empresa:</label>
-                <input wire:model="search_comapny" type="text" class="form-control dt-input" data-column="6" placeholder="Empresa" data-column-index="5" />
-            </div>
         </div>
     </div>
     <div class="card-footer">
@@ -52,6 +48,9 @@
                 <a wire:ignore class="btn btn-sm btn-info" href="{{url('/teachers/create')}}">
                     <i data-feather="plus-circle" class="me-50"></i> Añadir Docente
                 </a>
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
             </div>
         </div>
     </div>

@@ -163,6 +163,7 @@ class Billing extends Model
                 ]);
             }
         }
+        return $billing;
     }
 
     public function calculateExpenses($precio){

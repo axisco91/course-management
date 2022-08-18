@@ -19,8 +19,8 @@
 
             </div>
             <div class="col-md-4">
-                <div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
-                    <i class="fa fa-plus"></i>  Añadir Provincia
+                <div wire:ignore class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
+                    <i data-feather="plus-circle" class="me-50"></i> Añadir Provincia
                 </div>
             </div>
         </div>

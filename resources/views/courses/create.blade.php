@@ -15,7 +15,7 @@
                         Crear Curso
                     </div>
                 </div>
-                @livewire('courses-create')
+                @livewire('courses-create', ['id' => $id])
             </div>
         </div>
     </section>

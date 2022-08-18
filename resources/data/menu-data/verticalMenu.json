@@ -49,12 +49,6 @@
           "slug": "courses"
       },
       {
-          "url": "/billings",
-          "name": "Billings",
-          "icon": "credit-card",
-          "slug": "billings"
-      },
-      {
           "url": "/chores",
           "name": "Chores",
           "icon": "file-text",
@@ -65,6 +59,12 @@
           "name": "Tracings",
           "icon": "edit-2",
           "slug": "tracings"
+      },
+      {
+          "url": "/billings",
+          "name": "Billings",
+          "icon": "credit-card",
+          "slug": "billings"
       },
       {
           "url": "/profitabilities",

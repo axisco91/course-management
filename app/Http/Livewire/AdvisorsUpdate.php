@@ -83,7 +83,7 @@ class AdvisorsUpdate extends Component
 
         if ($this->selected_id) {
             if ($this->nif){
-                $nif = Advisor::findNif($this->nif);
+                $nif = Advisor::findNif($this->nif, $this->selected_id);
                 if ($nif){
                     $this->emit('alreadyExists', 'nif');
                     return;

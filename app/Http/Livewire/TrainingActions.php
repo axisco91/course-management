@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\TrainingActionsExport;
 use App\Models\ActionType;
 use App\Models\Course;
 use App\Models\Modality;
@@ -28,7 +29,7 @@ class TrainingActions extends Component
     public $updateMode = false;
     public $action_types, $professional_families, $professional_areas, $modalities, $training_action_levels, $training_action_groups,
     $tutorings, $web_platforms, $providers, $tab = 'info';
-    public $search_formative_actions, $search_name, $search_course_name, $search_course_group, $courses;
+    public $search_formative_actions, $search_name, $search_course_name, $search_course_group, $courses, $search_professional_family_id, $search_professional_area_id, $search_modality_id, $search_provider_id;
     protected $listeners = [
         'changeState' => 'changeState',
         'destroy' => 'destroy'
@@ -39,7 +40,7 @@ class TrainingActions extends Component
 		$keyWord = '%'.$this->keyWord .'%';
         $search_formative_actions = '%'.$this->search_formative_actions.'%';
         $search_name = '%'.$this->search_name.'%';
-        $trainingActions = TrainingAction::getTrainingActions($keyWord,$this->inactiveFilter, $search_formative_actions, $search_name);
+        $trainingActions = TrainingAction::getTrainingActions($keyWord,$this->inactiveFilter, $search_formative_actions, $search_name, $this->search_professional_family_id, $this->search_professional_area_id, $this->search_modality_id, $this->search_provider_id);
 
         if ($this->selected_id){
             $search_course_name = '%'.$this->search_course_name.'%';
@@ -163,4 +164,9 @@ class TrainingActions extends Component
     public function editAction($id){
         $this->emit('editTrainingAction', $id);
     }
+
+     public function downloadExcel(){
+         $this->excelModal = false;
+         return (new TrainingActionsExport($this->search_formative_actions, $this->search_name, $this->search_professional_family_id,  $this->search_professional_area_id, $this->search_modality_id, $this->search_provider_id, $this->inactiveFilter))->download('acciones_formativas.xlsx');
+     }
 }
