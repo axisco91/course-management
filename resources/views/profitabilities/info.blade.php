@@ -18,7 +18,7 @@
                     </li>
                 </ul>
                 @if($tab == 'info')
-                    <div class="tab-pane container active" id="general">
+                    <div class="tab-pane container-fluid active" id="general">
                         @include('livewire.profitabilities.info')
                     </div>
                 @endif

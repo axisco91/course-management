@@ -166,6 +166,7 @@ Route::middleware(['auth'])->group(function () {
         Route::controller(ProfileController::class)->group(function(){
             Route::get('profile', 'index');
             Route::get('setting_profile', 'edit');
+            Route::get('change_password', 'changePassword');
         });
     });
     /**

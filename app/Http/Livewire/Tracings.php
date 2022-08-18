@@ -2,6 +2,8 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\AdvisorsExport;
+use App\Exports\TracingsExport;
 use App\Models\Company;
 use App\Models\Course;
 use App\Models\CourseStatus;
@@ -24,12 +26,12 @@ class Tracings extends Component
         $three_quarters_date_sent, $final_date_sent, $beginning, $end, $course_group;
     public $updateMode = false;
     public $courses, $companies, $students, $course_statuses, $tab = 'info';
-    public $course_search = -1, $company_search = -1, $student_search = -1, $status_search = -1, $student_name, $name, $surname, $course_name;
+    public $course_search = -1, $company_search = -1, $student_search = -1, $status_search = -1, $student_name, $name, $surname, $course_name, $beginning_search, $end_search;
 
     public function render()
     {
         $keyWord = '%'.$this->keyWord .'%';
-        $tracings = Tracing::getTracings($keyWord, $this->course_search, $this->company_search, $this->student_search, $this->status_search);
+        $tracings = Tracing::getTracings($keyWord, $this->course_search, $this->company_search, $this->student_search, $this->status_search, $this->beginning_search, $this->end_search);
         return view('livewire.tracings.list', [
             'tracings' => $tracings
         ]);
@@ -251,5 +253,10 @@ class Tracings extends Component
         $this->number_units = $training_action->number_units;
         $this->name = $student->name;
         $this->surname = $student->surname;
+    }
+
+    public function downloadExcel(){
+        $this->excelModal = false;
+        return (new TracingsExport($this->course_search, $this->company_search, $this->student_search, $this->status_search, $this->beginning_search, $this->end_search))->download('seguimiento.xlsx');
     }
 }

@@ -18,7 +18,7 @@
                     </li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane container active" id="general">
+                    <div class="tab-pane container-fluid active" id="general">
                         <div class="row">
                             <form id="editTracingForm" class="row gy-1 pt-75" onsubmit="return false">
                                 <div class="col-12 mt-2 pt-50">

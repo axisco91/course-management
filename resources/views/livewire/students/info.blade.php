@@ -2,7 +2,7 @@
      <div class="col-12 mb-1">
          <a class="btn btn-success right" href="{{url('/students/edit/'.$this->selected_id)}}" target="_blank"><i class="fa-solid fa-pencil"></i></a>
      </div>
-    <div class="col-12 col-md-4 mb-1">
+    <div class="col-12 col-md-4 mb-1col">
         <label class="form-label" for="dni">DNI</label>
         <input wire:model.lazy="dni" type="text" class="form-control" id="dni" placeholder="Dni" disabled>
     </div>

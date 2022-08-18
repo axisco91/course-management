@@ -97,10 +97,10 @@
       <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-user">
         <h6 class="dropdown-header">Administrar Perfil</h6>
         <div class="dropdown-divider"></div>
-        <a class="dropdown-item"
+        <!--<a class="dropdown-item"
           href="{{ url('/user/profile') }}">
           <i class="me-50" data-feather="user"></i> Perfil
-        </a>
+        </a>-->
    <!--     @if (Auth::check() && Laravel\Jetstream\Jetstream::hasApiFeatures())
           <a class="dropdown-item" href="{{ route('api-tokens.index') }}">
             <i class="me-50" data-feather="key"></i> API Tokens

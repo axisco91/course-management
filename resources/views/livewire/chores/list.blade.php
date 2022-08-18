@@ -56,6 +56,33 @@
                     </select>
                 </div>
             </div>
+            <div class="col-md-3">
+                <div wire:ignore>
+                    <label class="form-label" for="beginning_search">Desde</label>
+                    <input wire:model.lazy="beginning_search" type="date" class="form-control" id="beginning_search">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div wire:ignore>
+                    <label class="form-label" for="end_search">Hasta</label>
+                    <input wire:model.lazy="end_search" type="date" class="form-control" id="end_search">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+
+            </div>
+            <div class="col-md-4">
+
+            </div>
+            <div class="col-md-4">
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
+            </div>
         </div>
     </div>
     <hr class="my-0" />

@@ -21,12 +21,12 @@
                     </li>
                 </ul>
                 @if($tab == 'info')
-                    <div class="tab-pane container active" id="general">
+                    <div class="tab-pane container-fluid active" id="general">
                         @include('livewire.providers.info')
                     </div>
                 @endif
                 @if($tab == 'training_actions')
-                    <div class="tab-pane container active" id="training_actions">
+                    <div class="tab-pane container-fluid active" id="training_actions">
                         @include('livewire.providers.training-actions-list')
                     </div>
                 @endif

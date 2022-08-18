@@ -2,6 +2,8 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\AdvisorsExport;
+use App\Exports\ChoresExport;
 use App\Models\Company;
 use App\Models\Course;
 use App\Models\CourseStatus;
@@ -23,7 +25,7 @@ class Chores extends Component
         $bonus_sent_status, $bonus_sent_date, $beginning, $end, $course_group;
     public $updateMode = false;
     public $courses, $companies, $students, $course_statuses, $tab = 'info';
-    public $course_search = -1, $company_search = -1, $student_search = -1, $status_search = -1, $student_name, $name, $surname, $course_name;
+    public $course_search = -1, $company_search = -1, $student_search = -1, $status_search = -1, $student_name, $name, $surname, $course_name, $beginning_search, $end_search;
     protected $listeners = [
         'destroy' => 'destroy'
     ];
@@ -32,7 +34,7 @@ class Chores extends Component
     {
 		$keyWord = '%'.$this->keyWord .'%';
 
-       $chores = Chore::getChores($keyWord, $this->course_search, $this->company_search, $this->student_search, $this->status_search);
+       $chores = Chore::getChores($keyWord, $this->course_search, $this->company_search, $this->student_search, $this->status_search, $this->beginning_search, $this->end_search);
         return view('livewire.chores.list', [
             'chores' => $chores,
         ]);
@@ -178,5 +180,10 @@ class Chores extends Component
 
     public function getInfo($id){
         $this->selected_id = $id;
+    }
+
+    public function downloadExcel(){
+        $this->excelModal = false;
+        return (new ChoresExport($this->course_search, $this->company_search, $this->student_search, $this->status_search, $this->beginning_search, $this->end_search))->download('tareas.xlsx');
     }
 }

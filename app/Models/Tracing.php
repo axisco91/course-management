@@ -45,7 +45,7 @@ class Tracing extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public function getTracings($keyWord, $course_search, $company_search, $student_search, $status_search){
+    public function getTracings($keyWord, $course_search, $company_search, $student_search, $status_search, $beginning_search, $end_search){
         $tracings = Tracing::select('tracings.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name', 'students.surname as student_surname',
             'training_actions.number_activities', 'training_actions.number_units', 'training_actions.total_hours')
             ->leftjoin('courses', 'courses.id', '=', 'tracings.course_id')
@@ -64,6 +64,12 @@ class Tracing extends Model
         }
         if ($status_search != -1){
             $tracings = $tracings->where('courses.course_status_id', 'LIKE', $status_search);
+        }
+        if ($beginning_search){
+            $tracings = $tracings->where('courses.beginning', '>=', $beginning_search);
+        }
+        if ($end_search){
+            $tracings = $tracings->where('courses.beginning', '<=', $end_search);
         }
         $tracings = $tracings->where(function ($query) use ($keyWord) {
             $query->orWhere('performed_activities', 'LIKE', $keyWord)

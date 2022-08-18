@@ -110,7 +110,7 @@ class TracingsUpdate extends Component
             Tracing::updateTracing($this->selected_id, $data);
 
             session()->flash('message', 'Seguimiento actualizada con exito.');
-            return $this->redirect($this->route);
+            return $this->redirect('/tracings');
         }
     }
 }
