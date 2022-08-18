@@ -18,7 +18,7 @@
                     </li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane container active" id="general">
+                    <div class="tab-pane container-fluid active" id="general">
                         <div class="row">
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="name">Nombre</label>

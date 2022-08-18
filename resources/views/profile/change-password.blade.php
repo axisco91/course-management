@@ -18,7 +18,7 @@
                         Perfil
                     </div>
                 </div>
-                @livewire('profile-setting')
+                @livewire('change-password')
             </div>
         </div>
     </section>

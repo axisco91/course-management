@@ -13,16 +13,16 @@
                     <div class="row">
                         <div class="col-12">
                             <label class="form-label" for="name">Contraseña</label>
-                            <input wire:model="password" type="text" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Contraseña">@error('password') <div class="invalid-feedback">Contraseña es requerido</div> @enderror
+                            <input wire:model="password" type="password" class="form-control @error('password') is-invalid @enderror" id="password" placeholder="Contraseña">@error('password') <div class="invalid-feedback">Contraseña es requerido</div> @enderror
                         </div>
                         <div class="col-12">
                             <label class="form-label" for="password_confirmation">Repetir contraseña</label>
-                            <input wire:model="password_confirmation" type="text" class="form-control @error('password_confirmation') is-invalid @enderror" id="password_confirmation" placeholder="Repetir contraseña">@error('password_confirmation') <div class="invalid-feedback">Contraseña es requerido</div> @enderror
+                            <input wire:model="password_confirmation" type="password" class="form-control @error('password_confirmation') is-invalid @enderror" id="password_confirmation" placeholder="Repetir contraseña">@error('password_confirmation') <div class="invalid-feedback">Contraseña es requerido</div> @enderror
                         </div>
                     </div>
                     <div class="col-12 text-center mt-2 pt-50">
                         <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button type="button" wire:click.prevent="saveChangePassword()" class="btn btn-primary close-model">Guardar</button>
+                        <button id="save" type="button" class="btn btn-primary close-model">Guardar</button>
                     </div>
                 </form>
             </div>

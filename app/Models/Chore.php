@@ -72,7 +72,7 @@ class Chore extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public function getChores($keyWord, $course_search, $company_search, $student_search, $status_search){
+    public function getChores($keyWord, $course_search, $company_search, $student_search, $status_search, $beginning_search, $end_search){
         $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name',
             'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group')
             ->leftjoin('courses', 'courses.id', '=', 'chores.course_id')
@@ -92,7 +92,12 @@ class Chore extends Model
         if ($status_search != -1){
             $chores = $chores->where('courses.course_status_id', 'LIKE', $status_search);
         }
-
+        if ($beginning_search){
+            $chores = $chores->where('courses.beginning', '>=', $beginning_search);
+        }
+        if ($end_search){
+            $chores = $chores->where('courses.beginning', '<=', $end_search);
+        }
         $chores = $chores->where(function ($query) use ($keyWord) {
             $query->orWhere('membership_tab_status', 'LIKE', $keyWord)
                 ->orWhere('membership_tab_date', 'LIKE', $keyWord)

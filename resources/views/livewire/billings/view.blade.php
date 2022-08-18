@@ -11,7 +11,7 @@
         </li>
     </ul>
     @if($tab == 'info')
-        <div class="tab-pane container active" id="general">
+        <div class="tab-pane container-fluid active" id="general">
             <form class="form needs-validation" novalidate>
                 <input type="hidden" wire:model="selected_id">
                 <div class="row">
@@ -176,7 +176,7 @@
             </form>
         </div>
     @elseif($tab == 'students')
-        <div class="tab-pane container active" id="students">
+        <div class="tab-pane container-fluid active" id="students">
             @include('livewire.billings.billings-students')
         </div>
     @endif

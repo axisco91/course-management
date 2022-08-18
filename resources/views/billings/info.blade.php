@@ -20,11 +20,11 @@
                     </li>
                 </ul>
                 @if($tab == 'info')
-                    <div class="tab-pane container active" id="general">
+                    <div class="tab-pane container-fluid active" id="general">
                         @include('livewire.billings.info')
                     </div>
                 @elseif($tab == 'students')
-                    <div class="tab-pane container active" id="students">
+                    <div class="tab-pane container-fluid active" id="students">
                         @include('livewire.billings.billings-students')
                     </div>
                 @endif

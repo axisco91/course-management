@@ -57,6 +57,33 @@
                     </select>
                 </div>
             </div>
+            <div class="col-md-3">
+                <div wire:ignore>
+                    <label class="form-label" for="beginning_search">Desde</label>
+                    <input wire:model.lazy="beginning_search" type="date" class="form-control" id="beginning_search">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div wire:ignore>
+                    <label class="form-label" for="end_search">Hasta</label>
+                    <input wire:model.lazy="end_search" type="date" class="form-control" id="end_search">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+
+            </div>
+            <div class="col-md-4">
+
+            </div>
+            <div class="col-md-4">
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
+            </div>
         </div>
     </div>
     <hr class="my-0" />
@@ -94,7 +121,7 @@
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->performed_hours }} / {{$row->total_hours}}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->performed_activities }} / {{$row->number_activities}}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->performed_units }} / {{$row->number_units}}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ Carbon\Carbon::parse($row->follow_up_date)->format('d/m/Y') }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->follow_up_date ? Carbon\Carbon::parse($row->follow_up_date)->format('d/m/Y') : ''}}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->final_test }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->questionnaire }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#tracingsTabModal" wire:click="general({{$row->id}})">{{ $row->welcome_message == 1 ? 'Si' : 'No' }}</td>

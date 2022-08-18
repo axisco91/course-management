@@ -75,3 +75,7 @@
         </div>
     </div>
 @endsection
+@section('page-script')
+    <script src="{{ asset('js/login.js') }}"></script>
+@endsection
+

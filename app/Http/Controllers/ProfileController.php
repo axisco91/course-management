@@ -25,4 +25,11 @@ class ProfileController extends Controller
         }
     }
 
+    public function changePassword() {
+
+        $id = Auth::id();
+        if ($id){
+            return view('profile.change-password', compact('id'));
+        }
+    }
 }
