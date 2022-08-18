@@ -9,6 +9,7 @@
         @endif
         @include('livewire.users.create')
         @include('livewire.users.update')
+        @include('livewire.users.change-password')
     </div>
     <div class="card-body mt-2">
         <div class="row g-1 mb-md-1">

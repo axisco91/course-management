@@ -22,7 +22,7 @@
                     </div>
                     <div class="col-12 text-center mt-2 pt-50">
                         <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                        <button id="save" type="button" class="btn btn-primary close-model">Guardar</button>
+                        <button type="button" wire:click.prevent="saveChangePassword()" class="btn btn-primary close-model">Guardar</button>
                     </div>
                 </form>
             </div>
