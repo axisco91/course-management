@@ -11,13 +11,16 @@
                 </div>
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#general">General</a>
+                        <a class="nav-link {{ $tab == 'info' ? 'active' : '' }}" wire:click="$set('tab', 'info')" data-bs-toggle="tab" href="#general">General</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ $tab == 'communications' ? 'active' : '' }}" wire:click="$set('tab', 'communications')" data-bs-toggle="tab" href="#communications">Comunicaciones</a>
                     </li>
                     <li class="nav nav-tabs">
                         <a class="nav-link" data-bs-toggle="tab" href="#"></a>
                     </li>
                 </ul>
-                <div class="tab-content">
+                @if($tab == 'info')
                     <div class="tab-pane container-fluid active" id="general">
                         <div class="row">
                             <form id="editTracingForm" class="row gy-1 pt-75" onsubmit="return false">
@@ -177,14 +180,18 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label" for="course_observation"></label>
-                                    <textarea wire:model.lazy="course_observation" class="form-control" id="course_observation" placeholder="Observaciones" disabled></textarea>
-                                    @error('course_observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    <label class="form-label" for="observation"></label>
+                                    <textarea wire:model.lazy="observation" class="form-control" id="observation" placeholder="Observaciones" disabled></textarea>
+                                    @error('observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </form>
                         </div>
                     </div>
-                </div>
+                @elseif($tab == 'communications')
+                    <div class="tab-pane container" id="communications">
+                        @include('livewire.tracings.tracing-communications')
+                    </div>
+                @endif
             </div>
         </div>
     </div>

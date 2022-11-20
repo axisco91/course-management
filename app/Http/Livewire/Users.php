@@ -13,7 +13,7 @@ class Users extends Component
     use WithPagination;
 
     protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $name, $surname, $username, $email, $create_role_id, $role_id, $password, $password_confirmation;
+    public $selected_id, $keyWord, $name, $surname, $username, $email, $create_role_id, $role_id, $password, $password_confirmation, $commission, $has_commission;
     public $updateMode = false;
     public $roles;
 
@@ -46,6 +46,9 @@ class Users extends Component
         $this->role_id = null;
         $this->password = null;
         $this->password_confirmation = null;
+        $this->commission = null;
+        $this->has_commission = null;
+
     }
 
     public function store()
@@ -72,7 +75,9 @@ class Users extends Component
             'username' => $this-> username,
             'email' => $this-> email,
             'password' => Hash::make($this-> password),
-            'role_id' => $this->role_id
+            'role_id' => $this->role_id,
+            'has_commission' => $this->has_commission ? $this->has_commission : 0,
+            'commission' => $this->commission
         ];
         User::createUser($data);
         $this->resetInput();
@@ -91,6 +96,8 @@ class Users extends Component
         $this->username = $record-> username;
         $this->email = $record-> email;
         $users_roles = $record->getRoleNames();
+        $this->commission = $record->commission;
+        $this->has_commission = $record-> has_commission == 1 ? $record-> has_commission : null;
         $roles = [];
         foreach ($users_roles as $user_role){
             array_push($roles, $user_role);
@@ -123,7 +130,9 @@ class Users extends Component
                 'surname' => $this->surname,
                 'username' => $this->username,
                 'email' => $this->email,
-                'role_id' => $this->role_id
+                'role_id' => $this->role_id,
+                'has_commission' => $this->has_commission ? $this->has_commission : 0,
+                'commission' => $this->commission
             ];
             User::updateUser($this->selected_id, $data);
 

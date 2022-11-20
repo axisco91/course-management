@@ -19,7 +19,7 @@
             </div>
             <div class="col-md-4">
                 <a wire:ignore class="btn btn-sm btn-info" href="{{url('/providers/create')}}">
-                    <i data-feather="plus-circle" class="me-50"></i> Añadir proveedor
+                    <i class="fa fa-plus" class="me-50"></i> Añadir proveedor
                 </a>
             </div>
         </div>

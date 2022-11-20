@@ -21,7 +21,7 @@ class CourseStatus extends Model
         return $this->hasMany('App\Models\Bonus', 'course_status_id', 'id');
     }
 
-    public function getCourseStatuses($keyWord){
+    public static function getCourseStatuses($keyWord){
         $course_statuses = CourseStatus::
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
@@ -36,7 +36,7 @@ class CourseStatus extends Model
         return $course_statuses;
     }
 
-    public function createCourseStatus($data){
+    public static function createCourseStatus($data){
         $course_status = CourseStatus::create([
             'name' => $data['name']
         ]);
@@ -44,7 +44,7 @@ class CourseStatus extends Model
         return $course_status;
     }
 
-    public function updateCourseStatus($id, $data){
+    public static function updateCourseStatus($id, $data){
         $course_status = CourseStatus::find($id);
         $course_status->update([
             'name' => $data['name']

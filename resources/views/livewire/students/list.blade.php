@@ -31,8 +31,15 @@
                 <input wire:model="search_email" type="text" class="form-control dt-input" data-column="5" placeholder="Correo" data-column-index="4" />
             </div>
             <div class="col-md-4">
-                <label class="form-label">Empresa:</label>
-                <input wire:model="search_company" type="text" class="form-control dt-input" data-column="6" placeholder="Empresa" data-column-index="5" />
+                <div wire:ignore>
+                    <label class="form-label">Empresa:</label>
+                    <select wire:model.lazy="search_company" class="form-control select2" id="search_company">
+                        <option value="">Seleccione una empresa</option>
+                        @foreach($companies as $company)
+                            <option value="{{$company['id']}}">{{$company['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -46,7 +53,7 @@
             </div>
             <div class="col-md-4">
                 <a wire:ignore class="btn btn-sm btn-info" href="{{url('/students/create')}}">
-                    <i data-feather="plus-circle" class="me-50"></i> Añadir Alumno
+                    <i class="fa fa-plus" class="me-50"></i> Añadir Alumno
                 </a>
                 <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
                     <i class="fa-solid fa-download"></i>  Descargar Excel

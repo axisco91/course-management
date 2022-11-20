@@ -72,8 +72,14 @@ class Chore extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public function getChores($keyWord, $course_search, $company_search, $student_search, $status_search, $beginning_search, $end_search){
-        $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name',
+    public static function getChores($keyWord, $course_search, $company_search, $student_search, $status_search, $beginning_search, $end_search){
+        $start = Carbon::now();
+        $number_days = 3;
+        if ($start->dayOfWeek >= 3)
+            $number_days = 5;
+        $start = $start->addDays($number_days);
+        $chores = Chore::select('chores.*', 'courses.name as course',
+            'companies.name as company', 'students.name as student_name',
             'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group')
             ->leftjoin('courses', 'courses.id', '=', 'chores.course_id')
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
@@ -90,7 +96,10 @@ class Chore extends Model
             $chores = $chores->where('students.id', 'LIKE', $student_search);
         }
         if ($status_search != -1){
-            $chores = $chores->where('courses.course_status_id', 'LIKE', $status_search);
+            $chores = $chores->where('courses.course_status_id', $status_search);
+        }
+        if ($status_search != 1){
+            $chores = $chores->where('courses.beginning', '<=', $start->toDateString());
         }
         if ($beginning_search){
             $chores = $chores->where('courses.beginning', '>=', $beginning_search);
@@ -119,8 +128,7 @@ class Chore extends Model
                 ->orWhere('invoiced_date', 'LIKE', $keyWord)
                 ->orWhere('bonus_sent_status', 'LIKE', $keyWord)
                 ->orWhere('bonus_sent_date', 'LIKE', $keyWord);
-        })->orderBy('courses.beginning', 'desc')
-            ->paginate(10);
+            })->orderBy('chores.id', 'desc')->paginate(10);
 
         foreach ($chores as $chore){
             $chore['student'] = $chore['student_name'].' '.$chore['student_surname'];
@@ -129,7 +137,7 @@ class Chore extends Model
         return $chores;
     }
 
-    public function getChoresSendWelcome($sortBy, $sortDitection){
+    public static function getChoresSendWelcome($sortBy, $sortDitection){
         $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name',
             'courses.beginning',
             'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group')
@@ -148,7 +156,7 @@ class Chore extends Model
         return $chores;
     }
 
-    public function createChore($data){
+    public static function createChore($data){
         $chore = Chore::create([
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
@@ -157,14 +165,17 @@ class Chore extends Model
         return $chore;
     }
 
-    public function updateChore($id, $data){
+    public static function updateChore($id, $data){
         if ($id) {
             $chore = Chore::find($id);
             $registration = Registration::where('chore_id', $id)->first();
 
-            if ($registration->billing_id){
-                Billing::updateCloseCommunicationDate($registration->billing_id, $data['start_communication_date'], $data['start_communication_status']);
-                Billing::updateInvicedDate($registration->billing_id, $data['invoiced_date'], $data['invoiced_status']);
+            if ($registration){
+                if ($registration->billing_id){
+                    Billing::updateStartCommunicationDate($registration->billing_id, $data['start_communication_date'], $data['start_communication_status']);
+                    Billing::updateCloseCommunicationDate($registration->billing_id, $data['close_communication_date'], $data['close_communication_status']);
+                    Billing::updateInvicedDate($registration->billing_id, $data['invoiced_date'], $data['invoiced_status']);
+                }
             }
 
             $chore->update([
@@ -194,32 +205,38 @@ class Chore extends Model
         }
     }
 
-    public function billingDateChore($id, $date, $status){
+    public static function billingDateChore($id, $date, $status){
         $registrations = Registration::billingRegistration($id);
         foreach ($registrations as $registration){
             $chore = Chore::find($registration->chore_id);
             $chore->update([
                 'bonus_sent_status' => $status,
-                'bonus_sent_date' => $date,
+                'bonus_sent_date' => empty($date) ? null : $date,
                 'invoiced_status' => $status,
-                'invoiced_date' => $date
+                'invoiced_date' => empty($date) ? null : $date
                 ]);
         }
         return true;
     }
 
-    public function updateCommunicationStartDate($id, $date,$status){
+    public static function updateCommunicationStartDate($id, $date,$status){
         $chore = Chore::find($id);
+        if (empty($date)){
+            $status = 0;
+        }
         $chore->update([
-            'start_communication_date' => $date,
+            'start_communication_date' => empty($date) ? null : $date,
             'start_communication_status' => $status
         ]);
     }
 
-    public function updateCommunicationEndDate($id, $date,$status){
+    public static function updateCommunicationEndDate($id, $date,$status){
         $chore = Chore::find($id);
+        if (empty($date)){
+            $status = 0;
+        }
         $chore->update([
-            'close_communication_date' => $date,
+            'close_communication_date' => empty($date) ? null : $date,
             'close_communication_status' => $status
         ]);
         return $chore;

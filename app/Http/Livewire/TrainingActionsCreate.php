@@ -7,40 +7,26 @@ use App\Models\Modality;
 use App\Models\ProfessionalArea;
 use App\Models\ProfessionalFamily;
 use App\Models\Provider;
-use App\Models\Teacher;
 use App\Models\TrainingActionGroup;
 use App\Models\TrainingActionLevel;
 use App\Models\Tutoring;
 use App\Models\WebPlatform;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\TrainingAction;
 
 class TrainingActionsCreate extends Component
 {
-    use WithPagination;
-
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $inactiveFilter, $name, $teacher_id, $action_type_id, $professional_family_id, $professional_area_id,
         $modality_id, $training_action_level_id, $training_action_group_id, $tutoring_id, $course_z, $course_avz, $active = 1,
         $in_catalog = 1, $face_to_face_hours, $teletraining_hours, $total_hours, $price, $objectives, $content, $user,
-        $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password, $formative_action;
-    public $updateMode = false;
+        $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password, $formative_action, $specialty;
     public $action_types, $professional_families, $professional_areas, $modalities, $training_action_levels, $training_action_groups,
     $tutorings, $web_platforms, $providers;
-    public $route;
 
     public function render()
     {
-
         return view('livewire.training-actions.create');
-    }
-
-    public function cancel()
-    {
-        $this->resetInput();
-        $this->updateMode = false;
     }
 
     public function mount(){
@@ -69,37 +55,6 @@ class TrainingActionsCreate extends Component
         } else {
             $this->formative_action = $id;
         }
-        $this->route = url()->previous();
-    }
-
-    private function resetInput()
-    {
-		$this->name = null;
-		$this->action_type_id = null;
-		$this->professional_family_id = null;
-		$this->professional_area_id = null;
-		$this->modality_id = null;
-		$this->training_action_level_id = null;
-		$this->training_action_group_id = null;
-		$this->tutoring_id = null;
-		$this->course_z = null;
-		$this->course_avz = null;
-		$this->active = 1;
-		$this->in_catalog = 1;
-		$this->face_to_face_hours = null;
-		$this->teletraining_hours = null;
-		$this->total_hours = null;
-		$this->price = null;
-		$this->objectives = null;
-		$this->content = null;
-		$this->user = null;
-		$this->web_platform_id = null;
-		$this->observations = null;
-		$this->number_activities = null;
-		$this->number_units = null;
-		$this->provider_id = null;
-        $this->password = null;
-        $this->formative_action = null;
     }
 
     public function store()
@@ -117,7 +72,7 @@ class TrainingActionsCreate extends Component
 
         $total_hours = $this-> face_to_face_hours + $this-> teletraining_hours;
 
-        TrainingAction::create([
+        $training_action = TrainingAction::create([
 			'name' => $this-> name,
             'formative_action' => $this-> formative_action,
 			'action_type_id' => $this-> action_type_id,
@@ -143,12 +98,12 @@ class TrainingActionsCreate extends Component
 			'observations' => $this-> observations,
 			'number_activities' => $this-> number_activities,
 			'number_units' => $this-> number_units,
-			'provider_id' => $this-> provider_id
+			'provider_id' => $this-> provider_id,
+            'specialty' => $this->specialty == true ? 1 : 0
         ]);
-
-        $this->resetInput();
 		session()->flash('message', 'Acción formativa creado con exito.');
-        return redirect($this->route);
+        $this->emit('toastr', 'success');
+        return redirect('training_actions/edit'.$training_action->id);
     }
 
     public function setTotalHours($face_to_face, $teletraining) {

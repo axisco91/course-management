@@ -20,7 +20,7 @@
             </div>
             <div class="col-md-4">
                 <a wire:ignore class="btn btn-sm btn-info" href="" data-bs-toggle="modal" data-bs-target="#createDataModal">
-                    <i data-feather="plus-circle" class="me-50"></i> Añadir Alumno
+                    <i class="fa fa-plus" class="me-50"></i> Añadir Alumno
                 </a>
             </div>
         </div>

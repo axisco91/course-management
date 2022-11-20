@@ -141,21 +141,21 @@
             <div class="col-md-4 col-12">
                 <div class="mb-1">
                     <label class="form-label" for="annual_gross_salary">Salario Bruto Anual</label>
-                    <input wire:model.lazy="annual_gross_salary" type="text" class="form-control @error('annual_gross_salary') is-invalid @enderror" id="annual_gross_salary" placeholder="Salario Bruto Anual">
+                    <input wire:model.lazy="annual_gross_salary" type="num" class="form-control @error('annual_gross_salary') is-invalid @enderror" id="annual_gross_salary" placeholder="Salario Bruto Anual">
                     @error('annual_gross_salary') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="col-md-4 col-12">
                 <div class="mb-1">
                     <label class="form-label" for="annual_hours">Horas Anuales</label>
-                    <input wire:model.lazy="annual_hours" type="text" class="form-control @error('annual_hours') is-invalid @enderror" id="annual_hours" placeholder="Horas Anuales">
+                    <input wire:model.lazy="annual_hours" type="num" class="form-control @error('annual_hours') is-invalid @enderror" id="annual_hours" placeholder="Horas Anuales">
                     @error('annual_hours') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="col-md-4 col-12">
                 <div class="mb-1">
-                    <label class="form-label" for="hourly_cost_worker_gross">Coste Hora Bruto del Trabajador</label>
-                    <input wire:model.lazy="hourly_cost_worker_gross" type="text" class="form-control @error('hourly_cost_worker_gross') is-invalid @enderror" id="hourly_cost_worker_gross" placeholder="Coste Hora Bruto del Trabajador">
+                    <label class="form-label" for="hourly_cost_worker_gross">Coste Hora Bruto del Trabajador €/h</label>
+                    <input wire:model.lazy="hourly_cost_worker_gross" type="num" class="form-control @error('hourly_cost_worker_gross') is-invalid @enderror" id="hourly_cost_worker_gross" placeholder="Coste Hora Bruto del Trabajador">
                     @error('hourly_cost_worker_gross') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
             </div>
@@ -213,12 +213,14 @@
         </div>
     </form>
     @section('vendor-script')
-        <!-- vendor files -->
-            <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+    <!-- vendor files -->
+        <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+        <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
     @endsection
     @section('page-script')
-        <!-- Page js files -->
+    <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+        <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
     @endsection
     @section('scripts')
     <script>
@@ -235,6 +237,21 @@
                 text: '¡Ya existe un alumno con ese '+text+'!',
             })
         })
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
+        })
         document.addEventListener('livewire:load', function() {
             $( document ).ready(
                 setTimeout(function (){
@@ -244,9 +261,12 @@
             $('.select2').on('change', function(){
             @this.set(this.id, $(this).val())
             })
-            if ($('#error_name') == 1){
-                console.log('wefwefwf')
-            }
+            $('#annual_hours').on('change', function(){
+                Livewire.emit('calculateHourlyCost');
+            })
+            $('#annual_gross_salary').on('change', function(){
+                Livewire.emit('calculateHourlyCost');
+            })
         })
         $('body').on('click', '#save', function(){
             content = ''

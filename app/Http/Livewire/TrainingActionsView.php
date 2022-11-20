@@ -7,24 +7,21 @@ use App\Models\Modality;
 use App\Models\ProfessionalArea;
 use App\Models\ProfessionalFamily;
 use App\Models\Provider;
-use App\Models\Teacher;
 use App\Models\TrainingActionGroup;
 use App\Models\TrainingActionLevel;
 use App\Models\Tutoring;
 use App\Models\WebPlatform;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\TrainingAction;
 
 class TrainingActionsView extends Component
 {
     public $selected_id, $name, $teacher_id, $action_type_id, $professional_family_id, $professional_area_id,
         $modality_id, $training_action_level_id, $training_action_group_id, $tutoring_id, $course_z, $course_avz, $active = 1,
-        $in_catalog = 1, $face_to_face_hours, $teletraining_hours, $total_hours, $price, $objectives, $content, $user,
+        $in_catalog = 1, $face_to_face_hours, $teletraining_hours, $total_hours, $price, $objectives, $content, $user, $specialty,
         $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password, $formative_action;
     public $action_types, $professional_families, $professional_areas, $modalities, $training_action_levels, $training_action_groups,
-        $tutorings, $web_platforms, $providers, $route;
+        $tutorings, $web_platforms, $providers;
 
     public function render()
     {
@@ -73,63 +70,6 @@ class TrainingActionsView extends Component
         $this->number_activities = $record-> number_activities;
         $this->number_units = $record-> number_units;
         $this->provider_id = $record-> provider_id;
-
-        $this->route = url()->previous();
-    }
-
-
-    public function update()
-    {
-        $this->validate([
-            'name' => 'required',
-            'action_type_id' => 'required',
-            'modality_id' => 'required|numeric|min:1',
-            'training_action_level_id' => 'required',
-            'tutoring_id' => 'required',
-            'face_to_face_hours' => 'required',
-            'teletraining_hours' => 'required',
-            'price' => 'required'
-        ]);
-
-        $total_hours = $this-> face_to_face_hours + $this-> teletraining_hours;
-
-        if ($this->selected_id) {
-            $data = [
-                'name' => $this-> name,
-                'action_type_id' => $this-> action_type_id,
-                'professional_family_id' => $this-> professional_family_id != -1 ? $this-> professional_family_id : null,
-                'professional_area_id' => $this-> professional_area_id != -1 ? $this-> professional_area_id  : null,
-                'modality_id' => $this-> modality_id,
-                'training_action_level_id' => $this-> training_action_level_id,
-                'training_action_group_id' => $this-> training_action_group_id != -1 ? $this-> training_action_group_id : null,
-                'tutoring_id' => $this-> tutoring_id,
-                'course_z' => $this-> course_z == true ? 1 : 0,
-                'course_avz' => $this-> course_avz == true ? 1 : 0,
-                'active' => $this-> active == true ? 1 : 0,
-                'in_catalog' => $this-> in_catalog == true ? 1 : 0,
-                'face_to_face_hours' => $this-> face_to_face_hours,
-                'teletraining_hours' => $this-> teletraining_hours,
-                'total_hours' => $total_hours,
-                'price' => $this-> price,
-                'objectives' => $this-> objectives,
-                'content' => $this-> content,
-                'user' => $this-> user,
-                'password' => $this->password,
-                'web_platform_id' => $this-> web_platform_id,
-                'observations' => $this-> observations,
-                'number_activities' => $this-> number_activities,
-                'number_units' => $this-> number_units,
-                'provider_id' => $this-> provider_id
-            ];
-
-            $training_action = TrainingAction::updateTrainingAction($this->selected_id, $data);
-
-            session()->flash('message', 'Acción formativa actualizada con exito.');
-            return $this->redirect($this->route);
-        }
-    }
-    public function setTotalHours($face_to_face, $teletraining) {
-        $this->total_hours = $face_to_face+$teletraining;
-        $this->create_total_hours = $face_to_face+$teletraining;
+        $this->specialty = $record->specialty;
     }
 }

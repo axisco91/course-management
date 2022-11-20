@@ -23,7 +23,7 @@ class LevelStudy extends Model
         return $this->hasMany('App\Models\Student', 'level_study_id', 'id');
     }
 
-    public function getLevelStudies($keyWord){
+    public static function getLevelStudies($keyWord){
         $level_studies = LevelStudy::orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
         foreach ($level_studies as $level_study){
@@ -37,7 +37,7 @@ class LevelStudy extends Model
         return $level_studies;
     }
 
-    public function createLevelStudy($data){
+    public static function createLevelStudy($data){
         $level_study = LevelStudy::create([
             'name' => $data['name']
         ]);
@@ -45,7 +45,7 @@ class LevelStudy extends Model
         return $level_study;
     }
 
-    public function updateLevelStudy($id, $data){
+    public static function updateLevelStudy($id, $data){
         $level_study = LevelStudy::find($id);
         $level_study->update([
             'name' => $data['name']

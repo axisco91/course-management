@@ -7,7 +7,7 @@
          <input wire:model.lazy="name" type="text" class="form-control" id="name" disabled placeholder="Nombre">@error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
      <div class="col-md-4 col-12 mb-1">
-         <label class="form-label" for="training_action_id">Acción Formativa</label> <a href="{{url('/training-actions/view/'.$this->training_action_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
+         <label class="form-label" for="training_action_id">Acción Formativa</label> <a href="{{url('/training_actions/view/'.$this->training_action_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
          <div wire:ignore>
              <select wire:model.lazy="training_action_id" class="form-control" id="training_action_id" disabled>
                  <option value="">Selección una acción formativa</option>
@@ -105,42 +105,42 @@
      <div class="form-group col-3 mb-1">
          <label class="form-label">Dias de Impartición</label>
          <br>
-         <label class="form-label" for="monday"><input wire:model.lazy="monday" id="monday" type="checkbox" id="monday" value="monday" disabled> Lunes</label>
+         <label class="form-label" for="monday"><input {{$this->monday == 1 ? 'checked' : ''}} id="monday" type="checkbox" id="monday" value="monday" disabled> Lunes</label>
          @error('monday') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
      <div class="form-group col-3 mb-1">
          <br>
-         <label class="form-label" for="tuesday"><input wire:model.lazy="tuesday" id="tuesday" type="checkbox" id="tuesday" value="tuesday" disabled> Martes</label>
+         <label class="form-label" for="tuesday"><input {{$this->tuesday == 1 ? 'checked' : ''}} id="tuesday" type="checkbox" id="tuesday" value="tuesday" disabled> Martes</label>
          @error('tuesday') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
      <div class="form-group col-3 mb-1">
          <br>
-         <label class="form-label" for="wednesday"><input wire:model.lazy="wednesday" id="wednesday" type="checkbox" id="wednesday" value="wednesday" disabled> Miercoles</label>
+         <label class="form-label" for="wednesday"><input {{$this->wednesday == 1 ? 'checked' : ''}} id="wednesday" type="checkbox" id="wednesday" value="wednesday" disabled> Miercoles</label>
          @error('wednesday') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
      <div class="form-group col-3 mb-1">
          <br>
-         <label class="form-label" for="thursday"><input wire:model.lazy="thursday" id="thursday" type="checkbox" id="thursday" value="thursday" disabled> Jueves</label>
+         <label class="form-label" for="thursday"><input {{$this->thursday == 1 ? 'checked' : ''}} id="thursday" type="checkbox" id="thursday" value="thursday" disabled> Jueves</label>
          @error('thursday') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
      <div class="form-group col-3 mb-1">
          <br>
-         <label class="form-label" for="friday"><input wire:model.lazy="friday" id="friday" type="checkbox" id="friday" value="friday" disabled> Viernes</label>
+         <label class="form-label" for="friday"><input {{$this->friday == 1 ? 'checked' : ''}} id="friday" type="checkbox" id="friday" value="friday" disabled> Viernes</label>
          @error('friday') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
      <div class="form-group col-3 mb-1">
          <br>
-         <label class="form-label" for="saturday"><input wire:model.lazy="saturday" id="saturday" type="checkbox" id="saturday" value="saturday" disabled> Sabado</label>
+         <label class="form-label" for="saturday"><input {{$this->saturday == 1 ? 'checked' : ''}} id="saturday" type="checkbox" id="saturday" value="saturday" disabled> Sabado</label>
          @error('saturday') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
      <div class="form-group col-3 mb-1">
          <br>
-         <label class="form-label" for="sunday"><input wire:model.lazy="sunday" id="sunday" type="checkbox" id="sunday" value="sunday" disabled> Domingo</label>
+         <label class="form-label" for="sunday"><input {{$this->sunday == 1 ? 'checked' : ''}} id="sunday" type="checkbox" id="sunday" value="sunday" disabled> Domingo</label>
          @error('sunday') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
      <div class="col-md-4 col-12 mb-1">
          <br>
-         <label class="form-label" for="outsourced"><input wire:model.lazy="outsourced" id="outsourced" type="checkbox" id="outsourced" value="outsourced" disabled> Subcontratado</label>
+         <label class="form-label" for="outsourced"><input {{$this->outsourced == 1 ? 'checked' : ''}} id="outsourced" type="checkbox" id="outsourced" value="outsourced" disabled> Subcontratado</label>
          @error('outsourced') <div class="invalid-feedback">{{ $message }}</div> @enderror
      </div>
 

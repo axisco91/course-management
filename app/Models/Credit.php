@@ -15,7 +15,7 @@ class Credit extends Model
     protected $fillable = ['company_id', 'available_credit', 'consumed_credit', 'year'];
 
 
-    public function getCredits($id){
+    public static function getCredits($id){
         $credits = Credit::select('credits.*', DB::raw('(credits.available_credit - credits.consumed_credit) as credit_left'))
             ->leftjoin('companies', 'companies.id', '=', 'credits.company_id')
             ->where('company_id', $id)
@@ -25,7 +25,7 @@ class Credit extends Model
     }
 
 
-    public function createCredit($data){
+    public static function createCredit($data){
         $credit = Credit::create([
             'company_id' => $data['company_id'],
             'available_credit' => $data['available_credit'],
@@ -36,7 +36,7 @@ class Credit extends Model
         return $credit;
     }
 
-    public function updateCredit($id, $data){
+    public static function updateCredit($id, $data){
         $credit = Credit::find($id);
         $credit->update([
             'company_id' => $data['company_id'],

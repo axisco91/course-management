@@ -13,20 +13,17 @@ use App\Models\Student;
 class StudentsCreate extends Component
 {
 
-    protected $paginationTheme = 'bootstrap';
+    protected $paginationTheme = 'bootstrap', $listeners = ['calculateHourlyCost'];
     public $name, $surname, $dni, $telephone, $email, $company_id, $user, $date_of_birth, $level_study_id, $disabled, $social_security_number, $c_quote, $quote_group_id, $professional_category_id, $annual_gross_salary, $annual_hours, $hourly_cost_worker_gross, $direction, $post_code, $population_id, $province_id, $population, $observation, $iban, $password, $inactive;
-    public $updateMode = false;
-    public $route;
     public $companies, $level_studies, $professional_categories, $provinces, $quote_groups;
 
     public function render()
     {
-
         return view('livewire.students.create');
     }
 
     public function mount(){
-        $this->companies = Company::where('inactive', 0)->get();
+        $this->companies = Company::where('active', 1)->get();
         $this->level_studies = LevelStudy::all();
         $this->professional_categories = ProfessionalCategory::all();
         $this->provinces = Province::all();
@@ -132,9 +129,17 @@ class StudentsCreate extends Component
         ];
 
         $student = Student::createStudent($data);
-
-        $this->resetInput();
         session()->flash('message', 'Alumno creado con exito.');
-        return redirect($this->route);
+        $this->emit('toastr', 'success');
+        return redirect('/students/edit/'.$student->id);
+    }
+    public function calculateHourlyCost (){
+        if ($this->annual_gross_salary == 0 && $this->annual_hours == 0){
+            $this->hourly_cost_worker_gross = 0;
+        } else if ($this->annual_gross_salary != '' && $this->annual_hours != ''){
+            $this->annual_gross_salary = str_replace(',', '.', $this->annual_gross_salary);
+            $this->annual_hours = str_replace(',', '.', $this->annual_hours);
+            $this->hourly_cost_worker_gross = $this->annual_gross_salary / $this->annual_hours;
+        }
     }
 }

@@ -2,7 +2,6 @@
     <table class="table table-hover">
         <thead>
         <tr>
-            <th>#</th>
             <th wire:click="sortBy('courses.name')">Curso
             @include('partials._sort-icon', ['field' => 'courses.name'])
             </th>
@@ -12,7 +11,7 @@
             <th wire:click="sortBy('students.name')">Alumno
                 @include('partials._sort-icon', ['field' => 'students.name'])
             </th>
-            <th wire:click="sortBy('students.name')">Fecha inicio
+            <th wire:click="sortBy('courses.beginning')">Fecha
                 @include('partials._sort-icon', ['field' => 'courses.beginning'])
             </th>
         </tr>
@@ -20,7 +19,6 @@
         <tbody>
         @foreach($chores as $row)
             <tr>
-                <td>{{ $loop->iteration }}</td>
                 <td>{{ substr(str_replace( ' -', '/'.$row->course_group.' -', $row->course), 0 ,20) }}...</td>
                 <td>{{ $row->company }}</td>
                 <td>{{ $row->student }}</td>

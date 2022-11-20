@@ -19,7 +19,7 @@
 							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Search Company Observations">
 						</div>
 						<div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
-                            <i data-feather="plus-circle" class="me-50"></i> Add Company Observations
+                            <i class="fa fa-plus" class="me-50"></i> Add Company Observations
 						</div>
 					</div>
 				</div>

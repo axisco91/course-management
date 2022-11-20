@@ -99,6 +99,18 @@
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
+                    <label class="form-label" for="collaborator_id">Colaborador</label>
+                    <select wire:model.lazy="collaborator_id" class="form-control select2" id="collaborator_id">
+                        <option value="-1">Seleccione un colaborador</option>
+                        @foreach($collaborators as $collaborator)
+                            <option value="{{$collaborator['id']}}">{{$collaborator['name']}} {{$collaborator['surname']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('collaborator_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
                     <label class="form-label" for="cnae_id">Cnae</label>
                     <select wire:model.lazy="cnae_id" class="form-select select2" id="cnae_id" disabled>
                         <option value="">Seleccione una cnae</option>
@@ -162,6 +174,13 @@
                     <label class="form-label" for="population">Población</label>
                     <input wire:model.lazy="population" type="text" class="form-control" id="population" placeholder="Población" disabled>@error('population') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="form-label" for="potential">Potencial</label>
+                <select wire:model.lazy="potential" class="form-select" id="potential" disabled>
+                    <option value="0">No</option>
+                    <option value="1">Si</option>
+                </select>
             </div>
             <div class="col-md-4 col-12">
                 <div class="form-check form-check-inline" style="padding-top: 32px;">

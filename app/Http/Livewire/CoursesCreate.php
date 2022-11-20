@@ -8,32 +8,21 @@ use App\Models\CourseType;
 use App\Models\Teacher;
 use App\Models\TrainingAction;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Course;
 
 class CoursesCreate extends Component
 {
-    use WithPagination;
-
-    protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, $name, $training_action_id, $group, $course_type_id, $teacher_id, $nebrija, $beginning,
         $end, $morning_schedule, $afternoon_schedule, $monday, $tuesday, $wednesday, $thursday, $friday, $saturday, $sunday,
         $formation_center_id, $delivery_center_id, $outsourced, $course_observation, $reactivated, $welcome_date, $quarter_date,
         $half_date, $three_quarters_date, $final_date, $course_status_id,$price, $active;
     public $performed_activities, $performed_hours, $performed_units, $follow_up_date, $final_test, $questionnaire, $welcome_message, $quarter_message, $half_message, $three_quarters_message, $final_message, $observation;
-    public $updateMode = false, $updateTracingMode = false;
     public $route;
     public $training_actions, $course_types, $teachers, $formation_centers, $delivery_centers, $course_statuses, $registrations = null, $students = null, $tracings = null, $chores = null;
 
     public function render()
     {
         return view('livewire.courses.create');
-    }
-
-    public function cancel()
-    {
-        $this->resetInput();
-        $this->updateMode = false;
     }
 
     public function mount($id){
@@ -56,54 +45,6 @@ class CoursesCreate extends Component
         $this->name = $data['name'];
         $this->group = $data['group'];
         $this->price = $data['price'];
-    }
-
-    private function resetInput()
-    {
-        $this->name = null;
-        $this->training_action_id = null;
-        $this->group = null;
-        $this->course_type_id = null;
-        $this->teacher_id = null;
-        $this->nebrija = null;
-        $this->beginning = null;
-        $this->end = null;
-        $this->morning_schedule = null;
-        $this->afternoon_schedule = null;
-        $this->monday = null;
-        $this->tuesday = null;
-        $this->wednesday = null;
-        $this->thursday = null;
-        $this->friday = null;
-        $this->saturday = null;
-        $this->sunday = null;
-        $this->formation_center_id = null;
-        $this->delivery_center_id = null;
-        $this->outsourced = null;
-        $this->course_observation = null;
-        $this->reactivated = null;
-        $this->welcome_date = null;
-        $this->quarter_date = null;
-        $this->half_date = null;
-        $this->three_quarters_date = null;
-        $this->course_status_id = null;
-        $this->registrations = null;
-        $this->students = null;
-        $this->tracings = null;
-        $this->chores = null;
-        $this->performed_activities = null;
-        $this->performed_hours = null;
-        $this->performed_units = null;
-        $this->follow_up_date = null;
-        $this->final_date = null;
-        $this->questionnaire = null;
-        $this->welcome_message = null;
-        $this->quarter_message = null;
-        $this->half_message = null;
-        $this->three_quarters_message = null;
-        $this->final_message = null;
-        $this->observation = null;
-        $this->price = null;
     }
 
     public function store()
@@ -152,10 +93,10 @@ class CoursesCreate extends Component
             'price' => $this-> price,
         ];
 
-        Course::createCourse($data);
+        $course = Course::createCourse($data);
 
-        $this->resetInput();
         session()->flash('message', 'Course Successfully created.');
-        return $this->redirect($this->route);
+        $this->emit('toastr', 'success');
+        return redirect('/courses/edit/'.$course->id);
     }
 }

@@ -8,12 +8,16 @@
             <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
         @endif
         @include('companies.info')
+        @include('companies.potentialInfo')
         @include('livewire.companies.createObservation')
         @include('livewire.companies.observations')
         @include('livewire.companies.updateObservation')
         @include('livewire.companies.createCredit')
         @include('livewire.companies.credits')
         @include('livewire.companies.updateCredit')
+        @include('livewire.companies.createPotentialObservation')
+        @include('livewire.companies.potentialObservations')
+        @include('livewire.companies.updatePotentialObservation')
     </div>
     <!--Search Form -->
     <div class="card-body mt-2">
@@ -72,19 +76,41 @@
                     </select>
                 </div>
             </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="search_status">Estado</label>
+                    <select wire:model.lazy="search_status" class="form-select select2" id="search_status">
+                        <option value="">Seleccione un estado</option>
+                        <option value="1">Activo</option>
+                        <option value="2">Inactivo</option>
+                        <option value="3">Potencial</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="search_collaborator">Colaborador</label>
+                    <select wire:model.lazy="search_collaborator" class="form-select select2" id="search_collaborator">
+                        <option value="">Seleccione un colaborador</option>
+                        @foreach($collaborators as $collaborator)
+                            <option value="{{$collaborator['id']}}">{{$collaborator['name']}} {{$collaborator['surname']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
     <div class="card-footer">
         <div class="row g-1 mb-md-1">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
             </div>
             <div class="col-md-4">
-                <label class="form-label" for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
+
             </div>
             <div class="col-md-4">
                 <a wire:ignore class="btn btn-sm btn-info" href="{{url('/companies/create')}}">
-                    <i data-feather="plus-circle" class="me-50"></i>  Añadir Empresa
+                    <i class="fa fa-plus" class="me-50"></i> Añadir Empresa
                 </a>
                 <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
                     <i class="fa-solid fa-download"></i>  Descargar Excel
@@ -104,7 +130,7 @@
                 <th>Actividad</th>
                 <th>Correo</th>
                 <th>Telefono</th>
-                <th>Representante Legal</th>
+                <th>Consultor</th>
                 <th>Asesoria</th>
                 <th>Estado</th>
                 <th>Acciones</th>
@@ -113,41 +139,43 @@
             <tbody>
             @foreach($companies as $row)
                 <tr>
-                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row->id}})">{{ $row->name }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row->id}})">{{ $row->nif }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row->id}})">{{ $row->type }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row->id}})">{{ $row->activity }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row->id}})">{{ $row->email }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row->id}})">{{ $row->telephone }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row->id}})">{{ $row->legal_representative }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row->id}})">{{ $row->advisor }}</td>
-                    <td><span class="badge rounded-pill badge-light-{{$row->active == 0 ?'danger' : 'success'}} me-1">{{$row->active == 0 ? 'Inactivo' : 'Activo'}}</span></td>
+                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row['id']}})">{{ $loop->iteration }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row['id']}})">{{ $row['name'] }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row['id']}})">{{ $row['nif'] }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row['id']}})">{{ $row['type'] }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row['id']}})">{{ $row['activity'] }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row['id']}})">{{ $row['email'] }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row['id']}})">{{ $row['telephone'] }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row['id']}})">{{ $row['user_name'] }} {{$row['user_surname']}}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#companiesTabModal" wire:click="general({{$row['id']}})">{{ $row['advisor'] }}</td>
+                    <td><span class="badge rounded-pill badge-light-{{$row['potential'] == 1 ? 'primary' : ($row['active'] == 0 ?'danger' : 'success')}} me-1">{{$row['potential'] == 1 ? 'Potencial' : ($row['active'] == 0 ? 'Inactivo' : 'Activo')}}</span></td>
                     <td>
                         <div class="dropdown">
                             <button type="button" class="btn btn-sm dropdown-toggle hide-arrow py-0" data-bs-toggle="dropdown">
                                 <i class="fa-solid fa-ellipsis-vertical"></i>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
-                            <!--    <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>-->
-                                <a href="{{url('/companies/edit/'.$row->id)}}" class="dropdown-item edit"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
-                                @if ($row->is_advisor)
-                                    <a class="dropdown-item" onclick="confirm('Confirmar convertir a asesoria: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertAdvisor({{$row->id}})">Convertir Asesoria</a>
+                                <a href="{{url('/companies/edit/'.$row['id'])}}" class="dropdown-item edit"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                                @if (isset($row['is_advisor']) && isset($row['potential']) && $row['potential'] != 1)
+                                    <a class="dropdown-item" onclick="confirm('Confirmar convertir a asesoria: {{$row['name']}}?')||event.stopImmediatePropagation()" wire:click="convertAdvisor({{$row['id']}})">Convertir Asesoria</a>
                                 @endif
-                                @if ($row->is_provider)
-                                    <a class="dropdown-item" onclick="confirm('Confirmar convertir a proveedor: {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="convertProvider({{$row->id}})">Convertir Proveedor</a>
+                                @if (isset($row['is_provider']) && isset($row['potential']) && $row['potential'] != 1)
+                                    <a class="dropdown-item" onclick="confirm('Confirmar convertir a proveedor: {{$row['name']}}?')||event.stopImmediatePropagation()" wire:click="convertProvider({{$row['id']}})">Convertir Proveedor</a>
                                 @endif
-                                @if ($row->activo == 0)
-                                    <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
+                                @if  ($row['potential'])
+                                    <a class="dropdown-item convert" data-id="{{$row['id']}}"><i class="fa fa-active"></i> Convertir a Cliente </a>
+                                @elseif ((isset($row['active']) && $row['active'] == 0) && isset($row['potential']) && $row['potential'] != 1)
+                                    <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row['name']}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row['id']}})"><i class="fa fa-active"></i> Activar </a>
                                 @else
-                                    <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
+                                    <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row['name']}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row['id']}})"><i class="fa fa-active"></i> Desactivar </a>
                                 @endif
-                                <a data-bs-toggle="modal" data-bs-target="#createObservationModal" class="dropdown-item" wire:click="newObservation({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Crear Observación </a>
-                                <a data-bs-toggle="modal" data-bs-target="#observationsModal" class="dropdown-item" wire:click="observations({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Ver Observaciones </a></a>
-                                <a data-bs-toggle="modal" data-bs-target="#createCreditModal" class="dropdown-item" wire:click="newCredit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Crear Credito </a></a>
-                                <a data-bs-toggle="modal" data-bs-target="#creditsModal" class="dropdown-item" wire:click="credits({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Ver Creditos </a></a>
-                                @if (!$row->used)
-                                    <a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
+                                <a data-bs-toggle="modal" data-bs-target="#createObservationModal" class="dropdown-item" wire:click="newObservation({{$row['id']}})"><i class="fa-regular fa-pen-to-square"></i> Crear Observación </a>
+                                <a data-bs-toggle="modal" data-bs-target="#observationsModal" class="dropdown-item" wire:click="observations({{$row['id']}})"><i class="fa-regular fa-pen-to-square"></i> Ver Observaciones </a></a>
+                                <a data-bs-toggle="modal" data-bs-target="#createCreditModal" class="dropdown-item" wire:click="newCredit({{$row['id']}})"><i class="fa-regular fa-pen-to-square"></i> Crear Credito </a></a>
+                                <a data-bs-toggle="modal" data-bs-target="#creditsModal" class="dropdown-item" wire:click="credits({{$row['id']}})"><i class="fa-regular fa-pen-to-square"></i> Ver Creditos </a></a>
+                                <a href="{{url('/company_incidences/create/'.$row->id)}}" class="dropdown-item"><i class="fa-regular fa-pen-to-square"></i> Crear Incidencia</a>
+                                @if (isset($row['used']) && !$row['used'])
+                                    <a class="dropdown-item eliminar" data-id="{{$row['id']}}"><i class="fa fa-trash"></i> Eliminar</a>
                                 @endif
                             </div>
                         </div>
@@ -189,6 +217,106 @@
                     if (result.isConfirmed) {
                         id = $(this).data('id');
                         Livewire.emit('destroy', id)
+                        window.addEventListener('eliminated', e=>{
+                            if (e.detail.value != ''){
+                                swalWithBootstrapButtons.fire(
+                                    'Eliminado!',
+                                    'Eliminado con exito.',
+                                    'success'
+                                )
+                            } else{
+                                swalWithBootstrapButtons.fire(
+                                    'Error',
+                                    'Fallo al eliminar.',
+                                    'error'
+                                )
+                            }
+                        });
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cacelado',
+                            'No se ha podido eliminar.',
+                            'error'
+                        )
+                    }
+                })
+            })
+            $('body').on('click', '.convert', function () {
+                button = $(this)
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                })
+
+                swalWithBootstrapButtons.fire({
+                    title: '¿Estas seguro?',
+                    text: "¿Quieres convertir a cliente este potencial?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, conviértelo!',
+                    cancelButtonText: 'No, cancela!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        id = $(this).data('id');
+                        Livewire.emit('convert', id)
+                        window.addEventListener('converted', e=>{
+                            if (e.detail.value != ''){
+                                swalWithBootstrapButtons.fire(
+                                    'Convertido!',
+                                    'Convertido con exito.',
+                                    'success'
+                                )
+                            } else{
+                                swalWithBootstrapButtons.fire(
+                                    'Error',
+                                    'Fallo al convertir.',
+                                    'error'
+                                )
+                            }
+                        });
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cacelado',
+                            'No se ha podido convertir.',
+                            'error'
+                        )
+                    }
+                })
+            })
+            $('body').on('click', '.eliminateObservation', function () {
+                button = $(this)
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                })
+
+                swalWithBootstrapButtons.fire({
+                    title: '¿Estas seguro?',
+                    text: "Eliminaras a la observación!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, eliminalo!',
+                    cancelButtonText: 'No, cancela!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        id = $(this).data('id');
+                        Livewire.emit('destroyObservation', id)
                         window.addEventListener('eliminated', e=>{
                             if (e.detail.value != ''){
                                 swalWithBootstrapButtons.fire(

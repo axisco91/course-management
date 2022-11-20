@@ -21,7 +21,7 @@ class Payment extends Model
         return $this->hasMany('App\Models\Bonus', 'payment_id', 'id');
     }
 
-    public function getPayments($keyWord){
+    public static function getPayments($keyWord){
         $payments = Payment::orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
         foreach ($payments as $payment){
@@ -35,14 +35,14 @@ class Payment extends Model
         return $payments;
     }
 
-    public function createPayment($data){
+    public static function createPayment($data){
         $payment = Payment::create([
             'name' => $data['name']
         ]);
         return $payment;
     }
 
-    public function updatePayment($id, $data){
+    public static function updatePayment($id, $data){
         $payment = Payment::find($id);
         $payment->update([
             'name' => $data['name']

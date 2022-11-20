@@ -28,7 +28,9 @@ class User extends Authenticatable
         'email',
         'password',
         'surname',
-        'username'
+        'username',
+        'has_commission',
+        'commission'
     ];
 
     /**
@@ -61,7 +63,7 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
-    public function getUsers($keyWord){
+    public static function getUsers($keyWord){
         $users = User::latest()
             ->orWhere('name', 'LIKE', $keyWord)
             ->orWhere('surname', 'LIKE', $keyWord)
@@ -71,31 +73,33 @@ class User extends Authenticatable
         return $users;
     }
 
-    public function createUser($data){
+    public static function createUser($data){
         $user = User::create([
             'name' => $data['name'],
             'surname' => $data['surname'],
             'username' => $data['username'],
             'email' => $data['email'],
             'password' => $data['password'],
+            'has_commission' => $data['has_commission'] == '' ? 0 : 1,
+            'commission' => $data['commission']
         ]);
-        $user->syncRoles($data['role_id']);
         return $user;
     }
 
-    public function updateUser($id, $data){
+    public static function updateUser($id, $data){
         $user = User::find($id);
         $user->update([
             'name' => $data['name'],
             'surname' => $data['surname'],
             'username' => $data['username'],
             'email' => $data['email'],
+            'has_commission' => $data['has_commission'] == '' ? 0 : 1,
+            'commission' => $data['commission']
         ]);
-        //$user->syncRoles($data['role_id']);
         return $user;
     }
 
-    public function findDni($dni, $id = null){
+    public static function findDni($dni, $id = null){
         $user = User::where('dni', $dni);
         if ($id){
             $user = $user->where('id', '!=', $id);
@@ -105,7 +109,7 @@ class User extends Authenticatable
         return $user;
     }
 
-    public function findUser($user, $id = null){
+    public static function findUser($user, $id = null){
         $user = User::where('username', $user);
         if ($id){
             $user = $user->where('id', '!=', $id);
@@ -115,7 +119,7 @@ class User extends Authenticatable
         return $user;
     }
 
-    public function getRoleNames(){
+    public static function getRoleNames(){
         return [];
     }
 }

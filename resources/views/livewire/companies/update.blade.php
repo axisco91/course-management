@@ -1,4 +1,8 @@
 <div class="card-body">
+    <div class="mb-1">
+        <a class="btn btn-primary">General</a>
+        <a class="btn" href="{{asset('/companies/observations/'.$selected_id)}}">Observaciones</a>
+    </div>
     <form class="form">
         <input type="hidden" wire:model.lazy="selected_id">
         <div class="row">
@@ -89,6 +93,18 @@
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
+                    <label class="form-label" for="collaborator_id">Colaborador</label>
+                    <select wire:model.lazy="collaborator_id" class="form-control select2" id="collaborator_id">
+                        <option value="-1">Seleccione un colaborador</option>
+                        @foreach($collaborators as $collaborator)
+                            <option value="{{$collaborator['id']}}">{{$collaborator['name']}} {{$collaborator['surname']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('collaborator_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
                     <label class="form-label" for="cnae_id">Cnae</label>
                     <select wire:model.lazy="cnae_id" class="form-select select2" id="cnae_id">
                         <option value="">Seleccione una cnae</option>
@@ -161,20 +177,40 @@
             </div>
         </div>
         <div class="col-12">
-            <a href="{{ url()->previous() }}" class="btn btn-outlined-secondary">Volver</a>
+            <a href="{{url('/companies')}}" class="btn btn-outlined-secondary">Volver</a>
             <button id="save" type="button" wire:click.prevent="update()" class="btn btn-primary me-1">Guardar</button>
+            @if($potential == 1)
+                <button id="save" type="button" wire:click.prevent="convertClient()" class="btn btn-primary me-1">Convertir Empresa</button>
+            @endif
         </div>
     </form>
     @section('vendor-script')
         <!-- vendor files -->
             <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+            <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
     @endsection
     @section('page-script')
-    <!-- Page js files -->
+        <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+        <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
     @endsection
     @section('scripts')
     <script>
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
+        })
         Livewire.on('alreadyExists', type => {
             text = '';
             if (type == 'nif'){
@@ -200,6 +236,9 @@
             content = ''
             if ($('#name').val() == ''){
                 content += 'El nombre es requerido<br>'
+            }
+            if ($('#nif').val() == ''){
+                content += 'El NIF es requerido<br>'
             }
             if ($('#type_id').val() == ''){
                 content += 'El tipo es requerido<br>'

@@ -82,6 +82,8 @@ class TracingsExport implements FromCollection, WithHeadings
             $tracing['half_message'] = $tracing['half_message'] == 1 ? 'Si' : 'No';
             $tracing['three_quarters_message'] = $tracing['three_quarters_message'] == 1 ? 'Si' : 'No';
             $tracing['final_message'] = $tracing['final_message'] == 1 ? 'Si' : 'No';
+            $tracing['final_test'] = $tracing['final_test'] == 0 ? 'Pendiente' : ($tracing['final_test'] == 1 ? 'Realizado' : 'No realizado');
+            $tracing['questionnaire'] = $tracing['questionnaire'] == 0 ? 'Pendiente' : ($tracing['questionnaire'] == 1 ? 'Realizado' : 'No realizado');
             unset($tracing['course_group']);
             unset($tracing['student_surname']);
         }

@@ -152,9 +152,9 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label" for="course_observation"></label>
-                <textarea wire:model.lazy="course_observation" class="form-control" id="course_observation" placeholder="Observaciones"></textarea>
-                @error('course_observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <label class="form-label" for="observation"></label>
+                <textarea wire:model.lazy="observation" class="form-control" id="observation" placeholder="Observaciones"></textarea>
+                @error('observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
         </div>
         <div class="col-12">
@@ -162,16 +162,33 @@
             <button type="button" wire:click.prevent="update()" class="btn btn-primary me-1">Guardar</button>
         </div>
     </form>
-@section('vendor-script')
-    <!-- vendor files -->
-        <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
-@endsection
-@section('page-script')
-    <!-- Page js files -->
+    @section('vendor-script')
+        <!-- vendor files -->
+            <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+            <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
+    @endsection
+    @section('page-script')
+        <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+        <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
     @endsection
     @section('scripts')
         <script>
+            Livewire.on('toastr', type => {
+                if (type == 'success'){
+                    toastr['success']($('#success-toast').val(), {
+                        showMethod: 'slideDown',
+                        hideMethod: 'slideUp',
+                        timeOut: 2000,
+                    });
+                } else{
+                    toastr['warning']($('#success-toast').val(), {
+                        showMethod: 'slideDown',
+                        hideMethod: 'slideUp',
+                        timeOut: 2000,
+                    });
+                }
+            })
             Livewire.on('alreadyExists', type => {
                 text = '';
                 if (type == 'dni'){

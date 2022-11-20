@@ -19,7 +19,7 @@
     <div class="col-md-4 col-12 mb-1">
         <div wire:ignore>
             <label class="form-label" for="type_id">Tipo</label>
-            <select wire:model.lazy="type_id" class="form-select select2 @error('type_id') is-invalid @enderror" id="type_id" disabled>
+            <select wire:model.lazy="type_id" class="form-select @error('type_id') is-invalid @enderror" id="type_id" disabled>
                 <option value="">Seleccione un tipo</option>
                 @foreach($company_types as $type)
                     <option value="{{$type['id']}}">{{$type['name']}}</option>
@@ -31,7 +31,7 @@
     <div class="col-md-4 col-12 mb-1">
         <div wire:ignore>
             <label class="form-label" for="activity_id">Actividad</label>
-            <select wire:model.lazy="activity_id" class="form-select select2 @error('activity_id') is-invalid @enderror" id="activity_id" disabled>
+            <select wire:model.lazy="activity_id" class="form-select @error('activity_id') is-invalid @enderror" id="activity_id" disabled>
                 <option value="">Seleccione una actividad</option>
                 @foreach($company_activities as $activity)
                     <option value="{{$activity['id']}}">{{$activity['name']}}</option>
@@ -89,9 +89,19 @@
         @error('advisor_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
     <div class="col-md-4 col-12 mb-1">
+        <label class="form-label" for="collaborator_id">Colaborador</label>
+        <select wire:model.lazy="collaborator_id" class="form-control" id="collaborator_id" disabled>
+            <option value="-1">Seleccione un colaborador</option>
+            @foreach($collaborators ?? '' as $collaborator)
+                <option value="{{$collaborator['id']}}">{{$collaborator['name']}} {{$collaborator['surname']}}</option>
+            @endforeach
+        </select>
+        @error('collaborator_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
+    <div class="col-md-4 col-12 mb-1">
         <div wire:ignore>
             <label class="form-label" for="cnae_id">Cnae</label>
-            <select wire:model.lazy="cnae_id" class="form-select select2" id="cnae_id" disabled>
+            <select wire:model.lazy="cnae_id" class="form-select" id="cnae_id" disabled>
                 <option value="">Seleccione una cnae</option>
                 @foreach($cnaes as $cnae)
                     <option value="{{$cnae['id']}}">{{$cnae['name']}}</option>
@@ -139,7 +149,7 @@
     <div class="col-md-4 col-12 mb-1">
         <div wire:ignore>
             <label class="form-label" for="province_id">Provincia</label>
-            <select wire:model.lazy="province_id" class="form-select select2 @error('province_id') is-invalid @enderror" id="province_id" disabled>
+            <select wire:model.lazy="province_id" class="form-select @error('province_id') is-invalid @enderror" id="province_id" disabled>
                 <option value="">Seleccione una provincia</option>
                 @foreach($provinces as $province)
                     <option value="{{$province['id']}}">{{$province['name']}}</option>
@@ -155,9 +165,25 @@
         </div>
     </div>
     <div class="col-md-4 col-12">
-        <div class="form-check form-check-inline" style="padding-top: 32px;">
-            <input wire:model.lazy="active" class="form-check-input @error('active') is-invalid @enderror" type="checkbox" id="active" value="active" disabled/>
-            <label class="form-check-label" for="active">Activo</label>
-        </div>
+        <label class="form-label" for="potential">Potencial</label>
+        <select wire:model.lazy="potential" class="form-select" id="potential" disabled>
+            <option value="0">No</option>
+            <option value="1">Si</option>
+        </select>
     </div>
+    @if ($active == 1)
+        <div class="col-md-4 col-12">
+            <div class="form-check form-check-inline" style="padding-top: 32px;">
+                <input class="form-check-input" checked type="checkbox" id="active" value="active" disabled/>
+                <label class="form-check-label" for="active">Activo</label>
+            </div>
+        </div>
+    @else
+        <div class="col-md-4 col-12">
+            <div class="form-check form-check-inline" style="padding-top: 32px;">
+                <input class="form-check-input" type="checkbox" id="active" value="active" disabled/>
+                <label class="form-check-label" for="active">Activo</label>
+            </div>
+        </div>
+    @endif
 </div>

@@ -161,9 +161,9 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="course_observation"></label>
-                            <textarea wire:model.lazy="course_observation" class="form-control" id="course_observation" placeholder="Observaciones"></textarea>
-                            @error('course_observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            <label class="form-label" for="bservation"></label>
+                            <textarea wire:model.lazy="observation" class="form-control" id="observation" placeholder="Observaciones"></textarea>
+                            @error('observation') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
                     <div class="col-12 text-center mt-2 pt-50">

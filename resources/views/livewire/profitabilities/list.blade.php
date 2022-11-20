@@ -45,6 +45,30 @@
                     </select>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div wire:ignore>
+                    <label class="form-label" for="status_search">Estado</label>
+                    <select wire:model.lazy="status_search" class="form-control select2" id="status_search">
+                        <option value="-1">Seleccione un estado</option>
+                        @foreach($course_statuses as $course_status)
+                            <option value="{{$course_status['id']}}">{{$course_status['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+            </div>
+            <div class="col-md-4">
+            </div>
+            <div class="col-md-4">
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
+            </div>
         </div>
     </div>
     <hr class="my-0" />

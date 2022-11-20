@@ -2,21 +2,19 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Advisor;
 use App\Models\Chore;
 use App\Models\Company;
 use App\Models\Course;
 use App\Models\Payment;
+use App\Models\User;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Billing;
 
 class BillingsUpdate extends Component
 {
-    use WithPagination;
-
-    protected $paginationTheme = 'bootstrap';
-    public $selected_id, $course_id, $company_id, $number_students, $billing, $bonus, $total_training_activity, $expenses, $only_organizing_entity, $salary_costs, $payment_id, $communication_start_date, $communication_end_date, $invoiced, $billing_number, $billing_date, $collection_date, $bonus_status, $company_bonus, $observation, $is_bonus, $group;
-    public $courses, $companies, $payments, $route, $tab = 'info';
+    public $selected_id, $course_id, $company_id, $number_students, $billing, $bonus, $total_training_activity, $expenses, $only_organizing_entity, $salary_costs, $payment_id, $communication_start_date, $communication_end_date, $invoiced, $billing_number, $billing_date, $collection_date, $bonus_status, $company_bonus, $observation, $is_bonus, $group, $advisor_id, $charged, $collaborator_id;
+    public $courses, $companies, $payments, $tab = 'info', $advisors, $collaborators;
 
     public function render()
     {
@@ -27,6 +25,8 @@ class BillingsUpdate extends Component
         $this-> courses = Course::all();
         $this-> companies = Company::all();
         $this-> payments = Payment::all();
+        $this->advisors = Advisor::all();
+        $this->collaborators = User::where('has_commission', 1)->get();
 
         $record = Billing::findOrFail($id);
 
@@ -51,35 +51,12 @@ class BillingsUpdate extends Component
         $this->company_bonus = $record-> company_bonus;
         $this->observation = $record-> observation;
         $this->is_bonus = $record-> is_bonus;
+        $this->advisor_id = $record->advisor_id;
+        $this->charged = $record->charged == 1 ? $record->charged : null;
+        $this->collaborator_id = $record->collaborator_id;
 
         $course = Course::find($this->course_id);
         $this->group = $course->group;
-
-        $this->route = url()->previous();
-    }
-
-    private function resetInput()
-    {
-        $this->course_id = null;
-        $this->company_id = null;
-        $this->number_students = null;
-        $this->billing = null;
-        $this->bonus = null;
-        $this->total_training_activity = null;
-        $this->expenses = null;
-        $this->only_organizing_entity = null;
-        $this->salary_costs = null;
-        $this->payment_id = null;
-        $this->communication_start_date = null;
-        $this->communication_end_date = null;
-        $this->invoiced = null;
-        $this->billing_number = null;
-        $this->billing_date = null;
-        $this->collection_date = null;
-        $this->bonus_status = null;
-        $this->company_bonus = null;
-        $this->observation = null;
-        $this->is_bonus = null;
     }
 
     public function update()
@@ -99,8 +76,7 @@ class BillingsUpdate extends Component
         ]);
 
         if ($this->is_bonus) {
-            $this->expenses = Billing::calculateExpenses($this->billing);
-            $this->total_training_activity = Billing::totalTrainingActivity($this->bonus, $this->expenses);
+            $this->expenses = Billing::calculateExpenses($this->billing, $this->total_training_activity);
         }
 
         if ($this->selected_id) {
@@ -125,14 +101,15 @@ class BillingsUpdate extends Component
                 'company_bonus' => $this-> company_bonus,
                 'observation' => $this-> observation,
                 'is_bonus' => $this-> is_bonus,
+                'advisor_id' => $this->advisor_id == -1 ? null : $this->advisor_id,
+                'collaborator_id' => $this->collaborator_id == -1 ? null : $this->collaborator_id,
+                'charged' => $this->charged ? $this->charged : 0
             ];
 
             $billing = Billing::updateBilling($this->selected_id, $data);
             Chore::billingDateChore($this->selected_id, $this-> billing_date, $this-> invoiced);
-            $this->resetInput();
-            $this->updateMode = false;
             session()->flash('message', 'Factura Actulizado con exito.');
-            return $this->redirect($this->route);
+            $this->emit('toastr', 'success');
         }
     }
 }

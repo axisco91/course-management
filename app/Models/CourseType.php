@@ -21,7 +21,7 @@ class CourseType extends Model
         return $this->hasMany('App\Models\Course', 'course_type_id', 'id');
     }
 
-    public function getCourseTypes($keyWord){
+    public static function getCourseTypes($keyWord){
         $course_types = CourseType::
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
@@ -36,7 +36,7 @@ class CourseType extends Model
         return $course_types;
     }
 
-    public function createCourseType($data){
+    public static function createCourseType($data){
         $course_type = CourseType::create([
             'name' => $data['name']
         ]);
@@ -44,7 +44,7 @@ class CourseType extends Model
         return $course_type;
     }
 
-    public function updateCourseType($id, $data){
+    public static function updateCourseType($id, $data){
         $course_type = CourseType::find($id);
         $course_type->update([
             'name' => $data['name']

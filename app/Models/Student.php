@@ -81,7 +81,7 @@ class Student extends Model
      * @param $data
      * @return Create Student
      */
-    public function createStudent($data){
+    public static function createStudent($data){
 
         $student = Student::create([
             'name' => $data['name'],
@@ -116,7 +116,7 @@ class Student extends Model
     /**
      * Update Student
      */
-    public function updateStudent($id, $data){
+    public static function updateStudent($id, $data){
 
         $student = Student::find($id);
         $student->update([
@@ -153,7 +153,7 @@ class Student extends Model
      * @param $id
      * @return Student
      */
-    public function getStudent($id){
+    public static function getStudent($id){
         $student = Student::find($id);
 
         return $student;
@@ -162,7 +162,7 @@ class Student extends Model
     /**
      * Update active or inactive
      */
-    public function activeInactive($id, $state){
+    public static function activeInactive($id, $state){
         $student = Student::findOrFail($id);
         $student->update([
             'active' => $state
@@ -173,7 +173,7 @@ class Student extends Model
     /**
      * Get all students
      */
-    public function getStudents($keyWord, $active, $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $search_company){
+    public static function getStudents($keyWord, $active, $search_name, $search_surname, $search_email, $search_dni, $search_telephone, $search_company){
         $students = Student::select('students.*', 'companies.name as company', 'level_studies.name as level_study',
             'professional_categories.name as professional_category', 'provinces.name as province', 'quote_groups.name as quote_group')
             ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
@@ -217,14 +217,18 @@ class Student extends Model
             $query->orWhere('dni', 'LIKE', $search_dni);
         })->where(function ($query) use ($search_telephone){
             $query->orWhere('students.telephone', 'LIKE', $search_telephone);
-        })->where(function ($query) use ($search_company){
-                $query->orWhere('companies.name', 'LIKE', $search_company);
-        })->orderBy('students.name','asc')
+        });
+        if ($search_company){
+            $students = $students->where(function ($query) use ($search_company){
+                $query->orWhere('students.company_id', $search_company);
+            });
+        }
+        $students = $students->orderBy('students.name','asc')
             ->paginate(10);
         return $students;
     }
 
-    public function getCompanyStudents($id, $search_student_name, $search_student_surname){
+    public static function getCompanyStudents($id, $search_student_name, $search_student_surname){
         $students = Student::where('company_id', $id)
             ->where(function ($query) use ($search_student_name){
                 $query->orWhere('students.name', 'LIKE', $search_student_name);
@@ -235,7 +239,7 @@ class Student extends Model
         return $students;
     }
 
-    public function getBilledStudent($id, $search_student_name, $search_student_surname){
+    public static function getBilledStudent($id, $search_student_name, $search_student_surname){
         $students = Student::select('students.*')
             ->join('registrations', 'registrations.student_id', '=', 'students.id')
             ->where('registrations.billing_id', $id)
@@ -248,7 +252,7 @@ class Student extends Model
         return $students;
     }
 
-    public function findDni($dni, $id = null){
+    public static function findDni($dni, $id = null){
         $student = Student::where('dni', $dni);
         if ($id){
             $student = $student->where('id', '!=', $id);
@@ -258,7 +262,7 @@ class Student extends Model
         return $student;
     }
 
-    public function findUser($user, $id = null){
+    public static function findUser($user, $id = null){
         $student = Student::where('user', $user);
         if ($id){
             $student = $student->where('id', '!=', $id);

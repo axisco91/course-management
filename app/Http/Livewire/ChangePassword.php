@@ -9,7 +9,6 @@ use App\Models\User;
 use Spatie\Permission\Models\Role;
 class ChangePassword extends Component
 {
-
     public $selected_id, $password, $password_confirmation;
     public $updateMode = false;
     public $roles;

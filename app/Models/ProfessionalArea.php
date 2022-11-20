@@ -21,7 +21,7 @@ class ProfessionalArea extends Model
         return $this->hasMany('App\Models\TrainingAction', 'professional_area_id', 'id');
     }
 
-    public function getProfessionalAreas($keyWord){
+    public static function getProfessionalAreas($keyWord){
         $professional_areas = ProfessionalArea::
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
@@ -36,14 +36,14 @@ class ProfessionalArea extends Model
         return $professional_areas;
     }
 
-    public function createProfessionalArea($data){
+    public static function createProfessionalArea($data){
         $professional_area = ProfessionalArea::create([
             'name' => $data['name']
         ]);
         return $professional_area;
     }
 
-    public function updateProfessionalArea($id, $data){
+    public static function updateProfessionalArea($id, $data){
         $professional_area = ProfessionalArea::find($id);
         $professional_area->update([
             'name' => $data['name']

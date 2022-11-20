@@ -13,7 +13,7 @@ class Center extends Model
 
     protected $fillable = ['name','address','email','telephone'];
 
-    public function getCenters($keyWord){
+    public static function getCenters($keyWord){
         $centers = Center::
         orWhere('name', 'LIKE', $keyWord)
             ->orWhere('address', 'LIKE', $keyWord)
@@ -32,7 +32,7 @@ class Center extends Model
         return $centers;
     }
 
-    public function createCenter($data){
+    public static function createCenter($data){
         $center =  Center::create([
             'name' => $data['name'],
             'address' => $data['address'],
@@ -43,7 +43,7 @@ class Center extends Model
         return $center;
     }
 
-    public function updateCenter($id, $data){
+    public static function updateCenter($id, $data){
         $center = Center::find($id);
         $center->update([
             'name' => $data['name'],

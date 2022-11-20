@@ -2,7 +2,6 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\Course;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Center;

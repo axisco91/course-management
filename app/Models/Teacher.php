@@ -24,7 +24,7 @@ class Teacher extends Model
     /**
      * Get all teachers
      */
-    public function getTeachers($keyWord, $inactiveFilter, $search_name, $search_surname, $search_email, $search_dni, $search_telephone){
+    public static function getTeachers($keyWord, $inactiveFilter, $search_name, $search_surname, $search_email, $search_dni, $search_telephone){
         $teachers = Teacher::select('*')
             ->where(function ($query) use ($keyWord){
             $query->orWhere('name', 'LIKE', $keyWord)
@@ -48,15 +48,13 @@ class Teacher extends Model
             $query->orWhere('teachers.email', 'LIKE', $search_email);
         })->where(function ($query) use ($search_dni){
             $query->orWhere('dni', 'LIKE', $search_dni);
-        })->where(function ($query) use ($search_telephone){
-            $query->orWhere('teachers.telephone', 'LIKE', $search_telephone);
         })->orderBy('teachers.name','asc')
             ->paginate(10);
 
         return $teachers;
     }
 
-    public function findDni($dni, $id = null){
+    public static function findDni($dni, $id = null){
         $teacher = Teacher::where('dni', $dni);
         if ($id){
             $teacher = $teacher->where('id', '!=', $id);
@@ -66,7 +64,7 @@ class Teacher extends Model
         return $teacher;
     }
 
-    public function findUser($user, $id = null){
+    public static function findUser($user, $id = null){
         $teacher = Teacher::where('user', $user);
         if ($id){
             $teacher = $teacher->where('id', '!=', $id);

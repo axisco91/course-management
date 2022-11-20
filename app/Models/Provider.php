@@ -29,7 +29,7 @@ class Provider extends Model
         return $this->hasMany('App\Models\TrainingAction', 'provider_id', 'id');
     }
 
-    public function getProviders($keyWord, $inactiveFilter){
+    public static function getProviders($keyWord, $inactiveFilter){
         $providers = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province')
             ->leftjoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
@@ -66,7 +66,7 @@ class Provider extends Model
         return $providers;
     }
 
-    public function createProvider($data){
+    public static function createProvider($data){
         $provider = Provider::create([
             'name' => $data['name'],
             'company_id' => $data['id'],
@@ -95,7 +95,7 @@ class Provider extends Model
         return $provider;
     }
 
-    public function updateProvider($id, $data){
+    public static function updateProvider($id, $data){
         $provider = Provider::find($id);
         $provider->update([
             'name' => $data['name'],
@@ -124,18 +124,34 @@ class Provider extends Model
         return $provider;
     }
 
-    public function convertProvider($id){
+    public static function convertProvider($id){
         if ($id) {
             $record = Company::find($id);
             $provider = Provider::create([
                 'name' => $record['name'],
-                'company_id' => $record['id']
+                'company_id' => $id,
+                'nif' => $record['nif'],
+                'company_type_id' => $record['company_type_id'],
+                'company_activity_id' => $record['company_activity_id'],
+                'email' => $record['email'],
+                'telephone' => $record['telephone'],
+                'legal_representative' => $record['legal_representative'],
+                'dni_legal_representative' => $record['dni_legal_representative'],
+                'cnae_id' => $record['cnae_id'],
+                'iban' => $record['iban'],
+                'sepa' => $record['sepa'],
+                'b2b' => $record['b2b'],
+                'address' => $record['address'],
+                'post_code' => $record['post_code'],
+                'province_id' => $record['province_id'],
+                'population' => $record['population'],
+                'active' => $record['active'],
             ]);
             return $provider;
         }
     }
 
-    public function findNif($nif, $id = null){
+    public static function findNif($nif, $id = null){
         $provider = Provider::where('nif', $nif);
         if ($id){
             $provider = $provider->where('id', '!=', $id);

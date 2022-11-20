@@ -1,4 +1,8 @@
 <div class="card-body">
+    <div class="mb-1">
+        <a class="btn btn-primary">General</a>
+        <a class="btn" href="{{asset('/advisors/observations/'.$company_id)}}">Observaciones</a>
+    </div>
     <form class="form needs-validation" novalidate>
         <input type="hidden" wire:model.lazy="selected_id">
         <div class="row">
@@ -86,6 +90,18 @@
                     </select>
                 </div>
                 @error('advisor_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="collaborator_id">Colaborador</label>
+                    <select wire:model.lazy="collaborator_id" class="form-control select2" id="collaborator_id">
+                        <option value="-1">Seleccione un colaborador</option>
+                        @foreach($collaborators as $collaborator)
+                            <option value="{{$collaborator['id']}}">{{$collaborator['name']}} {{$collaborator['surname']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('collaborator_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
@@ -200,10 +216,12 @@
     @section('vendor-script')
         <!-- vendor files -->
             <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+            <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
     @endsection
     @section('page-script')
         <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+        <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
     @endsection
     @section('scripts')
     <script>
@@ -217,6 +235,21 @@
                 title: 'Ya Existe',
                 text: '¡Ya existe una asesoria con ese '+text+'!',
             })
+        })
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
         })
         document.addEventListener('livewire:load', function() {
             $( document ).ready(

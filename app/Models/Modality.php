@@ -21,7 +21,7 @@ class Modality extends Model
         return $this->hasMany('App\Models\TrainingAction', 'modality_id', 'id');
     }
 
-    public function getModalities($keyWord){
+    public static function getModalities($keyWord){
         $modalities = Modality::
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
@@ -36,14 +36,14 @@ class Modality extends Model
         return $modalities;
     }
 
-    public function createModality($data){
+    public static function createModality($data){
         $modality = Modality::create([
             'name' => $data['name']
         ]);
         return $modality;
     }
 
-    public function updateModality($id, $data){
+    public static function updateModality($id, $data){
         $modality = Modality::find($id);
         $modality->update([
             'name' => $data['name']

@@ -14,7 +14,7 @@ class Billing extends Model
 
     protected $table = 'billings';
 
-    protected $fillable = ['course_id','company_id','number_students','billing','bonus','total_training_activity','expenses','only_organizing_entity','salary_costs','payment_id','communication_start_date','communication_end_date','invoiced','billing_number','billing_date','collection_date','bonus_status','company_bonus','observation', 'is_bonus', 'student_id'];
+    protected $fillable = ['course_id','company_id','number_students','billing','bonus','total_training_activity','expenses','only_organizing_entity','salary_costs','payment_id','communication_start_date','communication_end_date','invoiced','billing_number','billing_date','collection_date','bonus_status','company_bonus','observation', 'is_bonus', 'student_id', 'advisor_id', 'charged', 'collaborator_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -40,16 +40,23 @@ class Billing extends Model
         return $this->hasOne('App\Models\Payment', 'id', 'payment_id');
     }
 
-    public function getBillings($keyWord, $course_search, $company_search, $student_search, $is_bonus_search){
+    public static function getBillings($keyWord, $course_search, $company_search, $student_search, $is_bonus_search, $status_search, $invoiced_search, $charged_search){
         $billings = Billing::latest()
             ->select('billings.*', 'training_actions.name as course', 'training_actions.formative_action as training_action',
-                'courses.group as group', 'companies.name as company', 'payments.name as payment')
+                'courses.group as group', 'companies.name as company', 'payments.name as payment', 'advisors.name as advisor', 'courses.beginning as beginning')
             ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
             ->leftjoin('companies', 'companies.id', '=', 'billings.company_id')
             ->leftjoin('payments', 'payments.id', '=', 'billings.payment_id')
             ->leftjoin('students', 'students.id', '=', 'billings.student_id')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'billings.advisor_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id');
 
+        if ($status_search != -1){
+            $billings = $billings->where('courses.course_status_id', '=', $status_search);
+        } else{
+            $billings = $billings->where('courses.course_status_id', '!=', 1);
+        }
         if ($course_search != -1){
             $billings = $billings->where('billings.course_id', $course_search);
         }
@@ -61,6 +68,12 @@ class Billing extends Model
         }
         if ($is_bonus_search != -1){
             $billings = $billings->where('is_bonus', $is_bonus_search);
+        }
+        if ($invoiced_search != -1){
+            $billings = $billings->where('invoiced', $invoiced_search);
+        }
+        if ($charged_search != -1){
+            $billings = $billings->where('charged', $charged_search);
         }
         $billings = $billings->where(function ($query) use ($keyWord) {
                 $query->orWhere('courses.name', 'LIKE', $keyWord)
@@ -88,7 +101,7 @@ class Billing extends Model
         return $billings;
     }
 
-    public function updateBilling($id, $data){
+    public static function updateBilling($id, $data){
         $billing = Billing::find($id);
 
         if ($billing->communication_start_date != $data['communication_start_date']){
@@ -106,27 +119,32 @@ class Billing extends Model
             Billing::updateCloseCommunicationDate($id, $data['communication_end_date'], $status);
         }
 
+        $total_training_activity = Billing::totalTrainingActivity($data['bonus']);
+
         $billing->update([
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
             'number_students' => $data['number_students'],
             'billing' => GeneralHelpers::convertComa($data['billing']),
             'bonus' => GeneralHelpers::convertComa($data['bonus']),
-            'total_training_activity' => $data['total_training_activity'],
-            'expenses' => $data['expenses'],
+            'total_training_activity' => GeneralHelpers::convertComa($total_training_activity),
+            'expenses' => GeneralHelpers::convertComa($data['expenses']),
             'only_organizing_entity' => $data['only_organizing_entity'],
             'salary_costs' => GeneralHelpers::convertComa($data['salary_costs']),
             'payment_id' => $data['payment_id'],
-            'communication_start_date' => $data['communication_start_date'],
-            'communication_end_date' => $data['communication_end_date'],
+            'communication_start_date' => empty($data['communication_start_date']) ? null : $data['communication_start_date'],
+            'communication_end_date' => empty($data['communication_end_date'])? null : $data['communication_end_date'],
             'invoiced' => $data['invoiced'],
             'billing_number' => $data['billing_number'],
-            'billing_date' => $data['billing_date'],
-            'collection_date' => $data['collection_date'],
+            'billing_date' => empty($data['billing_date']) ? null : $data['billing_date'],
+            'collection_date' => empty($data['collection_date']) ? null : $data['collection_date'],
             'bonus_status' => $data['bonus_status'],
             'company_bonus' => $data['company_bonus'],
             'observation' => $data['observation'],
             'is_bonus' => $data['is_bonus'],
+            'advisor_id' => $data['advisor_id'],
+            'charged' => $data['charged'] == '' ? 0 : 1,
+            'collaborator_id' => $data['collaborator_id']
         ]);
 
         return $billing;
@@ -139,23 +157,29 @@ class Billing extends Model
         $company = Company::find($data['company_id']);
 
         if ($billing && $company['name'] != 'SIN EMPRESA'){
-            $expenses = Billing::calculateExpenses($data['price'] + $billing['billing']);
+            $total_training_activity = GeneralHelpers::convertComa($data['price']) + $billing['billing'];
+            $expenses = Billing::calculateExpenses($data['price'] + $billing['billing'], $total_training_activity);
             $billing->update([
                 'number_students' => $billing['number_students']+1,
                 'billing' => $data['price'] + $billing['billing'],
-                'total_training_activity' => $data['price'] + $billing['billing'],
-                'expenses' => $expenses
+                'total_training_activity' => $total_training_activity,
+                'expenses' => $expenses,
+                'advisor_id' => $data['advisor_id'],
+                'collaborator_id' => $data['collaborator_id']
             ]);
         } else {
-            $expenses = Billing::calculateExpenses($data['price']);
+            $total_training_activity = GeneralHelpers::convertComa($data['price']);
+            $expenses = Billing::calculateExpenses($data['price'], $total_training_activity);
             $billing = Billing::create([
                 'course_id' => $data['course_id'],
                 'company_id' => $data['company_id'],
                 'number_students' => 1,
                 'is_bonus' => $data['is_bonus'],
-                'billing' => $data['price'],
-                'total_training_activity' => $data['price'],
-                'expenses' => $expenses
+                'billing' => GeneralHelpers::convertComa($data['price']),
+                'total_training_activity' => $total_training_activity,
+                'expenses' => $expenses,
+                'advisor_id' => $data['advisor_id'],
+                'collaborator_id' => $data['collaborator_id']
             ]);
             if ($company['name'] == 'SIN EMPRESA'){
                 $billing->update([
@@ -166,28 +190,28 @@ class Billing extends Model
         return $billing;
     }
 
-    public function calculateExpenses($precio){
-        return (10/100) * $precio;
+    public static function calculateExpenses($price, $total){
+        return GeneralHelpers::convertComa($price - $total);
     }
 
-    public function totalTrainingActivity($bonus, $expenses){
-        return $bonus - $expenses;
+    public static function totalTrainingActivity($bonus){
+        return round($bonus / 1.1, 2);
     }
 
-    public function updateStartCommunicationDate($id, $date, $status){
+    public static function updateStartCommunicationDate($id, $date, $status){
         $billing = Billing::find($id);
         $billing->update([
-            'communication_start_date' => $date
+            'communication_start_date' => empty($date) ? null : $date,
         ]);
         $registrations = Registration::billingRegistration($id);
         foreach ($registrations as $registration) {
             Chore::updateCommunicationStartDate($registration->chore_id, $date, $status);
         }
     }
-    public function updateCloseCommunicationDate($id, $date, $status){
+    public static function updateCloseCommunicationDate($id, $date, $status){
         $billing = Billing::find($id);
         $billing->update([
-            'communication_end_date' => $date
+            'communication_end_date' => empty($date) ? null : $date
         ]);
         $registrations = Registration::billingRegistration($id);
         foreach ($registrations as $registration) {
@@ -195,7 +219,7 @@ class Billing extends Model
         }
     }
 
-    public function updateInvicedDate($id, $date, $status){
+    public static function updateInvicedDate($id, $date, $status){
         $billing = Billing::find($id);
         $billing->update([
             'billing_date' => $date,

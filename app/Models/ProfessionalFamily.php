@@ -21,7 +21,7 @@ class ProfessionalFamily extends Model
         return $this->hasMany('App\Models\TrainingAction', 'professional_family_id', 'id');
     }
 
-    public function getProfessionalFamilies($keyWord){
+    public static function getProfessionalFamilies($keyWord){
         $professional_families = ProfessionalFamily::
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
@@ -36,14 +36,14 @@ class ProfessionalFamily extends Model
         return $professional_families;
     }
 
-    public function createProfessionalFamily($data){
+    public static function createProfessionalFamily($data){
         $professional_family = ProfessionalFamily::create([
             'name' => $data['name']
         ]);
         return $professional_family;
     }
 
-    public function updateProfessionalFamily($id, $data){
+    public static function updateProfessionalFamily($id, $data){
         $professional_family = ProfessionalFamily::find($id);
         $professional_family->update([
             'name' => $data['name']

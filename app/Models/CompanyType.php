@@ -21,7 +21,7 @@ class CompanyType extends Model
         return $this->hasMany('App\Models\Company', 'type_id', 'id');
     }
 
-    public function getCompanyTypes($keyWord){
+    public static function getCompanyTypes($keyWord){
         $companyTypes = CompanyType::
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
@@ -36,7 +36,7 @@ class CompanyType extends Model
         return $companyTypes;
     }
 
-    public function createCompanyType($data){
+    public static function createCompanyType($data){
         $company_type = CompanyType::create([
             'name' => $data['name']
         ]);
@@ -44,7 +44,7 @@ class CompanyType extends Model
         return $company_type;
     }
 
-    public function updateCompanyType($id, $data){
+    public static function updateCompanyType($id, $data){
         $company_type = CompanyType::find($id);
         $company_type->update([
             'name' => $data['name']

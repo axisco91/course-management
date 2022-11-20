@@ -22,7 +22,7 @@
                        <div class="col-md-4 col-12">
                             <label class="form-label" for="username">Usuario</label>
                             <input wire:model="username" type="text" class="form-control" id="username" placeholder="Usuario">@error('username') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
+                       </div>
                        <div class="col-md-4 col-12">
                             <label class="form-label" for="email">Correo</label>
                             <input wire:model="email" type="text" class="form-control" id="email" placeholder="Correo">@error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -38,6 +38,15 @@
                                 </select>
                             </div>
                             @error('role_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                       </div>
+                        <div class="col-3 mb-1">
+                            <br>
+                            <label class="form-label" for="has_commission"><input wire:model.lazy="has_commission" id="has_commission" type="checkbox" {{$has_commission == 1 ? 'checked' : ''}}> Comisiona</label>
+                            @error('has_commission') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <label class="form-label" for="commission">Comisión</label>
+                            <input wire:model="commission" type="number" class="form-control" id="commission" placeholder="Comisión">@error('commission') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                     </div>
                     <div class="col-12 text-center mt-2 pt-50">
@@ -47,16 +56,33 @@
                 </form>
             </div>
         </div>
-    @section('vendor-script')
-        <!-- vendor files -->
-            <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
-    @endsection
-    @section('page-script')
-        <!-- Page js files -->
+        @section('vendor-script')
+            <!-- vendor files -->
+                <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+                <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
+        @endsection
+        @section('page-script')
+            <!-- Page js files -->
             <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+            <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
         @endsection
         @section('scripts')
             <script>
+                Livewire.on('toastr', type => {
+                    if (type == 'success'){
+                        toastr['success']($('#success-toast').val(), {
+                            showMethod: 'slideDown',
+                            hideMethod: 'slideUp',
+                            timeOut: 2000,
+                        });
+                    } else{
+                        toastr['warning']($('#success-toast').val(), {
+                            showMethod: 'slideDown',
+                            hideMethod: 'slideUp',
+                            timeOut: 2000,
+                        });
+                    }
+                })
                 Livewire.on('alreadyExists', type => {
                     text = '';
                     if (type == 'user'){

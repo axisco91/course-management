@@ -21,7 +21,7 @@ class ProfessionalCategory extends Model
         return $this->hasMany('App\Models\Student', 'professional_category_id', 'id');
     }
 
-    public function getProfessionalCategories($keyWord){
+    public static function getProfessionalCategories($keyWord){
         $professional_categories = ProfessionalCategory::
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
@@ -43,7 +43,7 @@ class ProfessionalCategory extends Model
         return $professional_category;
     }
 
-    public function updateProfessionalCategory($id, $data){
+    public static function updateProfessionalCategory($id, $data){
         $professional_category = ProfessionalCategory::find($id);
         $professional_category->update([
             'name' => $data['name']

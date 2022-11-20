@@ -8,23 +8,21 @@ use App\Models\Company;
 use App\Models\CompanyActivity;
 use App\Models\CompanyType;
 use App\Models\Province;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use function session;
-use function url;
 use function view;
 
 class AdvisorsUpdate extends Component
 {
     use WithPagination;
 
-    protected $paginationTheme = 'bootstrap';
-    public $selected_id, $name, $company_id, $irpf, $commission, $contact_1, $contact_2, $contact_3, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $inactive;
-    public $company_types, $company_activities, $cnaes, $provinces, $company_advisors, $route;
+    public $selected_id, $name, $company_id, $irpf, $commission, $contact_1, $contact_2, $contact_3, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $inactive, $collaborator_id;
+    public $company_types, $company_activities, $cnaes, $provinces, $company_advisors, $collaborators;
 
     public function render()
     {
-
         return view('livewire.advisors.update');
     }
 
@@ -33,9 +31,10 @@ class AdvisorsUpdate extends Component
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
         $this->provinces = Province::all();
+        $this->collaborators = User::where('has_commission', 1)->get();
         $this->company_advisors = Advisor::select('advisors.*')
             ->join('companies', 'companies.id', '=', 'advisors.company_id')
-            ->where('companies.inactive', 0)->get();
+            ->where('companies.active', 0)->get();
 
         $advisor = Advisor::find($id);
         $record = Company::findOrFail($advisor->company_id);
@@ -68,8 +67,7 @@ class AdvisorsUpdate extends Component
         $this->population = $record-> population;
         $this->active = $record-> active;
         $this->advisor_id = $record-> advisor_id;
-
-        $this->route = url()->previous();
+        $this->collaborator_id = $record->collaborator_id;
     }
 
     public function update()
@@ -116,15 +114,17 @@ class AdvisorsUpdate extends Component
                 'province_id' => $this-> province_id,
                 'population' => $this-> population,
                 'active' => $this-> active == true ? 1 : 0,
-                'advisor_id' => $this-> advisor_id
+                'advisor_id' => $this-> advisor_id != -1 ? $this-> advisor_id : null,
+                'collaborator_id' => $this->collaborator_id != -1 ? $this->collaborator_id : null,
+                'potential' => 0
             ];
 
             $advisor = Advisor::updateAdvisor($this->selected_id, $data);
 
-            $company = Company::updateCompany($advisor->company_id, $data);
+            Company::updateCompany($advisor->company_id, $data);
 
             session()->flash('message', 'Asesoria creado con exito.');
-            return $this->redirect($this->route);
+            $this->emit('toastr', 'success');
         }
     }
 }

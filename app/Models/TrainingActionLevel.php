@@ -23,7 +23,7 @@ class TrainingActionLevel extends Model
         return $this->hasMany('App\Models\TrainingAction', 'training_action_level_id', 'id');
     }
 
-    public function getTrainingActionLevel($keyWord){
+    public static function getTrainingActionLevel($keyWord){
         $training_action_levels = TrainingActionLevel::
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
@@ -38,14 +38,14 @@ class TrainingActionLevel extends Model
         return $training_action_levels;
     }
 
-    public function createTrainingActionLevel($data){
+    public static function createTrainingActionLevel($data){
         $training_action_level = TrainingActionLevel::create([
             'name' => $data['name']
         ]);
         return $training_action_level;
     }
 
-    public function updateTrainingActionLevel($id, $data){
+    public static function updateTrainingActionLevel($id, $data){
         $training_action_level = TrainingActionLevel::find($id);
         $training_action_level->update([
             'name' => $data['name']

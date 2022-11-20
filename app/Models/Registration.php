@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\GeneralHelpers;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -78,11 +79,13 @@ class Registration extends Model
         return $this->hasOne('App\Models\billing', 'id', 'billing_id');
     }
 
-    public function getRegistrated($course_id, $search_name, $search_surname){
-        $registations = Student::select('students.*')->leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
+    public static function getRegistrated($course_id, $search_name, $search_surname){
+        $registations = Student::select('students.*', 'registrations.is_bonus', 'companies.name as company_name')
+            ->leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
+            ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
             ->where('registrations.course_id', $course_id)
             ->where(function ($query) use ($search_name){
-                $query->orWhere('name', 'LIKE', $search_name);
+                $query->orWhere('students.name', 'LIKE', $search_name);
             }) ->where(function ($query) use ($search_surname){
                 $query->orWhere('surname', 'LIKE', $search_surname);
             })->get();
@@ -90,7 +93,7 @@ class Registration extends Model
         return $registations;
     }
 
-    public function getUnregistrated($course_id, $search_name_unregisterd, $search_surname_unregisterd){
+    public static function getUnregistrated($course_id, $search_name_unregisterd, $search_surname_unregisterd){
         $registations = Student::leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
             ->where('registrations.course_id', '=', $course_id)->get();
         $unregisted = Student::where(function ($query) use ($search_name_unregisterd){
@@ -104,7 +107,7 @@ class Registration extends Model
         return $unregisted;
     }
 
-    public function createRegistration($data){
+    public static function createRegistration($data){
         $registration = Registration::create([
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
@@ -119,8 +122,8 @@ class Registration extends Model
         return $registration;
     }
 
-    public function unregistration($id){
-        $registration = Registration::where('course_id', $this->selected_id)
+    public static function unregistration($id, $course_id){
+        $registration = Registration::where('course_id', $course_id)
             ->where('student_id', $id)->first();
         if ($registration) {
             $billing = Billing::where('course_id',$registration['course_id'])
@@ -135,7 +138,6 @@ class Registration extends Model
                         'billing' => $billing['billing'] - $registration['price']
                     ]);
                 }
-
             }
             $tracing = Tracing::find($registration['tracing_id']);
             if ($tracing){
@@ -147,27 +149,55 @@ class Registration extends Model
             }
             $profitability = Profitability::find($registration['profitability_id']);
             if ($profitability){
-                $profitability->delete();
+                if ($registration['is_bonus'] == 1){
+                    if ($profitability['number_students'] > 1){
+                        $price = $profitability['price']-$registration['price'];
+                        if ($profitability['advisor_percentage'] && $profitability['price']){
+                            $advisor_commission = ($profitability['advisor_percentage'] / 100) * $price;
+                        }
+                        if ($profitability['collaborator_percentage'] && $profitability['price']){
+                            $collaborator_commission = ($profitability['advisor_percentage'] / 100) * $price;
+                        }
+                        $prices = Profitability::getCalculateBenefits(GeneralHelpers::convertComa($price),
+                            GeneralHelpers::convertComa($profitability['teacher']),
+                            GeneralHelpers::convertComa($profitability['management']),
+                            GeneralHelpers::convertComa($profitability['nebrija_title']),
+                            GeneralHelpers::convertComa($profitability['discount']),
+                            $collaborator_commission, $advisor_commission);
+                        $profitability->update([
+                            'number_students' => $profitability['number_students']-1,
+                            'price' => $price,
+                            'total' => $prices['total_cost'],
+                            'benefits' => $prices['benefits'],
+                            'advisor_commission' => $advisor_commission,
+                            'collaborator_commission' => $collaborator_commission
+                        ]);
+                    } else{
+                        $profitability->delete();
+                    }
+                } else{
+                    $profitability->delete();
+                }
             }
             $registration->delete();
         }
     }
 
-    public function totalRegistrations(){
+    public static function totalRegistrations(){
         $now = Carbon::now();
         $total = Registration::leftJoin('courses', 'registrations.course_id', '=', 'courses.id')->where('courses.beginning', '>=', $now->year.'-01-01')
             ->where('courses.beginning', '<=', $now->year.'-12-31')->get();
         return $total->count();
     }
 
-    public function countRegistrations($start, $limit){
+    public static function countRegistrations($start, $limit){
         $registrations = Registration::leftJoin('courses', 'registrations.course_id', '=', 'courses.id')->where('courses.beginning', '>=', $start)
             ->where('courses.beginning', '<=', $limit)->get();
 
         return $registrations->count();
     }
 
-    public function getStudentCourses($id, $search_course_name, $search_group){
+    public static function getStudentCourses($id, $search_course_name, $search_group){
         $registations = Registration::select('courses.*')->leftJoin('courses', 'registrations.course_id', '=', 'courses.id')
             ->where('registrations.student_id', $id)
             ->where(function ($query) use ($search_course_name){
@@ -184,7 +214,7 @@ class Registration extends Model
         return $registations;
     }
 
-    public function eliminateBill($id){
+    public static function eliminateBill($id){
         $registrations = Registration::where('billing_id', $id)->get();
         if ($registrations){
             foreach($registrations as $registration){
@@ -196,7 +226,7 @@ class Registration extends Model
         return true;
     }
 
-    public function billingRegistration($billing_id){
+    public static function billingRegistration($billing_id){
         $registrations = Registration::where('billing_id', $billing_id)->get();
 
         return $registrations;

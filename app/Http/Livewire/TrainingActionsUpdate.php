@@ -21,7 +21,7 @@ class TrainingActionsUpdate extends Component
 {
     public $selected_id, $name, $teacher_id, $action_type_id, $professional_family_id, $professional_area_id,
         $modality_id, $training_action_level_id, $training_action_group_id, $tutoring_id, $course_z, $course_avz, $active = 1,
-        $in_catalog = 1, $face_to_face_hours, $teletraining_hours, $total_hours, $price, $objectives, $content, $user,
+        $in_catalog = 1, $face_to_face_hours, $teletraining_hours, $total_hours, $price, $objectives, $content, $user, $specialty,
         $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password, $formative_action;
     public $action_types, $professional_families, $professional_areas, $modalities, $training_action_levels, $training_action_groups,
         $tutorings, $web_platforms, $providers, $route;
@@ -73,6 +73,7 @@ class TrainingActionsUpdate extends Component
         $this->number_activities = $record-> number_activities;
         $this->number_units = $record-> number_units;
         $this->provider_id = $record-> provider_id;
+        $this->specialty = $record->specialty;
 
         $this->route = url()->previous();
     }
@@ -119,11 +120,12 @@ class TrainingActionsUpdate extends Component
                 'observations' => $this-> observations,
                 'number_activities' => $this-> number_activities,
                 'number_units' => $this-> number_units,
-                'provider_id' => $this-> provider_id
+                'provider_id' => $this-> provider_id,
+                'specialty' => $this->specialty
             ];
 
             $training_action = TrainingAction::updateTrainingAction($this->selected_id, $data);
-
+            $this->emit('toastr', 'success');
             session()->flash('message', 'Acción formativa actualizada con exito.');
             return $this->redirect($this->route);
         }

@@ -21,7 +21,7 @@ class WebPlatform extends Model
         return $this->hasMany('App\Models\TrainingAction', 'web_platform_id', 'id');
     }
 
-    public function getWebPlatforms($keyWord){
+    public static function getWebPlatforms($keyWord){
         $web_platforms = WebPlatform::
         orWhere('name', 'LIKE', $keyWord)
             ->orWhere('url', 'LIKE', $keyWord)
@@ -37,7 +37,7 @@ class WebPlatform extends Model
         return $web_platforms;
     }
 
-    public function createWebPlatform($data){
+    public static function createWebPlatform($data){
         $web_platform = WebPlatform::create([
             'name' => $data['name'],
             'url' => $data['url']
@@ -45,7 +45,7 @@ class WebPlatform extends Model
         return $web_platform;
     }
 
-    public function updateWebPlatform($id, $data){
+    public static function updateWebPlatform($id, $data){
         $web_platform = WebPlatform::find($id);
         $web_platform->update([
             'name' => $data['name'],

@@ -95,7 +95,7 @@ class Course extends Model
         return $this->hasOne('App\Models\TrainingAction', 'id', 'training_action_id');
     }
 
-    public function getCourses($keyWord, $search_formative_action, $search_name, $search_group, $search_type, $search_status, $search_company){
+    public static function getCourses($keyWord, $search_formative_action, $search_name, $search_group, $search_type, $search_status, $search_company){
 
         $courses = Course::select('courses.*',
             'course_types.name as course_type', 'teachers.name as teacher_name', 'teachers.surname as teacher_surname',
@@ -172,7 +172,7 @@ class Course extends Model
         return $courses;
     }
 
-    public function createCourse($data){
+    public static function createCourse($data){
         $course = Course::create([
             'name' => $data['name'],
             'training_action_id' => $data['training_action_id'],
@@ -208,7 +208,7 @@ class Course extends Model
         return $course;
     }
 
-    public function updateCourse($id, $data){
+    public static function updateCourse($id, $data){
         $course = Course::find($id);
         $course->update([
             'name' => $data['name'],
@@ -245,7 +245,7 @@ class Course extends Model
         return $course;
     }
 
-    public function setName($training_action_id, $selected_id){
+    public static function setName($training_action_id, $selected_id){
         if ($training_action_id > 0){
             $training_action = TrainingAction::find($training_action_id);
             if ($training_action_id < 10){
@@ -279,13 +279,13 @@ class Course extends Model
         ];
     }
 
-    public function numbercourses($training_action_id){
+    public static function numbercourses($training_action_id){
         $num = Course::where('training_action_id', $training_action_id)->get();
 
         return $num;
     }
 
-    public function course_data($beginning_date, $end_date){
+    public static function course_data($beginning_date, $end_date){
         $quarter = null;
         $half = null;
         $three_quarters = null;
@@ -306,7 +306,7 @@ class Course extends Model
         ];
     }
 
-    public function getTeachersCourses($id, $search_course_name, $search_course_group){
+    public static function getTeachersCourses($id, $search_course_name, $search_course_group){
         $courses = Course::where('teacher_id', $id)
             ->where(function ($query) use ($search_course_name) {
                 $query->orWhere('name', 'LIKE', $search_course_name);
@@ -324,7 +324,7 @@ class Course extends Model
         return $courses;
     }
 
-    public function messageDates($beggining, $end){
+    public static function messageDates($beggining, $end){
 
         $beggining = Carbon::createFromFormat('Y-m-d', $beggining);
         $end = Carbon::createFromFormat('Y-m-d', $end);
@@ -349,7 +349,7 @@ class Course extends Model
         ];
     }
 
-    public function getTrainingActionCourse($id, $search_course_name, $search_course_group)
+    public static function getTrainingActionCourse($id, $search_course_name, $search_course_group)
     {
         $courses = Course::where('training_action_id', $id)
             ->where(function ($query) use ($search_course_name) {
@@ -367,7 +367,7 @@ class Course extends Model
         return $courses;
     }
 
-    public function getCompanyCourses($id, $search_course_name, $search_course_group){
+    public static function getCompanyCourses($id, $search_course_name, $search_course_group){
         $registrations = Registration::where('company_id', $id)->groupBy('course_id')->pluck('course_id')->toArray();
         $courses = Course::select('courses.*')
             ->where(function ($query) use ($registrations){
@@ -389,12 +389,12 @@ class Course extends Model
         return $courses;
     }
 
-    public function getNumberCourses($year){
+    public static function getNumberCourses($year){
         $courses = Course::WhereYear('beginning', $year)->get();
         return count($courses);
     }
 
-    public function getNumberCoursesPermonth($year){
+    public static function getNumberCoursesPermonth($year){
         $per_month = [];
         for($i = 1; $i <= 12; $i++){
             $courses = Course::WhereYear('beginning', $year)

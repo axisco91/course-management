@@ -60,13 +60,13 @@
             <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="beginning_search">Desde</label>
-                    <input wire:model.lazy="beginning_search" type="date" class="form-control" id="beginning_search">
+                    <input wire:model.lazy="beginning_search" wire:change="restartPage()" type="date" class="form-control" id="beginning_search">
                 </div>
             </div>
             <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="end_search">Hasta</label>
-                    <input wire:model.lazy="end_search" type="date" class="form-control" id="end_search">
+                    <input wire:model.lazy="end_search" wire:change="restartPage()" type="date" class="form-control" id="end_search">
                 </div>
             </div>
         </div>
@@ -136,6 +136,8 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
                               <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                                <a href="{{url('/tracing_communications/create/'.$row->id)}}" class="dropdown-item"><i class="fa-regular fa-pen-to-square"></i> Crear Comunicación</a>
+                              <a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
                             </div>
                         </div>
                     </td>
@@ -171,9 +173,60 @@
             }
         })
         document.addEventListener('livewire:load', function() {
+            $('body').on('click', '.eliminar', function () {
+                button = $(this)
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                })
+
+                swalWithBootstrapButtons.fire({
+                    title: '¿Estas seguro?',
+                    text: "Eliminaras el seguimiento!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, eliminalo!',
+                    cancelButtonText: 'No, cancela!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        id = $(this).data('id');
+                        Livewire.emit('destroy', id)
+                        window.addEventListener('eliminated', e=>{
+                            if (e.detail.value != ''){
+                                swalWithBootstrapButtons.fire(
+                                    'Eliminado!',
+                                    'Eliminado con exito.',
+                                    'success'
+                                )
+                            } else{
+                                swalWithBootstrapButtons.fire(
+                                    'Error',
+                                    'Fallo al eliminar.',
+                                    'error'
+                                )
+                            }
+                        });
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cacelado',
+                            'No se ha podido eliminar.',
+                            'error'
+                        )
+                    }
+                })
+            })
             initializeSelect2()
             $('.select2').on('change', function(){
             @this.set(this.id, this.value)
+                Livewire.emit('restartPage')
             })
             $('#training_action_id').on('change', function(){
             @this.set(this.id, this.value)

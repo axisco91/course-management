@@ -21,7 +21,7 @@ class Cnae extends Model
         return $this->hasMany('App\Models\Company', 'cnae_id', 'id');
     }
 
-    public function getCnaes($keyWord){
+    public static function getCnaes($keyWord){
         $cnaes = Cnae::orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
 
@@ -36,7 +36,7 @@ class Cnae extends Model
         return $cnaes;
     }
 
-    public function createCnae($data){
+    public static function createCnae($data){
         $cnae = Cnae::create([
             'name' => $data['name']
         ]);
@@ -44,7 +44,7 @@ class Cnae extends Model
         return $cnae;
     }
 
-    public function updateCnae($id, $data){
+    public static function updateCnae($id, $data){
         $cnae = Cnae::find($id);
         $cnae->update([
             'name' => $data['name']

@@ -21,7 +21,7 @@ class TrainingActionGroup extends Model
         return $this->hasMany('App\Models\TrainingAction', 'training_action_group_id', 'id');
     }
 
-    public function getTrainingActionGroups($keyWord){
+    public static function getTrainingActionGroups($keyWord){
         $training_action_groups = TrainingActionGroup::
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
@@ -36,14 +36,14 @@ class TrainingActionGroup extends Model
         return $training_action_groups;
     }
 
-    public function createTrainingActionGroup($data){
+    public static function createTrainingActionGroup($data){
         $training_action_group = TrainingActionGroup::create([
             'name' => $data['name']
         ]);
         return $training_action_group;
     }
 
-    public function updateTrainingActionGroup($id, $data){
+    public static function updateTrainingActionGroup($id, $data){
         $training_action_group = TrainingActionGroup::find($id);
         $training_action_group->update([
             'name' => $data['name']

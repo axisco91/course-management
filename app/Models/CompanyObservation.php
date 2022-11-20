@@ -22,8 +22,8 @@ class CompanyObservation extends Model
         return $this->hasOne('App\Models\Company', 'id', 'company_id');
     }
 
-    public function getCompanyObservations($id){
-        $observations = CompanyObservation::where('company_id', $id)->get();
+    public static function getCompanyObservations($id){
+        $observations = CompanyObservation::where('company_id', $id)->paginate(10);
 
         foreach ($observations as $observation){
             $observation['date'] = Carbon::createFromFormat('Y-m-d H:i:s', $observation['created_at'])->format('d/m/Y');
@@ -32,7 +32,7 @@ class CompanyObservation extends Model
         return $observations;
     }
 
-    public function createCompanyObservation($data){
+    public static function createCompanyObservation($data){
         $company_observation = CompanyObservation::create([
             'company_id' => $data['company_id'],
             'observation' => $data['observation']
@@ -41,7 +41,7 @@ class CompanyObservation extends Model
         return $company_observation;
     }
 
-    public function updateCompanyObservation($id, $data){
+    public static function updateCompanyObservation($id, $data){
         $company_observation = CompanyObservation::find($id);
         $company_observation->update([
             'observation' => $data['observation']

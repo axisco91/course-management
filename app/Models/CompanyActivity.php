@@ -21,7 +21,7 @@ class CompanyActivity extends Model
         return $this->hasMany('App\Models\Company', 'activity_id', 'id');
     }
 
-    public function getCompanyActivities($keyWord){
+    public static function getCompanyActivities($keyWord){
         $companyActivities = CompanyActivity::
         orWhere('name', 'LIKE', $keyWord)
             ->paginate(10);
@@ -37,7 +37,7 @@ class CompanyActivity extends Model
         return $companyActivities;
     }
 
-    public function createCompanyActivity($data){
+    public static function createCompanyActivity($data){
         $company_activity = CompanyActivity::create([
             'name' => $data['name']
         ]);
@@ -45,7 +45,7 @@ class CompanyActivity extends Model
         return $company_activity;
     }
 
-    public function updateCompanyActivity($id, $data){
+    public static function updateCompanyActivity($id, $data){
         $record = CompanyActivity::find($id);
         $record->update([
             'name' => $data['name']
