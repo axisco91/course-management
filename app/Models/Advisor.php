@@ -11,7 +11,7 @@ class Advisor extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3', 'nif', 'company_type_id', 'company_activity_id', 'email', 'telephone', 'legal_representative', 'dni_legal_representative', 'cnae_id', 'iban', 'sepa', 'b2b', 'address', 'post_code', 'population_id', 'province_id', 'population', 'active'];
+    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3', 'nif', 'company_type_id', 'company_activity_id', 'email', 'telephone', 'legal_representative', 'dni_legal_representative', 'cnae_id', 'iban', 'sepa', 'b2b', 'address', 'post_code', 'population_id', 'province_id', 'population', 'active', 'collaborator_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -29,7 +29,7 @@ class Advisor extends Model
         return $this->hasOne('App\Models\Company', 'id', 'company_id');
     }
 
-    public function getAdvisors($keyWord, $inactiveFilter, $search_name, $search_nif, $search_type_id, $search_activity_id, $search_province_id){
+    public static function getAdvisors($keyWord, $inactiveFilter, $search_name, $search_nif, $search_type_id, $search_activity_id, $search_province_id){
         $advisors = Advisor::select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province')
             ->leftjoin('company_types', 'company_types.id', '=', 'advisors.company_type_id')
@@ -62,11 +62,19 @@ class Advisor extends Model
                 ->orWhere('provinces.name', 'LIKE', $keyWord)
                 ->orWhere('advisors.population', 'LIKE', $keyWord)
                 ->orWhere('advisors.active', 'LIKE', $keyWord);
-        })->where(function ($query) use ($search_name){
-            $query->orWhere('advisors.name', 'LIKE', $search_name);
-        })->where(function ($query) use ($search_nif){
-            $query->orWhere('advisors.nif', 'LIKE', $search_nif);
         });
+        if ($search_name){
+            $search_name = '%'.$search_name.'%';
+            $advisors = $advisors->where(function ($query) use ($search_name){
+                $query->orWhere('advisors.name', 'LIKE', $search_name);
+            });
+        }
+        if ($search_nif){
+            $search_nif = '%'.$search_nif.'%';
+            $advisors = $advisors->where(function ($query) use ($search_nif){
+                $query->orWhere('advisors.nif', 'LIKE', $search_nif);
+            });
+        }
         if ($search_type_id){
             $advisors = $advisors->where(function ($query) use ($search_type_id){
                 $query->orWhere('advisors.company_type_id', $search_type_id);
@@ -84,11 +92,10 @@ class Advisor extends Model
        }
         $advisors = $advisors->orderBy('advisors.name', 'desc')
             ->paginate(10);
-
         return $advisors;
     }
 
-    public function createAdvisor($data){
+    public static function createAdvisor($data){
         $advisor = Advisor::create([
             'name' => $data['name'],
             'company_id' => $data['company_id'],
@@ -113,12 +120,12 @@ class Advisor extends Model
             'province_id' => $data['province_id'],
             'population' => $data['population'],
             'active' => $data['active'],
+            'collaborator_id' => $data['collaborator_id']
         ]);
-
         return $advisor;
     }
 
-    public function updateAdvisor($id, $data){
+    public static function updateAdvisor($id, $data){
         $advisor = Advisor::find($id);
         $advisor->update([
             'name' => $data['name'],
@@ -144,12 +151,12 @@ class Advisor extends Model
             'province_id' => $data['province_id'],
             'population' => $data['population'],
             'active' => $data['active'],
+            'collaborator_id' => $data['collaborator_id']
         ]);
-
         return $advisor;
     }
 
-    public function updateAdvisorCompany($id, $data){
+    public static function updateAdvisorCompany($id, $data){
         $advisor = Advisor::find($id);
         $advisor->update([
             'name' => $data['name'],
@@ -171,11 +178,10 @@ class Advisor extends Model
             'population' => $data['population'],
             'active' => $data['active'],
         ]);
-
         return $advisor;
     }
 
-    public function convertAdvisor($id){
+    public static function convertAdvisor($id){
         if ($id) {
             $record = Company::find($id);
             $advisor = Advisor::create([
@@ -202,13 +208,12 @@ class Advisor extends Model
         }
     }
 
-    public function findNif($nif, $id = null){
+    public static function findNif($nif, $id = null){
         $advisor = Advisor::where('nif', $nif);
         if ($id){
             $advisor = $advisor->where('id', '!=', $id);
         }
         $advisor = $advisor->first();
-
         return $advisor;
     }
 

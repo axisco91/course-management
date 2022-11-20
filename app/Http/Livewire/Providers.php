@@ -59,7 +59,7 @@ class Providers extends Component
         $this->provinces = Province::all();
         $this->advisors = Advisor::select('advisors.*')
             ->join('companies', 'companies.id', '=', 'advisors.company_id')
-            ->where('companies.inactive', 0)->get();
+            ->where('companies.active', 0)->get();
     }
 
     public function cancel()

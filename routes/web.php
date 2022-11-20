@@ -38,8 +38,15 @@ use App\Http\Controllers\ProfitabilityController;
 use App\Http\Controllers\TestsController;
 use App\Http\Controllers\ChoreController;
 use App\Http\Controllers\ProfileController;
-
-
+use App\Http\Controllers\AdvisorIncidenceController;
+use App\Http\Controllers\CompanyIncidenceController;
+use App\Http\Controllers\PotentialStudentController;
+use App\Http\Controllers\NewPotentialCompanyController;
+use App\Http\Controllers\TrainingContractController;
+use App\Http\Controllers\TracingCommunicationController;
+use App\Http\Controllers\ModuleController;
+use App\Http\Controllers\CertificationController;
+use App\Http\Controllers\TrainingUnitController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -50,6 +57,13 @@ use App\Http\Controllers\ProfileController;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Route::controller(PotentialStudentController::class)->group(function (){
+    route::get('potential_student', 'create');
+});
+Route::controller(NewPotentialCompanyController::class)->group(function (){
+    route::get('new_potential_company', 'create');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::controller(HomeController::class)->group(function(){
@@ -65,6 +79,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('create', 'create');
             Route::get('view/{id}', 'view');
             Route::get('/export', 'export');
+            Route::get('/import', 'import');
+            Route::get('edit_potential/{id}', 'editPotential');
+            Route::get('create_potential', 'createPotential');
+            Route::get('view_potential/{id}', 'viewPotential');
         });
     });
     /**
@@ -111,8 +129,42 @@ Route::middleware(['auth'])->group(function () {
     /**
      * Training Actions Routes
      */
-    Route::prefix('training-actions')->group(function() {
+    Route::prefix('training_actions')->group(function() {
         Route::controller(TrainingActionController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
+        });
+    });
+    /**
+     * Training Units Routes
+     */
+    Route::prefix('training_units')->group(function() {
+        Route::controller(TrainingUnitController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
+            Route::get('get_training_units_table', 'getTrainingUnitsTable');
+        });
+    });
+    /**
+     * Modules Routes
+     */
+    Route::prefix('modules')->group(function() {
+        Route::controller(ModuleController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('edit/{id}', 'edit');
+            Route::get('create', 'create');
+            Route::get('view/{id}', 'view');
+        });
+    });
+    /**
+     * Certifications Routes
+     */
+    Route::prefix('certifications')->group(function() {
+        Route::controller(CertificationController::class)->group(function(){
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
@@ -143,14 +195,15 @@ Route::middleware(['auth'])->group(function () {
         });
     });
     /**
-     * Training Actions Routes
+     * Training Contracts Routes
      */
-    Route::prefix('training_actions')->group(function() {
-        Route::controller(TrainingActionController::class)->group(function(){
+    Route::prefix('training_contracts')->group(function() {
+        Route::controller(TrainingContractController::class)->group(function(){
             Route::get('', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('create', 'create');
             Route::get('view/{id}', 'view');
+            Route::get('second_phase/{id}', 'secondPhase');
         });
     });
     /**
@@ -215,7 +268,51 @@ Route::middleware(['auth'])->group(function () {
             Route::get('edit/{id}', 'edit');
         });
     });
-
+    /**
+     * Advisor incidences Routes
+     */
+    Route::prefix('tracing_communications')->group(function() {
+        Route::controller(TracingCommunicationController::class)->group(function(){
+            Route::get('create/{tracing_id}', 'create');
+            Route::get('edit/{id}', 'edit');
+        });
+    });
+    /**
+     * Advisor incidences Routes
+     */
+    Route::prefix('advisor_incidences')->group(function() {
+        Route::controller(AdvisorIncidenceController::class)->group(function(){
+            Route::get('create/{advisor_id}', 'create');
+            Route::get('edit/{id}', 'edit');
+        });
+    });
+    /**
+     * company History Routes
+     */
+    Route::prefix('company_incidences')->group(function() {
+        Route::controller(CompanyIncidenceController::class)->group(function(){
+            Route::get('create/{company_id}', 'create');
+            Route::get('edit/{id}', 'edit');
+        });
+    });
+    /**
+     * Potential Students
+     */
+    Route::prefix('potential_students')->group(function() {
+        Route::controller(PotentialStudentController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('convert/{id}', 'convert');
+        });
+    });
+    /**
+     * Potential Companies
+     */
+    Route::prefix('potential_companies')->group(function() {
+        Route::controller(NewPotentialCompanyController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('convert/{id}', 'convert');
+        });
+    });
     Route::prefix('commands')->group(function() {
         Route::controller(CommandController::class)->group(function(){
             Route::get('', 'index');
@@ -261,6 +358,12 @@ Route::get('/home', 'HomeController@index')->name('home');
 	Route::view('company_types', 'livewire.company-types.index')->middleware('auth');
 	Route::view('provinces', 'livewire.provinces.index')->middleware('auth');
 	Route::view('cnaes', 'livewire.cnaes.index')->middleware('auth');
+Route::view('course_origins', 'livewire.course-origins.index')->middleware('auth');
+Route::view('occupations', 'livewire.occupations.index')->middleware('auth');
+Route::view('on_leave_types', 'livewire.on-leave-types.index')->middleware('auth');
+Route::view('incidence_types', 'livewire.incidence-types.index')->middleware('auth');
+Route::view('training_contract_statuses', 'livewire.training-contract-statuses.index')->middleware('auth');
+Route::view('excluded_days', 'livewire.excluded-days.index')->middleware('auth');
 
 Route::middleware([
     'auth:sanctum',

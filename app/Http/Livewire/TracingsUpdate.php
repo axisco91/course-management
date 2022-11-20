@@ -8,7 +8,6 @@ use App\Models\CourseStatus;
 use App\Models\Student;
 use App\Models\TrainingAction;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Tracing;
 
 class TracingsUpdate extends Component
@@ -18,7 +17,6 @@ class TracingsUpdate extends Component
         $three_quarters_message, $final_message, $observation, $welcome_date, $quarter_date, $half_date, $three_quarters_date,
         $total_hours, $number_activities, $number_units, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent,
         $three_quarters_date_sent, $final_date_sent, $beginning, $end, $course_group;
-    public $updateMode = false;
     public $courses, $companies, $students, $course_statuses;
     public $student_name, $name, $surname, $course_name;
 
@@ -110,7 +108,7 @@ class TracingsUpdate extends Component
             Tracing::updateTracing($this->selected_id, $data);
 
             session()->flash('message', 'Seguimiento actualizada con exito.');
-            return $this->redirect('/tracings');
+            $this->emit('toastr', 'success');
         }
     }
 }

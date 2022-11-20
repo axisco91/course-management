@@ -119,7 +119,7 @@
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->membership_tab_status == 0 ?'warning' : ($row->membership_tab_status == 1 ? 'info' : ($row->membership_tab_status == 2 ? 'success' : 'danger' ))}} me-1">{{$row->membership_tab_status == 0 ? 'Pendiente' : ($row->membership_tab_status == 1 ? 'Enviado' : ($row->membership_tab_status == 2 ? 'Recibido' : 'No procede'))}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->economic_proposal_status == 0 ?'warning' : ($row->economic_proposal_status == 1 ? 'info' : 'success')}} me-1">{{$row->economic_proposal_status == 0 ? 'Pendiente' : ($row->economic_proposal_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->student_tab_status == 0 ?'warning' : ($row->student_tab_status == 1 ? 'info' : 'success')}} me-1">{{$row->student_tab_status == 0 ? 'Pendiente' : ($row->student_tab_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
-                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->welcome_guid_status == 0 ?'warning' : ($row->welcome_guid_status == 1 ? 'info' : 'success')}} me-1">{{$row->welcome_guid_status == 0 ? 'Pendiente' : ($row->welcome_guid_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
+                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->welcome_guid_status == 0 ?'warning' : ($row->welcome_guid_status == 1 ? 'success' : 'danger')}} me-1">{{$row->welcome_guid_status == 0 ? 'Pendiente' : ($row->welcome_guid_status == 1 ? 'Realizada' : '')}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->registration_status == 0 ?'warning' : 'success'}} me-1">{{$row->registration_status == 0 ? 'Pendiente' : 'Realizada'}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->diploma_status == 0 ?'warning' : ($row->diploma_status == 1 ? 'success' : 'danger')}} me-1">{{$row->diploma_status == 0 ? 'Pendiente' : ($row->diploma_status == 1 ? 'Enviada' : 'No procede')}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->start_communication_status == 0 ?'warning' : ($row->start_communication_status == 1 ? 'success' : 'danger')}} me-1">{{$row->start_communication_status == 0 ? 'Pendiente' : ($row->start_communication_status == 1 ? 'Realizada' : 'No procede')}}</span></td>
@@ -133,6 +133,7 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
                                 <a class="dropdown-item edit" href="{{url('/chores/edit/'.$row->id)}}"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                                <a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
                             </div>
                         </div>
                     </td>
@@ -152,6 +153,56 @@
     @endsection
     <script>
         document.addEventListener('livewire:load', function() {
+            $('body').on('click', '.eliminar', function () {
+                button = $(this)
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                })
+
+                swalWithBootstrapButtons.fire({
+                    title: '¿Estas seguro?',
+                    text: "Eliminaras la tarea!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, eliminalo!',
+                    cancelButtonText: 'No, cancela!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        id = $(this).data('id');
+                        Livewire.emit('destroy', id)
+                        window.addEventListener('eliminated', e=>{
+                            if (e.detail.value != ''){
+                                swalWithBootstrapButtons.fire(
+                                    'Eliminado!',
+                                    'Eliminado con exito.',
+                                    'success'
+                                )
+                            } else{
+                                swalWithBootstrapButtons.fire(
+                                    'Error',
+                                    'Fallo al eliminar.',
+                                    'error'
+                                )
+                            }
+                        });
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cacelado',
+                            'No se ha podido eliminar.',
+                            'error'
+                        )
+                    }
+                })
+            })
             initializeSelect2()
             $('.select2').on('change', function(){
             @this.set(this.id, this.value)

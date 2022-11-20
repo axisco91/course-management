@@ -114,6 +114,30 @@
                     </select>
                     @error('payment_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
+                <div class="col-md-4 col-12 mb-1">
+                    <div wire:ignore>
+                        <label class="form-label" for="advisor_id">Asesoría</label>
+                        <select wire:model.lazy="advisor_id" class="form-control select2" id="advisor_id">
+                            <option value="-1">Seleccione una asesoría</option>
+                            @foreach($advisors as $advisor)
+                                <option value="{{$advisor['id']}}">{{$advisor['name']}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('payment_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+                <div class="col-md-4 col-12 mb-1">
+                    <div wire:ignore>
+                        <label class="form-label" for="collaborator_id">Colaborador</label>
+                        <select wire:model.lazy="collaborator_id" class="form-control select2" id="collaborator_id">
+                            <option value="-1">Seleccione un colaborador</option>
+                            @foreach($collaborators as $collaborator)
+                                <option value="{{$collaborator['id']}}">{{$collaborator['name']}} {{$collaborator['surname']}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @error('collaborator_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
                 @if($is_bonus)
                 <div class="col-md-4 col-12">
                     <div class="mb-1">
@@ -168,6 +192,11 @@
                     @error('company_bonus') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 @endif
+                <div class="col-3 mb-1">
+                    <br>
+                    <label class="form-label" for="charged"><input wire:model.lazy="charged" id="charged" type="checkbox" id="charged"> Cobrado</label>
+                    @error('charged') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
                 <div class="col-12">
                     <div class="mb-1">
                         <label class="form-label" for="observation">Observación</label>
@@ -187,24 +216,42 @@
         </div>
     @endif
     @section('vendor-script')
-        <!-- vendor files -->
-            <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+    <!-- vendor files -->
+        <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+        <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
     @endsection
     @section('page-script')
-        <!-- Page js files -->
+    <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+        <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
     @endsection
-
-    <script>
-        document.addEventListener('livewire:load', function() {
-            $( document ).ready(
-                setTimeout(function (){
-                    initializeSelect2()
-                }, 100)
-            );
-            $('.select2').on('change', function(){
-            @this.set(this.id, $(this).val())
+    @section('scripts')
+        <script>
+            Livewire.on('toastr', type => {
+                if (type == 'success'){
+                    toastr['success']($('#success-toast').val(), {
+                        showMethod: 'slideDown',
+                        hideMethod: 'slideUp',
+                        timeOut: 2000,
+                    });
+                } else{
+                    toastr['warning']($('#success-toast').val(), {
+                        showMethod: 'slideDown',
+                        hideMethod: 'slideUp',
+                        timeOut: 2000,
+                    });
+                }
             })
-        })
+            document.addEventListener('livewire:load', function() {
+                $( document ).ready(
+                    setTimeout(function (){
+                        initializeSelect2()
+                    }, 100)
+                );
+                $('.select2').on('change', function(){
+                @this.set(this.id, $(this).val())
+                })
+            })
     </script>
+    @endsection
 </div>

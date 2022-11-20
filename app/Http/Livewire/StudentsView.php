@@ -17,7 +17,6 @@ class StudentsView extends Component
 
     protected $paginationTheme = 'bootstrap', $listeners = ['studentsUpdated' => 'studentsUpdated'];
     public $selected_id, $keyWord, $inactiveFilter, $name, $surname, $dni, $telephone, $email, $company_id, $user, $date_of_birth, $level_study_id, $disabled, $social_security_number, $c_quote, $quote_group_id, $professional_category_id, $annual_gross_salary, $annual_hours, $hourly_cost_worker_gross, $direction, $post_code, $population_id, $province_id, $population, $observation, $iban, $password, $inactive;
-    public $route;
     public $companies, $level_studies, $professional_categories, $provinces, $quote_groups;
 
     public function render()
@@ -26,7 +25,7 @@ class StudentsView extends Component
     }
 
     public function mount($id){
-        $this->companies = Company::where('inactive', 0)->get();
+        $this->companies = Company::where('active', 1)->get();
         $this->level_studies = LevelStudy::all();
         $this->professional_categories = ProfessionalCategory::all();
         $this->provinces = Province::all();
@@ -69,74 +68,5 @@ class StudentsView extends Component
 
     public function hydrate(){
         $this->emit('select2');
-    }
-
-    /**
-     * @return Update Student
-     */
-    public function update()
-    {
-        $this->validate([
-            'name' => 'required',
-            'surname' => 'required',
-            'dni' => 'required',
-            'telephone' => 'required',
-            'email' => 'required',
-            'user' => 'required',
-            'level_study_id' => 'required',
-            'password' => 'required',
-            'company_id' => 'required'
-        ]);
-
-        if ($this->selected_id) {
-            if ($this->dni){
-                $dni = Student::findDni($this->dni);
-                if ($dni){
-                    $this->emit('alreadyExists', 'dni');
-                    return;
-                }
-            }
-            if ($this->user){
-                $user = Student::findUser($this->user);
-                if ($user){
-                    $this->emit('alreadyExists', 'user');
-                    return;
-                }
-            }
-
-            $data = [
-                'name' => $this-> name,
-                'surname' => $this-> surname,
-                'dni' => $this-> dni,
-                'telephone' => $this-> telephone,
-                'email' => $this-> email,
-                'company_id' => $this-> company_id,
-                'user' => $this-> user,
-                'password' => $this-> password,
-                'date_of_birth' => $this-> date_of_birth,
-                'level_study_id' => $this-> level_study_id,
-                'disabled' => $this-> disabled == true ? 1 : 0,
-                'social_security_number' => $this-> social_security_number,
-                'c_quote' => $this-> c_quote,
-                'quote_group_id' => $this-> quote_group_id,
-                'professional_category_id' => $this-> professional_category_id,
-                'annual_gross_salary' => $this-> annual_gross_salary,
-                'annual_hours' => $this-> annual_hours,
-                'hourly_cost_worker_gross' => $this-> hourly_cost_worker_gross,
-                'direction' => $this-> direction,
-                'post_code' => $this-> post_code,
-                'population_id' => $this-> population_id,
-                'province_id' => $this-> province_id,
-                'population' => $this-> population,
-                'observation' => $this-> observation,
-                'iban' => $this-> iban
-            ];
-
-            $student = Student::updateStudent($this->selected_id, $data);
-
-            session()->flash('message', 'Alumno Actulizado con exito.');
-        } else {
-            session()->flash('error', 'Alumno Actulizado sin exito.');
-        }
     }
 }

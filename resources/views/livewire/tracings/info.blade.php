@@ -11,13 +11,16 @@
                 </div>
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#general">General</a>
+                        <a class="nav-link {{ $tab == 'info' ? 'active' : '' }}" wire:click="$set('tab', 'info')" data-bs-toggle="tab" href="#general">General</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ $tab == 'communications' ? 'active' : '' }}" wire:click="$set('tab', 'communications')" data-bs-toggle="tab" href="#communications">Comunicaciones</a>
                     </li>
                     <li class="nav nav-tabs">
                         <a class="nav-link" data-bs-toggle="tab" href="#"></a>
                     </li>
                 </ul>
-                <div class="tab-content">
+                @if($tab == 'info')
                     <div class="tab-pane container-fluid active" id="general">
                         <div class="row">
                             <form id="editTracingForm" class="row gy-1 pt-75" onsubmit="return false">
@@ -184,7 +187,11 @@
                             </form>
                         </div>
                     </div>
-                </div>
+                @elseif($tab == 'communications')
+                    <div class="tab-pane container" id="communications">
+                        @include('livewire.tracings.tracing-communications')
+                    </div>
+                @endif
             </div>
         </div>
     </div>

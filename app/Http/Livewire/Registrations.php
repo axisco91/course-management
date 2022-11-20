@@ -2,14 +2,17 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Advisor;
 use App\Models\Billing;
 use App\Models\Chore;
+use App\Models\Company;
 use App\Models\Course;
 use App\Models\CourseType;
 use App\Models\Profitability;
 use App\Models\Student;
 use App\Models\Tracing;
 use App\Models\TrainingAction;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Registration;
@@ -89,23 +92,56 @@ class Registrations extends Component
                 $chore = Chore::createChore($chore_data);
                 if ($chore){
 
+                    $advisor_id = null;
+                    $collaborator_id = null;
+                    $company = Company::find($student['company_id']);
+                    $advisor = Advisor::find($company->advisor_id);
+                    $advisor_percentage = null;
+                    $collaborator_percentage = null;
+                    if ($advisor){
+                        if ($advisor['collaborator_id']){
+                            $collaborator_id = $advisor['collaborator_id'];
+                        }
+                        if ($advisor['commission']){
+                            $advisor_percentage = intval($advisor['commission']);
+                        }
+                    }
+                    if ($company){
+                        if ($company['advisor_id']){
+                            $advisor_id = $company['advisor_id'];
+                        }
+                        if ($company['collaborator_id']){
+                            $collaborator_id = $collaborator_id['collaborator_id'];
+                        }
+                    }
+                    if ($collaborator_id){
+                        $user = User::find($collaborator_id);
+                        if ($user){
+                            $collaborator_percentage = $user['commission'];
+                        }
+                    }
+                    $billing_data = [
+                        'course_id' => $this->selected_id,
+                        'company_id' => $student['company_id'],
+                        'is_bonus' => $this->is_bonus,
+                        'price' => $this->price,
+                        'student_id' => $student['id'],
+                        'advisor_id' => $advisor_id,
+                        'collaborator_id' => $collaborator_id,
+                    ];
+                    $billing = Billing::updateBillingRegistrations($billing_data);
+
                     $profitability_data =[
                         'course_id' =>$this->selected_id,
                         'company_id' => $student['company_id'],
                         'student_id' => $student['id'],
                         'price' => $this->price,
                         'total' => $this->price,
+                        'advisor_percentage' => $advisor_percentage,
+                        'collaborator_percentage' => $collaborator_percentage,
+                        'is_bonus' => $this->is_bonus
                     ];
                     $profitability = Profitability::createProfitability($profitability_data);
-
-                    $billing_data = [
-                        'course_id' => $this->selected_id,
-                        'company_id' => $student['company_id'],
-                        'is_bonus' => $this->is_bonus,
-                        'price' => $this->price,
-                        'student_id' => $student['id']
-                    ];
-                    $billing = Billing::updateBillingRegistrations($billing_data);
 
                     $registration_data = [
                         'course_id' => $this->selected_id,
@@ -141,7 +177,7 @@ class Registrations extends Component
 
     public function unregister($id){
         if ($id){
-            Registration::unregistration($id);
+            Registration::unregistration($id, $this->selected_id);
         }
     }
 

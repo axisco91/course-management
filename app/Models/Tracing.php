@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -45,14 +46,20 @@ class Tracing extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public function getTracings($keyWord, $course_search, $company_search, $student_search, $status_search, $beginning_search, $end_search){
+    public static function getTracings($keyWord, $course_search, $company_search, $student_search, $status_search, $beginning_search, $end_search){
+        $start = Carbon::now();
+        $number_days = 5;
+        if ($start->dayOfWeek >= 2)
+            $number_days = 7;
+        $start = $start->addDays($number_days);
         $tracings = Tracing::select('tracings.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name', 'students.surname as student_surname',
             'training_actions.number_activities', 'training_actions.number_units', 'training_actions.total_hours', 'course_statuses.name as status', 'courses.group as course_group')
             ->leftjoin('courses', 'courses.id', '=', 'tracings.course_id')
             ->leftjoin('course_statuses', 'course_statuses.id', 'courses.course_status_id')
             ->leftjoin('companies', 'companies.id', '=', 'tracings.company_id')
             ->leftjoin('students', 'students.id', '=', 'tracings.student_id')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->where('courses.beginning', '<=', $start->toDateString());
 
         if ($course_search != -1){
             $tracings = $tracings->where('courses.id', $course_search);
@@ -85,11 +92,11 @@ class Tracing extends Model
                 ->orWhere('three_quarters_message', 'LIKE', $keyWord)
                 ->orWhere('final_message', 'LIKE', $keyWord)
                 ->orWhere('tracings.observation', 'LIKE', $keyWord);
-        })->orderBy('courses.beginning', 'desc')->paginate(10);
+        })->orderBy('tracings.id', 'desc')->paginate(10);
         return $tracings;
     }
 
-    public function createTracing($data){
+    public static function createTracing($data){
         $tracing = Tracing::create([
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
@@ -98,7 +105,7 @@ class Tracing extends Model
         return $tracing;
     }
 
-    public function updateTracing($id, $data){
+    public static function updateTracing($id, $data){
         $tracing = Tracing::find($id);
         $tracing->update([
             'course_id' => $data['course_id'],

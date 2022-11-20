@@ -8,16 +8,12 @@ use App\Models\ProfessionalCategory;
 use App\Models\Province;
 use App\Models\QuoteGroup;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Student;
 
 class StudentsUpdate extends Component
 {
-    use WithPagination;
-
     protected $paginationTheme = 'bootstrap', $listeners = ['studentsUpdated' => 'studentsUpdated'];
     public $selected_id, $keyWord, $inactiveFilter, $name, $surname, $dni, $telephone, $email, $company_id, $user, $date_of_birth, $level_study_id, $disabled, $social_security_number, $c_quote, $quote_group_id, $professional_category_id, $annual_gross_salary, $annual_hours, $hourly_cost_worker_gross, $direction, $post_code, $population_id, $province_id, $population, $observation, $iban, $password, $inactive;
-    public $route;
     public $companies, $level_studies, $professional_categories, $provinces, $quote_groups;
 
     public function render()
@@ -26,7 +22,7 @@ class StudentsUpdate extends Component
     }
 
     public function mount($id){
-        $this->companies = Company::where('inactive', 0)->get();
+        $this->companies = Company::where('active', 1)->get();
         $this->level_studies = LevelStudy::all();
         $this->professional_categories = ProfessionalCategory::all();
         $this->provinces = Province::all();
@@ -62,8 +58,6 @@ class StudentsUpdate extends Component
         $this->iban = $record-> iban;
         $this->password = $record-> password;
         $this->quote_group_id = $record-> quote_group_id;
-
-        $this->route = url()->previous();
     }
 
     public function hydrate(){
@@ -134,7 +128,7 @@ class StudentsUpdate extends Component
             $student = Student::updateStudent($this->selected_id, $data);
 
             session()->flash('message', 'Alumno Actulizado con exito.');
-            return redirect($this->route);
+            $this->emit('toastr', 'success');
         } else {
             session()->flash('error', 'Alumno Actulizado sin exito.');
         }

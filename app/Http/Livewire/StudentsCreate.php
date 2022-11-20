@@ -15,8 +15,6 @@ class StudentsCreate extends Component
 
     protected $paginationTheme = 'bootstrap';
     public $name, $surname, $dni, $telephone, $email, $company_id, $user, $date_of_birth, $level_study_id, $disabled, $social_security_number, $c_quote, $quote_group_id, $professional_category_id, $annual_gross_salary, $annual_hours, $hourly_cost_worker_gross, $direction, $post_code, $population_id, $province_id, $population, $observation, $iban, $password, $inactive;
-    public $updateMode = false;
-    public $route;
     public $companies, $level_studies, $professional_categories, $provinces, $quote_groups;
 
     public function render()
@@ -26,7 +24,7 @@ class StudentsCreate extends Component
     }
 
     public function mount(){
-        $this->companies = Company::where('inactive', 0)->get();
+        $this->companies = Company::where('active', 1)->get();
         $this->level_studies = LevelStudy::all();
         $this->professional_categories = ProfessionalCategory::all();
         $this->provinces = Province::all();
@@ -132,9 +130,8 @@ class StudentsCreate extends Component
         ];
 
         $student = Student::createStudent($data);
-
-        $this->resetInput();
         session()->flash('message', 'Alumno creado con exito.');
-        return redirect($this->route);
+        $this->emit('toastr', 'success');
+        return redirect('/students/edit/'.$student->id);
     }
 }

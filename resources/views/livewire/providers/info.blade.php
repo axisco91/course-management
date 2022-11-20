@@ -153,14 +153,21 @@
             <input wire:model.lazy="population" type="text" class="form-control" id="population" placeholder="Población" disabled>@error('population') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>
-    <div class="col-md-4 col-12">
-        <div class="mb-1">
+    @if ($active == 1)
+        <div class="col-md-4 col-12">
             <div class="form-check form-check-inline" style="padding-top: 32px;">
-                <input wire:model.lazy="active" class="form-check-input @error('active') is-invalid @enderror" type="checkbox" id="active" value="active" disabled/>
+                <input class="form-check-input" checked type="checkbox" id="active" value="active" disabled/>
                 <label class="form-check-label" for="active">Activo</label>
             </div>
         </div>
-    </div>
+    @else
+        <div class="col-md-4 col-12">
+            <div class="form-check form-check-inline" style="padding-top: 32px;">
+                <input class="form-check-input" type="checkbox" id="active" value="active" disabled/>
+                <label class="form-check-label" for="active">Activo</label>
+            </div>
+        </div>
+    @endif
     <div class="col-md-4 col-12">
         <div class="mb-1">
             <label class="form-label" for="irpf">Irpf</label>

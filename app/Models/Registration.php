@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\GeneralHelpers;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -79,10 +80,12 @@ class Registration extends Model
     }
 
     public function getRegistrated($course_id, $search_name, $search_surname){
-        $registations = Student::select('students.*')->leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
+        $registations = Student::select('students.*', 'registrations.is_bonus', 'companies.name as company_name')
+            ->leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
+            ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
             ->where('registrations.course_id', $course_id)
             ->where(function ($query) use ($search_name){
-                $query->orWhere('name', 'LIKE', $search_name);
+                $query->orWhere('students.name', 'LIKE', $search_name);
             }) ->where(function ($query) use ($search_surname){
                 $query->orWhere('surname', 'LIKE', $search_surname);
             })->get();
@@ -119,8 +122,8 @@ class Registration extends Model
         return $registration;
     }
 
-    public function unregistration($id){
-        $registration = Registration::where('course_id', $this->selected_id)
+    public function unregistration($id, $course_id){
+        $registration = Registration::where('course_id', $course_id)
             ->where('student_id', $id)->first();
         if ($registration) {
             $billing = Billing::where('course_id',$registration['course_id'])
@@ -135,7 +138,6 @@ class Registration extends Model
                         'billing' => $billing['billing'] - $registration['price']
                     ]);
                 }
-
             }
             $tracing = Tracing::find($registration['tracing_id']);
             if ($tracing){
@@ -147,7 +149,35 @@ class Registration extends Model
             }
             $profitability = Profitability::find($registration['profitability_id']);
             if ($profitability){
-                $profitability->delete();
+                if ($registration['is_bonus'] == 1){
+                    if ($profitability['number_students'] > 1){
+                        $price = $profitability['price']-$registration['price'];
+                        if ($profitability['advisor_percentage'] && $profitability['price']){
+                            $advisor_commission = ($profitability['advisor_percentage'] / 100) * $price;
+                        }
+                        if ($profitability['collaborator_percentage'] && $profitability['price']){
+                            $collaborator_commission = ($profitability['advisor_percentage'] / 100) * $price;
+                        }
+                        $prices = Profitability::getCalculateBenefits(GeneralHelpers::convertComa($price),
+                            GeneralHelpers::convertComa($profitability['teacher']),
+                            GeneralHelpers::convertComa($profitability['management']),
+                            GeneralHelpers::convertComa($profitability['nebrija_title']),
+                            GeneralHelpers::convertComa($profitability['discount']),
+                            $collaborator_commission, $advisor_commission);
+                        $profitability->update([
+                            'number_students' => $profitability['number_students']-1,
+                            'price' => $price,
+                            'total' => $prices['total_cost'],
+                            'benefits' => $prices['benefits'],
+                            'advisor_commission' => $advisor_commission,
+                            'collaborator_commission' => $collaborator_commission
+                        ]);
+                    } else{
+                        $profitability->delete();
+                    }
+                } else{
+                    $profitability->delete();
+                }
             }
             $registration->delete();
         }

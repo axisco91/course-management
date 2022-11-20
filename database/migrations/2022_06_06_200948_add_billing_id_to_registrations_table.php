@@ -15,7 +15,7 @@ class AddBillingIdToRegistrationsTable extends Migration
     {
         Schema::table('registrations', function (Blueprint $table) {
             $table->unsignedBigInteger('billing_id')->nullable();
-            $table->foreign('billing_id')->references('id')->on('billings')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('billing_id')->references('id')->on('billings');
         });
     }
 

@@ -6,13 +6,17 @@ use App\Exports\CompaniesExport;
 use App\Models\Advisor;
 use App\Models\Cnae;
 use App\Models\CompanyActivity;
+use App\Models\CompanyIncidence;
 use App\Models\CompanyObservation;
 use App\Models\CompanyType;
 use App\Models\Course;
 use App\Models\Credit;
+use App\Models\IncidenceType;
+use App\Models\PotentialCompanyObservation;
 use App\Models\Provider;
 use App\Models\Province;
 use App\Models\Student;
+use App\Models\User;
 use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -23,23 +27,38 @@ class Companies extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $inactiveFilter, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative,
+    public $selected_id, $keyWord, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative,
         $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id,
         $province_id, $population, $active, $advisor_id, $observation, $available_credit, $consumed_credit, $year, $credits, $credit_id,
-        $years;
-    public $updateMode = false, $createObservationModal = false, $updateObservationModal = false, $createCreditModal = false;
-    public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null, $students, $courses, $tab = 'info';
+        $years, $collaborator_id, $potential, $user_id, $affair, $notes, $incidence_type_id, $company_incidences;
+    public $updateMode = false, $createObservationModal = false, $updateObservationModal = false, $createCreditModal = false, $updatePotentialObservationModal = false;
+    public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null, $students, $courses, $tab = 'info', $collaborators, $incidence_types, $potentialFilter = 0, $search_status;
     public $search_name, $search_nif, $search_type_id, $search_activity_id, $search_advisor_id, $search_province_id, $search_student_name, $search_student_surname, $search_course_name, $search_group;
     protected $listeners = [
         'destroy' => 'destroy'
     ];
     public function render()
-
     {
 		$keyWord = '%'.$this->keyWord .'%';
-        $search_name = '%'.$this->search_name.'%';
-        $search_nif = '%'.$this->search_nif.'%';
-        $companies = Company::getCompanies($keyWord, $this->inactiveFilter, $search_name, $search_nif, $this->search_type_id, $this->search_activity_id, $this->search_advisor_id, $this->search_province_id);
+        $companies = Company::getCompanies($keyWord, $this->search_name, $this->search_nif, $this->search_type_id, $this->search_activity_id, $this->search_advisor_id, $this->search_province_id, $this->search_status);
+        foreach ($companies as $company){
+            $student = Student::where('company_id', $company['id'])->first();
+            if ($student) {
+                $company['used'] = true;
+            } else {
+                $advisor = Advisor::where('company_id', $company['id'])->first();
+                if ($advisor){
+                    $company['used'] = true;
+                } else {
+                    $provider = Provider::where('company_id', $company['id'])->first();
+                    if ($provider) {
+                        $company['used'] = true;
+                    } else {
+                        $company['used'] = false;
+                    }
+                }
+            }
+        }
         if ($this->selected_id){
             $search_student_name = '%'.$this->search_student_name.'%';
             $search_student_surname = '%'.$this->search_student_surname.'%';
@@ -55,25 +74,6 @@ class Companies extends Component
         if ($this->observations) {
             foreach ($this->observations as $observation){
                 $observation['date'] = Carbon::createFromFormat('Y-m-d H:i:s', $observation['created_at'])->format('d/m/Y');
-            }
-        }
-
-        foreach ($companies as $company){
-            $student = Student::where('company_id', $company->id)->first();
-            if ($student) {
-                $company['used'] = true;
-            } else {
-                $advisor = Advisor::where('company_id', $company->id)->first();
-                if ($advisor){
-                    $company['used'] = true;
-                } else {
-                    $provider = Provider::where('company_id', $company->id)->first();
-                    if ($provider) {
-                        $company['used'] = true;
-                    } else {
-                        $company['used'] = false;
-                    }
-                }
             }
         }
 
@@ -96,7 +96,9 @@ class Companies extends Component
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
         $this->provinces = Province::all();
+        $this->incidence_types = IncidenceType::all();
         $this->advisors = Advisor::all();
+        $this->collaborators = User::where('has_commission', 1)->get();
         $this->company_id = null;
     }
 
@@ -137,6 +139,13 @@ class Companies extends Component
         $this->company_id = null;
         $this->observation = null;
         $this->observations = null;
+        $this->potential = null;
+        $this->potential_company_id = null;
+        $this->affair = null;
+        $this->notes = null;
+        $this->user_id = null;
+        $this->incidence_type_id = null;
+        $this->collaborator_id = null;
     }
 
     public function resetObservation(){
@@ -170,8 +179,48 @@ class Companies extends Component
             $this->population = $record-> population;
             $this->active = $record-> active;
             $this->advisor_id = $record-> advisor_id;
+            $this->collaborator_id = $record->collaborator_id;
+            $this->potential = $record->potential;
+
+            $company_incidences = CompanyIncidence::select('company_incidences.*', 'users.name as user_name', 'users.surname as user_surname')
+                ->leftjoin('users', 'users.id', '=', 'company_incidences.user_id')
+                ->where('company_id', $id)->get();
+
+            foreach($company_incidences as $company_incidence){
+                $type = IncidenceType::find($company_incidence['incidence_type_id']);
+                $company_incidence['incidence_type'] = $type->name;
+            }
+            $this->company_incidences = $company_incidences;
 
             $this-> observations = CompanyObservation::where('company_id', $id)->get();
+        }
+    }
+
+    public function createCompanyIncidence() {
+        $this->validate([
+            'affair' => 'required',
+        ]);
+
+        $data = [
+            'company_id' => $this->company_id,
+            'affair' => $this->affair,
+            'notes' => $this->notes,
+            'user_id' => $this->user_id,
+            'incidence_type_id' => $this->incidence_type_id,
+        ];
+
+        CompanyIncidence::createCompanyIncidence($data);
+
+        $this->resetInput();
+        $this->createCompanyIncidenceModal = false;
+        session()->flash('message', 'Historico creado con exito.');
+        $this->emit('toastr', 'success');
+    }
+
+    public function destroyHistory($id)
+    {
+        if ($id){
+            CompanyIncidence::destroy($id);
         }
     }
 
@@ -199,6 +248,14 @@ class Companies extends Component
         }
     }
 
+    public function newPotentialObservation($id) {
+        if ($id) {
+            $this-> potential_company_id = $id;
+            $this->getYears();
+            $this->createObservationModal = true;
+        }
+    }
+
     public function createObservation() {
         $this->validate([
             'observation' => 'required',
@@ -209,17 +266,41 @@ class Companies extends Component
             'observation' => $this->observation
         ];
 
-        CompanyObservation::createCompabyObservation($data);
+        CompanyObservation::createCompanyObservation($data);
 
         $this->resetInput();
         $this->createObservationModal = false;
-        session()->flash('message', 'Obseervación creado con exito.');
+        session()->flash('message', 'Observación creado con exito.');
+        $this->emit('toastr', 'success');
+    }
+
+    public function createPotentialObservation() {
+        $this->validate([
+            'observation' => 'required',
+        ]);
+
+        $data = [
+            'potential_company_id' => $this->potential_company_id,
+            'observation' => $this->observation
+        ];
+
+        PotentialCompanyObservation::createPotentialCompanyObservation($data);
+
+        $this->resetInput();
+        $this->createObservationModal = false;
+        session()->flash('message', 'Observación creado con exito.');
         $this->emit('toastr', 'success');
     }
 
     public function observations($id){
         if ($id){
             $this-> observations = CompanyObservation::getCompanyObservations($id);
+        }
+    }
+
+    public function potentialObservations($id){
+        if ($id){
+            $this-> observations = PotentialCompanyObservation::getpotentialCompanyObservations($id);
         }
     }
 
@@ -230,6 +311,16 @@ class Companies extends Component
             $this->observation = $record-> observation;
 
             $this->updateObservationModal = true;
+        }
+    }
+
+    public function editPotentialObservation($id) {
+        if ($id) {
+            $record = PotentialCompanyObservation::findOrFail($id);
+            $this->selected_id = $record-> id;
+            $this->observation = $record-> observation;
+
+            $this->updatePotentialObservationModal = true;
         }
     }
 
@@ -245,8 +336,25 @@ class Companies extends Component
             CompanyObservation::updateCompanyObservation($this->selected_id, $data);
 
             $this->resetObservation();
-            $this->updateObservationModal = false;
-            session()->flash('message', 'Obseervación actualizado con exito.');
+            $this->updatePotentialObservationModal = false;
+            session()->flash('message', 'Observación actualizado con exito.');
+            $this->emit('toastr', 'success');
+        }
+    }
+    public function updatePotentialObservation() {
+        $this->validate([
+            'observation' => 'required',
+        ]);
+        if ($this->selected_id) {
+            $data = [
+                'observation' => $this->observation
+            ];
+
+            PotentialCompanyObservation::updatePotentialCompanyObservation($this->selected_id, $data);
+
+            $this->resetObservation();
+            $this->updatePotentialObservationModal = false;
+            session()->flash('message', 'Observación actualizado con exito.');
             $this->emit('toastr', 'success');
         }
     }
@@ -349,19 +457,12 @@ class Companies extends Component
         $actual_year = $actual_year->subYear(5);
         $this->actual_year = $actual_year->year;
         $years[] = $actual_year->year;
-        $i = 0;
-        $years = [];
-      /*  while ($i < 5){
-            $actual_year = array_push($years, $actual_year->year);
-           // $actual_year = $actual_year->addYear();
-            $i++;
-        }*/
         return $years = [];
     }
 
     public function downloadExcel(){
         $this->excelModal = false;
-        return (new CompaniesExport($this->search_name, $this->search_nif, $this->search_type_id, $this->search_activity_id, $this->search_advisor_id, $this->search_province_id, $this->inactiveFilter))->download('empresas.xlsx');
+        return (new CompaniesExport($this->search_name, $this->search_nif, $this->search_type_id, $this->search_activity_id, $this->search_advisor_id, $this->search_province_id, $this->search_status))->download('empresas.xlsx');
     }
 
     public function destroy($id)

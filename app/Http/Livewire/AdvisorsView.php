@@ -8,19 +8,14 @@ use App\Models\Company;
 use App\Models\CompanyActivity;
 use App\Models\CompanyType;
 use App\Models\Province;
+use App\Models\User;
 use Livewire\Component;
-use Livewire\WithPagination;
-use function session;
-use function url;
 use function view;
 
 class AdvisorsView extends Component
 {
-    use WithPagination;
-
-    protected $paginationTheme = 'bootstrap';
-    public $selected_id, $name, $company_id, $irpf, $commission, $contact_1, $contact_2, $contact_3, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $inactive;
-    public $company_types, $company_activities, $cnaes, $provinces, $company_advisors, $route;
+    public $selected_id, $name, $company_id, $irpf, $commission, $contact_1, $contact_2, $contact_3, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $inactive, $collaborator_id;
+    public $company_types, $company_activities, $cnaes, $provinces, $company_advisors ,$collaborators;
 
     public function render()
     {
@@ -32,9 +27,10 @@ class AdvisorsView extends Component
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
         $this->provinces = Province::all();
+        $this->collaborators = User::where('has_commission', 1)->get();
         $this->company_advisors = Advisor::select('advisors.*')
             ->join('companies', 'companies.id', '=', 'advisors.company_id')
-            ->where('companies.inactive', 0)->get();
+            ->where('companies.active', 0)->get();
 
         $advisor = Advisor::find($id);
         $record = Company::findOrFail($advisor->company_id);
@@ -67,63 +63,6 @@ class AdvisorsView extends Component
         $this->population = $record-> population;
         $this->active = $record-> active;
         $this->advisor_id = $record-> advisor_id;
-
-        $this->route = url()->previous();
-    }
-
-    public function update()
-    {
-        $this->validate([
-            'name' => 'required',
-            'type_id' => 'required',
-            'activity_id' => 'required',
-            'province_id' => 'required',
-        ]);
-
-        if ($this->selected_id) {
-            if ($this->nif){
-                $nif = Advisor::findNif($this->nif);
-                if ($nif){
-                    $this->emit('alreadyExists', 'nif');
-                    return;
-                }
-            }
-
-            $data = [
-                'name' => $this-> name,
-                'company_id' => $this->company_id,
-                'irpf' => $this-> irpf,
-                'commission' => $this-> commission,
-                'contact_1' => $this-> contact_1,
-                'contact_2' => $this-> contact_2,
-                'contact_3' => $this-> contact_3,
-                'nif' => $this-> nif,
-                'company_type_id' => $this-> type_id,
-                'company_activity_id' => $this-> activity_id,
-                'email' => $this-> email,
-                'telephone' => $this-> telephone,
-                'legal_representative' => $this-> legal_representative,
-                'dni_legal_representative' => $this-> dni_legal_representative,
-                'quote' => $this-> quote,
-                'cnae_id' => $this-> cnae_id,
-                'average_template' => $this-> average_template,
-                'iban' => $this-> iban,
-                'sepa' => $this-> sepa,
-                'b2b' => $this-> b2b,
-                'address' => $this-> address,
-                'post_code' => $this-> post_code,
-                'province_id' => $this-> province_id,
-                'population' => $this-> population,
-                'active' => $this-> active == true ? 1 : 0,
-                'advisor_id' => $this-> advisor_id
-            ];
-
-            $advisor = Advisor::updateAdvisor($this->selected_id, $data);
-
-            $company = Company::updateCompany($advisor->company_id, $data);
-
-            session()->flash('message', 'Asesoria creado con exito.');
-            return $this->redirect($this->route);
-        }
+        $this->collaborator_id = $record->collaborator_id;
     }
 }

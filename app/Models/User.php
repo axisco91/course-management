@@ -28,7 +28,9 @@ class User extends Authenticatable
         'email',
         'password',
         'surname',
-        'username'
+        'username',
+        'has_commission',
+        'commission'
     ];
 
     /**
@@ -78,8 +80,9 @@ class User extends Authenticatable
             'username' => $data['username'],
             'email' => $data['email'],
             'password' => $data['password'],
+            'has_commission' => $data['has_commission'] == '' ? 0 : 1,
+            'commission' => $data['commission']
         ]);
-        $user->syncRoles($data['role_id']);
         return $user;
     }
 
@@ -90,8 +93,9 @@ class User extends Authenticatable
             'surname' => $data['surname'],
             'username' => $data['username'],
             'email' => $data['email'],
+            'has_commission' => $data['has_commission'] == '' ? 0 : 1,
+            'commission' => $data['commission']
         ]);
-        //$user->syncRoles($data['role_id']);
         return $user;
     }
 

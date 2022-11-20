@@ -15,7 +15,7 @@ class AddProfitablilitiesToRegistrationsTable extends Migration
     {
         Schema::table('registrations', function (Blueprint $table) {
             $table->unsignedBigInteger('profitability_id')->nullable();
-            $table->foreign('profitability_id')->references('id')->on('profitabilities')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('profitability_id')->references('id')->on('profitabilities');
         });
     }
 

@@ -57,7 +57,7 @@
                         @foreach($registrations as $registrated)
                             <div class="registerd">
                                 <div class="name">{{$registrated['name'].' '.$registrated['surname']}} ({{$registrated['dni']}})</div>
-                                <div class="btn btn-danger btn-sm unregister" wire:click="unregister({{$registrated->student_id}})"><i class="fas fa-minus"></i></div>
+                                <div class="btn btn-danger btn-sm unregister" wire:click="unregister({{$registrated->id}})"><i class="fas fa-minus"></i></div>
                             </div>
                         @endforeach
                     @endif

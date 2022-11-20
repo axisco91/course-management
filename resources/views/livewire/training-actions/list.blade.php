@@ -72,11 +72,12 @@
                 <input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Buscar">
             </div>
             <div class="col-md-4">
+                <label class="form-label" for="specialityFilter"><input wire:model="specialityFilter" id="specialityFilter" type="checkbox"> Mostrar Especialidades</label>
                 <label class="form-label" for="inactiveFilter"><input wire:model="inactiveFilter" id="inactiveFilter" type="checkbox"> Mostrar inactivos</label>
             </div>
             <div class="col-md-4">
-                <a wire:ignore class="btn btn-sm btn-info" href="{{url('/training-actions/create')}}">
-                    <i data-feather="plus-circle" class="me-50"></i> Añadir Acción Formativa
+                <a wire:ignore class="btn btn-sm btn-info" href="{{url('/training_actions/create')}}">
+                    <i class="fa fa-plus" class="me-50"></i> Añadir Acción Formativa
                 </a>
                 <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
                     <i class="fa-solid fa-download"></i>  Descargar Excel
@@ -118,13 +119,13 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
                             <!--<a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>-->
-                                <a href="{{url('/training-actions/edit/'.$row->id)}}" class="dropdown-item edit"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
-                                @if ($row->inactivo == 1)
+                                <a href="{{url('/training_actions/edit/'.$row->id)}}" class="dropdown-item edit"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                                @if ($row->activo == 1)
                                     <a class="dropdown-item" onclick="confirm('¿Quieres volver a activar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Activar </a>
                                 @else
                                     <a class="dropdown-item" onclick="confirm('¿Quieres desactivar a {{$row->name}}?')||event.stopImmediatePropagation()" wire:click="changeState({{$row->id}})"><i class="fa fa-active"></i> Desactivar </a>
                                 @endif
-                                <a class="dropdown-item" href="{{url('/courses/create/'.$row->id)}}"><i data-feather="plus-circle" class="me-50"></i> Crear Curso</a>
+                                <a class="dropdown-item" href="{{url('/courses/create/'.$row->id)}}"><i class="fa fa-plus" class="me-50"></i> Crear Curso</a>
                                 @if (!$row->used)
                                     <a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
                                 @endif

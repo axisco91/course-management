@@ -25,11 +25,11 @@ class TrainingActions extends Component
     public $selected_id, $keyWord, $inactiveFilter, $name, $teacher_id, $action_type_id, $professional_family_id, $professional_area_id,
         $modality_id, $training_action_level_id, $training_action_group_id, $tutoring_id, $course_z, $course_avz, $active = 1,
         $in_catalog = 1, $face_to_face_hours, $teletraining_hours, $total_hours, $price, $objectives, $content, $user,
-        $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password, $formative_action;
+        $web_platform_id, $observations, $number_activities, $number_units, $provider_id, $password, $formative_action, $specialty;
     public $updateMode = false;
     public $action_types, $professional_families, $professional_areas, $modalities, $training_action_levels, $training_action_groups,
     $tutorings, $web_platforms, $providers, $tab = 'info';
-    public $search_formative_actions, $search_name, $search_course_name, $search_course_group, $courses, $search_professional_family_id, $search_professional_area_id, $search_modality_id, $search_provider_id;
+    public $search_formative_actions, $search_name, $search_course_name, $search_course_group, $courses, $search_professional_family_id, $search_professional_area_id, $search_modality_id, $search_provider_id, $specialityFilter;
     protected $listeners = [
         'changeState' => 'changeState',
         'destroy' => 'destroy'
@@ -40,7 +40,7 @@ class TrainingActions extends Component
 		$keyWord = '%'.$this->keyWord .'%';
         $search_formative_actions = '%'.$this->search_formative_actions.'%';
         $search_name = '%'.$this->search_name.'%';
-        $trainingActions = TrainingAction::getTrainingActions($keyWord,$this->inactiveFilter, $search_formative_actions, $search_name, $this->search_professional_family_id, $this->search_professional_area_id, $this->search_modality_id, $this->search_provider_id);
+        $trainingActions = TrainingAction::getTrainingActions($keyWord,$this->inactiveFilter, $search_formative_actions, $search_name, $this->search_professional_family_id, $this->search_professional_area_id, $this->search_modality_id, $this->search_provider_id, $this->specialityFilter);
 
         if ($this->selected_id){
             $search_course_name = '%'.$this->search_course_name.'%';
@@ -101,6 +101,7 @@ class TrainingActions extends Component
 		$this->provider_id = null;
         $this->password = null;
         $this->formative_action = null;
+        $this->specialty = null;
     }
 
     public function changeState($id){
@@ -151,6 +152,7 @@ class TrainingActions extends Component
         $this->number_activities = $record-> number_activities;
         $this->number_units = $record-> number_units;
         $this->provider_id = $record-> provider_id;
+        $this->specialty = $record->specialty;
     }
 
     public function getInfo($id){

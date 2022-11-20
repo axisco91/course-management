@@ -221,7 +221,7 @@ class Courses extends Component
     {
         if ($id) {
             $registrations = Registration::where('course_id', $id)->get();
-            if ($registrations) {
+            if (!$registrations->isEmpty()) {
                 $billings_id = [];
                 foreach ($registrations as $registration){
                     if ($registration->billing_id){
@@ -249,9 +249,7 @@ class Courses extends Component
                     }
                 }
             }
-           else {
-                Course::destroy($id);
-            }
+            Course::destroy($id);
         }
     }
 }

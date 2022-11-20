@@ -18,6 +18,9 @@
                     <li class="nav-item">
                         <a class="nav-link {{ $tab == 'courses' ? 'active' : '' }}"wire:click="$set('tab', 'courses')" data-bs-toggle="tab" href="#courses">Cursos</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ $tab == 'incidences' ? 'active' : '' }}" wire:click="$set('tab', 'incidences')" data-bs-toggle="tab" href="#incidences">Histórico</a>
+                    </li>
                     <li class="nav nav-tabs">
                         <a class="nav-link" data-bs-toggle="tab" href="#"></a>
                     </li>
@@ -33,6 +36,10 @@
                 @elseif($tab == 'courses')
                     <div class="tab-pane container" id="courses">
                         @include('livewire.companies.companies-courses')
+                    </div>
+                @elseif($tab == 'incidences')
+                    <div class="tab-pane container" id="incidences">
+                        @include('livewire.companies.companies-incidences')
                     </div>
                 @endif
             </div>

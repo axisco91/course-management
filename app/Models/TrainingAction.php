@@ -11,7 +11,7 @@ class TrainingAction extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'formative_action','action_type_id','professional_family_id','professional_area_id','modality_id','training_action_level_id','training_action_group_id','tutoring_id','course_z','course_avz','active','in_catalog','face_to_face_hours','teletraining_hours','total_hours','price','objectives','content','user', 'password','web_platform_id','observations','number_activities','number_units','provider_id'];
+    protected $fillable = ['name', 'formative_action','action_type_id','professional_family_id','professional_area_id','modality_id','training_action_level_id','training_action_group_id','tutoring_id','course_z','course_avz','active','in_catalog','face_to_face_hours','teletraining_hours','total_hours','price','objectives','content','user', 'password','web_platform_id','observations','number_activities','number_units','provider_id', 'specialty'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -85,7 +85,7 @@ class TrainingAction extends Model
         return $this->hasOne('App\Models\WebPlatform', 'id', 'web_platform_id');
     }
 
-    public function getTrainingActions($keyWord,$inactiveFilter, $search_formative_actions, $search_name, $search_professional_family_id, $search_professional_area_id, $search_modality_id, $search_provider_id){
+    public function getTrainingActions($keyWord,$inactiveFilter, $search_formative_actions, $search_name, $search_professional_family_id, $search_professional_area_id, $search_modality_id, $search_provider_id, $specialty){
         $trainingActions = TrainingAction::
         select('training_actions.*',
             'action_types.name as action_type', 'professional_families.name as professional_family',
@@ -103,6 +103,9 @@ class TrainingAction extends Model
             ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
         if ($inactiveFilter != 1) {
             $trainingActions = $trainingActions->where('training_actions.active', 1);
+        }
+        if ($specialty == 1) {
+            $trainingActions = $trainingActions->where('training_actions.specialty', 1);
         }
         $trainingActions = $trainingActions->where(function ($query) use ($keyWord){
             $query->orWhere('training_actions.name', 'LIKE', $keyWord)
@@ -191,7 +194,8 @@ class TrainingAction extends Model
             'observations' => $data['observations'],
             'number_activities' => $data['number_activities'],
             'number_units' => $data['number_units'],
-            'provider_id' => $data['provider_id']
+            'provider_id' => $data['provider_id'],
+            'specialty' => $data['specialty'] == true ? 1 : 0,
         ]);
 
         return $training_action;
@@ -209,4 +213,25 @@ class TrainingAction extends Model
         return $training_acions;
     }
 
+    public static function getTrainingActionsNotInModule($module_id){
+        $training_actions = TrainingAction::leftjoin('training_actions_modules', 'training_actions_modules.training_action_id', 'training_actions.id')
+            ->where('training_actions_modules.module_id', $module_id)->get();
+        $not_in_module = TrainingAction::where('active', 1)->get();
+        $not_in_module = $not_in_module->whereNotIn('id', $training_actions->pluck('training_actions.id'));
+        return $not_in_module;
+    }
+
+    public static function getTrainingActionsNotInCertification($certification_id){
+        $training_actions = TrainingAction::leftjoin('certification_elements', 'certification_elements.training_action_id', 'training_actions.id')
+            ->where('certification_elements.certification_id', $certification_id)->get();
+        $not_in_certification = TrainingAction::where('active', 1)->get();
+        $not_in_certification = $not_in_certification->whereNotIn('id', $training_actions->pluck('modules.id'));
+        return $not_in_certification;
+    }
+
+    public static function getSpecialties($id){
+        $training_actions = TrainingAction::where('active', 1)
+            ->where('specialty', 1)->get();
+        return $training_actions;
+    }
 }

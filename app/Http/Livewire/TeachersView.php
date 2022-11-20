@@ -14,7 +14,7 @@ class TeachersView extends Component
 {
 
     public $selected_id, $name, $surname, $dni, $email, $telephone, $user, $password, $observations, $iban, $address,
-        $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $inactive, $route;
+        $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $inactive;
 
     public function render()
     {

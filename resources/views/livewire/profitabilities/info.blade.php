@@ -78,8 +78,20 @@
     </div>
     <div class="col-md-4 col-12">
         <div class="mb-1">
+            <label class="form-label" for="collaborator_percentage">Porcentaje Colaborador</label>
+            <input wire:model.lazy="collaborator_percentage" type="text" class="form-control" id="collaborator_percentage" placeholder="Porcentaje Colaborador" value="{{$collaborator_percentage}}" disabled>@error('collaborator_percentage') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+    </div>
+    <div class="col-md-4 col-12">
+        <div class="mb-1">
             <label class="form-label" for="collaborator_commission">Comisión Colaborador</label>
             <input wire:model.lazy="collaborator_commission" type="text" class="form-control" id="collaborator_commission" placeholder="Comisión Colaborador" value="{{$collaborator_commission}}" disabled>@error('collaborator_commission') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+    </div>
+    <div class="col-md-4 col-12">
+        <div class="mb-1">
+            <label class="form-label" for="advisor_percentage">Porcentaje Asesoria</label>
+            <input wire:model.lazy="advisor_percentage" type="text" class="form-control" id="advisor_percentage" placeholder="Porcentaje Asesoria" value="{{$advisor_percentage}}" disabled>@error('advisor_percentage') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
     </div>
     <div class="col-md-4 col-12">

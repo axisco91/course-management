@@ -48,8 +48,6 @@ class Teacher extends Model
             $query->orWhere('teachers.email', 'LIKE', $search_email);
         })->where(function ($query) use ($search_dni){
             $query->orWhere('dni', 'LIKE', $search_dni);
-        })->where(function ($query) use ($search_telephone){
-            $query->orWhere('teachers.telephone', 'LIKE', $search_telephone);
         })->orderBy('teachers.name','asc')
             ->paginate(10);
 

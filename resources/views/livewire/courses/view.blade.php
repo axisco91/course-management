@@ -13,7 +13,7 @@
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
-                    <label class="form-label" for="training_action_id">Acción Formativa</label> <a href="{{url('/training-actions/view/'.$this->training_action_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
+                    <label class="form-label" for="training_action_id">Acción Formativa</label> <a href="{{url('/training_actions/view/'.$this->training_action_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
                     <select wire:model.lazy="training_action_id" class="form-control select2" id="training_action_id" disabled>
                         <option value="">Selección una acción formativa</option>
                         @foreach($training_actions as $action)

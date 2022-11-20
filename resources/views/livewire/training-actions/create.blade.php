@@ -218,21 +218,47 @@
                 </div>
                 @error('provider_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
+            <div class="col-md-2 col-12 mb-1">
+                <label class="form-label" for="specialty">Especialidad</label>
+                <select wire:model.lazy="specialty" class="form-select @error('specialty') is-invalid @enderror" id="specialty">
+                    <option value="0">No</option>
+                    <option value="1">Si</option>
+                </select>
+                @error('specialty') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
         </div>
         <div class="col-12">
-            <a href="{{url('/training-actions')}}" class="btn btn-outlined-secondary">Volver</a>
+            <a href="{{url('/training_actions')}}" class="btn btn-outlined-secondary">Volver</a>
             <button id="save" type="button" wire:click.prevent="store()" class="btn btn-primary">Guardar</button>
         </div>
     </form>
     @section('vendor-script')
         <!-- vendor files -->
             <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+            <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
     @endsection
     @section('page-script')
         <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+        <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
     @endsection
+    @section('scripts')
     <script>
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
+        })
         document.addEventListener('livewire:load', function() {
             initializeSelect2()
             $('.select2').on('change', function(){
@@ -281,4 +307,5 @@
             }
         })
     </script>
+    @endsection
 </div>

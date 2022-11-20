@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Advisor;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -28,12 +29,14 @@ class AdvisorsExport implements FromCollection, WithHeadings
             'advisors.dni_legal_representative', 'advisors.irpf', 'advisors.commission', 'advisors.contact_1', 'advisors.contact_2', 'advisors.contact_3', 'companies.quote', 'companies.average_template', 'advisors.iban', 'advisors.sepa', 'advisors.b2b',
             'advisors.address', 'advisors.post_code', 'advisors.population', 'advisors.active',
             'advisors.population', 'company_types.name as type_name', 'company_activities.name as activity_name',
-            'advisors.name as advisor_name', 'cnaes.name as cnae_name', 'provinces.name as province_name')
+            'advisors.name as advisor_name', 'cnaes.name as cnae_name', 'provinces.name as province_name',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"))
             ->leftjoin('company_types', 'company_types.id', '=', 'advisors.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'advisors.company_activity_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'advisors.cnae_id')
-            ->leftjoin('companies', 'companies.id', '=', 'advisors.company_id');
+            ->leftjoin('companies', 'companies.id', '=', 'advisors.company_id')
+            ->leftjoin('users', 'users.id', '=', 'advisors.collaborator_id');
 
         if ($this->name){
             $name = '%'.$this->name.'%';
@@ -74,6 +77,7 @@ class AdvisorsExport implements FromCollection, WithHeadings
                 'contact_2' => $advisor->contact_2,
                 'contact_3' => $advisor->contact_3,
                 'quote' => $advisor->quote,
+                'collaborator' => $advisor->collaborator,
                 'cnae_name' => $advisor->cnae_name,
                 'average_template' => $advisor->average_template,
                 'iban' => $advisor->iban,
@@ -107,6 +111,7 @@ class AdvisorsExport implements FromCollection, WithHeadings
             'Contacto 2',
             'Contacto 3',
             'C. cotización',
+            'Colaborador',
             'CNAE',
             'Plantilla media',
             'Iban',

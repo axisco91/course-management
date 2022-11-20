@@ -114,13 +114,30 @@
     @section('vendor-script')
         <!-- vendor files -->
             <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+            <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
     @endsection
     @section('page-script')
     <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+        <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
     @endsection
     @section('scripts')
     <script>
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
+        })
         Livewire.on('alreadyExists', type => {
             text = '';
             if (type == 'dni'){
@@ -133,6 +150,21 @@
                 title: 'Ya Existe',
                 text: '¡Ya existe un docente con ese '+text+'!',
             })
+        })
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
         })
         document.addEventListener('livewire:load', function() {
             $( document ).ready(

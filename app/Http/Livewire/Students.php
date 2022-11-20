@@ -38,7 +38,7 @@ class Students extends Component
         $search_email = '%'.$this->search_email.'%';
         $search_dni = '%'.$this->search_dni.'%';
         $search_telephone = '%'.$this->search_telephone.'%';
-        $search_company = '%'.$this->search_company.'%';
+        $search_company = $this->search_company;
 
         if ($this->selected_id){
             $search_course_name = '%'.$this->search_course_name.'%';
@@ -99,7 +99,7 @@ class Students extends Component
     }
 
     public function mount(){
-        $this->companies = Company::where('inactive', 0)->get();
+        $this->companies = Company::where('active', 1)->get();
         $this->level_studies = LevelStudy::all();
         $this->professional_categories = ProfessionalCategory::all();
         $this->provinces = Province::all();

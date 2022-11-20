@@ -46,7 +46,7 @@
             </div>
             <div class="col-md-4">
                 <a wire:ignore class="btn btn-sm btn-info" href="{{url('/teachers/create')}}">
-                    <i data-feather="plus-circle" class="me-50"></i> Añadir Docente
+                    <i class="fa fa-plus" class="me-50"></i> Añadir Docente
                 </a>
                 <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
                     <i class="fa-solid fa-download"></i>  Descargar Excel

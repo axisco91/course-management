@@ -217,9 +217,13 @@ class Student extends Model
             $query->orWhere('dni', 'LIKE', $search_dni);
         })->where(function ($query) use ($search_telephone){
             $query->orWhere('students.telephone', 'LIKE', $search_telephone);
-        })->where(function ($query) use ($search_company){
-                $query->orWhere('companies.name', 'LIKE', $search_company);
-        })->orderBy('students.name','asc')
+        });
+        if ($search_company){
+            $students = $students->where(function ($query) use ($search_company){
+                $query->orWhere('students.company_id', $search_company);
+            });
+        }
+        $students = $students->orderBy('students.name','asc')
             ->paginate(10);
         return $students;
     }

@@ -7,8 +7,11 @@ use App\Exports\TracingsExport;
 use App\Models\Company;
 use App\Models\Course;
 use App\Models\CourseStatus;
+use App\Models\IncidenceType;
 use App\Models\Student;
+use App\Models\TracingCommunication;
 use App\Models\TrainingAction;
+use App\Models\User;
 use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -22,11 +25,15 @@ class Tracings extends Component
     public $selected_id, $keyWord, $course_id, $company_id, $student_id, $performed_activities, $performed_hours,
         $performed_units, $follow_up_date, $final_test, $questionnaire, $welcome_message, $quarter_message, $half_message,
         $three_quarters_message, $final_message, $observation, $welcome_date, $quarter_date, $half_date, $three_quarters_date,
-        $total_hours, $number_activities, $number_units, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent,
+        $total_hours, $number_activities, $number_units, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent, $user_id, $affair, $notes, $incidence_type_id, $collaborator_id, $tracing_communications,
         $three_quarters_date_sent, $final_date_sent, $beginning, $end, $course_group;
     public $updateMode = false;
     public $courses, $companies, $students, $course_statuses, $tab = 'info';
     public $course_search = -1, $company_search = -1, $student_search = -1, $status_search = -1, $student_name, $name, $surname, $course_name, $beginning_search, $end_search;
+    protected $listeners = [
+        'destroy' => 'destroy',
+        'restartPage' => 'restartPage'
+    ];
 
     public function render()
     {
@@ -83,6 +90,11 @@ class Tracings extends Component
         $this->name = null;
         $this->surname = null;
         $this->course_name = null;
+        $this->affair = null;
+        $this->notes = null;
+        $this->user_id = null;
+        $this->incidence_type_id = null;
+        $this->collaborator_id = null;
     }
 
     public function edit($id)
@@ -253,10 +265,67 @@ class Tracings extends Component
         $this->number_units = $training_action->number_units;
         $this->name = $student->name;
         $this->surname = $student->surname;
+
+        $tracing_communications = TracingCommunication::select('tracing_communications.*', 'users.name as user_name', 'users.surname as user_surname')
+            ->leftjoin('users', 'users.id', '=', 'tracing_communications.user_id')
+            ->where('tracing_id', $id)->get();
+
+        foreach($tracing_communications as $tracing_communication){
+            $type = IncidenceType::find($tracing_communication['incidence_type_id']);
+            $tracing_communication['incidence_type'] = $type->name;
+        }
+        $this->tracing_communications = $tracing_communications;
+    }
+
+    public function destroy($id)
+    {
+        if ($id) {
+            $value = Tracing::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
+        }
+    }
+
+    public function newTracingCommunication($id) {
+        if ($id) {
+            $this-> tracing_id = $id;
+            $this->createTracingCommunicationModal = true;
+        }
+    }
+
+    public function createAdvisorIncidence() {
+        $this->validate([
+            'affair' => 'required',
+        ]);
+
+        $data = [
+            'advisor_id' => $this->advisor_id,
+            'affair' => $this->affair,
+            'notes' => $this->notes,
+            'user_id' => $this->user_id,
+            'incidence_type_id' => $this->incidence_type_id,
+        ];
+
+        TracingCommunication::createTracingCommunication($data);
+
+        $this->resetInput();
+        $this->createTracingCommunicationModal = false;
+        session()->flash('message', 'Communicación creado con exito.');
+        $this->emit('toastr', 'success');
+    }
+
+    public function destroyCommunication($id)
+    {
+        if ($id){
+            TracingCommunication::destroy($id);
+        }
     }
 
     public function downloadExcel(){
         $this->excelModal = false;
         return (new TracingsExport($this->course_search, $this->company_search, $this->student_search, $this->status_search, $this->beginning_search, $this->end_search))->download('seguimiento.xlsx');
+    }
+
+    public function restartPage(){
+        $this->resetPage();
     }
 }
