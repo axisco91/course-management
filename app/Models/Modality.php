@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Modality extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,10 @@ class Modality extends Model
         return $this->hasMany('App\Models\TrainingAction', 'modality_id', 'id');
     }
 
-    public static function getModalities($keyWord){
+    public static function getModalities(){
         $modalities = Modality::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($modalities as $modality){
             $training_action = TrainingAction::where('modality_id', $modality['id'])->first();
             if ($training_action){

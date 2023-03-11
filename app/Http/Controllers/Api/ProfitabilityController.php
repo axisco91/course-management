@@ -1,45 +1,97 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\TrainingActionLevel;
+use App\Models\Course;
+use App\Models\Profitability;
+use App\Models\Student;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class ProfitabilityController extends BaseController
 {
-    public function getTrainingActionLevels() {
-        return TrainingActionLevel::all();
-    }
-
-    public function create(Request $request){
-        $data = [
-            'name' => $request->name
-        ];
-
-        return TrainingActionLevel::createTrainingActionLevel();;
-    }
-
-    public function edit($id, Request $request){
-        $data = [
-            'name' =>$request->name
-        ];
-        $training_action = TrainingActionLevel::updateTrainingActionLevel($id, $data);
-        if ($training_action){
-            return 1;
-        } else {
-            return 0;
+    public function getProfitabilities() {
+        try {
+            return Profitability::getProfitabilities();
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ]);
         }
     }
 
-    public function getTrainingActionLevel($id){
-        return TrainingActionLevel::find($id);
+    public function create(Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $profitability = Profitability::createProfitability($data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'profitability' => $profitability
+        ]);
+    }
+
+    public function edit($id, Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $profitability = Profitability::updateProfitability($id, $data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'profitability' => $profitability
+        ]);
+    }
+
+    public function getProfitability($id){
+        $profitability = Profitability::find($id);
+        if ($profitability) {
+            $course = Course::where('id', $profitability->course_id)->first();
+            $student = Student::where('id', $profitability->student_id)->first();
+            $profitability['name'] = $course->group.'/'. $course->name .' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
+            return response()->json([
+                'status' => 200,
+                'profitability' => $profitability
+            ]);
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Rentabilidad no existe'
+        ]);
     }
 
     public function destroy($id){
         if ($id) {
-            TrainingActionLevel::destroy($id);
-            return 1;
+            try {
+                Profitability::destroy($id);
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 400,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
+    }
+
+    public function getStudents($id){
+        $profitabilities = Profitability::find($id);
+        $registrations = $profitabilities->registrations()->get()->pluck('student_id')->toArray();
+        $students = Student::whereIn('id', $registrations)->get();
+        return response()->json($students);
     }
 }

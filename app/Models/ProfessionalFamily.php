@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProfessionalFamily extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,10 @@ class ProfessionalFamily extends Model
         return $this->hasMany('App\Models\TrainingAction', 'professional_family_id', 'id');
     }
 
-    public static function getProfessionalFamilies($keyWord){
+    public static function getProfessionalFamilies(){
         $professional_families = ProfessionalFamily::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($professional_families as $professional_family){
             $training_action = TrainingAction::where('professional_family_id', $professional_family['id']);
             if ($training_action){

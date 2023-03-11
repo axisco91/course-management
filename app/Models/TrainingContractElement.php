@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrainingContractElement extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days'];
 

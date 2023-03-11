@@ -13,9 +13,21 @@ class AdvisorController extends BaseController
      * Retrive Advisors
      * @return mixed
      */
-    public function getAdvisors(Request $request) {
-        return Advisor::getAdvisors();
+    public function advisors(Request $request) {
+        try {
+            return Advisor::getAdvisors();
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e.message
+            ]);
+        }
     } // end method
+
+    public function getActiveAdvisors(){
+        return Advisor::select('advisors.*', 'id as value', 'name as label')
+            ->where('active', 1)
+            ->get();
+    }
 
     /**
      * Create Advisor
@@ -23,53 +35,26 @@ class AdvisorController extends BaseController
      * @return void
      */
     public function create(Request $request){
-        $request->validate([
-            'name' => 'required',
-            'type_id' => 'required',
-            'activity_id' => 'required',
-            'province_id' => 'required',
-        ]);
-        $data = [
-            'name' => $request->name,
-            'company_id' => $request->company_id,
-            'irpf' => $request->irpf,
-            'commission' => $request->commission,
-            'contact_1' => $request->contact_1,
-            'contact_2' => $request->contact_2,
-            'contact_3' => $request->contact_3,
-            'nif' => $request->nif,
-            'company_type_id' => $request->type_id,
-            'company_activity_id' => $request->activity_id,
-            'email' => $request->email,
-            'telephone' => $request->telephone,
-            'legal_representative' => $request->legal_representative,
-            'dni_legal_representative' => $request->dni_legal_representative,
-            'quote' => $request->quote,
-            'cnae_id' => $request->cnae_id,
-            'average_template' => $request->average_template,
-            'iban' => $request->iban,
-            'sepa' => $request->sepa,
-            'b2b' => $request->b2b,
-            'address' => $request->address,
-            'post_code' => $request->post_code,
-            'province_id' => $request->province_id,
-            'population' => $request->population,
-            'active' => $request->active == true ? 1 : 0,
-            'advisor_id' => $request->advisor_id != -1 ? $request->advisor_id : null,
-            'collaborator_id' => $request->collaborator_id != -1 ? $request->collaborator_id : null
-        ];
-        if (!$request->request->has('company-id')){
-            $company = Company::createCompany($data);
-            if ($company){
-                $data['company_id'] = $company->id;
+        $data = json_decode($request->getContent(), true);
+        try {
+            if (!$data['company_id']){
+                $company = Company::createCompany($data);
+                if ($company){
+                    $data['company_id'] = $company->id;
+                }
             }
+            $advisor = Advisor::createAdvisor($data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
         }
-        $advisor = Advisor::createAdvisor($data);
-        if ($advisor){
-            return 1;
-        } else{
-            return 0;
-        }
+
+        return response()->json([
+            'status' => 200,
+            'advisor' => $advisor
+        ]);
     } // end method
 
     /**
@@ -79,41 +64,20 @@ class AdvisorController extends BaseController
      * @return int
      */
     public function edit($id, Request $request){
-        $data = [
-            'name' => $request->name,
-            'company_id' => $request->company_id,
-            'irpf' => $request->irpf,
-            'commission' => $request->commission,
-            'contact_1' => $request->contact_1,
-            'contact_2' => $request->contact_2,
-            'contact_3' => $request->contact_3,
-            'nif' => $request->nif,
-            'company_type_id' => $request->type_id,
-            'company_activity_id' => $request->activity_id,
-            'email' => $request->email,
-            'telephone' => $request->telephone,
-            'legal_representative' => $request->legal_representative,
-            'dni_legal_representative' => $request->dni_legal_representative,
-            'quote' => $request->quote,
-            'cnae_id' => $request->cnae_id,
-            'average_template' => $request->average_template,
-            'iban' => $request->iban,
-            'sepa' => $request->sepa,
-            'b2b' => $request->b2b,
-            'address' => $request->address,
-            'post_code' => $request->post_code,
-            'province_id' => $request->province_id,
-            'population' => $request->population,
-            'active' => $request->active == true ? 1 : 0,
-            'advisor_id' => $request->advisor_id != -1 ? $request->advisor_id : null,
-            'collaborator_id' => $request->collaborator_id != -1 ? $request->collaborator_id : null
-        ];
-        $advisor = Advisor::updateAdvisor($id, $data);
-        if ($advisor){
-            return 1;
-        } else {
-            return 0;
+        $data = json_decode($request->getContent(), true);
+        try {
+            $advisor = Advisor::updateAdvisor($id, $data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'error' => $e->getMessage()
+            ]);
         }
+
+        return response()->json([
+            'status' => 200,
+            'advisor' => $advisor
+        ]);
     }
 
     /**
@@ -122,7 +86,17 @@ class AdvisorController extends BaseController
      * @return mixed
      */
     public function getAdvisor($id){
-        return Advisor::find($id);
+        $advisor = Advisor::find($id);
+        if ($advisor) {
+            return response()->json([
+                'status' => 200,
+                'advisor' => $advisor
+            ]);
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Asesoría no existe'
+        ]);
     }
 
     /**
@@ -132,8 +106,17 @@ class AdvisorController extends BaseController
      */
     public function destroy($id){
         if ($id) {
-            Advisor::destroy($id);
-            return 1;
+            try {
+                Advisor::destroy($id);
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 400,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
     }
 

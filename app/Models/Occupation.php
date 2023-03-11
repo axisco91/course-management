@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Occupation extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
     protected $fillable = ['name'];
 
-    public static function getOccupations($keyWord){
-        $occupations = Occupation::orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getOccupations(){
+        $occupations = Occupation::select('*', 'id as value', 'name as label')
+            ->get();
         return $occupations;
     }
 

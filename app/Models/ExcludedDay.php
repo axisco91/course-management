@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class ExcludedDay extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
     protected $fillable = ['day', 'general', 'province_id'];
 
-    public static function getExcludedDays($keyWord){
-        $excludedDay = ExcludedDay::orWhere('day', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getExcludedDays(){
+        $excludedDay = ExcludedDay::select('excluded_days.*', 'id as value', 'day as label')
+            ->get();
         return $excludedDay;
     }
 

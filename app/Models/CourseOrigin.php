@@ -8,15 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class CourseOrigin extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
     protected $fillable = ['name'];
 
-    public static function getCourseOrigin($keyWord){
-        $origins = CourseOrigin::orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getCourseOrigin(){
+        $origins = CourseOrigin::select('*', 'id as value', 'name as label')
+            ->get();
 
         foreach ($origins as $origin){
             $training_unit = TrainingUnit::where('course_origin_id', $origin['id'])->first();

@@ -1,45 +1,84 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\TrainingActionLevel;
+use App\Models\ProfessionalCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class ProfessionalCategoryController extends BaseController
 {
-    public function getTrainingActionLevels() {
-        return TrainingActionLevel::all();
-    }
-
-    public function create(Request $request){
-        $data = [
-            'name' => $request->name
-        ];
-
-        return TrainingActionLevel::createTrainingActionLevel();;
-    }
-
-    public function edit($id, Request $request){
-        $data = [
-            'name' =>$request->name
-        ];
-        $training_action = TrainingActionLevel::updateTrainingActionLevel($id, $data);
-        if ($training_action){
-            return 1;
-        } else {
-            return 0;
+    public function professionalCategories() {
+        try {
+            return ProfessionalCategory::getProfessionalCategories();
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e.message
+            ]);
         }
     }
 
-    public function getTrainingActionLevel($id){
-        return TrainingActionLevel::find($id);
+    public function create(Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $category = ProfessionalCategory::createCenter($data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'professional_category' => $category
+        ]);
+    }
+
+    public function edit($id, Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $category = ProfessionalCategory::updateProfessionalCategory($id, $data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'professional_category' => $category
+        ]);
+    }
+
+    public function getProfessionalCategory($id){
+        $category = ProfessionalCategory::find($id);
+        if ($category) {
+            return response()->json([
+                'status' => 200,
+                'professional_category' => $category
+            ]);
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Categoria no existe'
+        ]);
     }
 
     public function destroy($id){
         if ($id) {
-            TrainingActionLevel::destroy($id);
-            return 1;
+            try {
+                ProfessionalCategory::destroy($id);
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 400,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
     }
 }

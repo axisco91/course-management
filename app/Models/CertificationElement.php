@@ -59,9 +59,9 @@ class CertificationElement extends Model
         return $certification_element;
     }
 
-    public static function deleteCertificationElement($certification_id, $id){
-        $certification = Certification::find($certification_id);
+    public static function deleteCertificationElement($id){
         $certification_element = CertificationElement::find($id);
+        $certification = Certification::find($certification_element->certification_id);
          $hours = 0;
         if ($certification){
             if ($certification_element){

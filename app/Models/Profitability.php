@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Helpers\GeneralHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Profitability extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = true;
 
@@ -48,47 +49,23 @@ class Profitability extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public static function getProfitabilities($keyWord, $course_search, $company_search, $student_search, $status_search){
-        $profitabilities = Profitability::select('profitabilities.*', 'companies.name as company_name', 'courses.name as course_name',
-            'courses.group as course_group', 'courses.beginning as beginning',
-            'students.name as student_name', 'students.surname as student_surname')
+    public static function getProfitabilities(){
+        $profitabilities = Profitability::select('profitabilities.*',
+            'companies.name as company_name',
+            'training_actions.name as course',
+            'training_actions.formative_action as training_action',
+            'courses.group as group',
+            'courses.beginning as beginning',
+            'students.name as student_name',
+            'students.surname as student_surname',
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"))
             ->leftjoin('companies', 'companies.id', '=', 'profitabilities.company_id')
             ->leftjoin('courses', 'courses.id', '=', 'profitabilities.course_id')
             ->leftjoin('students', 'students.id', '=', 'profitabilities.student_id')
-            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id');
-
-        if ($status_search != -1){
-            $profitabilities = $profitabilities->where('courses.course_status_id', '=', $status_search);
-        } else{
-            $profitabilities = $profitabilities->where('courses.course_status_id', '!=', 1);
-        }
-        if ($course_search != -1){
-            $profitabilities = $profitabilities->where('profitabilities.course_id', $course_search);
-        }
-        if ($company_search != -1){
-            $profitabilities = $profitabilities->where('profitabilities.company_id', $company_search);
-        }
-        if ($student_search != -1){
-            $profitabilities = $profitabilities->where('profitabilities.student_id', $student_search);
-        }
-
-        $profitabilities = $profitabilities->where(function ($query) use ($keyWord){
-            $query->orWhere('courses.name', 'LIKE', $keyWord)
-                ->orWhere('companies.name', 'LIKE', $keyWord)
-                ->orWhere('students.name', 'LIKE', $keyWord)
-                ->orWhere('students.surname', 'LIKE', $keyWord)
-                ->orWhere('profitabilities.price', 'LIKE', $keyWord)
-                ->orWhere('license', 'LIKE', $keyWord)
-                ->orWhere('teacher', 'LIKE', $keyWord)
-                ->orWhere('management', 'LIKE', $keyWord)
-                ->orWhere('nebrija_title', 'LIKE', $keyWord)
-                ->orWhere('discount', 'LIKE', $keyWord)
-                ->orWhere('collaborator_commission', 'LIKE', $keyWord)
-                ->orWhere('advisor_commission', 'LIKE', $keyWord)
-                ->orWhere('total', 'LIKE', $keyWord)
-                ->orWhere('benefits', 'LIKE', $keyWord)
-                ->orWhere('observations', 'LIKE', $keyWord);
-        })->orderBy('courses.beginning', 'desc')->paginate(10);
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->orderBy('courses.beginning', 'desc')
+            ->get();
         return $profitabilities;
     }
 
@@ -176,7 +153,7 @@ class Profitability extends Model
             $advisor_commission = ($data['advisor_percentage'] / 100) * $data['price'];
         }
         if ($data['collaborator_percentage'] && $data['price']){
-            $collaborator_commission = ($data['advisor_percentage'] / 100) * $data['price'];
+            $collaborator_commission = ($data['collaborator_percentage'] / 100) * $data['price'];
         }
         $profitability = Profitability::find($id);
         $prices = Profitability::getCalculateBenefits(GeneralHelpers::convertComa($data['price']), GeneralHelpers::convertComa($data['teacher']),
@@ -190,8 +167,8 @@ class Profitability extends Model
             'discount' => GeneralHelpers::convertComa($data['discount']),
             'collaborator_commission' => GeneralHelpers::convertComa($collaborator_commission),
             'advisor_commission' => GeneralHelpers::convertComa($advisor_commission),
-            'advisor_percentage' => $data['advisor_percentage'],
-            'collaborator_percentage' => $data['collaborator_percentage'],
+            'advisor_percentage' => $data['advisor_percentage'] ? $data['advisor_percentage'] : 0,
+            'collaborator_percentage' => $data['collaborator_percentage'] ? $data['collaborator_percentage'] : 0,
             'total' => $prices['total_cost'],
             'benefits' => $prices['benefits'],
             'observations' => $data['observations']

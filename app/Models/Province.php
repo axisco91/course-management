@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 class Province extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -34,10 +34,10 @@ class Province extends Model
         return $this->belongsToMany(ExcludedDay::class, 'excluded_days_provinces', 'province_id', 'excluded_day_id');
     }
 
-    public static function getProvinces($keyWord){
+    public static function getProvinces(){
         $provinces = Province::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         return $provinces;
     }
 

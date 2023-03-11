@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cnae extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,9 +21,9 @@ class Cnae extends Model
         return $this->hasMany('App\Models\Company', 'cnae_id', 'id');
     }
 
-    public static function getCnaes($keyWord){
-        $cnaes = Cnae::orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getCnaes(){
+        $cnaes = Cnae::select('cnaes.*', 'id as value', 'name as label')
+            ->get();
 
         foreach ($cnaes as $cnae){
             $company = Company::where('cnae_id', $cnae['id'])->first();

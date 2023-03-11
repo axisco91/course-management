@@ -21,10 +21,10 @@ class QuoteGroup extends Model
         return $this->hasMany('App\Models\Student', 'quote_group_id', 'id');
     }
 
-    public static function getQuoteGroups($keyWord){
+    public static function getQuoteGroups(){
         $quote_groups = QuoteGroup::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('quote_groups.*', 'id as value', 'name as label')
+            ->get();
         return $quote_groups;
     }
 

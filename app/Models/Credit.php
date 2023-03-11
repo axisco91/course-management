@@ -24,6 +24,14 @@ class Credit extends Model
         return $credits;
     }
 
+    public static function getCredit($id){
+        $credit = Credit::select('credits.*', DB::raw('(credits.available_credit - credits.consumed_credit) as credit_left'))
+            ->leftjoin('companies', 'companies.id', '=', 'credits.company_id')
+            ->where('credits.id', $id)
+            ->first();
+
+        return $credit;
+    }
 
     public static function createCredit($data){
         $credit = Credit::create([

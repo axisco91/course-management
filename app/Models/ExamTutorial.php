@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 
 class ExamTutorial extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 

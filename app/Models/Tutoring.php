@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Tutoring extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,10 @@ class Tutoring extends Model
         return $this->hasMany('App\Models\TrainingAction', 'tutoring_id', 'id');
     }
 
-    public static function getTutorings($keyWord){
+    public static function getTutorings(){
         $tutorings = Tutoring::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         return $tutorings;
     }
 

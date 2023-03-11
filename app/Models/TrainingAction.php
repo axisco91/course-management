@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrainingAction extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -85,7 +85,7 @@ class TrainingAction extends Model
         return $this->hasOne('App\Models\WebPlatform', 'id', 'web_platform_id');
     }
 
-    public static function getTrainingActions($keyWord,$inactiveFilter, $search_formative_actions, $search_name, $search_professional_family_id, $search_professional_area_id, $search_modality_id, $search_provider_id, $specialty){
+    public static function getTrainingActions(){
         $trainingActions = TrainingAction::
         select('training_actions.*',
             'action_types.name as action_type', 'professional_families.name as professional_family',
@@ -100,76 +100,14 @@ class TrainingAction extends Model
             ->leftjoin('training_action_groups', 'training_action_groups.id', '=', 'training_actions.training_action_group_id')
             ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
             ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
-            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
-        if ($inactiveFilter != 1) {
-            $trainingActions = $trainingActions->where('training_actions.active', 1);
-        }
-        if ($specialty == 1) {
-            $trainingActions = $trainingActions->where('training_actions.specialty', 1);
-        }
-        $trainingActions = $trainingActions->where(function ($query) use ($keyWord){
-            $query->orWhere('training_actions.name', 'LIKE', $keyWord)
-                ->orWhere('action_types.name', 'LIKE', $keyWord)
-                ->orWhere('professional_families.name', 'LIKE', $keyWord)
-                ->orWhere('professional_areas.name', 'LIKE', $keyWord)
-                ->orWhere('modalities.name', 'LIKE', $keyWord)
-                ->orWhere('training_action_levels.name', 'LIKE', $keyWord)
-                ->orWhere('training_action_groups.name', 'LIKE', $keyWord)
-                ->orWhere('tutorings.name', 'LIKE', $keyWord)
-                ->orWhere('course_z', 'LIKE', $keyWord)
-                ->orWhere('course_avz', 'LIKE', $keyWord)
-                ->orWhere('training_actions.active', 'LIKE', $keyWord)
-                ->orWhere('in_catalog', 'LIKE', $keyWord)
-                ->orWhere('face_to_face_hours', 'LIKE', $keyWord)
-                ->orWhere('teletraining_hours', 'LIKE', $keyWord)
-                ->orWhere('total_hours', 'LIKE', $keyWord)
-                ->orWhere('price', 'LIKE', $keyWord)
-                ->orWhere('objectives', 'LIKE', $keyWord)
-                ->orWhere('content', 'LIKE', $keyWord)
-                ->orWhere('training_actions.user', 'LIKE', $keyWord)
-                ->orWhere('web_platforms.name', 'LIKE', $keyWord)
-                ->orWhere('training_actions.observations', 'LIKE', $keyWord)
-                ->orWhere('number_activities', 'LIKE', $keyWord)
-                ->orWhere('number_units', 'LIKE', $keyWord)
-                ->orWhere('providers.name', 'LIKE', $keyWord);
-        })->where(function ($query) use ($search_formative_actions){
-            $query->orWhere('formative_action', 'LIKE', $search_formative_actions);
-        })->where(function ($query) use ($search_name){
-            $query->orWhere('training_actions.name', 'LIKE', $search_name);
-        });
-        if ($search_professional_family_id){
-            $trainingActions = $trainingActions->where(function ($query) use ($search_professional_family_id){
-                $query->orWhere('training_actions.professional_family_id', $search_professional_family_id);
-            });
-        }
-        if ($search_professional_area_id){
-            $trainingActions = $trainingActions ->where(function ($query) use ($search_professional_area_id){
-                $query->orWhere('training_actions.professional_area_id', $search_professional_area_id);
-            });
-        }
-        if ($search_modality_id){
-            $trainingActions = $trainingActions->where(function ($query) use ($search_modality_id){
-                $query->orWhere('training_actions.modality_id', $search_modality_id);
-            });
-        }
-       if ($search_provider_id){
-           $trainingActions = $trainingActions->where(function ($query) use ($search_provider_id){
-               $query->orWhere('training_actions.provider_id', $search_provider_id);
-           });
-       }
-
-        $trainingActions = $trainingActions->orderby('id', 'asc')
-            ->paginate(10);
+            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id')
+            ->orderby('id', 'asc')
+            ->get();
         return $trainingActions;
     }
 
     public static function createTrainingAction($data){
-
-    }
-
-    public static function updateTrainingAction($id, $data){
-        $training_action = TrainingAction::find($id);
-        $training_action->update([
+        $training_action = TrainingAction::create([
             'name' => $data['name'],
             'action_type_id' => $data['action_type_id'],
             'professional_family_id' => $data['professional_family_id']  != -1 ? $data['professional_family_id'] : null,
@@ -178,10 +116,6 @@ class TrainingAction extends Model
             'training_action_level_id' => $data['training_action_level_id'],
             'training_action_group_id' => $data['training_action_group_id'] != -1 ? $data['training_action_group_id'] : null,
             'tutoring_id' => $data['tutoring_id'],
-            'course_z' => $data['course_z'] == true ? 1 : 0,
-            'course_avz' => $data['course_avz'] == true ? 1 : 0,
-            'active' => $data['active']  == true ? 1 : 0,
-            'in_catalog' => $data['in_catalog'] == true ? 1 : 0,
             'face_to_face_hours' => $data['face_to_face_hours'],
             'teletraining_hours' => $data['teletraining_hours'],
             'total_hours' => $data['total_hours'],
@@ -195,20 +129,77 @@ class TrainingAction extends Model
             'number_activities' => $data['number_activities'],
             'number_units' => $data['number_units'],
             'provider_id' => $data['provider_id'],
-            'specialty' => $data['specialty'] == true ? 1 : 0,
         ]);
+
+        if ($data['active'] !== '') {
+            $training_action->update([
+                'active' => $data['active'] ? 1 : 0
+            ]);
+        }
+
+        if ($data['specialty'] !== '') {
+            $training_action->update([
+                'specialty' => $data['specialty'] ? 1 : 0
+            ]);
+        }
+
+        if ($data['in_catalog'] !== '') {
+            $training_action->update([
+                'in_catalog' => $data['in_catalog'] ? 1 : 0
+            ]);
+        }
+    }
+
+    public static function updateTrainingAction($id, $data){
+        $training_action = TrainingAction::find($id);
+        $training_action->update([
+            'name' => $data['name'],
+            'action_type_id' => $data['action_type_id'],
+            'professional_family_id' => $data['professional_family_id']  != -1 ? $data['professional_family_id'] : null,
+            'professional_area_id' => $data['professional_area_id'] != -1 ? $data['professional_area_id'] : null,
+            'modality_id' => $data['modality_id'],
+            'training_action_level_id' => $data['training_action_level_id'],
+            'training_action_group_id' => $data['training_action_group_id'] != -1 ? $data['training_action_group_id'] : null,
+            'tutoring_id' => $data['tutoring_id'],
+            'face_to_face_hours' => $data['face_to_face_hours'] ? $data['face_to_face_hours'] : 0,
+            'teletraining_hours' => $data['teletraining_hours'] ? $data['teletraining_hours'] : 0,
+            'total_hours' => $data['total_hours'],
+            'price' => $data['price'],
+            'objectives' => $data['objectives'],
+            'content' => $data['content'],
+            'user' => $data['user'],
+            'password' => $data['password'],
+            'web_platform_id' => $data['web_platform_id'],
+            'observations' => $data['observations'],
+            'number_activities' => $data['number_activities'] ? $data['number_activities'] : 0,
+            'number_units' => $data['number_units'] ? $data['number_units'] : 0,
+            'provider_id' => $data['provider_id']
+        ]);
+
+        if ($data['active'] !== '') {
+            $training_action->update([
+                'active' => $data['active'] ? 1 : 0
+            ]);
+        }
+
+        if ($data['specialty'] !== '') {
+            $training_action->update([
+                'specialty' => $data['specialty'] ? 1 : 0
+            ]);
+        }
+
+        if ($data['in_catalog'] !== '') {
+            $training_action->update([
+                'in_catalog' => $data['in_catalog'] ? 1 : 0
+            ]);
+        }
 
         return $training_action;
     }
 
-    public static function getProviderTrainingActions($id, $search_training_actions_name, $search_training_actions_action)
+    public static function getProviderTrainingActions($id)
     {
-        $training_acions = TrainingAction::where('provider_id', $id)
-            ->where(function ($query) use ($search_training_actions_name) {
-                $query->orWhere('name', 'LIKE', $search_training_actions_name);
-            })->where(function ($query) use ($search_training_actions_action) {
-                $query->orWhere('formative_action', 'LIKE', $search_training_actions_action);
-            })->get();
+        $training_acions = TrainingAction::where('provider_id', $id)->get();
 
         return $training_acions;
     }

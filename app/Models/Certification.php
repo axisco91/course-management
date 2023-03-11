@@ -7,38 +7,43 @@ use Illuminate\Database\Eloquent\Model;
 
 class Certification extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
     protected $fillable = ['name', 'total_hours', 'code', 'professional_family_id', 'professional_area_id', 'level'];
 
-        public function trainingContracts()
+    public function trainingContracts()
     {
         return $this->belongsToMany(TrainingContract::class,'training_contract_elements');
     }
 
-    public static function getCertifications($keyWord){
-        $certifications = Certification::select('*');
-        $certifications = $certifications->where(function ($query) use ($keyWord){
-            $query->orWhere('name', 'LIKE', $keyWord)
-                ->orWhere('total_hours', 'LIKE', $keyWord);
-        });
-        $certifications = $certifications->paginate(10);
+    public static function getCertifications(){
+        $certifications = Certification::select('certifications.*',
+            'professional_families.name as family',
+            'professional_areas.name as area'
+        )
+            ->leftjoin('professional_families', 'professional_families.id', '=', 'certifications.professional_family_id')
+            ->leftjoin('professional_areas', 'professional_areas.id', '=', 'certifications.professional_area_id')
+            ->get();
         return $certifications;
     }
 
-    public static function createCertification($data, $id){
-        $certification = Certification::find($id);
-        if ($certification){
+    public static function createCertification($data){
+        $certification = Certification::create([
+            'code' => $data['code'],
+            'name' => $data['name'],
+            'professional_family_id' => $data['professional_family_id'],
+            'professional_area_id' => $data['professional_area_id'],
+            'level' => $data['level'],
+        ]);
+
+        if($data['active'] != '') {
             $certification->update([
-                'code' => $data['code'],
-                'name' => $data['name'],
-                'professional_family_id' => $data['professional_family_id'],
-                'professional_area_id' => $data['professional_area_id'],
-                'level' => $data['level'],
+                'active' => $data['active'],
             ]);
         }
+
         return $certification;
     }
 
@@ -52,6 +57,12 @@ class Certification extends Model
                 'professional_area_id' => $data['professional_area_id'],
                 'level' => $data['level'],
             ]);
+
+            if($data['active'] != '') {
+                $certification->update([
+                    'active' => $data['active'],
+                ]);
+            }
         }
         return $certification;
     }

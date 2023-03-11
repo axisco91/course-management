@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class OnLeaveType extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
     protected $fillable = ['name'];
 
-    public static function getOnLeaveTypes($keyWord){
-        $status = OnLeaveType::orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getOnLeaveTypes(){
+        $status = OnLeaveType::select('*', 'id as value', 'name as label')
+            ->get();
         return $status;
     }
 

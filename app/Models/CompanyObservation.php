@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CompanyObservation extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = true;
 
@@ -23,7 +23,7 @@ class CompanyObservation extends Model
     }
 
     public static function getCompanyObservations($id){
-        $observations = CompanyObservation::where('company_id', $id)->paginate(10);
+        $observations = CompanyObservation::where('company_id', $id)->get();
 
         foreach ($observations as $observation){
             $observation['date'] = Carbon::createFromFormat('Y-m-d H:i:s', $observation['created_at'])->format('d/m/Y');

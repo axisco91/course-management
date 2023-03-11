@@ -1,45 +1,94 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\TrainingActionLevel;
+use App\Models\Company;
+use App\Models\Course;
+use App\Models\Provider;
+use App\Models\TrainingAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class ProviderController extends BaseController
 {
-    public function getTrainingActionLevels() {
-        return TrainingActionLevel::all();
-    }
-
-    public function create(Request $request){
-        $data = [
-            'name' => $request->name
-        ];
-
-        return TrainingActionLevel::createTrainingActionLevel();;
-    }
-
-    public function edit($id, Request $request){
-        $data = [
-            'name' =>$request->name
-        ];
-        $training_action = TrainingActionLevel::updateTrainingActionLevel($id, $data);
-        if ($training_action){
-            return 1;
-        } else {
-            return 0;
+    public function providers() {
+        try {
+            return Provider::getProviders();
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e.message
+            ]);
         }
     }
 
-    public function getTrainingActionLevel($id){
-        return TrainingActionLevel::find($id);
+    public function create(Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $company = Company::createCompany($data);
+            $data['company_id'] = $company->id;
+            $provider = Provider::createProvider($data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'provider' => $provider
+        ]);
+    }
+
+    public function edit($id, Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $company = Company::updateCompany($data['company_id'], $data);
+            $provider = Provider::updateProvider($id, $data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'provider' => $provider
+        ]);
+    }
+
+    public function getProvider($id){
+        $provider = Provider::find($id);
+        if ($provider) {
+            return response()->json([
+                'status' => 200,
+                'provider' => $provider
+            ]);
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Proveedor no existe'
+        ]);
     }
 
     public function destroy($id){
         if ($id) {
-            TrainingActionLevel::destroy($id);
-            return 1;
+            try {
+                Provider::destroy($id);
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 400,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
+    }
+
+    public function getTrainingActions($id){
+        return TrainingAction::getProviderTrainingActions($id);
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PotentialStudent extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = true;
 
@@ -78,43 +78,15 @@ class PotentialStudent extends Model
     /**
      * Get all students
      */
-    public static function getPotentialStudents($keyWord, $search_name, $search_surname, $search_email, $search_dni, $search_telephone){
+    public static function getPotentialStudents(){
         $students = PotentialStudent::select('potential_students.*', 'level_studies.name as level_study',
             'professional_categories.name as professional_category', 'provinces.name as province')
             ->leftjoin('level_studies', 'level_studies.id', '=', 'potential_students.level_study_id')
             ->leftjoin('professional_categories', 'professional_categories.id', '=', 'potential_students.professional_category_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'potential_students.province_id')
-            ->where('converted', 0);
-
-        $students = $students->where(function ($query) use ($keyWord){
-            $query->orWhere('potential_students.name', 'LIKE', $keyWord)
-                ->orWhere('surname', 'LIKE', $keyWord)
-                ->orWhere('dni', 'LIKE', $keyWord)
-                ->orWhere('potential_students.telephone', 'LIKE', $keyWord)
-                ->orWhere('potential_students.email', 'LIKE', $keyWord)
-                ->orWhere('date_of_birth', 'LIKE', $keyWord)
-                ->orWhere('level_studies.name', 'LIKE', $keyWord)
-                ->orWhere('disabled', 'LIKE', $keyWord)
-                ->orWhere('social_security_number', 'LIKE', $keyWord)
-                ->orWhere('professional_categories.name', 'LIKE', $keyWord)
-                ->orWhere('direction', 'LIKE', $keyWord)
-                ->orWhere('potential_students.post_code', 'LIKE', $keyWord)
-                ->orWhere('provinces.name', 'LIKE', $keyWord)
-                ->orWhere('potential_students.population', 'LIKE', $keyWord);
-        })->where(function ($query) use ($search_name){
-            $query->orWhere('potential_students.name', 'LIKE', $search_name);
-        })->where(function ($query) use ($search_surname){
-            $query->orWhere('surname', 'LIKE', $search_surname);
-        })->where(function ($query) use ($search_email){
-            $query->orWhere('potential_students.email', 'LIKE', $search_email);
-        })->where(function ($query) use ($search_dni){
-            $query->orWhere('dni', 'LIKE', $search_dni);
-        })->where(function ($query) use ($search_telephone){
-            $query->orWhere('potential_students.telephone', 'LIKE', $search_telephone);
-        });
-
-        $students = $students->orderBy('potential_students.name','asc')
-            ->paginate(10);
+            ->where('converted', 0)
+            ->orderBy('potential_students.name','asc')
+            ->get();
         return $students;
     }
 

@@ -73,63 +73,15 @@ class PotentialCompany extends Model
         return $this->hasOne('App\Models\Province', 'id', 'province_id');
     }
 
-    public static function getPotentialCompanies($keyWord, $search_name, $search_nif, $search_type_id, $search_activity_id, $search_province_id){
+    public static function getPotentialCompanies(){
         $companies = PotentialCompany::select('potential_companies.*', 'company_types.name as type',
             'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province')
             ->leftjoin('company_types', 'company_types.id', '=', 'potential_companies.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'potential_companies.company_activity_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'potential_companies.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'potential_companies.province_id');
-        $companies = $companies->where(function ($query) use ($keyWord){
-            $query->orWhere('potential_companies.name', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.nif', 'LIKE', $keyWord)
-                ->orWhere('company_types.name', 'LIKE', $keyWord)
-                ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.email', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.telephone', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.legal_representative', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.dni_legal_representative', 'LIKE', $keyWord)
-                ->orWhere('quote', 'LIKE', $keyWord)
-                ->orWhere('cnaes.name', 'LIKE', $keyWord)
-                ->orWhere('average_template', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.iban', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.sepa', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.b2b', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.address', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.post_code', 'LIKE', $keyWord)
-                ->orWhere('provinces.name', 'LIKE', $keyWord)
-                ->orWhere('potential_companies.population', 'LIKE', $keyWord);
-        });
-        if ($search_name){
-            $search_name = '%'.$search_name.'%';
-            $companies = $companies->where(function ($query) use ($search_name){
-                $query->orWhere('potential_companies.name', 'LIKE', $search_name);
-            });
-        }
-        if ($search_nif){
-            $search_nif = '%'.$search_nif.'%';
-            $companies = $companies->where(function ($query) use ($search_nif){
-                $query->orWhere('potential_companies.nif', 'LIKE', $search_nif);
-            });
-        }
-        if ($search_type_id){
-            $companies = $companies->where(function ($query) use ($search_type_id){
-                $query->orWhere('potential_companies.company_type_id', $search_type_id);
-            });
-        }
-        if ($search_activity_id){
-            $companies = $companies->where(function ($query) use ($search_activity_id){
-                $query->orWhere('potential_companies.company_activity_id', $search_activity_id);
-            });
-        }
-        if ($search_province_id){
-            $companies = $companies->where(function ($query) use ($search_province_id){
-                $query->orWhere('potential_companies.province_id', $search_province_id);
-            });
-        }
-        $companies = $companies->orderBy('potential_companies.name', 'asc')
-            ->paginate(10);
+            ->leftjoin('provinces', 'provinces.id', '=', 'potential_companies.province_id')->orderBy('potential_companies.name', 'asc')
+            ->get();
         return $companies;
     }
 

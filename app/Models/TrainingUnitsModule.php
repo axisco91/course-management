@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrainingUnitsModule extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     protected $fillable = ['training_unit_id', 'module_id'];
 
@@ -15,6 +15,13 @@ class TrainingUnitsModule extends Model
         $training_unit = TrainingUnitsModule::select('training_units_modules.*', 'training_units.name', 'training_units.formative_unit')
             ->leftjoin('training_units', 'training_units.id', '=', 'training_units_modules.training_unit_id')
             ->where('module_id', $module_id)->get();
+        return $training_unit;
+    }
+
+    public static function getTrainingUnitModule($id){
+        $training_unit = TrainingUnitsModule::select('training_units_modules.*', 'training_units.name', 'training_units.formative_unit')
+            ->leftjoin('training_units', 'training_units.id', '=', 'training_units_modules.training_unit_id')
+            ->where('training_units_modules.id', $id)->first();
         return $training_unit;
     }
 
@@ -39,10 +46,12 @@ class TrainingUnitsModule extends Model
         return $training_unit_module;
     }
 
-    public static function deleteTrainingUnitModule($module_id, $training_unit_module_id){
-        $training_unit_module = TrainingUnitsModule::find($training_unit_module_id);
+    public static function deleteTrainingUnitModule($id){
+        $training_unit_module = TrainingUnitsModule::find($id);
         $training_unit = TrainingUnit::find($training_unit_module['training_unit_id']);
-        $module = Module::find($module_id);
+        $training_unit['value'] = $training_unit->id;
+        $training_unit['label'] = $training_unit->name;
+        $module = Module::find($training_unit_module['module_id']);
         $module->update([
             'face_to_face_hours' => $module['face_to_face_hours'] - $training_unit['face_to_face_hours'],
             'teletraining_hours' => $module['teletraining_hours'] - $training_unit['teletraining_hours'],
@@ -51,5 +60,9 @@ class TrainingUnitsModule extends Model
             'total_hours' => $module['total_hours'] - $training_unit['total_hours']
         ]);
         $training_unit_module->delete();
+        return [
+            'module' => $module,
+            'training_unit' => $training_unit
+        ];
     }
 }

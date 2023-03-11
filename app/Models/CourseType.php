@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CourseType extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,10 @@ class CourseType extends Model
         return $this->hasMany('App\Models\Course', 'course_type_id', 'id');
     }
 
-    public static function getCourseTypes($keyWord){
+    public static function getCourseTypes(){
         $course_types = CourseType::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($course_types as $course_type){
             $course = Course::where('course_type_id', $course_type['id'])->first();
             if ($course){

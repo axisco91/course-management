@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Advisor extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -29,69 +29,14 @@ class Advisor extends Model
         return $this->hasOne('App\Models\Company', 'id', 'company_id');
     }
 
-    public static function getAdvisors($keyWord, $inactiveFilter, $search_name, $search_nif, $search_type_id, $search_activity_id, $search_province_id){
+    public static function getAdvisors(){
         $advisors = Advisor::select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province')
+            'provinces.name as province', 'advisors.id as value', 'advisors.name as label')
             ->leftjoin('company_types', 'company_types.id', '=', 'advisors.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'advisors.company_activity_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'advisors.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id');
-
-
-        if ($inactiveFilter != 1) {
-            $advisors = $advisors->where('active', 1);
-        }
-
-        $advisors = $advisors->where(function ($query) use ($keyWord){
-            $query->orWhere('advisors.name', 'LIKE', $keyWord)
-                ->orWhere('advisors.irpf', 'LIKE', $keyWord)
-                ->orWhere('advisors.commission', 'LIKE', $keyWord)
-                ->orWhere('advisors.contact_1', 'LIKE', $keyWord)
-                ->orWhere('advisors.contact_2', 'LIKE', $keyWord)
-                ->orWhere('advisors.contact_3', 'LIKE', $keyWord)
-                ->orWhere('advisors.nif', 'LIKE', $keyWord)
-                ->orWhere('company_types.name', 'LIKE', $keyWord)
-                ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                ->orWhere('advisors.email', 'LIKE', $keyWord)
-                ->orWhere('advisors.telephone', 'LIKE', $keyWord)
-                ->orWhere('advisors.legal_representative', 'LIKE', $keyWord)
-                ->orWhere('advisors.dni_legal_representative', 'LIKE', $keyWord)
-                ->orWhere('cnaes.name', 'LIKE', $keyWord)
-                ->orWhere('advisors.address', 'LIKE', $keyWord)
-                ->orWhere('advisors.post_code', 'LIKE', $keyWord)
-                ->orWhere('provinces.name', 'LIKE', $keyWord)
-                ->orWhere('advisors.population', 'LIKE', $keyWord)
-                ->orWhere('advisors.active', 'LIKE', $keyWord);
-        });
-        if ($search_name){
-            $search_name = '%'.$search_name.'%';
-            $advisors = $advisors->where(function ($query) use ($search_name){
-                $query->orWhere('advisors.name', 'LIKE', $search_name);
-            });
-        }
-        if ($search_nif){
-            $search_nif = '%'.$search_nif.'%';
-            $advisors = $advisors->where(function ($query) use ($search_nif){
-                $query->orWhere('advisors.nif', 'LIKE', $search_nif);
-            });
-        }
-        if ($search_type_id){
-            $advisors = $advisors->where(function ($query) use ($search_type_id){
-                $query->orWhere('advisors.company_type_id', $search_type_id);
-            });
-        }
-        if ($search_activity_id){
-            $advisors = $advisors->where(function ($query) use ($search_activity_id){
-                $query->orWhere('advisors.company_activity_id', $search_activity_id);
-            });
-        }
-       if ($search_province_id){
-           $advisors = $advisors->where(function ($query) use ($search_province_id){
-               $query->orWhere('advisors.province_id', $search_province_id);
-           });
-       }
-        $advisors = $advisors->orderBy('advisors.name', 'desc')
-            ->paginate(10);
+            ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id')->orderBy('advisors.name', 'desc')
+            ->get();
         return $advisors;
     }
 
@@ -204,7 +149,7 @@ class Advisor extends Model
                 'population' => $record['population'],
                 'active' => $record['active'],
             ]);
-           return $advisor;
+            return $advisor;
         }
     }
 

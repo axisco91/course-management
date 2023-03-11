@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProfessionalArea extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,10 @@ class ProfessionalArea extends Model
         return $this->hasMany('App\Models\TrainingAction', 'professional_area_id', 'id');
     }
 
-    public static function getProfessionalAreas($keyWord){
+    public static function getProfessionalAreas(){
         $professional_areas = ProfessionalArea::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($professional_areas as $professional_area){
             $training_action = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
             if ($training_action){

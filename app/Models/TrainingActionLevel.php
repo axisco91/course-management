@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrainingActionLevel extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -23,10 +23,10 @@ class TrainingActionLevel extends Model
         return $this->hasMany('App\Models\TrainingAction', 'training_action_level_id', 'id');
     }
 
-    public static function getTrainingActionLevel($keyWord){
+    public static function getTrainingActionLevel(){
         $training_action_levels = TrainingActionLevel::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($training_action_levels as $training_action_level){
             $training_action = TrainingAction::where('training_action_level_id', $training_action_level['id'])->first();
             if ($training_action){

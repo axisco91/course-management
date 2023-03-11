@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Module extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -26,14 +26,31 @@ class Module extends Model
         return $this->belongsToMany(Certification::class,'certification_elements');
     }
 
-    public static function getModules($keyWord){
-        $modules = Module::select('*');
-        $modules = $modules->where(function ($query) use ($keyWord){
-            $query->orWhere('name', 'LIKE', $keyWord)
-                ->orWhere('total_hours', 'LIKE', $keyWord);
-        });
-        $modules = $modules->paginate(10);
+    public static function getModules(){
+        $modules = Module::select('*')->get();
         return $modules;
+    }
+
+    public static function createModule($data){
+        $face_to_face_hours = $data['exam_hours'] + $data['tutoring_hours'];
+        $total_hours = $face_to_face_hours + $data['teletraining_hours'];
+        $module = Module::create([
+            'formative_module' => $data['formative_module'],
+            'name' => $data['name'],
+            'exam_hours' => $data['exam_hours'],
+            'tutoring_hours' => $data['tutoring_hours'],
+            'face_to_face_hours' => $face_to_face_hours,
+            'teletraining_hours' => $data['teletraining_hours'],
+            'total_hours' => $total_hours
+        ]);
+
+        if ($data['active'] != '') {
+            $module->update([
+                'active' => $data['active'],
+            ]);
+        }
+
+        return $module;
     }
 
     public static function updateModule($id, $data){
@@ -48,13 +65,19 @@ class Module extends Model
             $module->update([
                 'formative_module' => $data['formative_module'],
                 'name' => $data['name'],
-                'active' => $data['active'],
                 'exam_hours' => $data['exam_hours'],
                 'tutoring_hours' => $data['tutoring_hours'],
                 'face_to_face_hours' => $face_to_face_hours,
                 'teletraining_hours' => $data['teletraining_hours'],
                 'total_hours' => $total_hours
             ]);
+
+            if ($data['active'] != '') {
+                $module->update([
+                    'active' => $data['active'],
+                ]);
+            }
+
         }
         return $module;
     }

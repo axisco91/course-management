@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProfessionalCategory extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,10 @@ class ProfessionalCategory extends Model
         return $this->hasMany('App\Models\Student', 'professional_category_id', 'id');
     }
 
-    public static function getProfessionalCategories($keyWord){
+    public static function getProfessionalCategories(){
         $professional_categories = ProfessionalCategory::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as value')
+            ->get();
         foreach ($professional_categories as $professional_category){
             $student = Student::where('professional_category_id', $professional_category['id'])->first();
             if ($student) {

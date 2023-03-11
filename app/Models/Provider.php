@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Provider extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -29,40 +29,15 @@ class Provider extends Model
         return $this->hasMany('App\Models\TrainingAction', 'provider_id', 'id');
     }
 
-    public static function getProviders($keyWord, $inactiveFilter){
+    public static function getProviders(){
         $providers = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province')
+            'provinces.name as province', 'providers.id as value', 'providers.name as label')
             ->leftjoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'providers.company_activity_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'providers.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id');
-
-        if ($inactiveFilter != 1) {
-            $providers = $providers->where('active', 1);
-        }
-
-        $providers = $providers->where(function ($query) use ($keyWord){
-            $query->orWhere('providers.name', 'LIKE', $keyWord)
-                ->orWhere('providers.irpf', 'LIKE', $keyWord)
-                ->orWhere('providers.commission', 'LIKE', $keyWord)
-                ->orWhere('providers.contact_1', 'LIKE', $keyWord)
-                ->orWhere('providers.contact_2', 'LIKE', $keyWord)
-                ->orWhere('providers.contact_3', 'LIKE', $keyWord)
-                ->orWhere('providers.nif', 'LIKE', $keyWord)
-                ->orWhere('company_types.name', 'LIKE', $keyWord)
-                ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                ->orWhere('providers.email', 'LIKE', $keyWord)
-                ->orWhere('providers.telephone', 'LIKE', $keyWord)
-                ->orWhere('providers.legal_representative', 'LIKE', $keyWord)
-                ->orWhere('providers.dni_legal_representative', 'LIKE', $keyWord)
-                ->orWhere('cnaes.name', 'LIKE', $keyWord)
-                ->orWhere('providers.address', 'LIKE', $keyWord)
-                ->orWhere('providers.post_code', 'LIKE', $keyWord)
-                ->orWhere('providers.name', 'LIKE', $keyWord)
-                ->orWhere('providers.population', 'LIKE', $keyWord)
-                ->orWhere('providers.active', 'LIKE', $keyWord);
-        })->orderBy('providers.name', 'desc')
-            ->paginate(10);
+            ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id')
+            ->orderBy('providers.name', 'desc')
+            ->get();
         return $providers;
     }
 
@@ -89,9 +64,15 @@ class Provider extends Model
             'address' => $data['address'],
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
-            'population' => $data['population'],
-            'active' => $data['active'],
+            'population' => $data['population']
         ]);
+
+        if ($data['active'] !== '') {
+            $provider->update([
+                'active' => $data['active'] == true ? 1 : 0,
+            ]);
+        }
+
         return $provider;
     }
 
@@ -119,8 +100,14 @@ class Provider extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
-            'active' => $data['active'],
         ]);
+
+        if ($data['active'] !== '') {
+            $provider->update([
+                'active' => $data['active'] == true ? 1 : 0,
+            ]);
+        }
+
         return $provider;
     }
 

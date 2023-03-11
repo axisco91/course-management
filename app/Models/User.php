@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -63,13 +64,10 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
-    public static function getUsers($keyWord){
-        $users = User::latest()
-            ->orWhere('name', 'LIKE', $keyWord)
-            ->orWhere('surname', 'LIKE', $keyWord)
-            ->orWhere('username', 'LIKE', $keyWord)
-            ->orWhere('email', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getUsers(){
+        $users = User::select('*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
+            'users.id as value')
+            ->get();
         return $users;
     }
 

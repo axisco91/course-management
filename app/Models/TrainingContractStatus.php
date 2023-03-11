@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrainingContractStatus extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
     protected $fillable = ['name'];
 
-    public static function getTrainingContractStatus($keyWord){
-        $contract = TrainingContractStatus::orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getTrainingContractStatus(){
+        $contract = TrainingContractStatus::select('*', 'id as value', 'name as label')
+            ->get();
         return $contract;
     }
 

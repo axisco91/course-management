@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class WebPlatform extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,11 +21,10 @@ class WebPlatform extends Model
         return $this->hasMany('App\Models\TrainingAction', 'web_platform_id', 'id');
     }
 
-    public static function getWebPlatforms($keyWord){
+    public static function getWebPlatforms(){
         $web_platforms = WebPlatform::
-        orWhere('name', 'LIKE', $keyWord)
-            ->orWhere('url', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($web_platforms as $web_platform){
             $training_action = TrainingAction::where('web_platform_id', $web_platform['id'])->first();
             if ($training_action){

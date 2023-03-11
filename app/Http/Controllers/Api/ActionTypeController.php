@@ -8,38 +8,77 @@ use Illuminate\Support\Facades\Validator;
 
 class ActionTypeController extends BaseController
 {
-    public function getTrainingActionLevels() {
-        return ActionType::all();
-    }
-
-    public function create(Request $request){
-        $data = [
-            'name' => $request->name
-        ];
-
-        return ActionType::createActionType($data);
-    }
-
-    public function edit($id, Request $request){
-        $data = [
-            'name' =>$request->name
-        ];
-        $action_type = ActionType::updateActionType($id, $data);
-        if ($action_type){
-            return 1;
-        } else {
-            return 0;
+    public function getActionTypes() {
+        try {
+            return ActionType::getActionType();
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e.message
+            ]);
         }
     }
 
+    public function create(Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $action_type = ActionType::createActionType($data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'action_type' => $action_type
+        ]);
+    }
+
+    public function edit($id, Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $action_type = ActionType::updateActionType($id, $data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'action_type' => $action_type
+        ]);
+    }
+
     public function getActionType($id){
-        return ActionType::find($id);
+        $action_type = ActionType::find($id);
+        if ($action_type) {
+            return response()->json([
+                'status' => 200,
+                'action_type' => $action_type
+            ]);
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Tipo Acción no existe'
+        ]);
     }
 
     public function destroy($id){
         if ($id) {
-            ActionType::destroy($id);
-            return 1;
+            try {
+                ActionType::destroy($id);
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 400,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
     }
 }

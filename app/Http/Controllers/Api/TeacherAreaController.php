@@ -1,15 +1,21 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\TrainingActionLevel;
+use App\Models\TeacherArea;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class TeacherAreaController extends BaseController
 {
-    public function getTrainingActionLevels() {
-        return TrainingActionLevel::all();
+    public function teacherAreas() {
+        try {
+            return TeacherArea::getTeacherArea();
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     public function create(Request $request){
@@ -17,7 +23,7 @@ class TeacherAreaController extends BaseController
             'name' => $request->name
         ];
 
-        return TrainingActionLevel::createTrainingActionLevel();;
+        return TeacherAreaController::createTeacherAreas();;
     }
 
     public function edit($id, Request $request){

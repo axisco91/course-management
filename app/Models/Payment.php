@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,9 +21,9 @@ class Payment extends Model
         return $this->hasMany('App\Models\Bonus', 'payment_id', 'id');
     }
 
-    public static function getPayments($keyWord){
-        $payments = Payment::orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getPayments(){
+        $payments = Payment::select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($payments as $payment){
             $billing = Billing::where('payment_id', $payment['id'])->first();
             if ($billing){

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActionType extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,8 @@ class ActionType extends Model
         return $this->hasMany('App\Models\TrainingAction', 'action_type_id', 'id');
     }
 
-    public static function getActionType($keyWord){
-        $actionTypes = ActionType::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getActionType(){
+        $actionTypes = ActionType::select('action_types.*', 'id as value', 'name as label')->get();
 
         return $actionTypes;
     }

@@ -7,17 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class IncidenceType extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
     protected $fillable = ['name'];
 
 
-    public static function getIncidenceTypes($keyWord, $sortBy, $sortDirection){
+    public static function getIncidenceTypes(){
         $incidenceTypes = IncidenceType::
-        orWhere('name', 'LIKE', $keyWord)
-            ->orderBy($sortBy, $sortDirection)->paginate(10);
+        select('incidence_types.*', 'id as value', 'name as label')->get();
         foreach ($incidenceTypes as $incidenceType){
             $incidences = AdvisorIncidence::where('incidence_type_id', $incidenceType['id'])->first();
             if ($incidences){

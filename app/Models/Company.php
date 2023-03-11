@@ -12,7 +12,29 @@ class Company extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','nif','company_type_id','company_activity_id','email','telephone','legal_representative','dni_legal_representative','quote','cnae_id','average_template','iban','sepa','b2b','address','post_code','population_id','province_id','population','advisor_id', 'active', 'collaborator_id', 'potential'];
+    protected $fillable = ['name',
+        'nif',
+        'company_type_id',
+        'company_activity_id',
+        'email',
+        'telephone',
+        'legal_representative',
+        'dni_legal_representative',
+        'quote',
+        'cnae_id',
+        'average_template',
+        'iban',
+        'sepa',
+        'b2b',
+        'address',
+        'post_code',
+        'population_id',
+        'province_id',
+        'population',
+        'advisor_id',
+        'active',
+        'collaborator_id',
+        'potential'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -86,13 +108,16 @@ class Company extends Model
         return $this->hasMany('App\Models\Student', 'company_id', 'id');
     }
 
-    public static function getCompanies($keyWord, $search_name, $search_nif, $search_type_id, $search_activity_id, $search_advisor_id, $search_province_id, $status, $collaborator_id){
+    public static function getCompanies(){
         $companies = Company::select('companies.*', 'company_types.name as type',
             'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province',
             'advisors.name as advisor',
             'users.name as user_name',
             'users.surname as user_surname',
+            'companies.id as value',
+            'companies.name as label',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
             DB::raw("'real' as type_company"))
             ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
@@ -100,83 +125,44 @@ class Company extends Model
             ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
             ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
             ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id');
-        if ($status == 3) {
-            $companies = $companies->where('companies.potential', 1);
-        }else if ($status == 2){
-            $companies = $companies->where('companies.active', 0)->where('companies.potential', 0);
-        } else if ($status == 1){
-            $companies = $companies->where('companies.active', 1)->where('companies.potential', 0);
-        }
-        $companies = $companies->where(function ($query) use ($keyWord){
-            $query->orWhere('companies.name', 'LIKE', $keyWord)
-                ->orWhere('companies.nif', 'LIKE', $keyWord)
-                ->orWhere('company_types.name', 'LIKE', $keyWord)
-                ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                ->orWhere('companies.email', 'LIKE', $keyWord)
-                ->orWhere('companies.telephone', 'LIKE', $keyWord)
-                ->orWhere('companies.legal_representative', 'LIKE', $keyWord)
-                ->orWhere('companies.dni_legal_representative', 'LIKE', $keyWord)
-                ->orWhere('quote', 'LIKE', $keyWord)
-                ->orWhere('cnaes.name', 'LIKE', $keyWord)
-                ->orWhere('average_template', 'LIKE', $keyWord)
-                ->orWhere('companies.iban', 'LIKE', $keyWord)
-                ->orWhere('companies.sepa', 'LIKE', $keyWord)
-                ->orWhere('companies.b2b', 'LIKE', $keyWord)
-                ->orWhere('companies.address', 'LIKE', $keyWord)
-                ->orWhere('companies.post_code', 'LIKE', $keyWord)
-                ->orWhere('provinces.name', 'LIKE', $keyWord)
-                ->orWhere('companies.population', 'LIKE', $keyWord)
-                ->orWhere('advisors.name', 'LIKE', $keyWord);
-        });
-        if ($search_name){
-            $search_name = '%'.$search_name.'%';
-            $companies = $companies->where(function ($query) use ($search_name){
-                $query->orWhere('companies.name', 'LIKE', $search_name);
-            });
-        }
-        if ($search_nif){
-            $search_nif = '%'.$search_nif.'%';
-            $companies = $companies->where(function ($query) use ($search_nif){
-                $query->orWhere('companies.nif', 'LIKE', $search_nif);
-            });
-        }
-        if ($search_type_id){
-            $companies = $companies->where(function ($query) use ($search_type_id){
-                $query->orWhere('companies.company_type_id', $search_type_id);
-            });
-        }
-       if ($search_activity_id){
-           $companies = $companies->where(function ($query) use ($search_activity_id){
-               $query->orWhere('companies.company_activity_id', $search_activity_id);
-           });
-       }
-       if ($search_advisor_id){
-           $companies = $companies->where(function ($query) use ($search_advisor_id){
-               $query->orWhere('companies.advisor_id', $search_advisor_id);
-           });
-       }
-       if ($search_province_id){
-           $companies = $companies->where(function ($query) use ($search_province_id){
-               $query->orWhere('companies.province_id', $search_province_id);
-           });
-       }
-       if ($collaborator_id){
-           $companies = $companies->where(function ($query) use ($collaborator_id){
-               $query->orWhere('companies.collaborator_id', $collaborator_id);
-           });
-       }
-
         $companies = $companies->orderBy('companies.name', 'asc')
-            ->paginate(10);
+            ->get();
 
         foreach ($companies as $company) {
+            $student = Student::where('company_id', $company['id'])->first();
+            if ($student) {
+                $company['used'] = true;
+            } else {
+                $advisor = Advisor::where('company_id', $company['id'])->first();
+                if ($advisor){
+                    $company['used'] = true;
+                } else {
+                    $provider = Provider::where('company_id', $company['id'])->first();
+                    if ($provider) {
+                        $company['used'] = true;
+                    } else {
+                        $company['used'] = false;
+                    }
+                }
+            }
             $advisor = Advisor::where('company_id', $company['id'])->first();
-            if (!$advisor) {
+            if ($advisor) {
                 $company['is_advisor'] = true;
+            } else {
+                $company['is_advisor'] = false;
             }
             $provider = Provider::where('company_id', $company['id'])->first();
-            if (!$provider) {
+            if ($provider) {
                 $company['is_provider'] = true;
+            } else {
+                $company['is_provider'] = false;
+            }
+            if ($company['potential'] === 1) {
+                $company['status'] = 'Potencial';
+            } else if ($company['active'] === 0) {
+                $company['status'] = 'Inactivo';
+            } else {
+                $company['status'] = 'Activo';
             }
         }
 
@@ -203,11 +189,20 @@ class Company extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
-            'active' => $data['active'],
             'advisor_id' => $data['advisor_id'],
             'collaborator_id' => $data['collaborator_id'],
-            'potential' => $data['potential']
         ]);
+
+        if ($data['active'] !== '') {
+            $company->update([
+                'active' => $data['active'] == true ? 1 : 0,
+            ]);
+        }
+        if ($data['potential'] !== '') {
+            $company->update([
+                'potential' => $data['potential'] == true ? 1 : 0,
+            ]);
+        }
 
         return $company;
     }
@@ -233,11 +228,21 @@ class Company extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
-            'active' => $data['active'],
             'advisor_id' => $data['advisor_id'],
-            'collaborator_id' => $data['collaborator_id'],
-            'potential' => $data['potential']
+            'collaborator_id' => $data['collaborator_id']
         ]);
+
+        if ($data['active'] !== '') {
+            $company->update([
+                'active' => $data['active'] == true ? 1 : 0,
+            ]);
+        }
+        if ($data['potential'] !== '') {
+            $company->update([
+                'potential' => $data['potential'] == true ? 1 : 0,
+            ]);
+        }
+        return $company;
     }
 
     public static function changeState($id){

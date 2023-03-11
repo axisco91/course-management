@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CompanyActivity extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,8 @@ class CompanyActivity extends Model
         return $this->hasMany('App\Models\Company', 'activity_id', 'id');
     }
 
-    public static function getCompanyActivities($keyWord){
-        $companyActivities = CompanyActivity::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getCompanyActivities(){
+        $companyActivities = CompanyActivity::select('*', 'id as value', 'name as label')->get();
         foreach ($companyActivities as $companyActivity) {
             $company = Company::where('company_activity_id', $companyActivity['id'])->first();
             if ($company) {

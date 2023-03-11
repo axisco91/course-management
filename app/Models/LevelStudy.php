@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LevelStudy extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -23,9 +23,9 @@ class LevelStudy extends Model
         return $this->hasMany('App\Models\Student', 'level_study_id', 'id');
     }
 
-    public static function getLevelStudies($keyWord){
-        $level_studies = LevelStudy::orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getLevelStudies(){
+        $level_studies = LevelStudy::select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($level_studies as $level_study){
             $student = Student::where('level_study_id', $level_study['id'])->first();
             if ($student){

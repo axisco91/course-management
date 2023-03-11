@@ -6,10 +6,11 @@ use App\Helpers\GeneralHelpers;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Registration extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = true;
 
@@ -79,30 +80,21 @@ class Registration extends Model
         return $this->hasOne('App\Models\billing', 'id', 'billing_id');
     }
 
-    public static function getRegistrated($course_id, $search_name, $search_surname){
-        $registations = Student::select('students.*', 'registrations.is_bonus', 'companies.name as company_name')
+    public static function getRegistrated($course_id){
+        $registations = Student::select('students.*', 'registrations.is_bonus', 'companies.name as company_name',
+            'registrations.id as registration_id',
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"))
             ->leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
             ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
-            ->where('registrations.course_id', $course_id)
-            ->where(function ($query) use ($search_name){
-                $query->orWhere('students.name', 'LIKE', $search_name);
-            }) ->where(function ($query) use ($search_surname){
-                $query->orWhere('surname', 'LIKE', $search_surname);
-            })->get();
+            ->where('registrations.course_id', $course_id)->get();
 
         return $registations;
     }
 
-    public static function getUnregistrated($course_id, $search_name_unregisterd, $search_surname_unregisterd){
+    public static function getUnregistrated($course_id){
         $registations = Student::leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
-            ->where('registrations.course_id', '=', $course_id)->get();
-        $unregisted = Student::where(function ($query) use ($search_name_unregisterd){
-                $query->orWhere('name', 'LIKE', $search_name_unregisterd);
-            }) ->where(function ($query) use ($search_surname_unregisterd){
-                $query->orWhere('surname', 'LIKE', $search_surname_unregisterd);
-            })->get();
-
-        $unregisted = $unregisted->whereNotIn('id', $registations->pluck('student_id'));
+            ->where('registrations.course_id', '=', $course_id)->pluck('student_id');
+        $unregisted = Student::select('students.*', 'students.id as value', DB::raw("CONCAT(students.name,' ',students.surname) as label"))->where('active', 1)->whereNotIn('id', $registations)->get();
 
         return $unregisted;
     }
@@ -197,14 +189,9 @@ class Registration extends Model
         return $registrations->count();
     }
 
-    public static function getStudentCourses($id, $search_course_name, $search_group){
+    public static function getStudentCourses($id){
         $registations = Registration::select('courses.*')->leftJoin('courses', 'registrations.course_id', '=', 'courses.id')
-            ->where('registrations.student_id', $id)
-            ->where(function ($query) use ($search_course_name){
-                $query->orWhere('courses.name', 'LIKE', $search_course_name);
-            })->where(function ($query) use ($search_group){
-                $query->orWhere('courses.group', 'LIKE', $search_group);
-            })->get();
+            ->where('registrations.student_id', $id)->get();
         foreach ($registations as $registation){
             $beginning = Carbon::parse($registation['beginning'])->format('d/m/Y');
             $registation['beginning'] = $beginning;
