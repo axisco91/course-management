@@ -153,7 +153,7 @@ class Course extends Model
             'half_date' => $course_info['half'],
             'three_quarters_date' => $course_info['three_quarters'],
             'final_date' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
-            'course_status_id' => $data['course_status_id'],
+            'course_status_id' => $course_info['course_status_id'],
             'price' => $data['price'],
         ]);
 
@@ -234,7 +234,7 @@ class Course extends Model
             'half_date' => $course_info['half'],
             'three_quarters_date' => $course_info['three_quarters'],
             'final_date' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
-            'course_status_id' => $data['course_status_id'],
+            'course_status_id' => $course_info['course_status_id'],
             'price' => $data['price'],
         ]);
 

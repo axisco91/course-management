@@ -14,7 +14,7 @@ class Center extends Model
     protected $fillable = ['name','address','email','telephone'];
 
     public static function getCenters(){
-        $centers = Center::get();
+        $centers = Center::select('centers.*', 'id as value', 'name as label')->get();
         foreach ($centers as $center) {
             $course = Course::orWhere('delivery_center_id', $center['id'])
                 ->orWhere('formation_center_id', $center['id'])->first();

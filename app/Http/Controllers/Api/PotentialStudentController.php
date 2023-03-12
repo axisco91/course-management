@@ -1,10 +1,13 @@
 <?php
 
 namespace App\Http\Controllers\API;
+use App\Mail\PotentialPrivateStudent as PotentialPrivateEmail;
+use App\Mail\PotentialStudent as PotentialEmail;
 use App\Models\PotentialStudent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Mockery\Exception;
 
 class PotentialStudentController extends BaseController
 {
@@ -79,6 +82,56 @@ class PotentialStudentController extends BaseController
                     'error' => $e->getMessage()
                 ]);
             }
+        }
+    }
+
+    public function sendEmail(Request $request){
+        $data = json_decode($request->getContent(), true);
+        if ($data['email']){
+            try {
+                Mail::to($data['email'])->send(new PotentialPrivateEmail());
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch(Exception $e) {
+
+            }
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Error al enviar correo'
+        ]);
+    }
+
+    public function sendBonusEmail(Request $request){
+        $data = json_decode($request->getContent(), true);
+        if ($data['email']){
+            try {
+                Mail::to($data['email'])->send(new PotentialEmail());
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch(Exception $e) {
+
+            }
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Error al enviar correo'
+        ]);
+    }
+
+    public function checkDni(Request $request){
+        $data = json_decode($request->getContent(), true);
+        $dni = PotentialStudent::findDni($data['dni'], $data['id']);
+        if ($dni){
+            return response()->json([
+                'exists' => true
+            ]);
+        } else {
+            return response()->json([
+                'exists' => false
+            ]);
         }
     }
 }

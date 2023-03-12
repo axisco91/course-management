@@ -90,7 +90,7 @@ class CoursesCreate extends Component
             'three_quarters_date' => $course_info['three_quarters'],
             'final_date' => $this-> end,
             'course_status_id' => $course_info['course_status_id'],
-            'price' => $this-> price,
+            'price' => $this-> price
         ];
 
         $course = Course::createCourse($data);
