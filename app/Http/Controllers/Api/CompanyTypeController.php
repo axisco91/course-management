@@ -81,4 +81,8 @@ class CompanyTypeController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return CompanyType::count();
+    }
 }

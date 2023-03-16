@@ -81,4 +81,8 @@ class LevelStudyController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return LevelStudy::count();
+    }
 }

@@ -132,4 +132,8 @@ class CertificationController extends BaseController
             'data' => $data
         ]);
     }
+
+    public function count(){
+        return Certification::count();
+    }
 }

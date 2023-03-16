@@ -34,7 +34,7 @@ class TrainingContractElement extends Model
                 $certification = Certification::find($element_id);
                 $hours = $certification['total_hours'];
             }
-        } else if ($type == 'specialty_id'){
+        } else if ($type == 'training_action_id'){
             $training_contract_element = TrainingContractElement::where('training_action_id', $element_id)
                 ->where('training_contract_id', $training_contract_id)->first();
             if (!$training_contract_element){
@@ -54,9 +54,9 @@ class TrainingContractElement extends Model
         return $training_contract_element;
     }
 
-    public static function deleteTrainingContractElement($training_contract_id, $id){
-        $training_contract = TrainingContract::find($training_contract_id);
+    public static function deleteTrainingContractElement($id){
         $training_contract_element = TrainingContractElement::find($id);
+        $training_contract = TrainingContract::find($training_contract_element->training_contract_id);
         $hours = 0;
         if ($training_contract){
             if ($training_contract_element){

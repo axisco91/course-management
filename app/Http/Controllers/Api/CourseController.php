@@ -91,4 +91,8 @@ class CourseController extends BaseController
     public function getStudents($id){
         return response()->json(Registration::getRegistrated($id));
     }
+
+    public function count(){
+        return Course::count();
+    }
 }

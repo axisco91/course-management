@@ -81,4 +81,8 @@ class OnLeaveController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return OnLeaveType::count();
+    }
 }

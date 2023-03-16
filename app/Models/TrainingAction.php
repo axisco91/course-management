@@ -221,8 +221,13 @@ class TrainingAction extends Model
     }
 
     public static function getSpecialties($id){
-        $training_actions = TrainingAction::where('active', 1)
-            ->where('specialty', 1)->get();
+        $training_contracts_specialties = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
+            ->whereNotNull('training_action_id')
+            ->pluck('training_action_id');
+        $training_actions = TrainingAction::select('training_actions.*', 'training_actions.id as value', 'training_actions.name as label')
+            ->where('active', 1)
+            ->where('specialty', 1)
+            ->whereNotIn('id', $training_contracts_specialties)->get();
         return $training_actions;
     }
 }

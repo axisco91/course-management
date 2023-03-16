@@ -77,4 +77,17 @@ class TrainingContractsExcludedDay extends Model
         }
         return true;
     }
+
+    public static function nonWorkingDay($training_contract_id, $date){
+        $excluded_day = ExcludedDay::where('day', $date)->first();
+
+        if ($excluded_day){
+            $training_contract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $training_contract_id)->where('excluded_day_id', $excluded_day->id)
+            ->first();
+            if ($training_contract_excluded){
+                return true;
+            }
+        }
+        return false;
+    }
 }

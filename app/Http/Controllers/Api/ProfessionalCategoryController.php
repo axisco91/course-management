@@ -81,4 +81,8 @@ class ProfessionalCategoryController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return ProfessionalCategory::count();
+    }
 }

@@ -88,4 +88,8 @@ class ChoreController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return Chore::count();
+    }
 }

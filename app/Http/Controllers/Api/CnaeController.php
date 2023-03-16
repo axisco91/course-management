@@ -81,4 +81,8 @@ class CnaeController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return Cnae::count();
+    }
 }

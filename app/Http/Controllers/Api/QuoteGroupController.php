@@ -81,4 +81,8 @@ class QuoteGroupController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return QuoteGroup::count();
+    }
 }

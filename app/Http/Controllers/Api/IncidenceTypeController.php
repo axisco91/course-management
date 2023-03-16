@@ -81,4 +81,8 @@ class IncidenceTypeController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return IncidenceType::count();
+    }
 }

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
+use Carbon\Carbon;
 
 class ExamTutorial extends Model
 {
@@ -23,6 +23,25 @@ class ExamTutorial extends Model
     }
 
     public static function createExamsTutorial($data){
-        return ExamTutorial::create($data);
+        return ExamTutorial::create([
+            'training_contract_id' => $data['training_contract_id'],
+            'center_id' => $data['center_id'],
+            'type' => $data['type'],
+            'date' => $data['date'],
+            'beginning' => Carbon::createFromFormat('H:i:s', $data['beginning'].':00')->toTimeString(),
+            'end' => $data['end'] ? Carbon::createFromFormat('H:i:s', $data['end'].':00')->toTimeString() : ''
+        ]);;
+    }
+
+    public static function updateExamsTutorial($id, $data){
+        $exam_tutorial = ExamTutorial::find($id);
+        return $exam_tutorial->create([
+            'training_contract_id' => $data['training_contract_id'],
+            'center_id' => $data['center_id'],
+            'type' => $data['type'],
+            'date' => $data['date'],
+            'beginning' => Carbon::createFromFormat('H:i:s', $data['beginning'].':00')->toTimeString(),
+            'end' => $data['end'] ? Carbon::createFromFormat('H:i:s', $data['end'].':00')->toTimeString() : ''
+        ]);;
     }
 }

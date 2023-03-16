@@ -1,19 +1,19 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\CourseStatus;
+use App\Models\TrainingContractIncidence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class CourseStatusController extends BaseController
+class TrainingContractIncidenceController extends BaseController
 {
-    public function getCourseStatuses() {
+    public function trainingContractIncidences($id) {
         try {
-            return CourseStatus::getCourseStatuses();
+            return TrainingContractIncidence::getTrainingContractIncidences($id);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'error' => $e.message
             ]);
         }
     }
@@ -21,7 +21,7 @@ class CourseStatusController extends BaseController
     public function create(Request $request){
         $data = json_decode($request->getContent(), true);
         try {
-            $course = CourseStatus::createCourseStatus($data);
+            $incidence = TrainingContractIncidence::createTrainingContractIncidence($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -31,14 +31,14 @@ class CourseStatusController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'course_status' => $course
+            'incidence' => $incidence
         ]);
     }
 
     public function edit($id, Request $request){
         $data = json_decode($request->getContent(), true);
         try {
-            $course = CourseStatus::updateCourseStatus($id, $data);
+            $incidence = TrainingContractIncidence::updateTrainingContractIncidence($id, $data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -48,28 +48,28 @@ class CourseStatusController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'course_status' => $course
+            'incidence' => $incidence
         ]);
     }
 
-    public function getCourseStatus($id){
-        $status = CourseStatus::find($id);
-        if ($status) {
+    public function getTrainingContractIncidence($id){
+        $incidence = TrainingContractIncidence::find($id);
+        if ($incidence) {
             return response()->json([
                 'status' => 200,
-                'course_status' => $status
+                'incidence' => $incidence
             ]);
         }
         return response()->json([
             'status' => 400,
-            'message' => 'Estado no existe'
+            'message' => 'incidences no existe'
         ]);
     }
 
     public function destroy($id){
         if ($id) {
             try {
-                CourseStatus::destroy($id);
+                TrainingContractIncidence::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -80,9 +80,5 @@ class CourseStatusController extends BaseController
                 ]);
             }
         }
-    }
-
-    public function count(){
-        return CourseStatus::count();
     }
 }

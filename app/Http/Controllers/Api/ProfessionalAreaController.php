@@ -81,4 +81,8 @@ class ProfessionalAreaController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return ProfessionalArea::count();
+    }
 }

@@ -81,4 +81,8 @@ class ProvinceController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return Province::count();
+    }
 }

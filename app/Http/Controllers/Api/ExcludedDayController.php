@@ -82,4 +82,8 @@ class ExcludedDayController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return ExcludedDay::count();
+    }
 }

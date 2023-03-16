@@ -1,42 +1,28 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\Modality;
+use App\Models\ExamTutorial;
 use Illuminate\Http\Request;
 
-class ModalityController extends BaseController
+class ExamTutorialController extends BaseController
 {
-    public function modalities() {
-        try {
-            return Modality::getModalities();
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e.message
-            ]);
+
+    public function getExamTutorial($id) {
+        if ($id) {
+            try {
+                return  ExamTutorial::getExamTutorials($id);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
     }
 
     public function create(Request $request){
         $data = json_decode($request->getContent(), true);
         try {
-            $modality = Modality::createModality($data);
-        } catch (\Exception $e){
-            return response()->json([
-                'status' => 400,
-                'message' => $e->getMessage()
-            ]);
-        }
-
-        return response()->json([
-            'status' => 200,
-            'modality' => $modality
-        ]);
-    }
-
-    public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
-        try {
-            $modality = Modality::updateModality($id, $data);
+            $exam_tutorial = ExamTutorial::createExamsTutorial($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -46,28 +32,31 @@ class ModalityController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'modality' => $modality
+            'exam_tutorial' => $exam_tutorial,
         ]);
     }
 
-    public function getModality($id){
-        $modality = Modality::find($id);
-        if ($modality) {
+    public function update($id, Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $exam_tutorial = ExamTutorial::updateExamsTutorial($id, $data);
+        } catch (\Exception $e){
             return response()->json([
-                'status' => 200,
-                'modality' => $modality
+                'status' => 400,
+                'error' => $e->getMessage()
             ]);
         }
+
         return response()->json([
-            'status' => 400,
-            'message' => 'Modalidad no existe'
+            'status' => 200,
+            'exam_tutorial' => $exam_tutorial,
         ]);
     }
 
     public function destroy($id){
         if ($id) {
             try {
-                Modality::destroy($id);
+                ExamTutorial::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -80,7 +69,4 @@ class ModalityController extends BaseController
         }
     }
 
-    public function count(){
-        return Modality::count();
-    }
 }

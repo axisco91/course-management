@@ -81,4 +81,8 @@ class ActionTypeController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return ActionType::count();
+    }
 }

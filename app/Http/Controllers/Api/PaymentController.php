@@ -81,4 +81,8 @@ class PaymentController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return Payment::count();
+    }
 }

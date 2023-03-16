@@ -82,4 +82,8 @@ class UserController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return User::count();
+    }
 }

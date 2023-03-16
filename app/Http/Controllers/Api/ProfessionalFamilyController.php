@@ -81,4 +81,8 @@ class ProfessionalFamilyController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return ProfessionalFamily::count();
+    }
 }

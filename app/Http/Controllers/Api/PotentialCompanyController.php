@@ -81,4 +81,8 @@ class PotentialCompanyController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return PotentialCompany::count();
+    }
 }

@@ -101,4 +101,8 @@ class TeacherController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return Teacher::count();
+    }
 }

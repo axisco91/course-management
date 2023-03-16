@@ -81,4 +81,8 @@ class TrainingActionGroupController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return TrainingActionGroup::count();
+    }
 }

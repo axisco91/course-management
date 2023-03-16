@@ -1,19 +1,19 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\CourseStatus;
+use App\Models\TrainingContractStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class CourseStatusController extends BaseController
+class TrainingContractStatusController extends BaseController
 {
-    public function getCourseStatuses() {
+    public function getTrainingContractStatuses() {
         try {
-            return CourseStatus::getCourseStatuses();
+            return TrainingContractStatus::getTrainingContractStatus();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'error' => $e.message
             ]);
         }
     }
@@ -21,7 +21,7 @@ class CourseStatusController extends BaseController
     public function create(Request $request){
         $data = json_decode($request->getContent(), true);
         try {
-            $course = CourseStatus::createCourseStatus($data);
+            $status = TrainingContractStatus::createTrainingContractStatus($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -31,14 +31,14 @@ class CourseStatusController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'course_status' => $course
+            'training_contract_status' => $status
         ]);
     }
 
     public function edit($id, Request $request){
         $data = json_decode($request->getContent(), true);
         try {
-            $course = CourseStatus::updateCourseStatus($id, $data);
+            $status = TrainingContractStatus::updateTrainingContractStatus($id, $data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -48,16 +48,16 @@ class CourseStatusController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'course_status' => $course
+            'training_contract_status' => $status
         ]);
     }
 
-    public function getCourseStatus($id){
-        $status = CourseStatus::find($id);
+    public function getTrainingContractStatus($id){
+        $status = TrainingContractStatus::find($id);
         if ($status) {
             return response()->json([
                 'status' => 200,
-                'course_status' => $status
+                'training_contract_status' => $status
             ]);
         }
         return response()->json([
@@ -69,7 +69,7 @@ class CourseStatusController extends BaseController
     public function destroy($id){
         if ($id) {
             try {
-                CourseStatus::destroy($id);
+                TrainingContractStatus::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -82,7 +82,7 @@ class CourseStatusController extends BaseController
         }
     }
 
-    public function count(){
-        return CourseStatus::count();
+    public function count() {
+        return TrainingContractStatus::count();
     }
 }

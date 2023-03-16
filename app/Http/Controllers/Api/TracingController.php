@@ -81,4 +81,8 @@ class TracingController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return Tracing::count();
+    }
 }

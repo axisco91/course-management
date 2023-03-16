@@ -103,4 +103,8 @@ class StudentController extends BaseController
             }
         }
     }
+
+    public function countStudents(){
+        return Student::count();
+    }
 }

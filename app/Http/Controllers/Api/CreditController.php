@@ -67,4 +67,8 @@ class CreditController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return Credit::count();
+    }
 }

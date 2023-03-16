@@ -82,4 +82,8 @@ class WebPlatformController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return WebPlatform::count();
+    }
 }

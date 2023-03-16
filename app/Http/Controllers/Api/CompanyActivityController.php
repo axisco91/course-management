@@ -81,4 +81,8 @@ class CompanyActivityController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return CompanyActivity::count();
+    }
 }

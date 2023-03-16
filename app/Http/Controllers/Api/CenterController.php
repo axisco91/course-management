@@ -81,4 +81,8 @@ class CenterController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return Center::count();
+    }
 }

@@ -83,4 +83,8 @@ class BillingController extends BaseController
     {
         return response()->json(Student::getBilledStudent($id));
     }
+
+    public function count(){
+        return Billing::count();
+    }
 }

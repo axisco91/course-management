@@ -134,4 +134,8 @@ class PotentialStudentController extends BaseController
             ]);
         }
     }
+
+    public function count(){
+        return PotentialStudent::count();
+    }
 }

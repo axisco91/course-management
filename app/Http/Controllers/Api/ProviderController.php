@@ -91,4 +91,8 @@ class ProviderController extends BaseController
     public function getTrainingActions($id){
         return TrainingAction::getProviderTrainingActions($id);
     }
+
+    public function count(){
+        return Provider::count();
+    }
 }

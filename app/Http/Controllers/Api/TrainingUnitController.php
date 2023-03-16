@@ -81,4 +81,8 @@ class TrainingUnitController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return TrainingUnit::count();
+    }
 }

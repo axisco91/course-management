@@ -161,4 +161,8 @@ class CompanyController extends BaseController
     public function getCompanyStudents($id) {
         return Student::getCompanyStudents($id);
     }
+
+    public function count(){
+        return Company::count();
+    }
 }

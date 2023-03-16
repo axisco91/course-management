@@ -80,4 +80,8 @@ class TutoringController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return Tutoring::count();
+    }
 }

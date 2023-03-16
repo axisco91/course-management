@@ -127,4 +127,8 @@ class ModuleController extends BaseController
             'data' => $data
         ]);
     }
+
+    public function count(){
+        return Module::count();
+    }
 }

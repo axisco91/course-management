@@ -111,4 +111,8 @@ class TrainingActionController extends BaseController
     public function getCourses($id) {
         return Course::getTrainingActionCourse($id);
     }
+
+    public function count(){
+        return TrainingAction::count();
+    }
 }

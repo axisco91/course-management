@@ -147,4 +147,8 @@ class AdvisorController extends BaseController
             return 0;
         }
     }
+
+    public function count(){
+        return Advisor::count();
+    }
 }

@@ -48,4 +48,8 @@ class TeacherAreaController extends BaseController
             return 1;
         }
     }
+
+    public function count(){
+        return TeacherArea::count();
+    }
 }

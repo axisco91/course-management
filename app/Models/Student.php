@@ -142,6 +142,10 @@ class Student extends Model
             $student->update([
                 'active' => $data['active'] ? 1 : 0
             ]);
+        } else {
+            $student->update([
+                'active' => 1
+            ]);
         }
         if ('disabled' !== '') {
             $student->update([

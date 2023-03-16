@@ -94,4 +94,8 @@ class ProfitabilityController extends BaseController
         $students = Student::whereIn('id', $registrations)->get();
         return response()->json($students);
     }
+
+    public function count(){
+        return Profitability::count();
+    }
 }

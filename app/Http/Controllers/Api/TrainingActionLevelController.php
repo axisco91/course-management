@@ -81,4 +81,8 @@ class TrainingActionLevelController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return TrainingActionLevel::count();
+    }
 }

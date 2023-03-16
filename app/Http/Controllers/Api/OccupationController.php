@@ -81,4 +81,8 @@ class OccupationController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return Occupation::count();
+    }
 }

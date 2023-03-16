@@ -81,4 +81,8 @@ class CourseTypeController extends BaseController
             }
         }
     }
+
+    public function count(){
+        return CourseType::count();
+    }
 }
