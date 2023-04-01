@@ -31,7 +31,7 @@ class ProfessionalAreaController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'professional_area' => $area
+            'professional_area' => ProfessionalArea::getProfessionalArea($area->id)
         ]);
     }
 
@@ -48,12 +48,12 @@ class ProfessionalAreaController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'professional_area' => $area
+            'professional_area' => ProfessionalArea::getProfessionalArea($area->id)
         ]);
     }
 
     public function getProfessionalArea($id){
-        $area = ProfessionalArea::find($id);
+        $area = ProfessionalArea::getProfessionalArea($id);
         if ($area) {
             return response()->json([
                 'status' => 200,

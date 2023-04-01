@@ -21,7 +21,8 @@ class BankHolidayGroup extends Model
     }
 
     public static function getBankHolidayGroup($start = null, $end = null){
-        $groups = BankHolidayGroup::select('bank_holiday_groups.*')
+        $groups = BankHolidayGroup::select('bank_holiday_groups.*',
+            'bank_holiday_groups.id as value', 'bank_holiday_groups.name as label')
             ->leftjoin('bank_holiday_groups_excluded_days', 'bank_holiday_groups_excluded_days.group_id', '=', 'bank_holiday_groups.id')
             ->leftjoin('excluded_days', 'excluded_days.id', '=', 'bank_holiday_groups_excluded_days.excluded_day_id');
         if ($start && $end){

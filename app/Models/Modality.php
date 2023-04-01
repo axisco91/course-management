@@ -36,6 +36,18 @@ class Modality extends Model
         return $modalities;
     }
 
+    public static function getModality($id){
+        $modality = Modality::select('*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $training_action = TrainingAction::where('modality_id', $modality['id'])->first();
+        if ($training_action){
+            $modality['used'] = true;
+        } else {
+            $modality['used'] = false;
+        }
+        return $modality;
+    }
+
     public static function createModality($data){
         $modality = Modality::create([
             'name' => $data['name']

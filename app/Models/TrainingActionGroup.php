@@ -36,6 +36,18 @@ class TrainingActionGroup extends Model
         return $training_action_groups;
     }
 
+    public static function getTrainingActionGroup($id){
+        $group = TrainingActionGroup::select('*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $training_action = TrainingAction::where('training_action_group_id', $group['id'])->first();
+        if ($training_action){
+            $group['used'] = true;
+        } else {
+            $group['used'] = false;
+        }
+        return $group;
+    }
+
     public static function createTrainingActionGroup($data){
         $training_action_group = TrainingActionGroup::create([
             'name' => $data['name']

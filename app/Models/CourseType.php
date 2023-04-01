@@ -36,7 +36,21 @@ class CourseType extends Model
         return $course_types;
     }
 
+    public static function getCourseType($id){
+        $course_type = CourseType::select('*', 'id as value', 'name as label')
+            ->where('id', $id)
+            ->first();
+        $course = Course::where('course_type_id', $course_type['id'])->first();
+        if ($course){
+            $course_type['used'] = true;
+        } else {
+            $course_type['used'] = false;
+        }
+        return $course_type;
+    }
+
     public static function createCourseType($data){
+        $data = (array) $data;
         $course_type = CourseType::create([
             'name' => $data['name']
         ]);

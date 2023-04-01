@@ -21,7 +21,7 @@ class CertificationElement extends Model
             'training_units.formative_unit', 'modules.name as module_name', 'modules.formative_module')
             ->leftjoin('training_units', 'training_units.id', '=', 'certification_elements.training_unit_id')
             ->leftjoin('modules', 'modules.id', '=', 'certification_elements.module_id')
-            ->where('certification_id', $certification_id)->get();
+            ->where('certification_elements.certification_id', $certification_id)->get();
         return $certification_elements;
     }
 

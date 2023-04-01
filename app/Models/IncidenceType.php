@@ -32,7 +32,15 @@ class IncidenceType extends Model
         $incidence_type = IncidenceType::create([
             'name' => $data['name']
         ]);
-
+        $incidence_type = IncidenceType::
+        select('incidence_types.*', 'id as value', 'name as label')
+            ->where('id', $incidence_type->id)->first();
+        $incidences = AdvisorIncidence::where('incidence_type_id', $incidence_type['id'])->first();
+        if ($incidences){
+            $incidence_type['used'] = true;
+        } else {
+            $incidence_type['used'] = false;
+        }
         return $incidence_type;
     }
 
@@ -42,6 +50,19 @@ class IncidenceType extends Model
             'name' => $data['name']
         ]);
 
+        return $incidence_type;
+    }
+
+    public function getIncidenceType($id){
+        $incidence_type = IncidenceType::
+        select('incidence_types.*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $incidences = AdvisorIncidence::where('incidence_type_id', $incidence_type['id'])->first();
+        if ($incidences){
+            $incidence_type['used'] = true;
+        } else {
+            $incidence_type['used'] = false;
+        }
         return $incidence_type;
     }
 }

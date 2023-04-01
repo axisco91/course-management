@@ -33,7 +33,7 @@ class ModuleController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'module' => $module
+            'module' => Module::getModule($module->id)
         ]);
     }
 
@@ -50,12 +50,12 @@ class ModuleController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'module' => $module
+            'module' => Module::getModule($module->id)
         ]);
     }
 
     public function getModule($id){
-        $module = Module::find($id);
+        $module = Module::getModule($id);
         if ($module) {
             return response()->json([
                 'status' => 200,
@@ -108,7 +108,7 @@ class ModuleController extends BaseController
         return response()->json([
             'status' => 200,
             'training_unit_module' => TrainingUnitsModule::getTrainingUnitModule($training_unit->id),
-            'module' => Module::find($training_unit->id)
+            'module' => Module::getModule($id)
         ]);
     }
 

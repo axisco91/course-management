@@ -31,7 +31,7 @@ class ProfessionalFamilyController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'professional_family' => $family
+            'professional_family' => ProfessionalFamily::getProfessionalFamily($family->id)
         ]);
     }
 
@@ -48,12 +48,12 @@ class ProfessionalFamilyController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'professional_family' => $family
+            'professional_family' => ProfessionalFamily::getProfessionalFamily($family->id)
         ]);
     }
 
     public function getProfessionalFamily($id){
-        $family = ProfessionalFamily::find($id);
+        $family = ProfessionalFamily::getProfessionalFamily($id);
         if ($family) {
             return response()->json([
                 'status' => 200,

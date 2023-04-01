@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Validator;
 
 class TrainingActionLevelController extends BaseController
 {
-    public function trainingActionLevels() {
+    public function getTrainingActionLevels() {
         try {
-            return TrainingActionLevel::getTrainingActionLevel();
+            return TrainingActionLevel::getTrainingActionLevels();
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e.message
@@ -31,7 +31,7 @@ class TrainingActionLevelController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_action_level' => $level
+            'training_action_level' => TrainingActionLevel::getTrainingActionLevel($level->id)
         ]);
     }
 
@@ -48,12 +48,12 @@ class TrainingActionLevelController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_action_level' => $level
+            'training_action_level' => TrainingActionLevel::getTrainingActionLevel($id)
         ]);
     }
 
     public function getTrainingActionLevel($id){
-        $level = TrainingActionLevel::find($id);
+        $level = TrainingActionLevel::getTrainingActionLevel($id);
         if ($level) {
             return response()->json([
                 'status' => 200,

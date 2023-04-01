@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\API;
+use App\Models\TrainingAction;
 use App\Models\TrainingActionGroup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -31,7 +32,7 @@ class TrainingActionGroupController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'group' => $group
+            'training_action_group' => TrainingActionGroup::getTrainingActionGroup($group->id)
         ]);
     }
 
@@ -48,12 +49,12 @@ class TrainingActionGroupController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_action_group' => $group
+            'training_action_group' => TrainingActionGroup::getTrainingActionGroup($group->id)
         ]);
     }
 
     public function getTrainingActionGroup($id){
-        $group = TrainingActionGroup::find($id);
+        $group = TrainingActionGroup::getTrainingActionGroup($id);
         if ($group) {
             return response()->json([
                 'status' => 200,

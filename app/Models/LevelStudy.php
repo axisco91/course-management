@@ -37,6 +37,19 @@ class LevelStudy extends Model
         return $level_studies;
     }
 
+    public static function getLevelStudy($id){
+        $level_study = LevelStudy::select('*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $student = Student::where('level_study_id', $level_study['id'])->first();
+        if ($student){
+            $level_study['used'] = true;
+        } else {
+            $level_study['used'] = false;
+        }
+        return $level_study;
+    }
+
+
     public static function createLevelStudy($data){
         $level_study = LevelStudy::create([
             'name' => $data['name']

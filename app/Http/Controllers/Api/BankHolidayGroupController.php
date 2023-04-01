@@ -1,19 +1,25 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\Province;
+use App\Models\ActionType;
+use App\Models\BankHolidayGroup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class ProvinceController extends BaseController
+class BankHolidayGroupController extends BaseController
 {
-    public function provinces() {
+
+    public function getBankHolidayGroups(Request $request) {
+        $data = json_decode($request->getContent(), true);
         try {
-            return Province::getProvinces();
+            if ($data) {
+                return BankHolidayGroup::getBankHolidayGroup($data['beginning'], $data['end']);
+            }
+            return BankHolidayGroup::getBankHolidayGroup();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'error' => $e.message
             ]);
         }
     }
@@ -21,7 +27,7 @@ class ProvinceController extends BaseController
     public function create(Request $request){
         $data = json_decode($request->getContent(), true);
         try {
-            $province = Province::createProvince($data);
+            $action_type = ActionType::createActionType($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -31,14 +37,14 @@ class ProvinceController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'province' => $province
+            'action_type' => $action_type
         ]);
     }
 
     public function edit($id, Request $request){
         $data = json_decode($request->getContent(), true);
         try {
-            $province = Province::updateProvince($id, $data);
+            $action_type = ActionType::updateActionType($id, $data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -48,28 +54,28 @@ class ProvinceController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'province' => $province
+            'action_type' => $action_type
         ]);
     }
 
-    public function getProvince($id){
-        $province = Province::find($id);
-        if ($province) {
+    public function getActionType($id){
+        $action_type = ActionType::find($id);
+        if ($action_type) {
             return response()->json([
                 'status' => 200,
-                'province' => $province
+                'action_type' => $action_type
             ]);
         }
         return response()->json([
             'status' => 400,
-            'message' => 'Provincia no existe'
+            'message' => 'Tipo Acción no existe'
         ]);
     }
 
     public function destroy($id){
         if ($id) {
             try {
-                Province::destroy($id);
+                ActionType::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -83,19 +89,6 @@ class ProvinceController extends BaseController
     }
 
     public function count(){
-        return Province::count();
-    }
-
-    public function provincesWithExcludedDays(Request $request) {
-        try {
-            if ($request){
-                return Province::getProvincesWithExcludedDays($request->beginning, $request->end);
-            }
-            return Province::getProvincesWithExcludedDays();
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage()
-            ]);
-        }
+        return ActionType::count();
     }
 }

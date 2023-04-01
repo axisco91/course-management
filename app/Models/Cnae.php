@@ -36,11 +36,30 @@ class Cnae extends Model
         return $cnaes;
     }
 
+    public static function getCnae($id){
+        $cnae = Cnae::select('*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $company = Company::where('cnae_id', $cnae['id'])->first();
+        if ($company){
+            $cnae['used'] = true;
+        } else {
+            $cnae['used'] = false;
+        }
+        return $cnae;
+    }
+
     public static function createCnae($data){
         $cnae = Cnae::create([
             'name' => $data['name']
         ]);
-
+        $cnae = Cnae::select('*', 'id as value', 'name as label')
+            ->where('id', $cnae->id)->first();
+        $company = Company::where('cnae_id', $cnae['id'])->first();
+        if ($company){
+            $cnae['used'] = true;
+        } else {
+            $cnae['used'] = false;
+        }
         return $cnae;
     }
 

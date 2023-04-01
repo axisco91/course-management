@@ -23,7 +23,7 @@ class ProfessionalCategory extends Model
 
     public static function getProfessionalCategories(){
         $professional_categories = ProfessionalCategory::
-        select('*', 'id as value', 'name as value')
+        select('professional_categories.*', 'id as value', 'name as label')
             ->get();
         foreach ($professional_categories as $professional_category){
             $student = Student::where('professional_category_id', $professional_category['id'])->first();
@@ -36,9 +36,22 @@ class ProfessionalCategory extends Model
         return $professional_categories;
     }
 
-    public function createProfessionalCategory($data){
+    public static function getProfessionalCategory($id){
+        $professional_category = ProfessionalCategory::
+        select('professional_categories.*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $student = Student::where('professional_category_id', $professional_category['id'])->first();
+        if ($student) {
+            $professional_category['used'] = true;
+        } else {
+            $professional_category['used'] = false;
+        }
+        return $professional_category;
+    }
+
+    public static function createProfessionalCategory($data){
         $professional_category = ProfessionalCategory::create([
-            'name' => $this-> name
+            'name' => $data['name']
         ]);
         return $professional_category;
     }

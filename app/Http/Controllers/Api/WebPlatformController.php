@@ -22,7 +22,7 @@ class WebPlatformController extends BaseController
     public function create(Request $request){
         $data = json_decode($request->getContent(), true);
         try {
-            $web = WebPlatform::createProfitability($data);
+            $web = WebPlatform::createWebPlatform($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -32,14 +32,14 @@ class WebPlatformController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'web_platform' => $web
+            'web_platform' => WebPlatform::getWebPlatform($web->id)
         ]);
     }
 
     public function edit($id, Request $request){
         $data = json_decode($request->getContent(), true);
         try {
-            $web = WebPlatform::updateUser($id, $data);
+            $web = WebPlatform::updateWebPlatform($id, $data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -49,7 +49,7 @@ class WebPlatformController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'web_platform' => $web
+            'web_platform' => WebPlatform::getWebPlatform($web->id)
         ]);
     }
 

@@ -56,6 +56,10 @@ use App\Http\Controllers\API\TrainingContractIncidenceController;
 use App\Http\Controllers\API\RegistrationController;
 use App\Http\Controllers\API\TrainingContractElementController;
 use App\Http\Controllers\API\ExamTutorialController;
+use App\Http\Controllers\API\BankHolidayGroupController;
+use App\Http\Controllers\API\TrainingContractExcludedDayController;
+use App\Http\Controllers\API\TrainingContractBonusController;
+use App\Http\Controllers\API\CertificationElementController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -104,7 +108,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('/{id}', 'getActionType');
+            Route::get('get/{id}', 'getActionType');
             Route::get('count', 'count');
         });
     });
@@ -156,6 +160,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'getCourseType');
             Route::get('count', 'count');
         });
     });
@@ -198,6 +203,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'getIncidenceType');
             Route::get('count', 'count');
         });
     });
@@ -207,7 +213,7 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('training-action-levels')->group(function() {
         Route::controller(TrainingActionLevelController::class)->group(function(){
-            Route::get('', 'trainingActionLevels');
+            Route::get('', 'getTrainingActionLevels');
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
@@ -267,7 +273,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getTrainingActionLevel');
+            Route::get('get/{id}', 'getLevelStudy');
             Route::get('count', 'count');
         });
     });
@@ -289,7 +295,7 @@ Route::middleware('auth:sanctum')->group( function () {
     /**
      * Teacher Areas
      */
-    Route::prefix('teacher_areas')->group(function() {
+    Route::prefix('teacher-areas')->group(function() {
         Route::controller(TeacherAreaController::class)->group(function(){
             Route::get('', 'teacherAreas');
             Route::post('create', 'create');
@@ -317,13 +323,13 @@ Route::middleware('auth:sanctum')->group( function () {
     /**
      * Professional Category
      */
-  /*  Route::prefix('professional-categories')->group(function() {
+    Route::prefix('professional-categories')->group(function() {
         Route::controller(ProfessionalCategoryController::class)->group(function(){
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
         });
-    });*/
+    });
 
     /**
      * Professional Family
@@ -348,7 +354,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'modality');
+            Route::get('get/{id}', 'getModality');
             Route::get('count', 'count');
         });
     });
@@ -532,6 +538,19 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
+     * Certifications
+     */
+    Route::prefix('certification-elements')->group(function() {
+        Route::controller(CertificationElementController::class)->group(function(){
+            Route::post('create/{id}', 'create');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('elements/{id}', 'getElements');
+            Route::get('units/{id}', 'getUnits');
+            Route::get('modules/{id}', 'getModules');
+        });
+    });
+
+    /**
      * Modules
      */
     Route::prefix('modules')->group(function() {
@@ -604,6 +623,20 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('{id}', 'trainingContractIncidences');
         });
     });
+
+    /**
+     * Training Contract Bonuses
+     */
+   /* Route::prefix('training-contract-bonuses')->group(function() {
+        Route::controller(TrainingContractBonusController::class)->group(function(){
+            Route::get('generate/{id}', 'generate');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'getTrainingContractBonus');
+            Route::get('{id}', 'trainingContractBonuses');
+        });
+    });*/
 
     /**
      * Chore
@@ -774,10 +807,34 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('/{id}', 'getWebPlatform');
+            Route::get('get/{id}', 'getWebPlatform');
             Route::get('count', 'count');
         });
     });
+
+    Route::prefix('bank-holiday-groups')->group(function() {
+        Route::controller(BankHolidayGroupController::class)->group(function(){
+            Route::get('', 'getBankHolidayGroups');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('/{id}', 'getBankHolidayGroup');
+            Route::get('count', 'count');
+        });
+    });
+
+    /**
+     * Training contract excluded days
+     */
+    Route::prefix('training-contract-excluded-days')->group(function() {
+        Route::controller(TrainingContractExcludedDayController::class)->group(function(){
+            Route::get('', 'getTrainingContractExcludedDays');
+            Route::post('create', 'create');
+            Route::post('createGroup', 'createGroup');
+            Route::get('destroy/{id}', 'destroy');
+        });
+    });
+
 
 });
 
@@ -818,6 +875,7 @@ Route::prefix('provinces')->group(function() {
     Route::controller(ProvinceController::class)->group(function(){
         Route::get('', 'provinces');
         Route::get('get/{id}', 'province');
+        Route::get('provinces-with-excluded-days', 'provincesWithExcludedDays');
     });
 });
 
@@ -829,5 +887,16 @@ Route::prefix('exams-tutorials')->group(function() {
         Route::post('create/{id}', 'create');
         Route::get('destroy/{id}', 'destroy');
         Route::get('{id}', 'getExamTutorial');
+    });
+});
+
+Route::prefix('training-contract-bonuses')->group(function() {
+    Route::controller(TrainingContractBonusController::class)->group(function(){
+        Route::post('generate/{id}', 'generate');
+        Route::post('create', 'create');
+        Route::post('edit/{id}', 'edit');
+        Route::get('destroy/{id}', 'destroy');
+        Route::get('get/{id}', 'getTrainingContractBonus');
+        Route::get('{id}', 'trainingContractBonuses');
     });
 });

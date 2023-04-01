@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\API;
+use App\Models\LevelStudy;
 use App\Models\TeacherArea;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -10,7 +11,7 @@ class TeacherAreaController extends BaseController
 {
     public function teacherAreas() {
         try {
-            return TeacherArea::getTeacherArea();
+            return TeacherArea::getTeacherAreas();
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e->getMessage()
@@ -19,33 +20,66 @@ class TeacherAreaController extends BaseController
     }
 
     public function create(Request $request){
-        $data = [
-            'name' => $request->name
-        ];
+        $data = json_decode($request->getContent(), true);
+        try {
+            $teacher_area = TeacherArea::createTeacherArea($data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
 
-        return TeacherAreaController::createTeacherAreas();;
+        return response()->json([
+            'status' => 200,
+            'teacher_area' => $teacher_area
+        ]);
     }
 
     public function edit($id, Request $request){
-        $data = [
-            'name' =>$request->name
-        ];
-        $training_action = TrainingActionLevel::updateTrainingActionLevel($id, $data);
-        if ($training_action){
-            return 1;
-        } else {
-            return 0;
+        $data = json_decode($request->getContent(), true);
+        try {
+            $teacher_area = TeacherArea::updateTeacherArea($id, $data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'error' => $e->getMessage()
+            ]);
         }
+
+        return response()->json([
+            'status' => 200,
+            'teacher_area' => $teacher_area
+        ]);
     }
 
     public function getTrainingActionLevel($id){
-        return TrainingActionLevel::find($id);
+        $teacher_area = TeacherArea::getTeacherArea($id);
+        if ($teacher_area) {
+            return response()->json([
+                'status' => 200,
+                'teacher_area' => $teacher_area
+            ]);
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Área no existe'
+        ]);
     }
 
     public function destroy($id){
         if ($id) {
-            TrainingActionLevel::destroy($id);
-            return 1;
+            try {
+                TeacherArea::destroy($id);
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 400,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
     }
 

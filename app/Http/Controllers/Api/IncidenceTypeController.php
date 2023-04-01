@@ -53,7 +53,7 @@ class IncidenceTypeController extends BaseController
     }
 
     public function getIncidenceType($id){
-        $type = IncidenceType::find($id);
+        $type = IncidenceType::getIncidenceType($id);
         if ($type) {
             return response()->json([
                 'status' => 200,

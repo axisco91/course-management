@@ -27,7 +27,12 @@ class Module extends Model
     }
 
     public static function getModules(){
-        $modules = Module::select('*')->get();
+        $modules = Module::select('*', 'id as value', 'name as label')->get();
+        return $modules;
+    }
+
+    public static function getModule($id){
+        $modules = Module::select('*', 'id as value', 'name as label')->where('id', $id)->first();
         return $modules;
     }
 
@@ -82,12 +87,14 @@ class Module extends Model
         return $module;
     }
 
-    public static function getModulesNotInCertification($certification_id){
-        $module = Module::leftjoin('certification_elements', 'certification_elements.module_id', 'modules.id')
-            ->where('certification_elements.certification_id', $certification_id)->get();
-        $not_in_certification = Module::where('active', 1)->get();
-        $not_in_certification = $not_in_certification->whereNotIn('id', $module->pluck('modules.id'));
-        return $not_in_certification;
+    public static function getModulesNotInCertification($id){
+        $certifications_modules = CertificationElement::where('certification_elements.certification_id', $id)
+            ->whereNotNull('module_id')
+            ->pluck('module_id');
+        $module = Module::select('modules.*', 'modules.id as value', 'modules.name as label')
+            ->whereNotIn('id', $certifications_modules)
+            ->where('active', 1)->get();
+        return $module;
     }
 
     public function updateHours($exam_difference, $tutoring_difference, $teletraining_difference){

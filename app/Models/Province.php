@@ -57,7 +57,7 @@ class Province extends Model
     }
 
     public static function getProvincesWithExcludedDays($start = null, $end = null){
-        $provinces = Province::select('provinces.*')
+        $provinces = Province::select('provinces.*', 'provinces.id as value', 'provinces.name as label')
             ->leftjoin('excluded_days_provinces', 'excluded_days_provinces.province_id', '=', 'provinces.id')
             ->leftjoin('excluded_days', 'excluded_days.id', '=', 'excluded_days_provinces.excluded_day_id');
         if ($start && $end){

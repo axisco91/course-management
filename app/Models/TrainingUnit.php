@@ -108,12 +108,14 @@ class TrainingUnit extends Model
         return $not_in_module;
     }
 
-    public static function getTrainingUnitsNotInCertification($certification_id){
-        $training_units = TrainingUnit::leftjoin('certification_elements', 'certification_elements.training_unit_id', 'training_units.id')
-            ->where('certification_elements.certification_id', $certification_id)->get();
-        $not_in_certification = TrainingUnit::where('active', 1)->get();
-        $not_in_certification = $not_in_certification->whereNotIn('id', $training_units->pluck('training_units.id'));
-        return $not_in_certification;
+    public static function getTrainingUnitsNotInCertification($id){
+        $certification_units = CertificationElement::where('certification_elements.certification_id', $id)
+            ->whereNotNull('training_unit_id')
+            ->pluck('training_unit_id');
+        $units = TrainingUnit::select('training_units.*', 'training_units.id as value', 'training_units.name as label')
+            ->whereNotIn('id', $certification_units)
+            ->where('active', 1)->get();
+        return $units;
     }
 
 }

@@ -26,7 +26,7 @@ class ProfessionalFamily extends Model
         select('*', 'id as value', 'name as label')
             ->get();
         foreach ($professional_families as $professional_family){
-            $training_action = TrainingAction::where('professional_family_id', $professional_family['id']);
+            $training_action = TrainingAction::where('professional_family_id', $professional_family['id'])->first();
             if ($training_action){
                 $professional_family['used'] = true;
             } else {
@@ -34,6 +34,19 @@ class ProfessionalFamily extends Model
             }
         }
         return $professional_families;
+    }
+
+    public static function getProfessionalFamily($id){
+        $professional_family = ProfessionalFamily::
+        select('*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $training_action = TrainingAction::where('professional_family_id', $professional_family['id'])->first();
+        if ($training_action){
+            $professional_family['used'] = true;
+        } else {
+            $professional_family['used'] = false;
+        }
+        return $professional_family;
     }
 
     public static function createProfessionalFamily($data){

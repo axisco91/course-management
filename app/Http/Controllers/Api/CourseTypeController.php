@@ -31,7 +31,7 @@ class CourseTypeController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'course_type' => $type
+            'course_type' => CourseType::getCourseType($type->id)
         ]);
     }
 
@@ -48,12 +48,12 @@ class CourseTypeController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'course_type' => $type
+            'course_type' => CourseType::getCourseType($type->id)
         ]);
     }
 
-    public function getCoursetype($id){
-        $type = CourseType::find($id);
+    public function getCourseType($id){
+        $type = CourseType::getCourseType($id);
         if ($type) {
             return response()->json([
                 'status' => 200,

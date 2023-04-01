@@ -11,7 +11,7 @@ class ExcludedDay extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['day', 'general', 'province_id'];
+    protected $fillable = ['day', 'general'];
 
     public static function getExcludedDays(){
         $excludedDay = ExcludedDay::select('excluded_days.*', 'id as value', 'day as label')

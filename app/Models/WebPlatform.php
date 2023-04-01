@@ -36,6 +36,20 @@ class WebPlatform extends Model
         return $web_platforms;
     }
 
+    public static function getWebPlatform($id){
+        $web_platform = WebPlatform::
+        select('*', 'id as value', 'name as label')
+            ->where('id', $id)
+            ->first();
+        $training_action = TrainingAction::where('web_platform_id', $web_platform['id'])->first();
+        if ($training_action){
+            $web_platform['used'] = true;
+        } else {
+            $web_platform['used'] = false;
+        }
+        return $web_platform;
+    }
+
     public static function createWebPlatform($data){
         $web_platform = WebPlatform::create([
             'name' => $data['name'],

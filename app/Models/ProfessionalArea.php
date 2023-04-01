@@ -36,6 +36,19 @@ class ProfessionalArea extends Model
         return $professional_areas;
     }
 
+    public static function getProfessionalArea($id){
+        $professional_area = ProfessionalArea::
+        select('*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $training_action = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
+        if ($training_action){
+            $professional_area['used'] = true;
+        } else {
+            $professional_area['used'] = false;
+        }
+        return $professional_area;
+    }
+
     public static function createProfessionalArea($data){
         $professional_area = ProfessionalArea::create([
             'name' => $data['name']

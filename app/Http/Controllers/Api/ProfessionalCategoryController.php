@@ -13,7 +13,7 @@ class ProfessionalCategoryController extends BaseController
             return ProfessionalCategory::getProfessionalCategories();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'error' => $e->getMessage()
             ]);
         }
     }
@@ -21,7 +21,7 @@ class ProfessionalCategoryController extends BaseController
     public function create(Request $request){
         $data = json_decode($request->getContent(), true);
         try {
-            $category = ProfessionalCategory::createCenter($data);
+            $category = ProfessionalCategory::createProfessionalCategory($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -52,8 +52,8 @@ class ProfessionalCategoryController extends BaseController
         ]);
     }
 
-    public function getProfessionalCategory($id){
-        $category = ProfessionalCategory::find($id);
+    public function getProfessionalCategories($id){
+        $category = ProfessionalCategory::getProfessionalCategories($id);
         if ($category) {
             return response()->json([
                 'status' => 200,

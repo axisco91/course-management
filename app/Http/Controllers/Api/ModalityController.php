@@ -29,7 +29,7 @@ class ModalityController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'modality' => $modality
+            'modality' => Modality::getModality($modality->id)
         ]);
     }
 
@@ -46,12 +46,12 @@ class ModalityController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'modality' => $modality
+            'modality' => Modality::getModality($modality->id)
         ]);
     }
 
     public function getModality($id){
-        $modality = Modality::find($id);
+        $modality = Modality::getModality($id);
         if ($modality) {
             return response()->json([
                 'status' => 200,

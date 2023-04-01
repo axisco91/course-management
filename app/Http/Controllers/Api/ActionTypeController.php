@@ -10,7 +10,7 @@ class ActionTypeController extends BaseController
 {
     public function getActionTypes() {
         try {
-            return ActionType::getActionType();
+            return ActionType::getActionTypes();
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e.message
@@ -31,7 +31,7 @@ class ActionTypeController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'action_type' => $action_type
+            'action_type' => ActionType::getActionType($action_type->id)
         ]);
     }
 
@@ -48,12 +48,12 @@ class ActionTypeController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'action_type' => $action_type
+            'action_type' => ActionType::getActionType($action_type->id)
         ]);
     }
 
     public function getActionType($id){
-        $action_type = ActionType::find($id);
+        $action_type = ActionType::getActionType($id);
         if ($action_type) {
             return response()->json([
                 'status' => 200,

@@ -31,7 +31,7 @@ class LevelStudyController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'level_study' => $level_study
+            'level_study' => LevelStudy::getLevelStudy($level_study->id)
         ]);
     }
 
@@ -48,12 +48,12 @@ class LevelStudyController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'level_study' => $level_study
+            'level_study' => LevelStudy::getLevelStudy($level_study->id)
         ]);
     }
 
     public function getLevelStudy($id){
-        $level_study = LevelStudy::find($id);
+        $level_study = LevelStudy::getLevelStudy($id);
         if ($level_study) {
             return response()->json([
                 'status' => 200,

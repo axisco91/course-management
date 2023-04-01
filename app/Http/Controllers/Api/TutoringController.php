@@ -47,21 +47,21 @@ class TutoringController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'tutring' => $tutoring
+            'tutoring' => $tutoring
         ]);
     }
 
-    public function getTutoring($id){
+    public function tutoring($id){
         $tutoring = Tutoring::find($id);
         if ($tutoring) {
             return response()->json([
                 'status' => 200,
-                'profitability' => $tutoring
+                'tutoring' => $tutoring
             ]);
         }
         return response()->json([
             'status' => 400,
-            'message' => 'Rentabilidad no existe'
+            'message' => 'Tutoria no existe'
         ]);
     }
 

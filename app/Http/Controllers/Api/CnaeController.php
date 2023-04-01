@@ -52,8 +52,8 @@ class CnaeController extends BaseController
         ]);
     }
 
-    public function getTrainingActionLevel($id){
-        $cnae = Cnae::find($id);
+    public function getCnae($id){
+        $cnae = Cnae::getCnae($id);
         if ($cnae) {
             return response()->json([
                 'status' => 200,
