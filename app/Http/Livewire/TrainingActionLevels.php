@@ -52,6 +52,7 @@ class TrainingActionLevels extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Nivel guardado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -76,8 +77,10 @@ class TrainingActionLevels extends Component
             ];
             TrainingActionLevel::updateTrainingActionLevel($this->selected_id, $data);
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'Nivel actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

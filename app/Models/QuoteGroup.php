@@ -21,21 +21,21 @@ class QuoteGroup extends Model
         return $this->hasMany('App\Models\Student', 'quote_group_id', 'id');
     }
 
-    public function getQuoteGroups($keyWord){
+    public static function getQuoteGroups(){
         $quote_groups = QuoteGroup::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('quote_groups.*', 'id as value', 'name as label')
+            ->get();
         return $quote_groups;
     }
 
-    public function createQuoteGroup($data){
+    public static function createQuoteGroup($data){
         $quote_group = QuoteGroup::create([
             'name' => $data['name']
         ]);
         return $quote_group;
     }
 
-    public function updateQuoteGroup($id, $data){
+    public static function updateQuoteGroup($id, $data){
         $quote_group = QuoteGroup::find($id);
         $quote_group->update([
             'name' => $data['name']

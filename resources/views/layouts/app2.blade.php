@@ -257,6 +257,12 @@
         window.livewire.on('closeModal', () => {
             $('#createDataModal').modal('hide');
         });
+        window.livewire.on('closeUpdateModal', () => {
+            $('#updateModal').modal('hide');
+        });
+        window.livewire.on('closeUpdateModal', () => {
+            $('#passwordModal').modal('hide');
+        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js" integrity="sha512-RtZU3AyMVArmHLiW0suEZ9McadTdegwbgtiQl5Qqo9kunkVg1ofwueXD8/8wv3Af8jkME3DDe3yLfR8HSJfT2g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

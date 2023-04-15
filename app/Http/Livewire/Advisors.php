@@ -2,12 +2,19 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\AdvisorsExport;
 use App\Models\Advisor;
+use App\Models\AdvisorIncidence;
 use App\Models\Cnae;
 use App\Models\Company;
 use App\Models\CompanyActivity;
+use App\Models\CompanyObservation;
 use App\Models\CompanyType;
+use App\Models\Course;
+use App\Models\IncidenceType;
 use App\Models\Province;
+use App\Models\User;
+use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
 use function view;
@@ -17,20 +24,36 @@ class Advisors extends Component
     use WithPagination;
 
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, $inactiveFilter, $name, $company_id, $irpf, $commission, $contact_1, $contact_2, $contact_3, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $inactive;
-    public $company_types, $company_activities, $cnaes, $provinces, $company_advisors, $tab = 'info';
-    public $search_company_name, $companies;
-    public $updateMode = false;
+    public $selected_id, $keyWord, $inactiveFilter, $name, $company_id, $irpf, $commission, $contact_1, $contact_2, $contact_3, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $inactive, $user_id, $affair, $notes, $incidence_type_id, $collaborator_id;
+    public $company_types, $company_activities, $cnaes, $provinces, $company_advisors, $incidence_types, $users, $tab = 'info', $advisor_incidences, $advisors_courses, $collaborators, $observations;
+    public $search_name, $companies, $search_nif, $search_type_id, $search_activity_id, $search_province_id, $search_company_name;
+    public $sortBy = 'advisors.name';
+    public $sortDirection = 'asc';
+    public $updateMode = false, $createAdvisorIncidencesModal = false;
+
+    protected $listeners = [
+        'destroy' => 'destroy',
+        'destroyIncidence' => 'destroyIncidence',
+        'restartPage' => 'restartPage'
+    ];
 
     public function render()
     {
         $keyWord = '%'.$this->keyWord .'%';
 
-        $advisors = Advisor::getAdvisors($keyWord, $this->inactiveFilter);
-
+        $advisors = Advisor::getAdvisors($keyWord, $this->inactiveFilter, $this->search_name, $this->search_nif, $this->search_type_id, $this->search_activity_id, $this->search_province_id, $this->sortBy, $this->sortDirection);
+        $search_company_name = '%'.$this->search_company_name.'%';
         if ($this->selected_id){
-            $search_company_name = '%'.$this->search_company_name.'%';
             $this->companies = Company::getAdvisorsCompanies($this->selected_id, $search_company_name);
+        }
+
+        foreach ($advisors as $advisor){
+            $company = Company::where('advisor_id', $advisor->id)->first();
+            if ($company){
+                $advisor['used'] = true;
+            } else{
+                $advisor['used'] = false;
+            }
         }
 
         return view('livewire.advisors.list', [
@@ -43,9 +66,16 @@ class Advisors extends Component
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
         $this->provinces = Province::all();
+        $this->incidence_types = IncidenceType::all();
+        $this->users = User::all();
+        $this->collaborators = User::where('has_commission', 1)->get();
         $this->company_advisors = Advisor::select('advisors.*')
             ->join('companies', 'companies.id', '=', 'advisors.company_id')
-            ->where('companies.inactive', 0)->get();
+            ->where('companies.active', 0)->get();
+    }
+
+    public function hydrate(){
+        $this->emit('select2');
     }
 
     public function cancel()
@@ -86,12 +116,23 @@ class Advisors extends Component
         $this->consumed_credit = null;
         $this->remaining_credit = null;
         $this->advisor_id = null;
+        $this->affair = null;
+        $this->notes = null;
+        $this->user_id = null;
+        $this->incidence_type_id = null;
+        $this->collaborator_id = null;
+        $this->observations = null;
     }
 
     public function destroy($id)
     {
-        if ($id) {
-           Advisor::destroy($id);
+        if ($id){
+            $company = Company::where('advisor_id', $id)->first();
+            if ($company){
+
+            } else{
+                Advisor::destroy($id);
+            }
         }
     }
 
@@ -127,6 +168,77 @@ class Advisors extends Component
             $this->population = $record->population;
             $this->active = $record->active;
             $this->advisor_id = $record->advisor_id;
+            $this->collaborator_id = $record->collaborator_id;
+
+            $this->advisors_courses = Course::select('courses.*')
+            ->leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
+            ->leftjoin('billings', 'billings.id', '=', 'registrations.billing_id')
+            ->where('billings.advisor_id', $this->selected_id)->get();
+
+            $advisor_incidences = AdvisorIncidence::select('advisor_incidences.*', 'users.name as user_name', 'users.surname as user_surname')
+                ->leftjoin('users', 'users.id', '=', 'advisor_incidences.user_id')
+                ->where('advisor_id', $id)->get();
+
+            foreach($advisor_incidences as $advisor_incidence){
+                $type = IncidenceType::find($advisor_incidence['incidence_type_id']);
+                $advisor_incidence['incidence_type'] = $type->name;
+            }
+            $this->advisor_incidences = $advisor_incidences;
+            $this-> observations = CompanyObservation::where('company_id', $this->company_id)->get();
         }
+    }
+
+    public function newAdvisorIncidences($id) {
+        if ($id) {
+            $this-> advisor_id = $id;
+            $this->createAdvisorIncidencesModal = true;
+        }
+    }
+
+    public function createAdvisorIncidence() {
+        $this->validate([
+            'affair' => 'required',
+        ]);
+
+        $data = [
+            'advisor_id' => $this->advisor_id,
+            'affair' => $this->affair,
+            'notes' => $this->notes,
+            'user_id' => $this->user_id,
+            'incidence_type_id' => $this->incidence_type_id,
+        ];
+
+        AdvisorIncidence::createAdvisorIncidence($data);
+
+        $this->resetInput();
+        $this->createAdvisorIncidencesModal = false;
+        session()->flash('message', 'Incidencia creado con exito.');
+        $this->emit('toastr', 'success');
+    }
+
+    public function destroyIncidence($id)
+    {
+        if ($id){
+            AdvisorIncidence::destroy($id);
+        }
+    }
+
+    public function downloadExcel(){
+        $this->excelModal = false;
+        return (new AdvisorsExport($this->search_name, $this->search_nif, $this->search_type_id, $this->search_activity_id, $this->search_province_id, $this->inactiveFilter))->download('asesorias.xlsx');
+    }
+
+    public function sortBy($field){
+        if ($this->sortDirection == 'asc'){
+            $this->sortDirection = 'desc';
+        } else {
+            $this->sortDirection = 'asc';
+        }
+
+        return $this->sortBy = $field;
+    }
+
+    public function restartPage(){
+        $this->resetPage();
     }
 }

@@ -45,6 +45,30 @@
                     </select>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div wire:ignore>
+                    <label class="form-label" for="status_search">Estado</label>
+                    <select wire:model.lazy="status_search" class="form-control select2" id="status_search">
+                        <option value="-1">Seleccione un estado</option>
+                        @foreach($course_statuses as $course_status)
+                            <option value="{{$course_status['id']}}">{{$course_status['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+            </div>
+            <div class="col-md-4">
+            </div>
+            <div class="col-md-4">
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
+            </div>
         </div>
     </div>
     <hr class="my-0" />
@@ -54,6 +78,7 @@
                 <tr>
                     <td>#</td>
                     <th>Curso</th>
+                    <th>Año</th>
                     <th>Empresa</th>
                     <th>Alumno</th>
                     <th>Beneficios</th>
@@ -64,7 +89,8 @@
                 @foreach($profitabilities as $row)
                 <tr>
                     <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->course_name }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ str_replace( ' -', '/'.$row->course_group.' -', $row->course_name) }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->beginning ? Carbon\Carbon::parse($row->beginning)->year : '' }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->company_name }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->student_name }} {{$row->student_surname}}</td>
                     <td data-bs-toggle="modal" data-bs-target="#profitabilitiesTabModal" wire:click="general({{$row->id}})">{{ $row->benefits }}</td>

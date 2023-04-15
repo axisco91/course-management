@@ -163,6 +163,7 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
+        Spatie\Permission\PermissionServiceProvider::class,
 
         /*
          * Package Service CourseProvider...
@@ -180,6 +181,8 @@ return [
         App\Providers\JetstreamServiceProvider::class,
         App\Providers\MenuServiceProvider::class,
 
+
+        Maatwebsite\Excel\ExcelServiceProvider::class,
     ],
 
     /*
@@ -232,6 +235,6 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
         'Helper' => App\Helpers\Helpers::class,
-
+        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
     ],
 ];

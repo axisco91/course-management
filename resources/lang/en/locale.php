@@ -217,5 +217,16 @@ return [
     "Billings" => "Facturas",
     "Payments" => "Metodos de Pago",
     "Profitabilities" => "Rentabilidad",
-    "Settings" => "Gestión"
+    "Settings" => "Gestión",
+    "Incidence Types" => "Tipos Incidencias",
+    "Potential Students" => "Alumno Potencial",
+    "Potential Companies" => "Empresa Potencial",
+    "Training Contracts" => "Contratos Formación",
+    "Training Contract Statuses" => "Estado Contrato Formación",
+    "Occupations" => "Ocupación",
+    "On Leave Types" => "Tipo Bajas",
+    "Excluded Days" => "Dias Excluidos",
+    "Modules" => "Modulos",
+    "Certifications" => 'Certificaciones',
+    'Training Units' => 'Unidades Formativas'
 ];

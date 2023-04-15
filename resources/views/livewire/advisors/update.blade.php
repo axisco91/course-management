@@ -1,4 +1,8 @@
 <div class="card-body">
+    <div class="mb-1">
+        <a class="btn btn-primary">General</a>
+        <a class="btn" href="{{asset('/advisors/observations/'.$company_id)}}">Observaciones</a>
+    </div>
     <form class="form needs-validation" novalidate>
         <input type="hidden" wire:model.lazy="selected_id">
         <div class="row">
@@ -89,6 +93,18 @@
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
+                    <label class="form-label" for="collaborator_id">Colaborador</label>
+                    <select wire:model.lazy="collaborator_id" class="form-control select2" id="collaborator_id">
+                        <option value="-1">Seleccione un colaborador</option>
+                        @foreach($collaborators as $collaborator)
+                            <option value="{{$collaborator['id']}}">{{$collaborator['name']}} {{$collaborator['surname']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('collaborator_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
                     <label class="form-label" for="cnae_id">Cnae</label>
                     <select wire:model.lazy="cnae_id" class="form-select select2" id="cnae_id">
                         <option value="">Seleccione una cnae</option>
@@ -169,8 +185,8 @@
             </div>
             <div class="col-md-4 col-12">
                 <div class="mb-1">
-                    <label class="form-label" for="commission">Commisiones</label>
-                    <input wire:model.lazy="commission" type="text" class="form-control" id="commission" placeholder="Commisiones">@error('commission') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    <label class="form-label" for="commission">Comisiones</label>
+                    <input wire:model.lazy="commission" type="text" class="form-control" id="commission" placeholder="Comisiones">@error('commission') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="col-md-4 col-12">
@@ -193,20 +209,48 @@
             </div>
         </div>
         <div class="col-12">
-            <a href="{{ url()->previous() }}" class="btn btn-secondary">Volver</a>
-            <button type="button" wire:click.prevent="update()" class="btn btn-primary">Guardar</button>
+            <a href="{{url('/advisors')}}" class="btn btn-secondary">Volver</a>
+            <button id="save" type="button" wire:click.prevent="update()" class="btn btn-primary">Guardar</button>
         </div>
     </form>
     @section('vendor-script')
         <!-- vendor files -->
             <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+            <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
     @endsection
     @section('page-script')
         <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+        <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
     @endsection
-
+    @section('scripts')
     <script>
+        Livewire.on('alreadyExists', type => {
+            text = '';
+            if (type == 'nif'){
+                text = 'CIF';
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Ya Existe',
+                text: '¡Ya existe una asesoria con ese '+text+'!',
+            })
+        })
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
+        })
         document.addEventListener('livewire:load', function() {
             $( document ).ready(
                 setTimeout(function (){
@@ -217,5 +261,32 @@
             @this.set(this.id, $(this).val())
             })
         })
+        $('body').on('click', '#save', function(){
+            content = ''
+            if ($('#name').val() == ''){
+                content += 'El nombre es requerido<br>'
+            }
+            if ($('#type_id').val() == ''){
+                content += 'El tipo es requerido<br>'
+            }
+            if ($('#activity_id').val() == ''){
+                content += 'La actividad es requerido<br>'
+            }
+            if ($('#province_id').val() == ''){
+                content += 'La provincia es requerido<br>'
+            }
+            if (content != ''){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Falta datos',
+                    html: '<div>'+content+'</div>',
+                    customClass: {
+                        confirmButton: 'btn btn-primary'
+                    },
+                    buttonsStyling: false
+                });
+            }
+        })
     </script>
+    @endsection
 </div>

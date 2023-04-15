@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CompanyActivity extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,8 @@ class CompanyActivity extends Model
         return $this->hasMany('App\Models\Company', 'activity_id', 'id');
     }
 
-    public function getCompanyActivities($keyWord){
-        $companyActivities = CompanyActivity::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getCompanyActivities(){
+        $companyActivities = CompanyActivity::select('*', 'id as value', 'name as label')->get();
         foreach ($companyActivities as $companyActivity) {
             $company = Company::where('company_activity_id', $companyActivity['id'])->first();
             if ($company) {
@@ -37,7 +35,7 @@ class CompanyActivity extends Model
         return $companyActivities;
     }
 
-    public function createCompanyActivity($data){
+    public static function createCompanyActivity($data){
         $company_activity = CompanyActivity::create([
             'name' => $data['name']
         ]);
@@ -45,7 +43,7 @@ class CompanyActivity extends Model
         return $company_activity;
     }
 
-    public function updateCompanyActivity($id, $data){
+    public static function updateCompanyActivity($id, $data){
         $record = CompanyActivity::find($id);
         $record->update([
             'name' => $data['name']

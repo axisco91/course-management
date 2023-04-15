@@ -54,6 +54,7 @@ class CompanyActivities extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Actividad creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -80,8 +81,10 @@ class CompanyActivities extends Component
             CompanyActivity::updateCompanyActivity($this->selected_id, $data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
 			session()->flash('message', 'Actividad editado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

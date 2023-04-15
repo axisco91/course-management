@@ -139,6 +139,7 @@ class CoursesUpdate extends Component
             $course = Course::updateCourse($this->selected_id, $data);
 
             session()->flash('message', 'Course Successfully updated.');
+            $this->emit('toastr', 'success');
             return $this->redirect($this->route);
         }
     }

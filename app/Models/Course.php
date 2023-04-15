@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use App\Helpers\CourseStatusHelper;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Course extends Model
 {
@@ -95,86 +96,95 @@ class Course extends Model
         return $this->hasOne('App\Models\TrainingAction', 'id', 'training_action_id');
     }
 
-    public function getCourses($keyWord, $search_formative_action, $search_name, $search_group, $search_type, $search_status){
+    public static function getCourses(){
+
         $courses = Course::select('courses.*',
-            'course_types.name as course_type', 'teachers.name as teacher_name', 'teachers.surname as teacher_surname',
+            'course_types.name as course_type',
+            DB::raw("CONCAT(teachers.name,' ', teachers.surname) as teacher"),
             'fc.name as formation_center',
             'dc.name as delivery_center',
-            'course_statuses.name as course_status')
+            'course_statuses.name as course_status',
+            'courses.id as value', 'courses.name as label',
+            'training_actions.name as training_action')
             ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
             ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
             ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
             ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
-            ->where(function ($query) use ($keyWord){
-                $query->orWhere('courses.name', 'LIKE', $keyWord)
-                    ->orWhere('group', 'LIKE', $keyWord)
-                    ->orWhere('course_types.name', 'LIKE', $keyWord)
-                    ->orWhere('teachers.name', 'LIKE', $keyWord)
-                    ->orWhere('nebrija', 'LIKE', $keyWord)
-                    ->orWhere('beginning', 'LIKE', $keyWord)
-                    ->orWhere('end', 'LIKE', $keyWord)
-                    ->orWhere('morning_schedule', 'LIKE', $keyWord)
-                    ->orWhere('afternoon_schedule', 'LIKE', $keyWord)
-                    ->orWhere('monday', 'LIKE', $keyWord)
-                    ->orWhere('tuesday', 'LIKE', $keyWord)
-                    ->orWhere('wednesday', 'LIKE', $keyWord)
-                    ->orWhere('thursday', 'LIKE', $keyWord)
-                    ->orWhere('friday', 'LIKE', $keyWord)
-                    ->orWhere('saturday', 'LIKE', $keyWord)
-                    ->orWhere('sunday', 'LIKE', $keyWord)
-                    ->orWhere('fc.name', 'LIKE', $keyWord)
-                    ->orWhere('dc.name', 'LIKE', $keyWord)
-                    ->orWhere('outsourced', 'LIKE', $keyWord)
-                    ->orWhere('course_observation', 'LIKE', $keyWord)
-                    ->orWhere('reactivated', 'LIKE', $keyWord)
-                    ->orWhere('welcome_date', 'LIKE', $keyWord)
-                    ->orWhere('quarter_date', 'LIKE', $keyWord)
-                    ->orWhere('half_date', 'LIKE', $keyWord)
-                    ->orWhere('three_quarters_date', 'LIKE', $keyWord)
-                    ->orWhere('final_date', 'LIKE', $keyWord)
-                    ->orWhere('course_statuses.name', 'LIKE', $keyWord);
-            })->where(function ($query) use ($search_formative_action){
-                $query->orWhere('courses.name', 'LIKE', $search_formative_action);
-            })->where(function ($query) use ($search_name){
-                $query->orWhere('courses.name', 'LIKE', $search_name);
-            })->where(function ($query) use ($search_group){
-                $query->orWhere('courses.name', 'LIKE', $search_group);
-            });
-        if ($search_type){
-            $courses = $courses->Where('courses.course_type_id', $search_type);
-        }
-        if ($search_status){
-            $courses = $courses->Where('courses.course_status_id', $search_status);
-        }
-        $courses = $courses->orderBy('courses.beginning', 'desc')
-            ->paginate(10);
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->orderBy('courses.beginning', 'desc')
+            ->get();
 
         foreach ($courses as $course){
-            $registrations = Registration::where('course_id', $course->id)->get();
-            $course['registration'] = $registrations;
+           // $registrations = Registration::where('course_id', $course->id)->get();
+           // $course['registration'] = $registrations;
+            $registration = Registration::where('course_id', $course->id)->first();
+            if ($registration) {
+                $course['used'] = true;
+            } else {
+                $course['used'] = false;
+            }
 
-            $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
-            $course['beginning'] = $beginning;
-            $end = Carbon::parse($course['end'])->format('d/m/Y');
-            $course['end'] = $end;
+            $course['number_registrations'] = $course->registrations->count();
         }
 
         return $courses;
     }
 
-    public function createCourse($data){
+    public static function getCourse($id){
+
+        $course = Course::select('courses.*',
+            'course_types.name as course_type',
+            DB::raw("CONCAT(teachers.name,' ', teachers.surname) as teacher"),
+            'fc.name as formation_center',
+            'dc.name as delivery_center',
+            'course_statuses.name as course_status',
+            'courses.id as value', 'courses.name as label',
+            'training_actions.name as training_action')
+            ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
+            ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
+            ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
+            ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->where('courses.id', $id)
+            ->first();
+
+        $registration = Registration::where('course_id', $course->id)->first();
+        if ($registration) {
+            $course['used'] = true;
+        } else {
+            $course['used'] = false;
+        }
+        $course['number_registrations'] = $course->registrations->count();
+        return $course;
+    }
+
+    public static function createCourse($data){
+
+        $course_info = Course::courseDates(Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d'));
+
         $course = Course::create([
             'name' => $data['name'],
             'training_action_id' => $data['training_action_id'],
             'group' => $data['group'],
             'course_type_id' => $data['course_type_id'],
             'teacher_id' => $data['teacher_id'],
-            'nebrija' => $data['nebrija'],
-            'beginning' => $data['beginning'],
-            'end' => $data['end'],
+            'beginning' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
+            'end' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
             'morning_schedule' => $data['morning_schedule'],
             'afternoon_schedule' => $data['afternoon_schedule'],
+            'formation_center_id' => $data['formation_center_id'],
+            'delivery_center_id' => $data['delivery_center_id'],
+            'course_observation' => $data['course_observation'],
+            'welcome_date' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
+            'quarter_date' => $course_info['quarter'],
+            'half_date' => $course_info['half'],
+            'three_quarters_date' => $course_info['three_quarters'],
+            'final_date' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
+            'course_status_id' => $course_info['course_status_id'],
+            'price' => $data['price'],
+            'nebrija' => $data['nebrija'],
             'monday' => $data['monday'],
             'tuesday' => $data['tuesday'],
             'wednesday' => $data['wednesday'],
@@ -182,24 +192,16 @@ class Course extends Model
             'friday' => $data['friday'],
             'saturday' => $data['saturday'],
             'sunday' => $data['sunday'],
-            'formation_center_id' => $data['formation_center_id'],
-            'delivery_center_id' => $data['delivery_center_id'],
             'outsourced' => $data['outsourced'],
-            'course_observation' => $data['course_observation'],
-            'reactivated' => $data['reactivated'],
-            'welcome_date' => $data['beginning'],
-            'quarter_date' => $data['quarter_date'],
-            'half_date' => $data['half_date'],
-            'three_quarters_date' => $data['three_quarters_date'],
-            'final_date' => $data['final_date'],
-            'course_status_id' => $data['course_status_id'],
-            'price' => $data['price'],
+            'reactivated' => $data['reactivated']
         ]);
-
         return $course;
     }
 
-    public function updateCourse($id, $data){
+    public static function updateCourse($id, $data){
+
+        $course_info = Course::courseDates(Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d'));
+
         $course = Course::find($id);
         $course->update([
             'name' => $data['name'],
@@ -207,11 +209,21 @@ class Course extends Model
             'group' => $data['group'],
             'course_type_id' => $data['course_type_id'],
             'teacher_id' => $data['teacher_id'],
-            'nebrija' => $data['nebrija'],
-            'beginning' => $data['beginning'],
-            'end' => $data['end'],
+            'beginning' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
+            'end' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
             'morning_schedule' => $data['morning_schedule'],
             'afternoon_schedule' => $data['afternoon_schedule'],
+            'formation_center_id' => $data['formation_center_id'],
+            'delivery_center_id' => $data['delivery_center_id'],
+            'course_observation' => $data['course_observation'],
+            'welcome_date' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
+            'quarter_date' => $course_info['quarter'],
+            'half_date' => $course_info['half'],
+            'three_quarters_date' => $course_info['three_quarters'],
+            'final_date' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
+            'course_status_id' => $course_info['course_status_id'],
+            'price' => $data['price'],
+            'nebrija' => $data['nebrija'],
             'monday' => $data['monday'],
             'tuesday' => $data['tuesday'],
             'wednesday' => $data['wednesday'],
@@ -219,24 +231,13 @@ class Course extends Model
             'friday' => $data['friday'],
             'saturday' => $data['saturday'],
             'sunday' => $data['sunday'],
-            'formation_center_id' => $data['formation_center_id'],
-            'delivery_center_id' => $data['delivery_center_id'],
             'outsourced' => $data['outsourced'],
-            'course_observation' => $data['course_observation'],
-            'reactivated' => $data['reactivated'],
-            'welcome_date' => $data['beginning'],
-            'quarter_date' => $data['quarter_date'],
-            'half_date' => $data['half_date'],
-            'three_quarters_date' => $data['three_quarters_date'],
-            'final_date' => $data['final_date'],
-            'course_status_id' => $data['course_status_id'],
-            'price' => $data['price'],
+            'reactivated' => $data['reactivated']
         ]);
-
         return $course;
     }
 
-    public function setName($training_action_id, $selected_id){
+    public static function setName($training_action_id, $id){
         if ($training_action_id > 0){
             $training_action = TrainingAction::find($training_action_id);
             if ($training_action_id < 10){
@@ -258,7 +259,8 @@ class Course extends Model
             } else {
                 $group = $cont;
             }
-            if ($selected_id == null){
+            $price = '';
+            if ($id == null){
                 $price = $training_action['price'];
             }
         }
@@ -270,13 +272,13 @@ class Course extends Model
         ];
     }
 
-    public function numbercourses($training_action_id){
+    public static function numbercourses($training_action_id){
         $num = Course::where('training_action_id', $training_action_id)->get();
 
         return $num;
     }
 
-    public function course_data($beginning_date, $end_date){
+    private static function courseDates($beginning_date, $end_date){
         $quarter = null;
         $half = null;
         $three_quarters = null;
@@ -297,18 +299,20 @@ class Course extends Model
         ];
     }
 
-    public function getTeachersCourses($id, $search_course_name, $search_course_group){
-        $courses = Course::where('teacher_id', $id)
-            ->where(function ($query) use ($search_course_name) {
-                $query->orWhere('name', 'LIKE', $search_course_name);
-            })->where(function ($query) use ($search_course_group) {
-                $query->orWhere('group', 'LIKE', $search_course_group);
-            })->orderBy('beginning', 'DESC')->get();
+    public static function getTeachersCourses($id){
+        $courses = Course::where('teacher_id', $id)->orderBy('beginning', 'DESC')->get();
+
+        foreach ($courses as $course){
+            $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
+            $course['beginning'] = $beginning;
+            $end = Carbon::parse($course['end'])->format('d/m/Y');
+            $course['end'] = $end;
+        }
 
         return $courses;
     }
 
-    public function messageDates($beggining, $end){
+    public static function messageDates($beggining, $end){
 
         $beggining = Carbon::createFromFormat('Y-m-d', $beggining);
         $end = Carbon::createFromFormat('Y-m-d', $end);
@@ -333,29 +337,49 @@ class Course extends Model
         ];
     }
 
-    public function getTrainingActionCourse($id, $search_course_name, $search_course_group)
+    public static function getTrainingActionCourse($id, $search_course_name = null, $search_course_group = null)
     {
-        $courses = Course::where('training_action_id', $id)
-            ->where(function ($query) use ($search_course_name) {
-                $query->orWhere('name', 'LIKE', $search_course_name);
-            })->where(function ($query) use ($search_course_group) {
-                $query->orWhere('group', 'LIKE', $search_course_group);
-            })->orderBy('beginning', 'DESC')->get();
+        $courses = Course::where('training_action_id', $id)->orderBy('beginning', 'DESC')->get();
+        foreach ($courses as $course){
+            $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
+            $course['beginning'] = $beginning;
+            $end = Carbon::parse($course['end'])->format('d/m/Y');
+            $course['end'] = $end;
+        }
 
         return $courses;
     }
 
-    public function getCompanyCourses($id, $search_course_name, $search_course_group){
-        $courses = Course::leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
-            ->where('company_id', $id)
-            ->where(function ($query) use ($search_course_name) {
-                $query->orWhere('name', 'LIKE', $search_course_name);
-            })->where(function ($query) use ($search_course_group) {
-                $query->orWhere('group', 'LIKE', $search_course_group);
+    public static function getCompanyCourses($id){
+        $registrations = Registration::where('company_id', $id)->groupBy('course_id')->pluck('course_id')->toArray();
+        $courses = Course::select('courses.*')
+            ->where(function ($query) use ($registrations){
+                $query->WhereIn('courses.id', $registrations);
             })
             ->orderBy('beginning', 'DESC')
             ->get();
+        foreach ($courses as $course){
+            $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
+            $course['beginning'] = $beginning;
+            $end = Carbon::parse($course['end'])->format('d/m/Y');
+            $course['end'] = $end;
+        }
         return $courses;
+    }
+
+    public static function getNumberCourses($year){
+        $courses = Course::WhereYear('beginning', $year)->get();
+        return count($courses);
+    }
+
+    public static function getNumberCoursesPerMonth($year){
+        $per_month = [];
+        for($i = 1; $i <= 12; $i++){
+            $courses = Course::WhereYear('beginning', $year)
+                    ->WhereMonth('beginning', $i)->get();
+            $per_month[] = count($courses);
+        }
+        return $per_month;
     }
 
 }

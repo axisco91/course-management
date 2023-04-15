@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Teacher extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -18,41 +19,101 @@ class Teacher extends Model
      */
     public function teacherAreas()
     {
-        return $this->belongsToMany(Teacher::class, 'areas_teacher_areas', 'teacher_id', 'teacher_area_id');
+        return $this->belongsToMany(TeacherArea::class, 'areas_teacher_areas', 'teacher_id', 'teacher_area_id');
     }
 
     /**
      * Get all teachers
      */
-    public function getTeachers($keyWord, $inactiveFilter, $search_name, $search_surname, $search_email, $search_dni, $search_telephone){
-        $teachers = Teacher::select('*')
-            ->where(function ($query) use ($keyWord){
-            $query->orWhere('name', 'LIKE', $keyWord)
-                ->orWhere('surname', 'LIKE', $keyWord)
-                ->orWhere('dni', 'LIKE', $keyWord)
-                ->orWhere('email', 'LIKE', $keyWord)
-                ->orWhere('telephone', 'LIKE', $keyWord)
-                ->orWhere('user', 'LIKE', $keyWord)
-                ->orWhere('password', 'LIKE', $keyWord)
-                ->orWhere('observations', 'LIKE', $keyWord)
-                ->orWhere('iban', 'LIKE', $keyWord);
-        });
-        if ($inactiveFilter != 1) {
-            $teachers = $teachers->where('active', 1);
-        }
-        $teachers = $teachers->where(function ($query) use ($search_name){
-            $query->orWhere('teachers.name', 'LIKE', $search_name);
-        })->where(function ($query) use ($search_surname){
-            $query->orWhere('surname', 'LIKE', $search_surname);
-        })->where(function ($query) use ($search_email){
-            $query->orWhere('teachers.email', 'LIKE', $search_email);
-        })->where(function ($query) use ($search_dni){
-            $query->orWhere('dni', 'LIKE', $search_dni);
-        })->where(function ($query) use ($search_telephone){
-            $query->orWhere('teachers.telephone', 'LIKE', $search_telephone);
-        })->orderBy('teachers.name','asc')
-            ->paginate(10);
+    public static function getTeachers(){
+        $teachers = Teacher::select('teachers.*', 'provinces.name as province', 'teachers.id as value',
+            DB::raw("CONCAT(teachers.name,' ', teachers.surname) as label"))
+            ->leftjoin('provinces', 'provinces.id', '=', 'teachers.province_id')
+            ->orderBy('teachers.name','asc')->get();
 
+        foreach ($teachers as $teacher) {
+            $course = Course::where('teacher_id', $teacher->id);
+            if ($course) {
+                $teacher['used'] = true;
+            } else {
+                $teacher['used'] = false;
+            }
+            $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
+        }
         return $teachers;
+    }
+
+    public static function findDni($dni, $id = null){
+        $teacher = Teacher::where('dni', $dni);
+        if ($id){
+            $teacher = $teacher->where('id', '!=', $id);
+        }
+        $teacher = $teacher->first();
+
+        return $teacher;
+    }
+
+    public static function findUser($user, $id = null){
+        $teacher = Teacher::where('user', $user);
+        if ($id){
+            $teacher = $teacher->where('id', '!=', $id);
+        }
+        $teacher = $teacher->first();
+
+        return $teacher;
+    }
+
+    public function createTeacher($data){
+        $teacher = Teacher::create([
+            'name' => $data['name'],
+            'surname' => $data['surname'],
+            'dni' => $data['dni'],
+            'email' => $data['email'],
+            'telephone' => $data['telephone'],
+            'user' => $data['user'],
+            'password' => $data['password'],
+            'observations' => $data['observations'],
+            'iban' => $data['iban'],
+            'address' => $data['address'],
+            'post_code' => $data['post_code'],
+            'province_id' => $data['province_id'],
+            'population' => $data['population'],
+        ]);
+
+        $teacher->update([
+            'active' => $data['active']
+        ]);
+
+        $teacher->teacherAreas()->sync($data['teacher_areas']);
+
+        return $teacher;
+    }
+
+    public function updateTeacher($id, $data){
+        $teacher = Teacher::find($id);
+
+        $teacher->update([
+            'name' => $data['name'],
+            'surname' => $data['surname'],
+            'dni' => $data['dni'],
+            'email' => $data['email'],
+            'telephone' => $data['telephone'],
+            'user' => $data['user'],
+            'password' => $data['password'],
+            'observations' => $data['observations'],
+            'iban' => $data['iban'],
+            'address' => $data['address'],
+            'post_code' => $data['post_code'],
+            'province_id' => $data['province_id'],
+            'population' => $data['population'],
+        ]);
+
+        $teacher->update([
+            'active' => $data['active']
+        ]);
+
+        $teacher->teacherAreas()->sync($data['teacher_areas']);
+
+        return $teacher;
     }
 }

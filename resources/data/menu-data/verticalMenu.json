@@ -31,6 +31,30 @@
           "slug": "training-actions"
       },
       {
+          "url": "/certifications",
+          "name": "Certifications",
+          "icon": "book",
+          "slug": "certifications"
+      },
+      {
+          "url": "/modules",
+          "name": "Modules",
+          "icon": "book",
+          "slug": "modules"
+      },
+      {
+          "url": "/training_units",
+          "name": "Training Units",
+          "icon": "book",
+          "slug": "training-units"
+      },
+      {
+          "url": "/training_contracts",
+          "name": "Training Contracts",
+          "icon": "file-text",
+          "slug": "training-contracts"
+      },
+      {
           "url": "/providers",
           "name": "Providers",
           "icon": "package",
@@ -49,12 +73,6 @@
           "slug": "courses"
       },
       {
-          "url": "/billings",
-          "name": "Billings",
-          "icon": "credit-card",
-          "slug": "billings"
-      },
-      {
           "url": "/chores",
           "name": "Chores",
           "icon": "file-text",
@@ -67,10 +85,28 @@
           "slug": "tracings"
       },
       {
+          "url": "/billings",
+          "name": "Billings",
+          "icon": "credit-card",
+          "slug": "billings"
+      },
+      {
           "url": "/profitabilities",
           "name": "Profitabilities",
           "icon": "dollar-sign",
           "slug": "profitabilities"
+      },
+      {
+          "url": "/potential_students",
+          "name": "Potential Students",
+          "icon": "",
+          "slug": "potential_students"
+      },
+      {
+          "url": "/potential_companies",
+          "name": "Potential Companies",
+          "icon": "",
+          "slug": "potential_companies"
       },
       {
           "name": "Settings",
@@ -139,6 +175,20 @@
                   ]
               },
               {
+                  "name": "Advisors",
+                  "icon": "briefcase",
+                  "slug": "",
+                  "badgeClass": "badge rounded-pill badge-light-danger ms-auto me-1",
+                  "submenu": [
+                      {
+                          "url": "/incidence_types",
+                          "name": "Incidence Types",
+                          "icon": "circle",
+                          "slug": "incidence-types"
+                      }
+                  ]
+              },
+              {
                   "name": "Training Actions",
                   "icon": "book",
                   "slug": "",
@@ -191,6 +241,12 @@
                           "name": "Web Platforms",
                           "icon": "circle",
                           "slug": "web-platforms"
+                      },
+                      {
+                          "url": "/course_origins",
+                          "name": "Course Origins",
+                          "icon": "circle",
+                          "slug": "course-origins"
                       }
                   ]
               },
@@ -225,6 +281,38 @@
                           "name": "Payments",
                           "icon": "circle",
                           "slug": "payments"
+                      }
+                  ]
+              },
+              {
+                  "name": "Training Contracts",
+                  "icon": "file-text",
+                  "slug": "",
+                  "badgeClass": "badge rounded-pill badge-light-danger ms-auto me-1",
+                  "submenu": [
+                      {
+                          "url": "/training_contract_statuses",
+                          "name": "Training Contract Statuses",
+                          "icon": "circle",
+                          "slug": "training_contract_statuses"
+                      },
+                      {
+                          "url": "/occupations",
+                          "name": "Occupations",
+                          "icon": "circle",
+                          "slug": "occupations"
+                      },
+                      {
+                          "url": "/on_leave_types",
+                          "name": "On Leave Types",
+                          "icon": "circle",
+                          "slug": "on_leave_types"
+                      },
+                      {
+                          "url": "/excluded_days",
+                          "name": "Excluded Days",
+                          "icon": "circle",
+                          "slug": "excluded_days"
                       }
                   ]
               },

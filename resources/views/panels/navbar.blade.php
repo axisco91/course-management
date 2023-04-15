@@ -62,6 +62,9 @@
       </li>
     </ul>
   </div>
+  <div class="bookmark-wrapper d-flex align-items-center" style="width: 100%">
+      <img style="max-width: 82px;" src="{{URL::asset('images/logo/logo.png')}}">
+  </div>
   <ul class="nav navbar-nav align-items-center ms-auto">
     <li class="nav-item dropdown dropdown-language">
       <a class="nav-link dropdown-toggle" id="dropdown-flag" href="#" data-bs-toggle="dropdown" aria-haspopup="true">
@@ -75,13 +78,13 @@
         <div class="user-nav d-sm-flex d-none">
           <span class="user-name fw-bolder">
             @if (Auth::check())
-              {{ Auth::user()->name }}
+              {{ Auth::user()->name }} {{Auth::user()->surname}}
             @else
               John Doe
             @endif
           </span>
           <span class="user-status">
-            Admin
+
           </span>
         </div>
         <span class="avatar">
@@ -92,19 +95,19 @@
         </span>
       </a>
       <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-user">
-        <h6 class="dropdown-header">Manage Profile</h6>
+        <h6 class="dropdown-header">Administrar Perfil</h6>
         <div class="dropdown-divider"></div>
-        <a class="dropdown-item"
-          href="{{ Route::has('profile.show') ? route('profile.show') : 'javascript:void(0)' }}">
-          <i class="me-50" data-feather="user"></i> Profile
-        </a>
-        @if (Auth::check() && Laravel\Jetstream\Jetstream::hasApiFeatures())
+        <!--<a class="dropdown-item"
+          href="{{ url('/user/profile') }}">
+          <i class="me-50" data-feather="user"></i> Perfil
+        </a>-->
+   <!--     @if (Auth::check() && Laravel\Jetstream\Jetstream::hasApiFeatures())
           <a class="dropdown-item" href="{{ route('api-tokens.index') }}">
             <i class="me-50" data-feather="key"></i> API Tokens
           </a>
-        @endif
-        <a class="dropdown-item" href="#">
-          <i class="me-50" data-feather="settings"></i> Settings
+        @endif-->
+        <a class="dropdown-item" href="{{ url('/user/setting_profile') }}">
+          <i class="me-50" data-feather="settings"></i> Ajustes
         </a>
 
         @if (Auth::User() && Laravel\Jetstream\Jetstream::hasTeamFeatures())
@@ -138,7 +141,7 @@
         @if (Auth::check())
           <a class="dropdown-item" href="{{ route('logout') }}"
             onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-            <i class="me-50" data-feather="power"></i> Logout
+            <i class="me-50" data-feather="power"></i> Salir
           </a>
           <form method="POST" id="logout-form" action="{{ route('logout') }}">
             @csrf

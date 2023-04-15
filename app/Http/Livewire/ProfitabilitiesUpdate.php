@@ -6,19 +6,15 @@ use App\Models\Company;
 use App\Models\Course;
 use App\Models\Student;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Profitability;
 
 class ProfitabilitiesUpdate extends Component
 {
-    public $selected_id, $keyWord, $course_id, $company_id, $student_id, $price, $license, $teacher, $management, $nebrija_title, $discount, $collaborator_commission, $advisor_commission, $total, $benefits, $observations;
-    public $updateMode = false;
-    public $courses, $companies, $students;
-    public $route;
+    public $selected_id, $keyWord, $course_id, $company_id, $student_id, $price, $license, $teacher, $management, $nebrija_title, $discount, $collaborator_commission, $advisor_commission, $total, $benefits, $observations, $advisor_percentage, $collaborator_percentage;
+    public $courses, $companies, $student, $students_list, $search_student_name, $search_student_surname, $tab = 'info', $registrations;
 
     public function render()
     {
-
         return view('livewire.profitabilities.update');
     }
 
@@ -45,26 +41,19 @@ class ProfitabilitiesUpdate extends Component
         $this->total = $record-> total;
         $this->benefits = $record-> benefits;
         $this->observations = $record-> observations;
+        $this->advisor_percentage = $record->advisor_percentage;
+        $this->collaborator_percentage = $record->collaborator_percentage;
 
-        $this->route = url()->previous();
-    }
+        $this->registrations = $record->registrations()->get()->pluck('student_id')->toArray();
 
-    private function resetInput()
-    {
-        $this->course_id = null;
-        $this->company_id = null;
-        $this->student_id = null;
-        $this->price = null;
-        $this->license = null;
-        $this->teacher = null;
-        $this->management = null;
-        $this->nebrija_title = null;
-        $this->discount = null;
-        $this->collaborator_commission = null;
-        $this->advisor_commission = null;
-        $this->total = null;
-        $this->benefits = null;
-        $this->observations = null;
+        $search_student_name = '%'.$this->search_student_name.'%';
+        $search_student_surname = '%'.$this->search_student_surname.'%';
+        $this->students_list = Student::whereIn('id', $this->registrations)
+            ->where(function ($query) use ($search_student_name){
+                $query->orWhere('students.name', 'LIKE', $search_student_name);
+            })->where(function ($query) use ($search_student_surname){
+                $query->orWhere('students.surname', 'LIKE', $search_student_surname);
+            })->get();
     }
 
     public function update()
@@ -78,17 +67,15 @@ class ProfitabilitiesUpdate extends Component
                 'management' => $this-> management,
                 'nebrija_title' => $this-> nebrija_title,
                 'discount' => $this-> discount,
-                'collaborator_commission' => $this-> collaborator_commission,
-                'advisor_commission' => $this-> advisor_commission,
+                'advisor_percentage' => $this-> advisor_percentage,
+                'collaborator_percentage' => $this-> collaborator_percentage,
                 'total' => $this-> total,
                 'benefits' => $this-> benefits,
-                'observations' => $this-> observations
+                'observations' => $this-> observations,
             ];
             Profitability::updateProfitability($this->selected_id, $data);
-            $this->resetInput();
-            $this->updateMode = false;
             session()->flash('message', 'Rentabilidad actualizado con exito.');
-            return redirect($this->route);
+            $this->emit('toastr', 'success');
         }
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Provider extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -29,44 +29,45 @@ class Provider extends Model
         return $this->hasMany('App\Models\TrainingAction', 'provider_id', 'id');
     }
 
-    public function getProviders($keyWord, $inactiveFilter){
+    public static function getProviders(){
         $providers = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province')
+            'provinces.name as province', 'providers.id as value', 'providers.name as label')
             ->leftjoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'providers.company_activity_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'providers.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id');
-
-        if ($inactiveFilter != 1) {
-            $providers = $providers->where('active', 1);
+            ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id')
+            ->orderBy('providers.name', 'desc')
+            ->get();
+        foreach($providers as $provider) {
+            $training_action = TrainingAction::where('provider_id', $provider->id)->first();
+            if ($training_action) {
+                $provider['used'] = true;
+            } else {
+                $provider['used'] = false;
+            }
         }
-
-        $providers = $providers->where(function ($query) use ($keyWord){
-            $query->orWhere('providers.name', 'LIKE', $keyWord)
-                ->orWhere('providers.irpf', 'LIKE', $keyWord)
-                ->orWhere('providers.commission', 'LIKE', $keyWord)
-                ->orWhere('providers.contact_1', 'LIKE', $keyWord)
-                ->orWhere('providers.contact_2', 'LIKE', $keyWord)
-                ->orWhere('providers.contact_3', 'LIKE', $keyWord)
-                ->orWhere('providers.nif', 'LIKE', $keyWord)
-                ->orWhere('company_types.name', 'LIKE', $keyWord)
-                ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                ->orWhere('providers.email', 'LIKE', $keyWord)
-                ->orWhere('providers.telephone', 'LIKE', $keyWord)
-                ->orWhere('providers.legal_representative', 'LIKE', $keyWord)
-                ->orWhere('providers.dni_legal_representative', 'LIKE', $keyWord)
-                ->orWhere('cnaes.name', 'LIKE', $keyWord)
-                ->orWhere('providers.address', 'LIKE', $keyWord)
-                ->orWhere('providers.post_code', 'LIKE', $keyWord)
-                ->orWhere('providers.name', 'LIKE', $keyWord)
-                ->orWhere('providers.population', 'LIKE', $keyWord)
-                ->orWhere('providers.active', 'LIKE', $keyWord);
-        })->orderBy('providers.name', 'desc')
-            ->paginate(10);
         return $providers;
     }
 
-    public function createProvider($data){
+    public static function getProvider($id){
+        $provider = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
+            'provinces.name as province', 'providers.id as value', 'providers.name as label')
+            ->leftjoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
+            ->leftjoin('company_activities', 'company_activities.id', '=', 'providers.company_activity_id')
+            ->leftjoin('cnaes', 'cnaes.id', '=', 'providers.cnae_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id')
+            ->where('providers.id', $id)
+            ->first();
+        $training_action = TrainingAction::where('provider_id', $provider->id)->first();
+        if ($training_action) {
+            $provider['used'] = true;
+        } else {
+            $provider['used'] = false;
+        }
+        return $provider;
+    }
+
+    public static function createProvider($data){
         $provider = Provider::create([
             'name' => $data['name'],
             'company_id' => $data['id'],
@@ -90,12 +91,12 @@ class Provider extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
-            'active' => $data['active'],
+            'active' => $data['active']
         ]);
         return $provider;
     }
 
-    public function updateProvider($id, $data){
+    public static function updateProvider($id, $data){
         $provider = Provider::find($id);
         $provider->update([
             'name' => $data['name'],
@@ -119,20 +120,46 @@ class Provider extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
-            'active' => $data['active'],
+            'active' => $data['active']
         ]);
         return $provider;
     }
 
-    public function convertProvider($id){
+    public static function convertProvider($id){
         if ($id) {
             $record = Company::find($id);
             $provider = Provider::create([
                 'name' => $record['name'],
-                'company_id' => $record['id']
+                'company_id' => $id,
+                'nif' => $record['nif'],
+                'company_type_id' => $record['company_type_id'],
+                'company_activity_id' => $record['company_activity_id'],
+                'email' => $record['email'],
+                'telephone' => $record['telephone'],
+                'legal_representative' => $record['legal_representative'],
+                'dni_legal_representative' => $record['dni_legal_representative'],
+                'cnae_id' => $record['cnae_id'],
+                'iban' => $record['iban'],
+                'sepa' => $record['sepa'],
+                'b2b' => $record['b2b'],
+                'address' => $record['address'],
+                'post_code' => $record['post_code'],
+                'province_id' => $record['province_id'],
+                'population' => $record['population'],
+                'active' => $record['active'],
             ]);
             return $provider;
         }
+    }
+
+    public static function findNif($nif, $id = null){
+        $provider = Provider::where('nif', $nif);
+        if ($id){
+            $provider = $provider->where('id', '!=', $id);
+        }
+        $provider = $provider->first();
+
+        return $provider;
     }
 
 }

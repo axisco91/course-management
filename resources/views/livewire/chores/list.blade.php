@@ -12,7 +12,7 @@
     <!--Search Form -->
     <div class="card-body mt-2">
         <div class="row g-1 mb-md-1">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="course_search">Curso</label>
                     <select wire:model.lazy="course_search" class="form-control select2" id="course_search">
@@ -23,7 +23,7 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="company_search">Empresa</label>
                     <select wire:model.lazy="company_search" class="form-control select2" id="company_search">
@@ -34,16 +34,54 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div wire:ignore>
                     <label class="form-label" for="student_search">Alumno</label>
                     <select wire:model.lazy="student_search" class="form-control select2" id="student_search">
                         <option value="-1">Todas los alumnos</option>
                         @foreach($students as $student)
-                            <option value="{{$student['id']}}">{{$student['name']}}</option>
+                            <option value="{{$student['id']}}">{{$student['name']}} {{$student['surname']}}</option>
                         @endforeach
                     </select>
                 </div>
+            </div>
+            <div class="col-md-3">
+                <div wire:ignore>
+                    <label class="form-label" for="status_search">Estado</label>
+                    <select wire:model.lazy="status_search" class="form-control select2" id="status_search">
+                        <option value="-1">Todas los estados</option>
+                        @foreach($course_statuses as $status)
+                            <option value="{{$status['id']}}">{{$status['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div wire:ignore>
+                    <label class="form-label" for="beginning_search">Desde</label>
+                    <input wire:model.lazy="beginning_search" type="date" class="form-control" id="beginning_search">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div wire:ignore>
+                    <label class="form-label" for="end_search">Hasta</label>
+                    <input wire:model.lazy="end_search" type="date" class="form-control" id="end_search">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+
+            </div>
+            <div class="col-md-4">
+
+            </div>
+            <div class="col-md-4">
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
             </div>
         </div>
     </div>
@@ -56,6 +94,7 @@
                 <th>Curso</th>
                 <th>Empresa</th>
                 <th>Alumno</th>
+                <th>Estado</th>
                 <th>Ficha Adhesión</th>
                 <th>Propuesta Económica</th>
                 <th>Ficha Alumno</th>
@@ -73,13 +112,14 @@
             @foreach($chores as $row)
                 <tr>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->course }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ str_replace( ' -', '/'.$row->course_group.' -', $row->course) }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->company }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->student }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->membership_tab_status == 0 ?'warning' : ($row->membership_tab_status == 1 ? 'info' : $row->membership_tab_status == 2 ? 'success' : 'danger' )}} me-1">{{$row->membership_tab_status == 0 ? 'Pendiente' : ($row->membership_tab_status == 1 ? 'Enviado' : $row->membership_tab_status == 2 ? 'Recibido' : 'No procede')}}</span></td>
+                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})">{{ $row->status }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->membership_tab_status == 0 ?'warning' : ($row->membership_tab_status == 1 ? 'info' : ($row->membership_tab_status == 2 ? 'success' : 'danger' ))}} me-1">{{$row->membership_tab_status == 0 ? 'Pendiente' : ($row->membership_tab_status == 1 ? 'Enviado' : ($row->membership_tab_status == 2 ? 'Recibido' : 'No procede'))}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->economic_proposal_status == 0 ?'warning' : ($row->economic_proposal_status == 1 ? 'info' : 'success')}} me-1">{{$row->economic_proposal_status == 0 ? 'Pendiente' : ($row->economic_proposal_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->student_tab_status == 0 ?'warning' : ($row->student_tab_status == 1 ? 'info' : 'success')}} me-1">{{$row->student_tab_status == 0 ? 'Pendiente' : ($row->student_tab_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
-                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->welcome_guid_status == 0 ?'warning' : ($row->welcome_guid_status == 1 ? 'info' : 'success')}} me-1">{{$row->welcome_guid_status == 0 ? 'Pendiente' : ($row->welcome_guid_status == 1 ? 'Enviado' : 'Recibido')}}</span></td>
+                    <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->welcome_guid_status == 0 ?'warning' : ($row->welcome_guid_status == 1 ? 'success' : 'danger')}} me-1">{{$row->welcome_guid_status == 0 ? 'Pendiente' : ($row->welcome_guid_status == 1 ? 'Realizada' : '')}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->registration_status == 0 ?'warning' : 'success'}} me-1">{{$row->registration_status == 0 ? 'Pendiente' : 'Realizada'}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->diploma_status == 0 ?'warning' : ($row->diploma_status == 1 ? 'success' : 'danger')}} me-1">{{$row->diploma_status == 0 ? 'Pendiente' : ($row->diploma_status == 1 ? 'Enviada' : 'No procede')}}</span></td>
                     <td data-bs-toggle="modal" data-bs-target="#choresTabModal" wire:click="general({{$row->id}})"><span class="badge rounded-pill badge-light-{{$row->start_communication_status == 0 ?'warning' : ($row->start_communication_status == 1 ? 'success' : 'danger')}} me-1">{{$row->start_communication_status == 0 ? 'Pendiente' : ($row->start_communication_status == 1 ? 'Realizada' : 'No procede')}}</span></td>
@@ -93,6 +133,7 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
                                 <a class="dropdown-item edit" href="{{url('/chores/edit/'.$row->id)}}"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                                <a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
                             </div>
                         </div>
                     </td>
@@ -112,6 +153,56 @@
     @endsection
     <script>
         document.addEventListener('livewire:load', function() {
+            $('body').on('click', '.eliminar', function () {
+                button = $(this)
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                })
+
+                swalWithBootstrapButtons.fire({
+                    title: '¿Estas seguro?',
+                    text: "Eliminaras la tarea!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, eliminalo!',
+                    cancelButtonText: 'No, cancela!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        id = $(this).data('id');
+                        Livewire.emit('destroy', id)
+                        window.addEventListener('eliminated', e=>{
+                            if (e.detail.value != ''){
+                                swalWithBootstrapButtons.fire(
+                                    'Eliminado!',
+                                    'Eliminado con exito.',
+                                    'success'
+                                )
+                            } else{
+                                swalWithBootstrapButtons.fire(
+                                    'Error',
+                                    'Fallo al eliminar.',
+                                    'error'
+                                )
+                            }
+                        });
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cacelado',
+                            'No se ha podido eliminar.',
+                            'error'
+                        )
+                    }
+                })
+            })
             initializeSelect2()
             $('.select2').on('change', function(){
             @this.set(this.id, this.value)

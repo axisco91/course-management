@@ -61,7 +61,8 @@ class TeacherAreas extends Component
 
         $this->resetInput();
 		$this->emit('closeModal');
-		session()->flash('message', 'TeacherArea Successfully created.');
+		session()->flash('message', 'Área creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -87,8 +88,10 @@ class TeacherAreas extends Component
             ]);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
-			session()->flash('message', 'TeacherArea Successfully updated.');
+			session()->flash('message', 'Área actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

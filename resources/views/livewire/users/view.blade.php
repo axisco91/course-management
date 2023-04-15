@@ -9,6 +9,7 @@
         @endif
         @include('livewire.users.create')
         @include('livewire.users.update')
+        @include('livewire.users.change-password')
     </div>
     <div class="card-body mt-2">
         <div class="row g-1 mb-md-1">
@@ -19,8 +20,8 @@
 
             </div>
             <div class="col-md-4">
-                <div class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
-                    <i class="fa fa-plus"></i>  Añadir Usuario
+                <div wire:ignore class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createDataModal">
+                    <i class="fa fa-plus" class="me-50"></i> Añadir Usuario
                 </div>
             </div>
         </div>
@@ -53,6 +54,7 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
                                 <a data-bs-toggle="modal" data-bs-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
+                                <a data-bs-toggle="modal" data-bs-target="#passwordModal" class="dropdown-item" wire:click="changePassword({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Cambiar Contraseña</a>
                             </div>
                         </div>
                     </td>
@@ -62,4 +64,75 @@
         {{ $users->links() }}
         </div>
     </div>
+@section('scripts')
+    <script>
+        Livewire.on('toastr', type => {
+            if (type == 'success'){
+                toastr['success']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            } else{
+                toastr['warning']($('#success-toast').val(), {
+                    showMethod: 'slideDown',
+                    hideMethod: 'slideUp',
+                    timeOut: 2000,
+                });
+            }
+        })
+        document.addEventListener('livewire:load', function () {
+            $('body').on('click', '.eliminar', function () {
+                button = $(this)
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                })
+
+                swalWithBootstrapButtons.fire({
+                    title: '¿Estas seguro?',
+                    text: "Eliminaras al usuario!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, eliminalo!',
+                    cancelButtonText: 'No, cancela!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        id = $(this).data('id');
+                        Livewire.emit('destroy', id)
+                        window.addEventListener('eliminated', e=>{
+                            if (e.detail.value != ''){
+                                swalWithBootstrapButtons.fire(
+                                    'Eliminado!',
+                                    'Eliminado con exito.',
+                                    'success'
+                                )
+                            } else{
+                                swalWithBootstrapButtons.fire(
+                                    'Error',
+                                    'Fallo al eliminar.',
+                                    'error'
+                                )
+                            }
+                        });
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cacelado',
+                            'No se ha podido eliminar.',
+                            'error'
+                        )
+                    }
+                })
+            })
+        })
+    </script>
+    @endsection
 </div>

@@ -2,7 +2,7 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\Profitability;
+use App\Models\Course;
 use App\Models\Registration;
 use Carbon\Carbon;
 use Livewire\Component;
@@ -10,19 +10,28 @@ use Livewire\Component;
 class Home extends Component
 {
 
-    public $total_registrations, $registrations_count, $years, $year, $total_benefits, $benefits_per_month, $expenses_per_month;
+    public $total_registrations, $registrations_count, $years = [], $total_course_year, $total_courses, $courses_per_month = [];
+    protected $listeners = [
+        'getCoursesPerMonth' => 'getCoursesPerMonth'
+    ];
 
     public function render()
     {
-        $this->years = range(Carbon::now()->year, '2022');
         return view('livewire.home.view');
     }
 
     public function mount(){
-        $this->year = Carbon::now()->year;
+        $this->total_course_year = Carbon::now()->year;
+        $date = Carbon::now();
+        $years = [];
+        for ($i=0; $i <= 5; $i++){
+            $years[] = $date->year;
+            $date = $date->subYear();
+        }
+        $this->years = $years;
         $this->total_registrations = Registration::totalRegistrations();
         $this->registrations_count = $this->countRegistrations();
-        $this->getProfitabilitiesPerMonth();
+        $this->getCoursesPerMonth();
     }
 
     public function countRegistrations(){
@@ -42,10 +51,9 @@ class Home extends Component
        return $data;
     }
 
-    public function getProfitabilitiesPerMonth(){
-        $this->total_benefits = Profitability::getProfitabilityYear($this->year);
-        $this->benefits_per_month = Profitability::getBenefitsPerMonth($this->year);
-        $this->expenses_per_month = Profitability::getExpensesPerMonth($this->year);
+    public function getCoursesPerMonth(){
+        $this->total_courses_year = Course::getNumberCourses($this->total_course_year);
+        $this->courses_per_month = Course::getNumberCoursesPerMonth($this->total_course_year);
     }
 
 }

@@ -21,7 +21,7 @@
                 @if(isset($students))
                     @foreach($students as $student)
                         <tr>
-                            <td>{{$student['name'].' '.$student['surname']}}</td>
+                            <td>{{$student['name'].' '.$student['surname']}} {{$student['is_bonus'] == 1 ? '('.$student->company_name.')' : ''}}</td>
                             <td>{{$student['dni']}}</td>
                             <td> <a href="{{url('/students/view/'.$student->id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a></td>
                         </tr>

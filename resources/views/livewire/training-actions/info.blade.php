@@ -1,6 +1,6 @@
  <div class="row">
      <div class="col-12 mb-1">
-         <a class="btn btn-success right" href="{{url('/training-actions/edit/'.$this->selected_id)}}" target="_blank"><i class="fa-solid fa-pencil"></i></a>
+         <a class="btn btn-success right" href="{{url('/training_actions/edit/'.$this->selected_id)}}" target="_blank"><i class="fa-solid fa-pencil"></i></a>
      </div>
         <div class="col-12 col-md-3">
             <div class="mb-1">
@@ -164,7 +164,7 @@
         <div class="col-12">
             <div class="mb-1">
                 <label class="form-label" for="content">Contenido</label>
-                <textarea wire:model.lazy="content @error('content') is-invalid @enderror" rows="20" class="form-control" id="content" placeholder="Contenido" disabled></textarea>@error('content') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                <textarea wire:model.lazy="content" rows="20" class="form-control @error('content') is-invalid @enderror" id="content" placeholder="Contenido" disabled></textarea>@error('content') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
         </div>
         <div class="col-md-4 col-12">
@@ -219,4 +219,12 @@
             </div>
             @error('provider_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
+     <div class="col-md-2 col-12 mb-1">
+         <label class="form-label" for="specialty">Especialidad</label>
+         <select wire:model.lazy="specialty" class="form-select @error('specialty') is-invalid @enderror" id="specialty" disabled>
+             <option value="0">No</option>
+             <option value="1">Si</option>
+         </select>
+         @error('specialty') <div class="invalid-feedback">{{ $message }}</div> @enderror
+     </div>
 </div>

@@ -36,10 +36,10 @@ return [
     'mailers' => [
         'smtp' => [
             'transport' => 'smtp',
-            'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
+            'host' => env('MAIL_HOST', 'smtp.servidor-correo.net'),
             'port' => env('MAIL_PORT', 587),
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
+            'username' => env('zona@avzformacion.com'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'auth_mode' => null,
@@ -84,8 +84,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' => env('MAIL_FROM_ADDRESS', 'franciscohoskins@gmail.com'),
+        'name' => env('MAIL_FROM_NAME', 'Zona Avz'),
     ],
 
     /*

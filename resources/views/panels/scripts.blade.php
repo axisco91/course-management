@@ -28,6 +28,12 @@
     window.livewire.on('closeModal', () => {
         $('#createDataModal').modal('hide');
     });
+    window.livewire.on('closeUpdateModal', () => {
+        $('#updateModal').modal('hide');
+    });
+    window.livewire.on('closePasswordModal', () => {
+        $('#passwordModal').modal('hide');
+    });
 </script>
 <!-- END: Theme JS-->
 <!-- BEGIN: Page JS-->

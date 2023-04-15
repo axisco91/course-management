@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ActionType extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,26 +21,43 @@ class ActionType extends Model
         return $this->hasMany('App\Models\TrainingAction', 'action_type_id', 'id');
     }
 
-    public function getActionType($keyWord){
-        $actionTypes = ActionType::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
-
+    public static function getActionTypes(){
+        $actionTypes = ActionType::select('action_types.*', 'id as value', 'name as label')->get();
+        foreach ($actionTypes as $actionType){
+            $training_action = TrainingAction::where('action_type_id', $actionType['id'])->first();
+            if ($training_action){
+                $actionType['used'] = true;
+            } else{
+                $actionType['used'] = false;
+            }
+        }
         return $actionTypes;
     }
 
-    public function createActionType($name){
+    public static function getActionType($id){
+        $actionType = ActionType::select('action_types.*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $training_action = TrainingAction::where('action_type_id', $actionType['id'])->first();
+        if ($training_action){
+            $actionType['used'] = true;
+        } else{
+            $actionType['used'] = false;
+        }
+        return $actionType;
+    }
+
+    public static function createActionType($data){
         $action_type = ActionType::create([
-            'name' => $name
+            'name' => $data['name']
         ]);
 
         return $action_type;
     }
 
-    public function updateActionType($id, $name){
+    public static function updateActionType($id, $data){
         $action_type = ActionType::find($id);
         $action_type->update([
-            'name' => $name
+            'name' => $data['name']
         ]);
         return $action_type;
     }

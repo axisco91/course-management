@@ -5,24 +5,17 @@ namespace App\Http\Livewire;
 use App\Models\Advisor;
 use App\Models\Cnae;
 use App\Models\CompanyActivity;
-use App\Models\CompanyObservation;
 use App\Models\CompanyType;
-use App\Models\Provider;
 use App\Models\Province;
-use App\Models\Teacher;
-use Carbon\Carbon;
+use App\Models\User;
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Company;
 
 class CompaniesView extends Component
 {
-    use WithPagination;
-
-    protected $paginationTheme = 'bootstrap';
-    public $selected_id, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $observation;
-    public $updateMode = false, $createObservationModal = false, $updateObservationModal = false;
-    public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null, $route;
+    public $selected_id, $name, $nif, $type_id, $activity_id, $email, $telephone, $legal_representative, $dni_legal_representative, $quote, $cnae_id, $average_template, $iban, $sepa, $b2b, $address, $post_code, $population_id, $province_id, $population, $active, $advisor_id, $observation, $collaborator_id, $potential;
+    public $updateMode = false, $createObservationModal = false;
+    public $company_types, $company_activities, $cnaes, $provinces, $advisors, $company_id, $observations = null, $collaborators;
     public function render()
     {
         return view('livewire.companies.view');
@@ -33,9 +26,8 @@ class CompaniesView extends Component
         $this->company_activities = CompanyActivity::all();
         $this->cnaes = Cnae::all();
         $this->provinces = Province::all();
-        $this->advisors = Advisor::select('advisors.*')
-            ->join('companies', 'companies.id', '=', 'advisors.company_id')
-            ->where('companies.active', 0)->get();
+        $this->advisors = Advisor::all();
+        $this->collaborators = User::where('has_commission', 1)->get();
         $this->company_id = null;
 
         $record = Company::findOrFail($id);
@@ -62,64 +54,11 @@ class CompaniesView extends Component
         $this->population = $record-> population;
         $this->active = $record-> active;
         $this->advisor_id = $record-> advisor_id;
-
-        $this->route = url()->previous();
+        $this->collaborator_id = $record->collaborator_id;
+        $this->potential = $this->potential;
     }
 
     public function hydrate(){
         $this->emit('select2');
-    }
-
-    public function update()
-    {
-        $this->validate([
-            'name' => 'required',
-            'type_id' => 'required|numeric|min:1',
-            'activity_id' => 'required|numeric|min:1',
-            'province_id' => 'required|numeric|min:1',
-        ]);
-
-        if ($this->selected_id) {
-            $data = [
-                'name' => $this-> name,
-                'nif' => $this-> nif,
-                'company_type_id' => $this-> type_id != -1 ? $this-> type_id : null,
-                'company_activity_id' => $this-> activity_id != -1 ? $this-> activity_id : null,
-                'email' => $this-> email,
-                'telephone' => $this-> telephone,
-                'legal_representative' => $this-> legal_representative,
-                'dni_legal_representative' => $this-> dni_legal_representative,
-                'quote' => $this-> quote,
-                'cnae_id' => $this-> cnae_id != -1 ? $this-> cnae_id : null,
-                'average_template' => $this-> average_template,
-                'iban' => $this-> iban,
-                'sepa' => $this-> sepa,
-                'b2b' => $this-> b2b,
-                'address' => $this-> address,
-                'post_code' => $this-> post_code,
-                'province_id' => $this-> province_id != -1 ? $this-> province_id : null,
-                'population' => $this-> population,
-                'active' => $this-> active == true ? 1 : 0,
-                'advisor_id' => $this-> advisor_id != -1 ? $this-> advisor_id : null
-            ];
-
-            Company::updateCompany($this->selected_id, $data);
-
-            $advisor = Advisor::where('company_id', $this->selected_id)->first();
-            if ($advisor){
-                $advisor->update([
-                    'name' => $this-> name,
-                ]);
-            }
-            $provider = Provider::where('company_id', $this->selected_id)->first();
-            if ($provider){
-                $provider->update([
-                    'name' => $this-> name,
-                ]);
-            }
-
-            session()->flash('message', 'Empresa Actulizado con exito.');
-            return $this->redirect($this->route);
-        }
     }
 }

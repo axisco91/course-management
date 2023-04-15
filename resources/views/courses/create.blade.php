@@ -4,6 +4,11 @@
     <!-- vendor css files -->
     <link rel="stylesheet" href="{{ asset('app-assets/vendors/css/forms/select/select2.min.css') }}">
     <link rel="stylesheet" href="{{asset('app-assets/css/plugins/forms/form-validation.css')}}">
+    <link rel="stylesheet" href="{{ asset('app-assets/vendors/css/extensions/toastr.min.css') }}">
+@endsection
+@section('page-style')
+    <!-- Page css files -->
+    <link rel="stylesheet" href="{{ asset('app-assets/css/plugins/extensions/ext-component-toastr.css') }}">
 @endsection
 
 @section('content')
@@ -15,7 +20,7 @@
                         Crear Curso
                     </div>
                 </div>
-                @livewire('courses-create')
+                @livewire('courses-create', ['id' => $id])
             </div>
         </div>
     </section>

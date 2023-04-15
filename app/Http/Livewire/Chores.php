@@ -2,8 +2,11 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\AdvisorsExport;
+use App\Exports\ChoresExport;
 use App\Models\Company;
 use App\Models\Course;
+use App\Models\CourseStatus;
 use App\Models\Student;
 use Carbon\Carbon;
 use Livewire\Component;
@@ -19,10 +22,10 @@ class Chores extends Component
         $economic_proposal_status, $economic_proposal_date, $student_tab_status, $student_tab_date, $welcome_guid_status, $welcome_guid_date,
         $registration_status, $registration_date, $diploma_status, $diploma_status_date, $start_communication_status,
         $start_communication_date, $close_communication_status, $close_communication_date, $invoiced_status, $invoiced_date,
-        $bonus_sent_status, $bonus_sent_date;
+        $bonus_sent_status, $bonus_sent_date, $beginning, $end, $course_group;
     public $updateMode = false;
-    public $courses, $companies, $students, $tab = 'info';
-    public $course_search = -1, $company_search = -1, $student_search = -1, $student_name, $name, $surname, $course_name;
+    public $courses, $companies, $students, $course_statuses, $tab = 'info';
+    public $course_search = -1, $company_search = -1, $student_search = -1, $status_search = -1, $student_name, $name, $surname, $course_name, $beginning_search, $end_search;
     protected $listeners = [
         'destroy' => 'destroy'
     ];
@@ -31,7 +34,7 @@ class Chores extends Component
     {
 		$keyWord = '%'.$this->keyWord .'%';
 
-       $chores = Chore::getChores($keyWord, $this->course_search, $this->company_search, $this->student_search);
+       $chores = Chore::getChores($keyWord, $this->course_search, $this->company_search, $this->student_search, $this->status_search, $this->beginning_search, $this->end_search);
         return view('livewire.chores.list', [
             'chores' => $chores,
         ]);
@@ -41,6 +44,7 @@ class Chores extends Component
         $this->courses = Course::all();
         $this->companies = Company::all();
         $this->students = Student::all();
+        $this->course_statuses = CourseStatus::all();
     }
 
     public function cancel()
@@ -123,6 +127,7 @@ class Chores extends Component
         $this->resetInput();
 		$this->emit('closeModal');
 		session()->flash('message', 'Chore Successfully created.');
+        $this->emit('toastr', 'success');
     }
 
     public function destroy($id)
@@ -146,6 +151,7 @@ class Chores extends Component
 
         $this->student_name = $student->name .' '. $student->surname;
         $this->course_name = $course->name;
+        $this->course_group = $course->group;
         $this->membership_tab_status = $record-> membership_tab_status;
         $this->membership_tab_date = $record-> membership_tab_date;
         $this->economic_proposal_status = $record-> economic_proposal_status;
@@ -166,14 +172,18 @@ class Chores extends Component
         $this->invoiced_date = $record-> invoiced_date;
         $this->bonus_sent_status = $record-> bonus_sent_status;
         $this->bonus_sent_date = $record-> bonus_sent_date;
-        $student = Student::find($this->student_id);
-        $course = Course::find($this->course_id);
         $this->name = $student->name;
         $this->surname = $student->surname;
-        $this->course_name = $course->name;
+        $this->beginning = Carbon::parse($course->beginning)->format('d/m/Y');
+        $this->end = Carbon::parse($course->end)->format('d/m/Y');
     }
 
     public function getInfo($id){
         $this->selected_id = $id;
+    }
+
+    public function downloadExcel(){
+        $this->excelModal = false;
+        return (new ChoresExport($this->course_search, $this->company_search, $this->student_search, $this->status_search, $this->beginning_search, $this->end_search))->download('tareas.xlsx');
     }
 }

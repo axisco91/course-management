@@ -15,11 +15,11 @@ class CreateRegistrationsTable extends Migration
     {
         Schema::create('registrations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('company_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('student_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('tracing_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('chore_id')->constrained()->onUpdate('cascade')->onDelete('cascade');;
+            $table->foreignId('course_id')->index();
+            $table->foreignId('company_id')->index();
+            $table->foreignId('student_id')->index();
+            $table->foreignId('tracing_id')->nullable()->index();
+            $table->foreignId('chore_id')->nullable()->index();
             $table->string('price')->default(0);
             $table->timestamps();
         });

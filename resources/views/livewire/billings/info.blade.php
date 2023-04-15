@@ -13,7 +13,7 @@
         <label class="form-label" for="course_id">Curso</label> @if($this->course_id)<a href="{{url('/courses/view/'.$this->course_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
         @endif
         <div wire:ignore>
-            <select wire:model.lazy="course_id" class="form-control select2" id="course_id" disabled>
+            <select wire:model.lazy="course_id" class="form-control" id="course_id" disabled>
                 @foreach($courses as $course)
                     <option value="{{$course['id']}}">{{$course['name']}}</option>
                 @endforeach
@@ -69,13 +69,13 @@
         </div>
      @endif
      @if($is_bonus)
-    <div class="col-md-4 col-12">
-        <div class="mb-1">
-            <label class="form-label" for="expenses">Gastos de Organización</label>
-            <input wire:model.lazy="expenses" type="text" class="form-control" id="expenses" placeholder="Gastos de Organización" disabled>@error('expenses') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-    </div>
-     @endif
+	<div class="col-md-4 col-12">
+		<div class="mb-1">
+			<label class="form-label" for="expenses">Gastos de Organización</label>
+			<input wire:model.lazy="expenses" type="text" class="form-control" id="expenses" placeholder="Gastos de Organización" disabled>@error('expenses') <div class="invalid-feedback">{{ $message }}</div> @enderror
+		</div>
+	</div>
+	@endif
     <div class="col-md-4 col-12">
         <div class="mb-1">
             <label class="form-label" for="only_organizing_entity">Solamente Entidad Organizadora</label>
@@ -103,6 +103,26 @@
         </select>
         @error('payment_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
+     <div class="col-md-4 col-12 mb-1">
+		 <label class="form-label" for="advisor_id">Asesoría</label>
+		 <select wire:model.lazy="advisor_id" class="form-control" id="advisor_id" disabled>
+			 <option value="-1">Seleccione una asesoría</option>
+			 @foreach($advisors as $advisor)
+				 <option value="{{$advisor['id']}}">{{$advisor['name']}}</option>
+			 @endforeach
+		 </select>
+         @error('advisor_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+     </div>
+     <div class="col-md-4 col-12 mb-1">
+         <label class="form-label" for="collaborator_id">Colaborador</label>
+         <select wire:model.lazy="collaborator_id" class="form-control" id="collaborator_id" disabled>
+             <option value="-1">Seleccione un colaborador</option>
+             @foreach($collaborators ?? '' as $collaborator)
+                 <option value="{{$collaborator['id']}}">{{$collaborator['name']}} {{$collaborator['surname']}}</option>
+             @endforeach
+         </select>
+         @error('collaborator_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+     </div>
      @if($is_bonus)
         <div class="col-md-4 col-12">
             <div class="mb-1">
@@ -110,13 +130,13 @@
                 <input wire:model.lazy="communication_start_date" type="date" class="form-control" id="communication_start_date" disabled>@error('communication_start_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
         </div>
-     @endif
-    <div class="col-md-4 col-12">
-        <div class="mb-1">
-            <label class="form-label" for="communication_end_date">Fecha Comunicación Cierre</label>
-            <input wire:model.lazy="communication_end_date" type="date" class="form-control" id="communication_end_date"disabled>@error('communication_end_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div class="col-md-4 col-12">
+            <div class="mb-1">
+                <label class="form-label" for="communication_end_date">Fecha Comunicación Cierre</label>
+                <input wire:model.lazy="communication_end_date" type="date" class="form-control" id="communication_end_date"disabled>@error('communication_end_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
         </div>
-    </div>
+     @endif
     <div class="col-md-4 col-12 mb-1">
         <label class="form-label" for="invoiced">Facturado</label>
         <select wire:model.lazy="invoiced" class="form-control" id="invoiced" disabled>
@@ -157,6 +177,11 @@
             @error('company_bonus') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
      @endif
+    <div class="col-3 mb-1">
+        <br>
+        <label class="form-label" for="charged"><input wire:model.lazy="charged" id="charged" type="checkbox" id="charged" disabled> Cobrado</label>
+        @error('charged') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
     <div class="col-12">
         <div class="mb-1">
             <label class="form-label" for="observation">Observación</label>

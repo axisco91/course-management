@@ -6,7 +6,7 @@
         <input hidden id="toastr" data-type="error" value="{{ session('error') }}">
     @endif
     <div class="col-12 mb-1">
-        <button type="button" class="btn btn-success right" id="enable_edit_company">Editar</button>
+        <a href="{{url('/companies/edit/'.$this->selected_id)}}" class="btn btn-success right">Editar</a>
     </div>
     <form class="form">
         <input type="hidden" wire:model.lazy="selected_id">
@@ -86,7 +86,8 @@
             </div>
             <div class="col-md-4 col-12">
                 <div wire:ignore>
-                    <label class="form-label" for="advisor_id">Asesoria</label>
+                    <label class="form-label" for="advisor_id">Asesoria</label> @if($this->advisor_id)<a href="{{url('/advisors/view/'.$this->advisor_id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
+                    @endif
                     <select wire:model.lazy="advisor_id" class="form-select select2" id="advisor_id" placeholder="Advisor Id" disabled>
                         <option value="">Selección una Asesoria</option>
                         @foreach($advisors as $advisor)
@@ -95,6 +96,18 @@
                     </select>
                 </div>
                 @error('advisor_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div wire:ignore>
+                    <label class="form-label" for="collaborator_id">Colaborador</label>
+                    <select wire:model.lazy="collaborator_id" class="form-control select2" id="collaborator_id">
+                        <option value="-1">Seleccione un colaborador</option>
+                        @foreach($collaborators as $collaborator)
+                            <option value="{{$collaborator['id']}}">{{$collaborator['name']}} {{$collaborator['surname']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @error('collaborator_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="col-md-4 col-12 mb-1">
                 <div wire:ignore>
@@ -163,6 +176,13 @@
                 </div>
             </div>
             <div class="col-md-4 col-12">
+                <label class="form-label" for="potential">Potencial</label>
+                <select wire:model.lazy="potential" class="form-select" id="potential" disabled>
+                    <option value="0">No</option>
+                    <option value="1">Si</option>
+                </select>
+            </div>
+            <div class="col-md-4 col-12">
                 <div class="form-check form-check-inline" style="padding-top: 32px;">
                     <input wire:model.lazy="active" class="form-check-input @error('active') is-invalid @enderror" type="checkbox" id="active" value="active" disabled/>
                     <label class="form-check-label" for="active">Activo</label>
@@ -181,7 +201,19 @@
     <!-- Page js files -->
         <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
     @endsection
+    @section('scripts')
     <script>
+        Livewire.on('alreadyExists', type => {
+            text = '';
+            if (type == 'dni'){
+                text = 'DNI';
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Ya Existe',
+                text: '¡Ya existe una empresa con ese '+text+'!',
+            })
+        })
         document.addEventListener('livewire:load', function() {
             $( document ).ready(
                 setTimeout(function (){
@@ -193,4 +225,5 @@
             })
         })
     </script>
+    @endsection
 </div>

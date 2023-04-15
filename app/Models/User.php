@@ -6,6 +6,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -27,6 +29,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'surname',
+        'username',
+        'has_commission',
+        'commission'
     ];
 
     /**
@@ -59,37 +65,68 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
-    public function getUsers($keyWord){
-        $users = User::latest()
-            ->orWhere('name', 'LIKE', $keyWord)
-            ->orWhere('surname', 'LIKE', $keyWord)
-            ->orWhere('username', 'LIKE', $keyWord)
-            ->orWhere('email', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getUsers(){
+        $users = User::select('*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
+            'users.id as value')
+            ->get();
         return $users;
     }
 
-    public function createUser($data){
+    public static function getUser($id){
+        $user = User::select('*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
+            'users.id as value')
+            ->where('users.id', $id)
+            ->first();
+        return $user;
+    }
+
+    public static function createUser($data){
         $user = User::create([
             'name' => $data['name'],
             'surname' => $data['surname'],
             'username' => $data['username'],
             'email' => $data['email'],
-            'password' => $data['password'],
+            'password' => Hash::make($data['password']),
+            'has_commission' => $data['has_commission'],
+            'commission' => $data['commission'] ? $data['commission'] : 0.0
         ]);
-        $user->syncRoles($data['role_id']);
         return $user;
     }
 
-    public function updateUser($id, $data){
+    public static function updateUser($id, $data){
         $user = User::find($id);
         $user->update([
             'name' => $data['name'],
             'surname' => $data['surname'],
             'username' => $data['username'],
             'email' => $data['email'],
+            'has_commission' => $data['has_commission'],
+            'commission' => $data['commission'] ? $data['commission'] : 0.0
         ]);
-        $user->syncRoles($data['role_id']);
         return $user;
+    }
+
+    public static function findDni($dni, $id = null){
+        $user = User::where('dni', $dni);
+        if ($id){
+            $user = $user->where('id', '!=', $id);
+        }
+        $user = $user->first();
+
+        return $user;
+    }
+
+    public static function findUser($user, $id = null){
+        $user = User::where('username', $user);
+        if ($id){
+            $user = $user->where('id', '!=', $id);
+        }
+        $user = $user->first();
+
+        return $user;
+    }
+
+    public static function getRoleNames(){
+        return [];
     }
 }

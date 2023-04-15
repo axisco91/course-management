@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class WebPlatform extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,11 +21,10 @@ class WebPlatform extends Model
         return $this->hasMany('App\Models\TrainingAction', 'web_platform_id', 'id');
     }
 
-    public function getWebPlatforms($keyWord){
+    public static function getWebPlatforms(){
         $web_platforms = WebPlatform::
-        orWhere('name', 'LIKE', $keyWord)
-            ->orWhere('url', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($web_platforms as $web_platform){
             $training_action = TrainingAction::where('web_platform_id', $web_platform['id'])->first();
             if ($training_action){
@@ -37,7 +36,21 @@ class WebPlatform extends Model
         return $web_platforms;
     }
 
-    public function createWebPlatform($data){
+    public static function getWebPlatform($id){
+        $web_platform = WebPlatform::
+        select('*', 'id as value', 'name as label')
+            ->where('id', $id)
+            ->first();
+        $training_action = TrainingAction::where('web_platform_id', $web_platform['id'])->first();
+        if ($training_action){
+            $web_platform['used'] = true;
+        } else {
+            $web_platform['used'] = false;
+        }
+        return $web_platform;
+    }
+
+    public static function createWebPlatform($data){
         $web_platform = WebPlatform::create([
             'name' => $data['name'],
             'url' => $data['url']
@@ -45,7 +58,7 @@ class WebPlatform extends Model
         return $web_platform;
     }
 
-    public function updateWebPlatform($id, $data){
+    public static function updateWebPlatform($id, $data){
         $web_platform = WebPlatform::find($id);
         $web_platform->update([
             'name' => $data['name'],

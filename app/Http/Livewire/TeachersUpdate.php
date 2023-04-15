@@ -14,7 +14,7 @@ class TeachersUpdate extends Component
 {
 
     public $selected_id, $name, $surname, $dni, $email, $telephone, $user, $password, $observations, $iban, $address,
-        $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $inactive, $route;
+        $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $inactive;
 
     public function render()
     {
@@ -47,8 +47,6 @@ class TeachersUpdate extends Component
             array_push($area, $teacher_area['teacher_area_id']);
         }
         $this->teacher_area_id = $area;
-
-        $this->route = url()->previous();
     }
 
     public function hydrate(){
@@ -66,6 +64,21 @@ class TeachersUpdate extends Component
         ]);
 
         if ($this->selected_id) {
+            if ($this->dni){
+                $dni = Teacher::findDni($this->dni, $this->selected_id);
+                if ($dni){
+                    $this->emit('alreadyExists', 'dni');
+                    return;
+                }
+            }
+            if ($this->user){
+                $user = Teacher::findUser($this->user, $this->selected_id);
+                if ($user){
+                    $this->emit('alreadyExists', 'user');
+                    return;
+                }
+            }
+
             $record = Teacher::find($this->selected_id);
             $record->update([
                 'name' => $this-> name,
@@ -87,7 +100,7 @@ class TeachersUpdate extends Component
                 $record->teacherAreas()->sync($this->teacher_area_id);
             }
             session()->flash('message', 'Docente Actulizado con exito.');
-            return redirect($this->route);
+            $this->emit('toastr', 'success');
         }
     }
 }

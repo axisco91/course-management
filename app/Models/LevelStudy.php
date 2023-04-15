@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class LevelStudy extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -23,9 +23,9 @@ class LevelStudy extends Model
         return $this->hasMany('App\Models\Student', 'level_study_id', 'id');
     }
 
-    public function getLevelStudies($keyWord){
-        $level_studies = LevelStudy::orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getLevelStudies(){
+        $level_studies = LevelStudy::select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($level_studies as $level_study){
             $student = Student::where('level_study_id', $level_study['id'])->first();
             if ($student){
@@ -37,7 +37,20 @@ class LevelStudy extends Model
         return $level_studies;
     }
 
-    public function createLevelStudy($data){
+    public static function getLevelStudy($id){
+        $level_study = LevelStudy::select('*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $student = Student::where('level_study_id', $level_study['id'])->first();
+        if ($student){
+            $level_study['used'] = true;
+        } else {
+            $level_study['used'] = false;
+        }
+        return $level_study;
+    }
+
+
+    public static function createLevelStudy($data){
         $level_study = LevelStudy::create([
             'name' => $data['name']
         ]);
@@ -45,13 +58,17 @@ class LevelStudy extends Model
         return $level_study;
     }
 
-    public function updateLevelStudy($id, $data){
+    public static function updateLevelStudy($id, $data){
         $level_study = LevelStudy::find($id);
         $level_study->update([
             'name' => $data['name']
         ]);
 
         return $level_study;
+    }
+
+    public function count(){
+        return LevelStudy::count();
     }
 
 }

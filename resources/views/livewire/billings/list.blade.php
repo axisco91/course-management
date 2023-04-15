@@ -55,6 +55,30 @@
                     </select>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div wire:ignore>
+                    <label class="form-label" for="status_search">Estado</label>
+                    <select wire:model.lazy="status_search" class="form-control select2" id="status_search">
+                        <option value="-1">Seleccione un estado</option>
+                        @foreach($course_statuses as $course_status)
+                        <option value="{{$course_status['id']}}">{{$course_status['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row g-1 mb-md-1">
+            <div class="col-md-4">
+            </div>
+            <div class="col-md-4">
+            </div>
+            <div class="col-md-4">
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
+            </div>
         </div>
     </div>
     <hr class="my-0" />
@@ -64,12 +88,13 @@
                 <tr>
                     <td>#</td>
                     <th>Nº Factura</th>
-                    <th>Acción</th>
-                    <th>Grupo</th>
                     <th>Curso</th>
+                    <th>Año</th>
                     <th>Tipo</th>
                     <th>Empresa</th>
-                    <th>Numero Alumnos</th>
+                    <th>Facturado</th>
+                    <th>Bonificado Enviado</th>
+                    <th>Cobrado</th>
                     <th>Factura</th>
                     <th>Acciónes</th>
                 </tr>
@@ -79,12 +104,17 @@
                 <tr>
                     <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->billing_number }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->training_action }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->group}}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->course }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->training_action}}/{{$row->group}} {{$row->course }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->beginning ? Carbon\Carbon::parse($row->beginning)->year : ''}}</td>
                     <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->is_bonus == 0 ? 'No bonificada' : 'Bonificada' }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->company }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->number_students }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->invoiced == 1 ? 'Si' : 'No' }}</td>
+                    @if ($row->is_bonus == 1)
+                        <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->bonus_status ? 'Si' : 'No' }}</td>
+                    @else
+                        <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})"></td>
+                    @endif
+                    <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->charged == 0 ? 'No' : 'Si' }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#billingsTabModal" wire:click="general({{$row->id}})">{{ $row->billing }}</td>
                     <td>
                         <div class="dropdown">

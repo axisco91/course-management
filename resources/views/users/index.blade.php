@@ -3,6 +3,8 @@
 @section('vendor-style')
     <!-- vendor css files -->
     <link rel="stylesheet" href="{{ asset('app-assets/vendors/css/extensions/toastr.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('app-assets/vendors/css/forms/select/select2.min.css') }}">
+    <link rel="stylesheet" href="{{asset('app-assets/css/plugins/forms/form-validation.css')}}">
 @endsection
 @section('page-style')
     <!-- Page css files -->
@@ -19,9 +21,10 @@
     </div>
     </section>
     @endsection
-    @section('vendor-script')
-        <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
-    @endsection
-    @section('page-script')
-        <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
+@section('vendor-script')
+    <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
 @endsection
+@section('page-script')
+    <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
+@endsection
+

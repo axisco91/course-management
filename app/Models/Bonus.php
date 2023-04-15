@@ -45,7 +45,7 @@ class Bonus extends Model
         return $this->hasOne('App\Models\Payment', 'id', 'payment_id');
     }
 
-    public function getBonuses($keyWord){
+    public static function getBonuses($keyWord){
         $bonuses = Bonus::latest()
             ->orWhere('course_id', 'LIKE', $keyWord)
             ->orWhere('company_id', 'LIKE', $keyWord)

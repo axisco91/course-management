@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProfessionalArea extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,10 @@ class ProfessionalArea extends Model
         return $this->hasMany('App\Models\TrainingAction', 'professional_area_id', 'id');
     }
 
-    public function getProfessionalAreas($keyWord){
+    public static function getProfessionalAreas(){
         $professional_areas = ProfessionalArea::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($professional_areas as $professional_area){
             $training_action = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
             if ($training_action){
@@ -36,14 +36,27 @@ class ProfessionalArea extends Model
         return $professional_areas;
     }
 
-    public function createProfessionalAreas($data){
+    public static function getProfessionalArea($id){
+        $professional_area = ProfessionalArea::
+        select('*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $training_action = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
+        if ($training_action){
+            $professional_area['used'] = true;
+        } else {
+            $professional_area['used'] = false;
+        }
+        return $professional_area;
+    }
+
+    public static function createProfessionalArea($data){
         $professional_area = ProfessionalArea::create([
             'name' => $data['name']
         ]);
         return $professional_area;
     }
 
-    public function updateProfessionalAreas($id, $data){
+    public static function updateProfessionalArea($id, $data){
         $professional_area = ProfessionalArea::find($id);
         $professional_area->update([
             'name' => $data['name']

@@ -11,6 +11,7 @@
                 <tr>
                     <th>Nombre</th>
                     <th>NIF</th>
+                    <th>Acción</th>
                 </tr>
             </thead>
             <tbody>
@@ -19,6 +20,9 @@
                         <tr>
                             <td>{{$company['name']}}</td>
                             <td>{{$company['nif']}}</td>
+                            <td>
+                                <a href="{{url('/companies/view/'.$company->id)}}" target="_blank" class="view"><i class="fa-regular fa-eye"></i></a>
+                            </td>
                         </tr>
                     @endforeach
                 @endif

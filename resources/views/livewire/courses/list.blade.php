@@ -10,7 +10,7 @@
         @include('registrations.index')
         @include('livewire.courses.tracings')
         @include('livewire.courses.chores')
-        @include('livewire.courses.updateChore')
+        @include('livewire.courses.update-chore')
         @include('courses.info')
     </div>
     <div class="card-body mt-2">
@@ -51,6 +51,17 @@
                     </select>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div wire:ignore>
+                    <label class="form-label">Empresa:</label>
+                    <select wire:model.lazy="search_company" class="form-control select2" id="search_company">
+                        <option value="">Seleccione una empresa</option>
+                        @foreach($companies as $company)
+                            <option value="{{$company['id']}}">{{$company['name']}}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
     <div class="card-footer">
@@ -62,9 +73,12 @@
 
             </div>
             <div class="col-md-4">
-                <a class="btn btn-sm btn-info" href="{{url('/courses/create')}}">
-                    <i data-feather="plus-circle" class="me-50"></i> Añadir curso
+                <a wire:ignore class="btn btn-sm btn-info" href="{{url('/courses/create')}}">
+                    <i class="fa fa-plus" class="me-50"></i> Añadir curso
                 </a>
+                <button wire:ignore class="btn btn-sm btn-success" wire:click.prevent="downloadExcel()">
+                    <i class="fa-solid fa-download"></i>  Descargar Excel
+                </button>
             </div>
         </div>
     </div>
@@ -75,7 +89,6 @@
                 <tr>
                     <td>#</td>
                     <th>Nombre</th>
-                    <th>Grupo</th>
                     <th>Tipo</th>
                     <th>Docente</th>
                     <th>Fecha inicio</th>
@@ -89,8 +102,7 @@
                 @foreach($courses as $row)
                 <tr>
                     <td data-bs-toggle="modal" data-bs-target="#coursesTabModal" wire:click="general({{$row->id}})">{{ $loop->iteration }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#coursesTabModal" wire:click="general({{$row->id}})">{{ $row->name }}</td>
-                    <td data-bs-toggle="modal" data-bs-target="#coursesTabModal" wire:click="general({{$row->id}})">{{ $row->group }}</td>
+                    <td data-bs-toggle="modal" data-bs-target="#coursesTabModal" wire:click="general({{$row->id}})">{{ str_replace( ' -', '/'.$row->group.' -', $row->name) }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#coursesTabModal" wire:click="general({{$row->id}})">{{ $row->course_type }}</td>
                     <td data-bs-toggle="modal" data-bs-target="#coursesTabModal" wire:click="general({{$row->id}})">{{ $row->teacher_name }} {{$row->teacher_surname}}</td>
                     <td data-bs-toggle="modal" data-bs-target="#coursesTabModal" wire:click="general({{$row->id}})">{{ $row->beginning }}</td>
@@ -106,7 +118,8 @@
                                 <a class="dropdown-item edit" href="{{url('/courses/edit/'.$row->id)}}"><i class="fa-regular fa-pen-to-square"></i> Editar </a>
                                <!-- <a data-bs-toggle="modal" class="dropdown-item" data-bs-target="#updateModal" wire:click="edit({{$row->id}})"><i class="fa-regular fa-pen-to-square"></i> Editar</a>-->
                             <!--  <a data-bs-toggle="modal" data-bs-target="#registrationsModal" class="dropdown-item" wire:click="registrations({{$row->id}})"><i class="fas fa-chalkboard-teacher"></i> Matriculaciones </a>-->
-                               <a data-bs-toggle="modal" data-bs-target="#registrationsModal" class="dropdown-item" wire:click="registrations({{$row->id}})"><i class="fas fa-chalkboard-teacher"></i> Matriculaciones </a>
+                                <a data-bs-toggle="modal" data-bs-target="#registrationsModal" class="dropdown-item" wire:click="registrations({{$row->id}})"><i class="fas fa-chalkboard-teacher"></i> Matriculaciones </a>
+                                <a class="dropdown-item eliminar" data-id="{{$row->id}}"><i class="fa fa-trash"></i> Eliminar </a>
                             </div>
                         </div>
                     </td>
@@ -125,6 +138,56 @@
     @endsection
     <script>
         document.addEventListener('livewire:load', function() {
+            $('body').on('click', '.eliminar', function () {
+                button = $(this)
+                const swalWithBootstrapButtons = Swal.mixin({
+                    customClass: {
+                        confirmButton: 'btn btn-success',
+                        cancelButton: 'btn btn-danger'
+                    },
+                    buttonsStyling: false
+                })
+
+                swalWithBootstrapButtons.fire({
+                    title: '¿Estas seguro?',
+                    text: "Eliminaras al curso!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, eliminalo!',
+                    cancelButtonText: 'No, cancela!',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        id = $(this).data('id');
+                        Livewire.emit('destroy', id)
+                        window.addEventListener('eliminated', e=>{
+                            if (e.detail.value != ''){
+                                swalWithBootstrapButtons.fire(
+                                    'Eliminado!',
+                                    'Eliminado con exito.',
+                                    'success'
+                                )
+                            } else{
+                                swalWithBootstrapButtons.fire(
+                                    'Error',
+                                    'Fallo al eliminar.',
+                                    'error'
+                                )
+                            }
+                        });
+
+                    } else if (
+                        /* Read more about handling dismissals below */
+                        result.dismiss === Swal.DismissReason.cancel
+                    ) {
+                        swalWithBootstrapButtons.fire(
+                            'Cacelado',
+                            'No se ha podido eliminar.',
+                            'error'
+                        )
+                    }
+                })
+            })
             $( document ).ready(
                 setTimeout(function (){
                     initializeSelect2()

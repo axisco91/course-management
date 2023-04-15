@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Company extends Model
 {
@@ -11,7 +12,29 @@ class Company extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','nif','company_type_id','company_activity_id','email','telephone','legal_representative','dni_legal_representative','quote','cnae_id','average_template','iban','sepa','b2b','address','post_code','population_id','province_id','population','active','advisor_id', 'active'];
+    protected $fillable = ['name',
+        'nif',
+        'company_type_id',
+        'company_activity_id',
+        'email',
+        'telephone',
+        'legal_representative',
+        'dni_legal_representative',
+        'quote',
+        'cnae_id',
+        'average_template',
+        'iban',
+        'sepa',
+        'b2b',
+        'address',
+        'post_code',
+        'population_id',
+        'province_id',
+        'population',
+        'advisor_id',
+        'active',
+        'collaborator_id',
+        'potential'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -85,61 +108,118 @@ class Company extends Model
         return $this->hasMany('App\Models\Student', 'company_id', 'id');
     }
 
-    public function getCompanies($keyWord, $inactiveFilter, $search_name, $search_nif){
+    public static function getCompanies(){
         $companies = Company::select('companies.*', 'company_types.name as type',
             'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province',
-            'advisors.name as advisor')
+            'advisors.name as advisor',
+            'users.name as user_name',
+            'users.surname as user_surname',
+            'companies.id as value',
+            'companies.name as label',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
+            DB::raw("'real' as type_company"))
             ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
-            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id');
-        if ($inactiveFilter != 1) {
-            $companies = $companies->where('companies.active', 1);
-        }
-        $companies = $companies->where(function ($query) use ($keyWord){
-            $query->orWhere('companies.name', 'LIKE', $keyWord)
-                ->orWhere('companies.nif', 'LIKE', $keyWord)
-                ->orWhere('company_types.name', 'LIKE', $keyWord)
-                ->orWhere('company_activities.name', 'LIKE', $keyWord)
-                ->orWhere('companies.email', 'LIKE', $keyWord)
-                ->orWhere('companies.telephone', 'LIKE', $keyWord)
-                ->orWhere('companies.legal_representative', 'LIKE', $keyWord)
-                ->orWhere('companies.dni_legal_representative', 'LIKE', $keyWord)
-                ->orWhere('quote', 'LIKE', $keyWord)
-                ->orWhere('cnaes.name', 'LIKE', $keyWord)
-                ->orWhere('average_template', 'LIKE', $keyWord)
-                ->orWhere('companies.iban', 'LIKE', $keyWord)
-                ->orWhere('companies.sepa', 'LIKE', $keyWord)
-                ->orWhere('companies.b2b', 'LIKE', $keyWord)
-                ->orWhere('companies.address', 'LIKE', $keyWord)
-                ->orWhere('companies.post_code', 'LIKE', $keyWord)
-                ->orWhere('provinces.name', 'LIKE', $keyWord)
-                ->orWhere('companies.population', 'LIKE', $keyWord)
-                ->orWhere('advisors.name', 'LIKE', $keyWord);
-        })->where(function ($query) use ($search_name){
-            $query->orWhere('companies.name', 'LIKE', $search_name);
-        })->where(function ($query) use ($search_nif){
-            $query->orWhere('companies.nif', 'LIKE', $search_nif);
-        })->orderBy('companies.name', 'desc')
-            ->paginate(10);
+            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id');
+        $companies = $companies->orderBy('companies.name', 'asc')
+            ->get();
 
         foreach ($companies as $company) {
+            $company['used'] = false;
+            $student = Student::where('company_id', $company['id'])->first();
+            if ($student) {
+                $company['used'] = true;
+            }
             $advisor = Advisor::where('company_id', $company['id'])->first();
-            if (!$advisor) {
+            if ($advisor) {
                 $company['is_advisor'] = true;
+                $company['used'] = true;
+            } else {
+                $company['is_advisor'] = false;
             }
             $provider = Provider::where('company_id', $company['id'])->first();
-            if (!$provider) {
+            if ($provider) {
                 $company['is_provider'] = true;
+                $company['used'] = true;
+            } else {
+                $company['is_provider'] = false;
+            }
+            if ($company['potential'] === 1) {
+                $company['status'] = 'Potencial';
+            } else if ($company['active'] === 0) {
+                $company['status'] = 'Inactivo';
+            } else {
+                $company['status'] = 'Activo';
             }
         }
 
         return $companies;
     }
 
-    public function createCompany($data){
+    public static function getCompany($id){
+        $company = Company::select('companies.*', 'company_types.name as type',
+            'company_activities.name as activity', 'cnaes.name as cnae',
+            'provinces.name as province',
+            'advisors.name as advisor',
+            'users.name as user_name',
+            'users.surname as user_surname',
+            'companies.id as value',
+            'companies.name as label',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
+            DB::raw("'real' as type_company"))
+            ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
+            ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
+            ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id')
+            ->where('companies.id', $id)
+            ->first();
+
+        $student = Student::where('company_id', $company['id'])->first();
+        if ($student) {
+            $company['used'] = true;
+        } else {
+            $advisor = Advisor::where('company_id', $company['id'])->first();
+            if ($advisor){
+                $company['used'] = true;
+            } else {
+                $provider = Provider::where('company_id', $company['id'])->first();
+                if ($provider) {
+                    $company['used'] = true;
+                } else {
+                    $company['used'] = false;
+                }
+            }
+        }
+        $advisor = Advisor::where('company_id', $company['id'])->first();
+        if ($advisor) {
+            $company['is_advisor'] = true;
+        } else {
+            $company['is_advisor'] = false;
+        }
+        $provider = Provider::where('company_id', $company['id'])->first();
+        if ($provider) {
+            $company['is_provider'] = true;
+        } else {
+            $company['is_provider'] = false;
+        }
+        if ($company['potential'] === 1) {
+            $company['status'] = 'Potencial';
+        } else if ($company['active'] === 0) {
+            $company['status'] = 'Inactivo';
+        } else {
+            $company['status'] = 'Activo';
+        }
+
+        return $company;
+    }
+
+    public static function createCompany($data){
         $company = Company::create([
             'name' => $data['name'],
             'nif' => $data['nif'],
@@ -159,14 +239,16 @@ class Company extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
+            'advisor_id' => $data['advisor_id'],
+            'collaborator_id' => $data['collaborator_id'],
             'active' => $data['active'],
-            'advisor_id' => $data['advisor_id']
+            'potential' => $data['potential'],
         ]);
 
         return $company;
     }
 
-    public function updateCompany($id, $data){
+    public static function updateCompany($id, $data){
         $company = Company::find($id);
         $company->update([
             'name' => $data['name'],
@@ -187,12 +269,16 @@ class Company extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
+            'advisor_id' => $data['advisor_id'],
+            'collaborator_id' => $data['collaborator_id'],
             'active' => $data['active'],
-            'advisor_id' => $data['advisor_id']
+            'potential' => $data['potential']
         ]);
+
+        return $company;
     }
 
-    public function changeState($id){
+    public static function changeState($id){
         $companies = Company::find($id);
         if ($companies->active == 1){
             $companies->update([
@@ -207,13 +293,39 @@ class Company extends Model
         return $companies->active;
     }
 
-    public function getAdvisorsCompanies($id, $search_company_name){
-        $companies = Company::where('advisor_id', $id)
-            ->where(function ($query) use ($search_company_name) {
-                $query->orWhere('name', 'LIKE', $search_company_name);
-            })->get();
+    public static function getAdvisorsCompanies($id){
+        $companies = Company::where('advisor_id', $id)->get();
 
         return $companies;
+    }
+
+    public static function findNif($nif, $id = null){
+        $company = Company::where('nif', $nif);
+        if ($id){
+            $company = $company->where('id', '!=', $id);
+        }
+        $company = $company->first();
+        if (!$company){
+            $company = PotentialCompany::where('nif', $nif);
+            if ($id){
+                $company = $company->where('id', '!=', $id);
+            }
+            $company = $company->first();
+        }
+        return $company;
+    }
+
+    public static function convertCompany($potential_id, $data){
+        $company = Company::createCompany($data);
+        $potential_observations = PotentialCompanyObservation::where('potential_company_id', $potential_id)->get();
+        foreach ($potential_observations as $potential_observation){
+            $data = [
+                'company_id' => $company->id,
+                'observation' => $potential_observation->observation
+            ];
+            CompanyObservation::createCompanyObservation($data);
+        }
+        PotentialCompany::find($potential_id)->delete();
     }
 
 }

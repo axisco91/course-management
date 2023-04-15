@@ -2,10 +2,17 @@
 
 namespace App\Http\Livewire;
 
+use App\Exports\AdvisorsExport;
+use App\Exports\TracingsExport;
 use App\Models\Company;
 use App\Models\Course;
+use App\Models\CourseStatus;
+use App\Models\IncidenceType;
 use App\Models\Student;
+use App\Models\TracingCommunication;
 use App\Models\TrainingAction;
+use App\Models\User;
+use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Tracing;
@@ -18,15 +25,20 @@ class Tracings extends Component
     public $selected_id, $keyWord, $course_id, $company_id, $student_id, $performed_activities, $performed_hours,
         $performed_units, $follow_up_date, $final_test, $questionnaire, $welcome_message, $quarter_message, $half_message,
         $three_quarters_message, $final_message, $observation, $welcome_date, $quarter_date, $half_date, $three_quarters_date,
-        $total_hours, $number_activities, $number_unites, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent, $three_quarters_date_sent, $final_date_sent;
+        $total_hours, $number_activities, $number_units, $final_date, $welcome_date_sent, $quarter_date_sent, $half_date_sent, $user_id, $affair, $notes, $incidence_type_id, $collaborator_id, $tracing_communications,
+        $three_quarters_date_sent, $final_date_sent, $beginning, $end, $course_group;
     public $updateMode = false;
-    public $courses, $companies, $students, $tab = 'info';
-    public $course_search = -1, $company_search = -1, $student_search = -1, $student_name, $name, $surname, $course_name;
+    public $courses, $companies, $students, $course_statuses, $tab = 'info';
+    public $course_search = -1, $company_search = -1, $student_search = -1, $status_search = -1, $student_name, $name, $surname, $course_name, $beginning_search, $end_search;
+    protected $listeners = [
+        'destroy' => 'destroy',
+        'restartPage' => 'restartPage'
+    ];
 
     public function render()
     {
         $keyWord = '%'.$this->keyWord .'%';
-        $tracings = Tracing::getTracings($keyWord, $this->course_search, $this->company_search, $this->student_search);
+        $tracings = Tracing::getTracings($keyWord, $this->course_search, $this->company_search, $this->student_search, $this->status_search, $this->beginning_search, $this->end_search);
         return view('livewire.tracings.list', [
             'tracings' => $tracings
         ]);
@@ -36,6 +48,7 @@ class Tracings extends Component
         $this->courses = Course::all();
         $this->companies = Company::all();
         $this->students = Student::all();
+        $this->course_statuses = CourseStatus::all();
     }
 
     public function cancel()
@@ -61,6 +74,27 @@ class Tracings extends Component
 		$this->three_quarters_message = null;
 		$this->final_message = null;
 		$this->observation = null;
+        $this->welcome_date_sent = null;
+        $this->quarter_date_sent = null;
+        $this->half_date_sent = null;
+        $this->three_quarters_date_sent = null;
+        $this->final_date_sent = null;
+        $this->welcome_date = null;
+        $this->quarter_date = null;
+        $this->half_date = null;
+        $this->three_quarters_date = null;
+        $this->final_date = null;
+        $this->total_hours = null;
+        $this->number_activities = null;
+        $this->number_units = null;
+        $this->name = null;
+        $this->surname = null;
+        $this->course_name = null;
+        $this->affair = null;
+        $this->notes = null;
+        $this->user_id = null;
+        $this->incidence_type_id = null;
+        $this->collaborator_id = null;
     }
 
     public function edit($id)
@@ -98,11 +132,14 @@ class Tracings extends Component
         $training_action = TrainingAction::find($course->training_action_id);
         $this->total_hours = $training_action->total_hours;
         $this->number_activities = $training_action->number_activities;
-        $this->number_unites = $training_action->number_units;
+        $this->number_units = $training_action->number_units;
         $student = Student::find($this->student_id);
         $this->name = $student->name;
         $this->surname = $student->surname;
         $this->course_name = $course->name;
+        $this->beginning = Carbon::parse($course->beginning)->format('d/m/Y');
+        $this->end = Carbon::parse($course->end)->format('d/m/Y');
+        $this->course_group = $course->group;
 
         $this->updateMode = true;
     }
@@ -135,13 +172,52 @@ class Tracings extends Component
                 'welcome_date_sent' => $this-> welcome_date_sent,
                 'quarter_date_sent' => $this-> quarter_date_sent,
                 'half_date_sent' => $this-> half_date_sent,
-                'three_quarter_date_sent' => $this-> three_quarters_date_sent,
+                'three_quarters_date_sent' => $this-> three_quarters_date_sent,
                 'final_date_sent' => $this-> final_date_sent
             ];
             Tracing::updateTracing($this->selected_id, $data);
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
-			session()->flash('message', 'Tracing Successfully updated.');
+            session()->flash('message', 'Seguimiento actualizado con exito.');
+            $this->emit('toastr', 'success');
+        }
+    }
+
+    public function updateInfo()
+    {
+        $this->validate([
+            'course_id' => 'required',
+            'company_id' => 'required',
+            'student_id' => 'required',
+        ]);
+
+        if ($this->selected_id) {
+            $data = [
+                'course_id' => $this-> course_id,
+                'company_id' => $this-> company_id,
+                'student_id' => $this-> student_id,
+                'performed_activities' => $this-> performed_activities,
+                'performed_hours' => $this-> performed_hours,
+                'performed_units' => $this-> performed_units,
+                'follow_up_date' => $this-> follow_up_date,
+                'final_test' => $this-> final_test,
+                'questionnaire' => $this-> questionnaire,
+                'welcome_message' => $this-> welcome_message,
+                'quarter_message' => $this-> quarter_message,
+                'half_message' => $this-> half_message,
+                'three_quarters_message' => $this-> three_quarters_message,
+                'final_message' => $this-> final_message,
+                'observation' => $this-> observation,
+                'welcome_date_sent' => $this-> welcome_date_sent,
+                'quarter_date_sent' => $this-> quarter_date_sent,
+                'half_date_sent' => $this-> half_date_sent,
+                'three_quarters_date_sent' => $this-> three_quarters_date_sent,
+                'final_date_sent' => $this-> final_date_sent
+            ];
+            Tracing::updateTracing($this->selected_id, $data);
+            session()->flash('message', 'Seguimiento actualizado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 
@@ -157,6 +233,9 @@ class Tracings extends Component
 
         $this->student_name = $student->name .' '. $student->surname;
         $this->course_name = $course->name;
+        $this->beginning = Carbon::parse($course->beginning)->format('d/m/Y');
+        $this->end = Carbon::parse($course->end)->format('d/m/Y');
+        $this->course_group = $course->group;
         $this->performed_activities = $record-> performed_activities;
         $this->performed_hours = $record-> performed_hours;
         $this->performed_units = $record-> performed_units;
@@ -183,8 +262,70 @@ class Tracings extends Component
         $training_action = TrainingAction::find($course->training_action_id);
         $this->total_hours = $training_action->total_hours;
         $this->number_activities = $training_action->number_activities;
-        $this->number_unites = $training_action->number_units;
+        $this->number_units = $training_action->number_units;
         $this->name = $student->name;
         $this->surname = $student->surname;
+
+        $tracing_communications = TracingCommunication::select('tracing_communications.*', 'users.name as user_name', 'users.surname as user_surname')
+            ->leftjoin('users', 'users.id', '=', 'tracing_communications.user_id')
+            ->where('tracing_id', $id)->get();
+
+        foreach($tracing_communications as $tracing_communication){
+            $type = IncidenceType::find($tracing_communication['incidence_type_id']);
+            $tracing_communication['incidence_type'] = $type->name;
+        }
+        $this->tracing_communications = $tracing_communications;
+    }
+
+    public function destroy($id)
+    {
+        if ($id) {
+            $value = Tracing::destroy($id);
+            $this->dispatchBrowserEvent('eliminated', ['value' => $value]);
+        }
+    }
+
+    public function newTracingCommunication($id) {
+        if ($id) {
+            $this-> tracing_id = $id;
+            $this->createTracingCommunicationModal = true;
+        }
+    }
+
+    public function createAdvisorIncidence() {
+        $this->validate([
+            'affair' => 'required',
+        ]);
+
+        $data = [
+            'advisor_id' => $this->advisor_id,
+            'affair' => $this->affair,
+            'notes' => $this->notes,
+            'user_id' => $this->user_id,
+            'incidence_type_id' => $this->incidence_type_id,
+        ];
+
+        TracingCommunication::createTracingCommunication($data);
+
+        $this->resetInput();
+        $this->createTracingCommunicationModal = false;
+        session()->flash('message', 'Communicación creado con exito.');
+        $this->emit('toastr', 'success');
+    }
+
+    public function destroyCommunication($id)
+    {
+        if ($id){
+            TracingCommunication::destroy($id);
+        }
+    }
+
+    public function downloadExcel(){
+        $this->excelModal = false;
+        return (new TracingsExport($this->course_search, $this->company_search, $this->student_search, $this->status_search, $this->beginning_search, $this->end_search))->download('seguimiento.xlsx');
+    }
+
+    public function restartPage(){
+        $this->resetPage();
     }
 }

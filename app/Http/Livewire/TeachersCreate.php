@@ -2,22 +2,17 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\AreasTeacherArea;
 use App\Models\Province;
 use App\Models\Teacher;
 use App\Models\TeacherArea;
 use Livewire\Component;
-use Livewire\WithPagination;
 use function session;
 use function view;
 
 class TeachersCreate extends Component
 {
-    protected $paginationTheme = 'bootstrap';
     public $name, $surname, $dni, $email, $telephone, $user, $password, $observations, $iban, $address,
         $post_code, $province_id, $population, $teacher_areas, $teacher_area_id, $active;
-    public $route;
-    public $updateMode = false;
 
     public function render()
     {
@@ -27,30 +22,10 @@ class TeachersCreate extends Component
     public function mount(){
         $this->provinces = Province::all();
         $this->teacher_areas = TeacherArea::all();
-
-        $this->route = url()->previous();
     }
 
     public function hydrate(){
         $this->emit('select2');
-    }
-
-    private function resetInput()
-    {
-        $this->name = null;
-        $this->surname = null;
-        $this->dni = null;
-        $this->email = null;
-        $this->telephone = null;
-        $this->user = null;
-        $this->password = null;
-        $this->observations = null;
-        $this->iban = null;
-        $this->address = null;
-        $this->post_code = null;
-        $this->province_id = null;
-        $this->population = null;
-        $this->teacher_area_id = null;
     }
 
     public function store()
@@ -63,6 +38,21 @@ class TeachersCreate extends Component
             'user' => 'required',
             'password' => 'required'
         ]);
+
+        if ($this->dni){
+            $dni = Teacher::findDni($this->dni);
+            if ($dni){
+                $this->emit('alreadyExists', 'dni');
+                return;
+            }
+        }
+        if ($this->user){
+            $user = Teacher::findUser($this->user);
+            if ($user){
+                $this->emit('alreadyExists', 'user');
+                return;
+            }
+        }
 
         $teacher = Teacher::create([
             'name' => $this-> name,
@@ -82,9 +72,8 @@ class TeachersCreate extends Component
         if (!empty($this->teacher_area_id)){
             $teacher->teacherAreas()->sync($this->teacher_area_id);
         }
-
-        $this->resetInput();
         session()->flash('message', 'Docente creado con exito.');
-        return redirect($this->route);
+        $this->emit('toastr', 'success');
+        return redirect('teachers/edt/'.$teacher->id);
     }
 }

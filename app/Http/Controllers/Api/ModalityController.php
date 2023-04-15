@@ -1,0 +1,86 @@
+<?php
+
+namespace App\Http\Controllers\API;
+use App\Models\Modality;
+use Illuminate\Http\Request;
+
+class ModalityController extends BaseController
+{
+    public function modalities() {
+        try {
+            return Modality::getModalities();
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e.message
+            ]);
+        }
+    }
+
+    public function create(Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $modality = Modality::createModality($data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'modality' => Modality::getModality($modality->id)
+        ]);
+    }
+
+    public function edit($id, Request $request){
+        $data = json_decode($request->getContent(), true);
+        try {
+            $modality = Modality::updateModality($id, $data);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'modality' => Modality::getModality($modality->id)
+        ]);
+    }
+
+    public function getModality($id){
+        $modality = Modality::getModality($id);
+        if ($modality) {
+            return response()->json([
+                'status' => 200,
+                'modality' => $modality
+            ]);
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Modalidad no existe'
+        ]);
+    }
+
+    public function destroy($id){
+        if ($id) {
+            try {
+                Modality::destroy($id);
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 400,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+    }
+
+    public function count(){
+        return Modality::count();
+    }
+}

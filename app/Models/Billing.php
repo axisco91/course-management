@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Helpers\GeneralHelpers;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class Billing extends Model
 {
@@ -14,7 +16,7 @@ class Billing extends Model
 
     protected $table = 'billings';
 
-    protected $fillable = ['course_id','company_id','number_students','billing','bonus','total_training_activity','expenses','only_organizing_entity','salary_costs','payment_id','communication_start_date','communication_end_date','invoiced','billing_number','billing_date','collection_date','bonus_status','company_bonus','observation', 'is_bonus', 'student_id'];
+    protected $fillable = ['course_id','company_id','number_students','billing','bonus','total_training_activity','expenses','only_organizing_entity','salary_costs','payment_id','communication_start_date','communication_end_date','invoiced','billing_number','billing_date','collection_date','bonus_status','company_bonus','observation', 'is_bonus', 'student_id', 'advisor_id', 'charged', 'collaborator_id', 'remitted'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -40,62 +42,52 @@ class Billing extends Model
         return $this->hasOne('App\Models\Payment', 'id', 'payment_id');
     }
 
-    public function getBillings($keyWord, $course_search, $company_search, $student_search, $is_bonus_search){
-        $billings = Billing::latest()
-            ->select('billings.*', 'training_actions.name as course', 'training_actions.formative_action as training_action', 'courses.group as group', 'companies.name as company', 'payments.name as payment')
+    public static function getBillings(){
+        $billings = Billing::select('billings.*',
+            'training_actions.name as course',
+            'training_actions.formative_action as training_action',
+            'courses.group as group',
+            'companies.name as company',
+            'payments.name as payment',
+            'advisors.name as advisor',
+            'course_statuses.name as status',
+            'courses.beginning as beginning',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
+            DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'No bonificada' ELSE 'Bonificada' END) as type"),
+            DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoiced"),
+            DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charged"))
             ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
             ->leftjoin('companies', 'companies.id', '=', 'billings.company_id')
             ->leftjoin('payments', 'payments.id', '=', 'billings.payment_id')
             ->leftjoin('students', 'students.id', '=', 'billings.student_id')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');
-
-        if ($course_search != -1){
-            $billings = $billings->where('billings.course_id', $course_search);
-        }
-        if ($company_search != -1){
-            $billings = $billings->where('billings.company_id', $company_search);
-        }
-        if ($student_search != -1){
-            $billings = $billings->where('billings.student_id', $student_search);
-        }
-        if ($is_bonus_search != -1){
-            $billings = $billings->where('is_bonus', $is_bonus_search);
-        }
-        $billings = $billings->where(function ($query) use ($keyWord) {
-                $query->orWhere('courses.name', 'LIKE', $keyWord)
-                    ->orWhere('companies.name', 'LIKE', $keyWord)
-                    ->orWhere('number_students', 'LIKE', $keyWord)
-                    ->orWhere('billing', 'LIKE', $keyWord)
-                    ->orWhere('bonus', 'LIKE', $keyWord)
-                    ->orWhere('total_training_activity', 'LIKE', $keyWord)
-                    ->orWhere('expenses', 'LIKE', $keyWord)
-                    ->orWhere('only_organizing_entity', 'LIKE', $keyWord)
-                    ->orWhere('salary_costs', 'LIKE', $keyWord)
-                    ->orWhere('payments.name', 'LIKE', $keyWord)
-                    ->orWhere('communication_start_date', 'LIKE', $keyWord)
-                    ->orWhere('communication_end_date', 'LIKE', $keyWord)
-                    ->orWhere('invoiced', 'LIKE', $keyWord)
-                    ->orWhere('billing_number', 'LIKE', $keyWord)
-                    ->orWhere('billing_date', 'LIKE', $keyWord)
-                    ->orWhere('collection_date', 'LIKE', $keyWord)
-                    ->orWhere('bonus_status', 'LIKE', $keyWord)
-                    ->orWhere('company_bonus', 'LIKE', $keyWord)
-                    ->orWhere('billings.observation', 'LIKE', $keyWord);
-            })->orderBy('courses.beginning', 'desc')
-            ->paginate(10);
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'billings.advisor_id')
+            ->leftjoin('users', 'users.id', '=', 'billings.collaborator_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->orderBy('courses.beginning', 'desc')->get();
 
         return $billings;
     }
 
-    public function updateBilling($id, $data){
+    public static function updateBilling($id, $data){
         $billing = Billing::find($id);
 
         if ($billing->communication_start_date != $data['communication_start_date']){
-            Billing::updateCloseCommunicationDate($id, $data['communication_start_date'], 1);
+            $status = 0;
+            if ($data['communication_start_date']){
+                $status = 1;
+            }
+            Billing::updateStartCommunicationDate($id, $data['communication_start_date'], $status);
         }
         if ($billing->communication_end_date != $data['communication_end_date']){
-            Billing::updateCloseCommunicationDate($id, $data['communication_end_date'], 1);
+            $status = 0;
+            if ($data['communication_end_date']){
+                $status = 1;
+            }
+            Billing::updateCloseCommunicationDate($id, $data['communication_end_date'], $status);
         }
+
+        $total_training_activity = Billing::totalTrainingActivity($data['bonus']);
 
         $billing->update([
             'course_id' => $data['course_id'],
@@ -103,23 +95,26 @@ class Billing extends Model
             'number_students' => $data['number_students'],
             'billing' => GeneralHelpers::convertComa($data['billing']),
             'bonus' => GeneralHelpers::convertComa($data['bonus']),
-            'total_training_activity' => $data['total_training_activity'],
-            'expenses' => $data['expenses'],
-            'only_organizing_entity' => $data['only_organizing_entity'],
+            'total_training_activity' => GeneralHelpers::convertComa($total_training_activity),
+            'expenses' => GeneralHelpers::convertComa($data['expenses']),
             'salary_costs' => GeneralHelpers::convertComa($data['salary_costs']),
             'payment_id' => $data['payment_id'],
-            'communication_start_date' => $data['communication_start_date'],
-            'communication_end_date' => $data['communication_end_date'],
-            'invoiced' => $data['invoiced'],
+            'communication_start_date' => $data['communication_start_date'] ? Carbon::createFromFormat('d-m-Y', $data['communication_start_date'])->format('Y-m-d') : null,
+            'communication_end_date' => $data['communication_end_date'] ? Carbon::createFromFormat('d-m-Y', $data['communication_end_date'])->format('Y-m-d') : null,
             'billing_number' => $data['billing_number'],
-            'billing_date' => $data['billing_date'],
-            'collection_date' => $data['collection_date'],
+            'billing_date' => array_key_exists('billing_date', $data) && $data['billing_date'] ? Carbon::createFromFormat('d-m-Y', $data['billing_date'])->format('Y-m-d') : null,
+            'collection_date' => array_key_exists('collection_date', $data) && $data['collection_date'] ? Carbon::createFromFormat('d-m-Y', $data['collection_date'])->format('Y-m-d') : null,
             'bonus_status' => $data['bonus_status'],
-            'company_bonus' => $data['company_bonus'],
             'observation' => $data['observation'],
             'is_bonus' => $data['is_bonus'],
+            'advisor_id' => $data['advisor_id'],
+            'collaborator_id' => $data['collaborator_id'],
+            'only_organizing_entity' => $data['only_organizing_entity'],
+            'invoiced' => $data['invoiced'],
+            'company_bonus' => $data['company_bonus'],
+            'charged' => $data['charged'],
+            'remitted' => $data['remitted']
         ]);
-
         return $billing;
     }
 
@@ -130,58 +125,78 @@ class Billing extends Model
         $company = Company::find($data['company_id']);
 
         if ($billing && $company['name'] != 'SIN EMPRESA'){
-            $expenses = Billing::calculateExpenses($data['price'] + $billing['billing']);
+            $total_training_activity = GeneralHelpers::convertComa($data['price']) + $billing['billing'];
+            $expenses = Billing::calculateExpenses($data['price'] + $billing['billing'], $total_training_activity);
             $billing->update([
                 'number_students' => $billing['number_students']+1,
                 'billing' => $data['price'] + $billing['billing'],
-                'total_training_activity' => $data['price'] + $billing['billing'],
-                'expenses' => $expenses
+                'total_training_activity' => $total_training_activity,
+                'expenses' => $expenses,
+                'advisor_id' => $data['advisor_id'],
+                'collaborator_id' => $data['collaborator_id']
             ]);
         } else {
-            $expenses = Billing::calculateExpenses($data['price']);
+            $total_training_activity = GeneralHelpers::convertComa($data['price']);
+            $expenses = Billing::calculateExpenses($data['price'], $total_training_activity);
             $billing = Billing::create([
                 'course_id' => $data['course_id'],
                 'company_id' => $data['company_id'],
                 'number_students' => 1,
                 'is_bonus' => $data['is_bonus'],
-                'billing' => $data['price'],
-                'total_training_activity' => $data['price'],
-                'expenses' => $expenses
+                'billing' => GeneralHelpers::convertComa($data['price']),
+                'total_training_activity' => $total_training_activity,
+                'expenses' => $expenses,
+                'advisor_id' => $data['advisor_id'],
+                'collaborator_id' => $data['collaborator_id']
             ]);
-            if ($company['name'] != 'SIN EMPRESA'){
-                $billing = $billing->update([
+            if ($company['name'] == 'SIN EMPRESA'){
+                $billing->update([
                     'student_id' => $data['student_id']
                 ]);
             }
         }
+        return $billing;
     }
 
-    public function calculateExpenses($precio){
-        return (10/100) * $precio;
+    public static function calculateExpenses($price, $total){
+        return GeneralHelpers::convertComa($price - $total);
     }
 
-    public function totalTrainingActivity($bonus, $expenses){
-        return $bonus - $expenses;
+    public static function totalTrainingActivity($bonus){
+        return round($bonus / 1.1, 2);
     }
 
-    public function updateStartCommunicationDate($id, $date, $status){
+    public static function updateStartCommunicationDate($id, $date, $status){
         $billing = Billing::find($id);
-        $billing = $billing->update([
-            'communication_start_date' => $date
+        $billing->update([
+            'communication_start_date' => $date ? Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') : null,
         ]);
         $registrations = Registration::billingRegistration($id);
         foreach ($registrations as $registration) {
-            Chore::updateCommunicationStartDate($registration->id, $date, $status);
+            Chore::updateCommunicationStartDate($registration->chore_id, $date, $status);
         }
     }
-    public function updateCloseCommunicationDate($id, $date, $status){
+    public static function updateCloseCommunicationDate($id, $date, $status){
         $billing = Billing::find($id);
-        $billing = $billing->update([
-            'communication_end_date' => $date
+        $billing->update([
+            'communication_end_date' => $date ? Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') : null
         ]);
         $registrations = Registration::billingRegistration($id);
         foreach ($registrations as $registration) {
-            Chore::updateCommunicationEndDate($registration->id, $date, $status);
+            Chore::updateCommunicationEndDate($registration->chore_id, $date, $status);
+        }
+    }
+
+    public static function updateInvicedDate($id, $date, $status){
+        $billing = Billing::find($id);
+        $billing->update([
+            'billing_date' => $date ? Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') : null,
+            'invoiced' => $status,
+            'bonus_status' => $status
+        ]);
+        $registrations = Registration::billingRegistration($id);
+        foreach ($registrations as $registration) {
+            Chore::billingDateChore($registration->chore_id, $date, $status);
         }
     }
 }

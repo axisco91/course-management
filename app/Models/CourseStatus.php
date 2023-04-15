@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CourseStatus extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,10 @@ class CourseStatus extends Model
         return $this->hasMany('App\Models\Bonus', 'course_status_id', 'id');
     }
 
-    public function getCourseStatuses($keyWord){
+    public static function getCourseStatuses(){
         $course_statuses = CourseStatus::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($course_statuses as $course_status){
             $course = Course::where('course_status_id', $course_status['id'])->first();
             if ($course){
@@ -36,7 +36,7 @@ class CourseStatus extends Model
         return $course_statuses;
     }
 
-    public function createCourseStatus($data){
+    public static function createCourseStatus($data){
         $course_status = CourseStatus::create([
             'name' => $data['name']
         ]);
@@ -44,7 +44,7 @@ class CourseStatus extends Model
         return $course_status;
     }
 
-    public function updateCourseStatus($id, $data){
+    public static function updateCourseStatus($id, $data){
         $course_status = CourseStatus::find($id);
         $course_status->update([
             'name' => $data['name']

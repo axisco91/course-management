@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CourseType extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,22 +21,36 @@ class CourseType extends Model
         return $this->hasMany('App\Models\Course', 'course_type_id', 'id');
     }
 
-    public function getCourseTypes($keyWord){
+    public static function getCourseTypes(){
         $course_types = CourseType::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($course_types as $course_type){
-            $course = Course::where('company_type_id', $course_type['id'])->first();
+            $course = Course::where('course_type_id', $course_type['id'])->first();
             if ($course){
-                $course_types['used'] = true;
+                $course_type['used'] = true;
             } else {
-                $course_types['used'] = false;
+                $course_type['used'] = false;
             }
         }
         return $course_types;
     }
 
-    public function createCourseType($data){
+    public static function getCourseType($id){
+        $course_type = CourseType::select('*', 'id as value', 'name as label')
+            ->where('id', $id)
+            ->first();
+        $course = Course::where('course_type_id', $course_type['id'])->first();
+        if ($course){
+            $course_type['used'] = true;
+        } else {
+            $course_type['used'] = false;
+        }
+        return $course_type;
+    }
+
+    public static function createCourseType($data){
+        $data = (array) $data;
         $course_type = CourseType::create([
             'name' => $data['name']
         ]);
@@ -44,7 +58,7 @@ class CourseType extends Model
         return $course_type;
     }
 
-    public function updateCourseType($id, $data){
+    public static function updateCourseType($id, $data){
         $course_type = CourseType::find($id);
         $course_type->update([
             'name' => $data['name']

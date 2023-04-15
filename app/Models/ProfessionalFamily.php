@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProfessionalFamily extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,12 +21,12 @@ class ProfessionalFamily extends Model
         return $this->hasMany('App\Models\TrainingAction', 'professional_family_id', 'id');
     }
 
-    public function getProfessionalFamilies($keyWord){
+    public static function getProfessionalFamilies(){
         $professional_families = ProfessionalFamily::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($professional_families as $professional_family){
-            $training_action = TrainingAction::where('professional_family_id', $professional_family['id']);
+            $training_action = TrainingAction::where('professional_family_id', $professional_family['id'])->first();
             if ($training_action){
                 $professional_family['used'] = true;
             } else {
@@ -36,14 +36,27 @@ class ProfessionalFamily extends Model
         return $professional_families;
     }
 
-    public function createProfessionalFamily($data){
+    public static function getProfessionalFamily($id){
+        $professional_family = ProfessionalFamily::
+        select('*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $training_action = TrainingAction::where('professional_family_id', $professional_family['id'])->first();
+        if ($training_action){
+            $professional_family['used'] = true;
+        } else {
+            $professional_family['used'] = false;
+        }
+        return $professional_family;
+    }
+
+    public static function createProfessionalFamily($data){
         $professional_family = ProfessionalFamily::create([
             'name' => $data['name']
         ]);
         return $professional_family;
     }
 
-    public function updateProfessionalFamily($id, $data){
+    public static function updateProfessionalFamily($id, $data){
         $professional_family = ProfessionalFamily::find($id);
         $professional_family->update([
             'name' => $data['name']

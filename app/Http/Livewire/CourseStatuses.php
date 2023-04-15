@@ -53,7 +53,8 @@ class CourseStatuses extends Component
 
         $this->resetInput();
 		$this->emit('closeModal');
-		session()->flash('message', 'CourseStatus Successfully created.');
+		session()->flash('message', 'Estado creado con exito.');
+        $this->emit('toastr', 'success');
     }
 
     public function edit($id)
@@ -79,8 +80,10 @@ class CourseStatuses extends Component
             CourseStatus::updateCourseStatus($this->selected_id, $data);
 
             $this->resetInput();
+            $this->emit('closeUpdateModal');
             $this->updateMode = false;
-			session()->flash('message', 'CourseStatus Successfully updated.');
+			session()->flash('message', 'Estado editado con exito.');
+            $this->emit('toastr', 'success');
         }
     }
 

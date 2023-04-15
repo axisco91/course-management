@@ -13,13 +13,8 @@ class Center extends Model
 
     protected $fillable = ['name','address','email','telephone'];
 
-    public function getCenters($keyWord){
-        $centers = Center::
-        orWhere('name', 'LIKE', $keyWord)
-            ->orWhere('address', 'LIKE', $keyWord)
-            ->orWhere('email', 'LIKE', $keyWord)
-            ->orWhere('telephone', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getCenters(){
+        $centers = Center::select('centers.*', 'id as value', 'name as label')->get();
         foreach ($centers as $center) {
             $course = Course::orWhere('delivery_center_id', $center['id'])
                 ->orWhere('formation_center_id', $center['id'])->first();
@@ -32,7 +27,7 @@ class Center extends Model
         return $centers;
     }
 
-    public function createCenter($data){
+    public static function createCenter($data){
         $center =  Center::create([
             'name' => $data['name'],
             'address' => $data['address'],
@@ -43,7 +38,7 @@ class Center extends Model
         return $center;
     }
 
-    public function updateCenter($id, $data){
+    public static function updateCenter($id, $data){
         $center = Center::find($id);
         $center->update([
             'name' => $data['name'],

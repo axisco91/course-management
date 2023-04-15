@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TrainingActionGroup extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,10 @@ class TrainingActionGroup extends Model
         return $this->hasMany('App\Models\TrainingAction', 'training_action_group_id', 'id');
     }
 
-    public function getTrainingActionGroups($keyWord){
+    public static function getTrainingActionGroups(){
         $training_action_groups = TrainingActionGroup::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+        select('*', 'id as value', 'name as label')
+            ->get();
         foreach ($training_action_groups as $training_action_group){
             $training_action = TrainingAction::where('training_action_group_id', $training_action_group['id'])->first();
             if ($training_action){
@@ -36,14 +36,26 @@ class TrainingActionGroup extends Model
         return $training_action_groups;
     }
 
-    public function createTrainingActionGroup($data){
+    public static function getTrainingActionGroup($id){
+        $group = TrainingActionGroup::select('*', 'id as value', 'name as label')
+            ->where('id', $id)->first();
+        $training_action = TrainingAction::where('training_action_group_id', $group['id'])->first();
+        if ($training_action){
+            $group['used'] = true;
+        } else {
+            $group['used'] = false;
+        }
+        return $group;
+    }
+
+    public static function createTrainingActionGroup($data){
         $training_action_group = TrainingActionGroup::create([
             'name' => $data['name']
         ]);
         return $training_action_group;
     }
 
-    public function updateTrainingActionGroup($id, $data){
+    public static function updateTrainingActionGroup($id, $data){
         $training_action_group = TrainingActionGroup::find($id);
         $training_action_group->update([
             'name' => $data['name']

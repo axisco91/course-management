@@ -193,18 +193,46 @@
         </div>
         <div class="col-12">
             <a href="{{ url()->previous() }}" class="btn btn-secondary">Volver</a>
-            <button type="button" wire:click.prevent="store()" class="btn btn-primary close-modal">Guardar</button>
+            <button id="save" type="button" wire:click.prevent="store()" class="btn btn-primary close-modal">Guardar</button>
         </div>
         @section('vendor-script')
             <!-- vendor files -->
                 <script src="{{ asset('app-assets/vendors/js/forms/select/select2.full.min.js') }}"></script>
+                <script src="{{ asset('app-assets/vendors/js/extensions/toastr.min.js') }}"></script>
         @endsection
         @section('page-script')
             <!-- Page js files -->
             <script src="{{ asset('app-assets/js/scripts/forms/form-select2.js') }}"></script>
+            <script src="{{ asset('app-assets/js/scripts/extensions/ext-component-toastr.js') }}"></script>
         @endsection
-
+        @section('scripts')
         <script>
+            Livewire.on('toastr', type => {
+                if (type == 'success'){
+                    toastr['success']($('#success-toast').val(), {
+                        showMethod: 'slideDown',
+                        hideMethod: 'slideUp',
+                        timeOut: 2000,
+                    });
+                } else{
+                    toastr['warning']($('#success-toast').val(), {
+                        showMethod: 'slideDown',
+                        hideMethod: 'slideUp',
+                        timeOut: 2000,
+                    });
+                }
+            })
+            Livewire.on('alreadyExists', type => {
+                text = '';
+                if (type == 'nif'){
+                    text = 'CIF';
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ya Existe',
+                    text: '¡Ya existe un proveedor con ese '+text+'!',
+                })
+            })
             document.addEventListener('livewire:load', function() {
                 $( document ).ready(
                     setTimeout(function (){
@@ -215,6 +243,33 @@
                 @this.set(this.id, $(this).val())
                 })
             })
+            $('body').on('click', '#save', function(){
+                content = ''
+                if ($('#name').val() == ''){
+                    content += 'El nombre es requerido<br>'
+                }
+                if ($('#type_id').val() == ''){
+                    content += 'El tipo es requerido<br>'
+                }
+                if ($('#activity_id').val() == ''){
+                    content += 'La actividad es requerido<br>'
+                }
+                if ($('#province_id').val() == ''){
+                    content += 'La provincia es requerido<br>'
+                }
+                if (content != ''){
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Falta datos',
+                        html: '<div>'+content+'</div>',
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        },
+                        buttonsStyling: false
+                    });
+                }
+            })
         </script>
+        @endsection
     </form>
 </div>

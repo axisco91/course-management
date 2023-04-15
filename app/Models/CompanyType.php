@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CompanyType extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
@@ -21,10 +21,8 @@ class CompanyType extends Model
         return $this->hasMany('App\Models\Company', 'type_id', 'id');
     }
 
-    public function getCompanyTypes($keyWord){
-        $companyTypes = CompanyType::
-        orWhere('name', 'LIKE', $keyWord)
-            ->paginate(10);
+    public static function getCompanyTypes(){
+        $companyTypes = CompanyType::select('*', 'id as value', 'name as label')->get();
         foreach ($companyTypes as $companyType){
             $company = Company::where('company_type_id', $companyType['id'])->first();
             if ($company){
@@ -36,7 +34,7 @@ class CompanyType extends Model
         return $companyTypes;
     }
 
-    public function createCompanyType($data){
+    public static function createCompanyType($data){
         $company_type = CompanyType::create([
             'name' => $data['name']
         ]);
@@ -44,7 +42,7 @@ class CompanyType extends Model
         return $company_type;
     }
 
-    public function updateCompanyType($id, $data){
+    public static function updateCompanyType($id, $data){
         $company_type = CompanyType::find($id);
         $company_type->update([
             'name' => $data['name']
