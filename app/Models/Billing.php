@@ -108,39 +108,13 @@ class Billing extends Model
             'observation' => $data['observation'],
             'is_bonus' => $data['is_bonus'],
             'advisor_id' => $data['advisor_id'],
-            'collaborator_id' => $data['collaborator_id']
+            'collaborator_id' => $data['collaborator_id'],
+            'only_organizing_entity' => $data['only_organizing_entity'],
+            'invoiced' => $data['invoiced'],
+            'company_bonus' => $data['company_bonus'],
+            'charged' => $data['charged'],
+            'remitted' => $data['remitted']
         ]);
-
-        if ($data['only_organizing_entity'] !== '') {
-            $billing->update([
-                'only_organizing_entity' => $data['only_organizing_entity'] ? 1 : 0,
-            ]);
-        }
-
-        if ($data['invoiced'] !== '') {
-            $billing->update([
-                'invoiced' => $data['invoiced'] ? 1 : 0,
-            ]);
-        }
-
-        if (array_key_exists('company_bonus', $data) && $data['company_bonus'] !== '') {
-            $billing->update([
-                'company_bonus' => $data['company_bonus'] ? 1 : 0,
-            ]);
-        }
-
-        if ($data['charged'] !== '') {
-            $billing->update([
-                'charged' => $data['charged'] ? 1 : 0,
-            ]);
-        }
-
-        if ($data['remitted'] !== '') {
-            $billing->update([
-                'remitted' => $data['remitted'] ? 1 : 0,
-            ]);
-        }
-
         return $billing;
     }
 

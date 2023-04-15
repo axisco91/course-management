@@ -23,7 +23,26 @@ class TrainingUnit extends Model
 
     public static function getTrainingUnits(){
         $training_units = TrainingUnit::select('*', 'id as value', 'name as label')->get();
+        foreach ($training_units as $training_unit) {
+            $element = TrainingUnitsModule::where('training_unit_id', $training_unit->id)->first();
+            if ($element) {
+                $training_unit['used'] = true;
+            } else {
+                $training_unit['used'] = false;
+            }
+        }
         return $training_units;
+    }
+
+    public static function getTrainingUnit($id){
+        $training_unit = TrainingUnit::select('*', 'id as value', 'name as label')->where('id', $id)->first();
+        $element = TrainingUnitsModule::where('training_unit_id', $training_unit->id)->first();
+        if ($element) {
+            $training_unit['used'] = true;
+        } else {
+            $training_unit['used'] = false;
+        }
+        return $training_unit;
     }
 
     public static function createTrainingUnit($data){
@@ -37,15 +56,9 @@ class TrainingUnit extends Model
             'tutoring_hours' => $data['tutoring_hours'],
             'teletraining_hours' => $data['teletraining_hours'],
             'face_to_face_hours' => $face_to_face_hours,
-            'total_hours' => $total_hours
+            'total_hours' => $total_hours,
+            'active' => $data['active'],
         ]);
-
-        if ($data['active'] != '') {
-            $training_unit->update([
-                'active' => $data['active'],
-            ]);
-        }
-
         return $training_unit;
     }
 
@@ -75,14 +88,9 @@ class TrainingUnit extends Model
                 'tutoring_hours' => $data['tutoring_hours'],
                 'teletraining_hours' => $data['teletraining_hours'],
                 'face_to_face_hours' => $face_to_face_hours,
-                'total_hours' => $total_hours
+                'total_hours' => $total_hours,
+                'active' => $data['active'],
             ]);
-
-            if ($data['active'] != '') {
-                $training_unit->update([
-                    'active' => $data['active'],
-                ]);
-            }
         }
         return $training_unit;
     }

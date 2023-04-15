@@ -118,38 +118,12 @@ class Tracing extends Model
             'half_date_sent' => $data['half_date_sent'] ? Carbon::createFromFormat('d-m-Y', $data['half_date_sent'])->format('Y-m-d') : null,
             'three_quarters_date_sent' => $data['three_quarters_date_sent'] ? Carbon::createFromFormat('d-m-Y', $data['three_quarters_date_sent'])->format('Y-m-d') : null,
             'final_date_sent' => $data['final_date_sent'] ? Carbon::createFromFormat('d-m-Y', $data['final_date_sent'])->format('Y-m-d') : null,
+            'welcome_message' => $data['welcome_message'],
+            'quarter_message' => $data['quarter_message'],
+            'half_message' => $data['half_message'],
+            'three_quarters_message' => $data['three_quarters_message'],
+            'final_message' => $data['final_message']
         ]);
-
-        if ($data['welcome_message'] !== '') {
-            $tracing->update([
-                'welcome_message' => $data['welcome_message'] ? 1 : 0
-            ]);
-        }
-
-        if ($data['quarter_message'] !== '') {
-            $tracing->update([
-                'quarter_message' => $data['quarter_message'] ? 1 : 0
-            ]);
-        }
-
-        if ($data['half_message'] !== '') {
-            $tracing->update([
-                'half_message' => $data['half_message'] ? 1 : 0
-            ]);
-        }
-
-        if ($data['three_quarters_message'] !== '') {
-            $tracing->update([
-                'three_quarters_message' => $data['three_quarters_message'] ? 1 : 0
-            ]);
-        }
-
-        if ($data['final_message'] !== '') {
-            $tracing->update([
-                'final_message' => $data['final_message'] ? 1 : 0
-            ]);
-        }
-
         return $tracing;
     }
 

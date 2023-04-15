@@ -31,7 +31,7 @@ class OnLeaveController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'on_leave' => $on_leave
+            'on_leave' => OnLeaveType::getOnLeaveType($on_leave->id)
         ]);
     }
 
@@ -48,12 +48,12 @@ class OnLeaveController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'on_leave' => $on_leave
+            'on_leave' => OnLeaveType::getOnLeaveType($on_leave->id)
         ]);
     }
 
     public function getOnLeaveType($id){
-        $on_leave = OnLeaveType::find($id);
+        $on_leave = OnLeaveType::getOnLeaveType($id);
         if ($on_leave) {
             return response()->json([
                 'status' => 200,

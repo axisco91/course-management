@@ -53,7 +53,7 @@ class Home extends Component
 
     public function getCoursesPerMonth(){
         $this->total_courses_year = Course::getNumberCourses($this->total_course_year);
-        $this->courses_per_month = Course::getNumberCoursesPermonth($this->total_course_year);
+        $this->courses_per_month = Course::getNumberCoursesPerMonth($this->total_course_year);
     }
 
 }

@@ -137,25 +137,9 @@ class Student extends Model
             'population' => $data['population'] ? $data['population'] : null,
             'observation' => $data['observation'] ? $data['observation'] : null,
             'iban' => $data['iban'] ? $data['iban'] : null,
+            'active' => $data['active'],
+            'disabled' => $data['disabled']
         ]);
-        if ('activo' !== '') {
-            $student->update([
-                'active' => $data['active'] ? 1 : 0
-            ]);
-        } else {
-            $student->update([
-                'active' => 1
-            ]);
-        }
-        if ('disabled' !== '') {
-            $student->update([
-                'disabled' => $data['disabled'] ? 1 : 0
-            ]);
-        } else {
-            $student->update([
-                'disabled' => 0
-            ]);
-        }
 
         return $student;
     }
@@ -189,18 +173,9 @@ class Student extends Model
             'population' => $data['population'] ? $data['population'] : null,
             'observation' => $data['observation'] ? $data['observation'] : null,
             'iban' => $data['iban'] ? $data['iban'] : null,
+            'disabled' => $data['disabled'],
+            'active' => $data['active']
         ]);
-
-        if ($data['disabled'] !== '') {
-            $student->update([
-                'disabled' => $data['disabled'] == true ? 1 : 0,
-            ]);
-        }
-        if ($data['active'] !== '') {
-            $student->update([
-                'active' => $data['active'] ? 1 : 0
-            ]);
-        }
 
         return $student;
     }
@@ -224,7 +199,12 @@ class Student extends Model
             ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
             ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')
             ->where('students.id', $id)->first();
-
+        $registered = Registration::where('student_id', $student->id)->first();
+        if ($registered) {
+            $student['used'] = true;
+        } else {
+            $student['used'] = false;
+        }
         return $student;
     }
 

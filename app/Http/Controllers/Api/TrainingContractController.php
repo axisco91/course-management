@@ -36,7 +36,7 @@ class TrainingContractController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_contract' => $contract
+            'training_contract' => TrainingAction::getTrainingAction($contract->id)
         ]);
     }
 
@@ -53,12 +53,12 @@ class TrainingContractController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_contract' => $contract
+            'training_contract' => TrainingContract::getTrainingContract($contract->id)
         ]);
     }
 
     public function getTrainingContract($id){
-        $contract = TrainingContract::find($id);
+        $contract = TrainingContract::getTrainingContract($id);
         if ($contract) {
             return response()->json([
                 'status' => 200,

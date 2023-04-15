@@ -19,7 +19,7 @@ class Teacher extends Model
      */
     public function teacherAreas()
     {
-        return $this->belongsToMany(Teacher::class, 'areas_teacher_areas', 'teacher_id', 'teacher_area_id');
+        return $this->belongsToMany(TeacherArea::class, 'areas_teacher_areas', 'teacher_id', 'teacher_area_id');
     }
 
     /**
@@ -38,6 +38,7 @@ class Teacher extends Model
             } else {
                 $teacher['used'] = false;
             }
+            $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
         }
         return $teachers;
     }
@@ -79,6 +80,12 @@ class Teacher extends Model
             'population' => $data['population'],
         ]);
 
+        $teacher->update([
+            'active' => $data['active']
+        ]);
+
+        $teacher->teacherAreas()->sync($data['teacher_areas']);
+
         return $teacher;
     }
 
@@ -100,6 +107,12 @@ class Teacher extends Model
             'province_id' => $data['province_id'],
             'population' => $data['population'],
         ]);
+
+        $teacher->update([
+            'active' => $data['active']
+        ]);
+
+        $teacher->teacherAreas()->sync($data['teacher_areas']);
 
         return $teacher;
     }

@@ -66,16 +66,6 @@ class PotentialStudent extends Model
     }
 
     /**
-     * @param $id
-     * @return Student
-     */
-    public static function getPotentialStudent($id){
-        $student = PotentialStudent::find($id);
-
-        return $student;
-    }
-
-    /**
      * Get all students
      */
     public static function getPotentialStudents(){
@@ -88,6 +78,18 @@ class PotentialStudent extends Model
             ->orderBy('potential_students.name','asc')
             ->get();
         return $students;
+    }
+
+    public static function getPotentialStudent($id){
+        $student = PotentialStudent::select('potential_students.*', 'level_studies.name as level_study',
+            'professional_categories.name as professional_category', 'provinces.name as province')
+            ->leftjoin('level_studies', 'level_studies.id', '=', 'potential_students.level_study_id')
+            ->leftjoin('professional_categories', 'professional_categories.id', '=', 'potential_students.professional_category_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'potential_students.province_id')
+            ->where('converted', 0)
+            ->orderBy('potential_students.name','asc')
+            ->get();
+        return $student;
     }
 
     /**

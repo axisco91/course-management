@@ -50,8 +50,9 @@ class TrainingContractBonusController extends BaseController
             $fixed_month = (int) $fixed_month;
             $rest_month = $formation_hours - ($fixed_month * $total_months);
             $actual_date = Carbon::now();
+            $actual_last_month = $last_month;
             if ($actual_date->format('m') <= $last_month) {
-                $last_month = $actual_date->format('m');
+                $actual_last_month = $actual_date->format('m');
             }
             if ($actual_date->format('Y') <= $last_year) {
                 $last_year = $actual_date->format('Y');
@@ -60,7 +61,7 @@ class TrainingContractBonusController extends BaseController
             $i = $first_month;
             for($cont;$cont <= $last_year; $cont++) {
                 if ($cont == $last_year) {
-                    $k = $last_month;
+                    $k = $actual_last_month;
                 } else {
                     $k = 12;
                 }
@@ -68,15 +69,17 @@ class TrainingContractBonusController extends BaseController
                     if ($cont == $first_year && $i == $first_month) {
                         $amount = ($fixed_month + $rest_month) * 5;
                         $start = $beginning_date;
+                        $end = $beginning_date;
                     } else {
                         $amount = $fixed_month * 5;
                         $start = Carbon::createFromFormat('d/m/Y', '01/'.$i.'/'.$cont);
+                        $end = Carbon::createFromFormat('d/m/Y', '01/'.$i.'/'.$cont);
                     }
                     if ($cont == $last_year && $i == $last_month) {
                         $end = $end_date;
                     } else {
-                        $end = $start->endOfMonth()->toDateString();
                         $start = $start->toDateString();
+                        $end = $end->endOfMonth()->toDateString();
                     }
                     TrainingContractBonus::createBonus([
                         'training_contract_id' => $id,
@@ -121,8 +124,9 @@ class TrainingContractBonusController extends BaseController
             $fixed_month = (int) $fixed_month;
             $rest_month = $formation_hours - ($fixed_month * $total_months);
             $actual_date = Carbon::now();
+            $actual_last_month = $last_month;
             if ($actual_date->format('m') <= $last_month) {
-                $last_month = $actual_date->format('m');
+                $actual_last_month = $actual_date->format('m');
             }
             if ($actual_date->format('Y') <= $last_year) {
                 $last_year = $actual_date->format('Y');
@@ -131,7 +135,7 @@ class TrainingContractBonusController extends BaseController
             $i = $first_month;
             for($cont;$cont <= $last_year; $cont++) {
                 if ($cont == $last_year) {
-                    $k = $last_month;
+                    $k = $actual_last_month;
                 } else {
                     $k = 12;
                 }
@@ -139,15 +143,17 @@ class TrainingContractBonusController extends BaseController
                     if ($cont == $first_year && $i == $first_month) {
                         $amount = ($fixed_month + $rest_month) * 5;
                         $start = $beginning_date;
+                        $end = $beginning_date;
                     } else {
                         $amount = $fixed_month * 5;
                         $start = Carbon::createFromFormat('d/m/Y', '01/'.$i.'/'.$cont);
+                        $end = Carbon::createFromFormat('d/m/Y', '01/'.$i.'/'.$cont);
                     }
                     if ($cont == $last_year && $i == $last_month) {
                         $end = $end_date;
                     } else {
-                        $end = $start->endOfMonth()->toDateString();
                         $start = $start->toDateString();
+                        $end = $end->endOfMonth()->toDateString();
                     }
                     $training_contract_bonus = TrainingContractBonus::where('training_contract_id', $id)
                         ->where('month', $i)

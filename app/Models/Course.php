@@ -131,6 +131,35 @@ class Course extends Model
         return $courses;
     }
 
+    public static function getCourse($id){
+
+        $course = Course::select('courses.*',
+            'course_types.name as course_type',
+            DB::raw("CONCAT(teachers.name,' ', teachers.surname) as teacher"),
+            'fc.name as formation_center',
+            'dc.name as delivery_center',
+            'course_statuses.name as course_status',
+            'courses.id as value', 'courses.name as label',
+            'training_actions.name as training_action')
+            ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
+            ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
+            ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
+            ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->where('courses.id', $id)
+            ->first();
+
+        $registration = Registration::where('course_id', $course->id)->first();
+        if ($registration) {
+            $course['used'] = true;
+        } else {
+            $course['used'] = false;
+        }
+        $course['number_registrations'] = $course->registrations->count();
+        return $course;
+    }
+
     public static function createCourse($data){
 
         $course_info = Course::courseDates(Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d'));
@@ -155,59 +184,17 @@ class Course extends Model
             'final_date' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
             'course_status_id' => $course_info['course_status_id'],
             'price' => $data['price'],
+            'nebrija' => $data['nebrija'],
+            'monday' => $data['monday'],
+            'tuesday' => $data['tuesday'],
+            'wednesday' => $data['wednesday'],
+            'thursday' => $data['thursday'],
+            'friday' => $data['friday'],
+            'saturday' => $data['saturday'],
+            'sunday' => $data['sunday'],
+            'outsourced' => $data['outsourced'],
+            'reactivated' => $data['reactivated']
         ]);
-
-        if ($data['nebrija'] !== '') {
-            $course->update([
-                'nebrija' => $data['nebrija']
-            ]);
-        }
-        if ($data['monday'] !== '') {
-            $course->update([
-                'monday' => $data['monday']
-            ]);
-        }
-        if ($data['tuesday'] !== '') {
-            $course->update([
-                'tuesday' => $data['tuesday']
-            ]);
-        }
-        if ($data['wednesday'] !== '') {
-            $course->update([
-                'wednesday' => $data['wednesday']
-            ]);
-        }
-        if ($data['thursday'] !== '') {
-            $course->update([
-                'thursday' => $data['thursday']
-            ]);
-        }
-        if ($data['friday'] !== '') {
-            $course->update([
-                'friday' => $data['friday']
-            ]);
-        }
-        if ($data['saturday'] !== '') {
-            $course->update([
-                'saturday' => $data['saturday']
-            ]);
-        }
-        if ($data['sunday'] !== '') {
-            $course->update([
-                'sunday' => $data['sunday']
-            ]);
-        }
-        if ($data['outsourced'] !== '') {
-            $course->update([
-                'outsourced' => $data['outsourced']
-            ]);
-        }
-        if ($data['reactivated'] !== '') {
-            $course->update([
-                'reactivated' => $data['reactivated']
-            ]);
-        }
-
         return $course;
     }
 
@@ -236,59 +223,17 @@ class Course extends Model
             'final_date' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
             'course_status_id' => $course_info['course_status_id'],
             'price' => $data['price'],
+            'nebrija' => $data['nebrija'],
+            'monday' => $data['monday'],
+            'tuesday' => $data['tuesday'],
+            'wednesday' => $data['wednesday'],
+            'thursday' => $data['thursday'],
+            'friday' => $data['friday'],
+            'saturday' => $data['saturday'],
+            'sunday' => $data['sunday'],
+            'outsourced' => $data['outsourced'],
+            'reactivated' => $data['reactivated']
         ]);
-
-        if ($data['nebrija'] !== '') {
-            $course->update([
-                'nebrija' => $data['nebrija']
-            ]);
-        }
-        if ($data['monday'] !== '') {
-            $course->update([
-                'monday' => $data['monday']
-            ]);
-        }
-        if ($data['tuesday'] !== '') {
-            $course->update([
-                'tuesday' => $data['tuesday']
-            ]);
-        }
-        if ($data['wednesday'] !== '') {
-            $course->update([
-                'wednesday' => $data['wednesday']
-            ]);
-        }
-        if ($data['thursday'] !== '') {
-            $course->update([
-                'thursday' => $data['thursday']
-            ]);
-        }
-        if ($data['friday'] !== '') {
-            $course->update([
-                'friday' => $data['friday']
-            ]);
-        }
-        if ($data['saturday'] !== '') {
-            $course->update([
-                'saturday' => $data['saturday']
-            ]);
-        }
-        if ($data['sunday'] !== '') {
-            $course->update([
-                'sunday' => $data['sunday']
-            ]);
-        }
-        if ($data['outsourced'] !== '') {
-            $course->update([
-                'outsourced' => $data['outsourced']
-            ]);
-        }
-        if ($data['reactivated'] !== '') {
-            $course->update([
-                'reactivated' => $data['reactivated']
-            ]);
-        }
-
         return $course;
     }
 
@@ -427,7 +372,7 @@ class Course extends Model
         return count($courses);
     }
 
-    public static function getNumberCoursesPermonth($year){
+    public static function getNumberCoursesPerMonth($year){
         $per_month = [];
         for($i = 1; $i <= 12; $i++){
             $courses = Course::WhereYear('beginning', $year)

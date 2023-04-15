@@ -40,7 +40,7 @@ class CompanyController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'company' => $company
+            'company' => Company::getCompany($company->id)
         ]);
     }
 
@@ -57,12 +57,12 @@ class CompanyController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'company' => $company
+            'company' => Company::getCompany($company->id)
         ]);
     }
 
     public function getCompany($id){
-        $company = Company::find($id);
+        $company = Company::getCompany($id);
         if ($company) {
             return response()->json([
                 'status' => 200,

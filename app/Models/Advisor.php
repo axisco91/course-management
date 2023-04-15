@@ -37,7 +37,33 @@ class Advisor extends Model
             ->leftjoin('cnaes', 'cnaes.id', '=', 'advisors.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id')->orderBy('advisors.name', 'desc')
             ->get();
+        foreach ($advisors as $advisor) {
+            $company = Company::where('advisor_id', $advisor->id)->first();
+            if ($company) {
+                $advisor['used'] = true;
+            } else {
+                $advisor['used'] = false;
+            }
+        }
         return $advisors;
+    }
+
+    public static function getAdvisor($id){
+        $advisor = Advisor::select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
+            'provinces.name as province', 'advisors.id as value', 'advisors.name as label')
+            ->leftjoin('company_types', 'company_types.id', '=', 'advisors.company_type_id')
+            ->leftjoin('company_activities', 'company_activities.id', '=', 'advisors.company_activity_id')
+            ->leftjoin('cnaes', 'cnaes.id', '=', 'advisors.cnae_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id')->orderBy('advisors.name', 'desc')
+            ->where('advisors.id', $id)
+            ->first();
+        $company = Company::where('advisor_id', $advisor->id)->first();
+        if ($company) {
+            $advisor['used'] = true;
+        } else {
+            $advisor['used'] = false;
+        }
+        return $advisor;
     }
 
     public static function createAdvisor($data){
@@ -64,9 +90,10 @@ class Advisor extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
-            'active' => $data['active'],
-            'collaborator_id' => $data['collaborator_id']
+            'collaborator_id' => $data['collaborator_id'],
+            'active' => $data['active']
         ]);
+
         return $advisor;
     }
 
@@ -95,9 +122,10 @@ class Advisor extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
-            'active' => $data['active'],
-            'collaborator_id' => $data['collaborator_id']
+            'collaborator_id' => $data['collaborator_id'],
+            'active' => $data['active']
         ]);
+
         return $advisor;
     }
 

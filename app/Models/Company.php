@@ -129,31 +129,22 @@ class Company extends Model
             ->get();
 
         foreach ($companies as $company) {
+            $company['used'] = false;
             $student = Student::where('company_id', $company['id'])->first();
             if ($student) {
                 $company['used'] = true;
-            } else {
-                $advisor = Advisor::where('company_id', $company['id'])->first();
-                if ($advisor){
-                    $company['used'] = true;
-                } else {
-                    $provider = Provider::where('company_id', $company['id'])->first();
-                    if ($provider) {
-                        $company['used'] = true;
-                    } else {
-                        $company['used'] = false;
-                    }
-                }
             }
             $advisor = Advisor::where('company_id', $company['id'])->first();
             if ($advisor) {
                 $company['is_advisor'] = true;
+                $company['used'] = true;
             } else {
                 $company['is_advisor'] = false;
             }
             $provider = Provider::where('company_id', $company['id'])->first();
             if ($provider) {
                 $company['is_provider'] = true;
+                $company['used'] = true;
             } else {
                 $company['is_provider'] = false;
             }
@@ -167,6 +158,65 @@ class Company extends Model
         }
 
         return $companies;
+    }
+
+    public static function getCompany($id){
+        $company = Company::select('companies.*', 'company_types.name as type',
+            'company_activities.name as activity', 'cnaes.name as cnae',
+            'provinces.name as province',
+            'advisors.name as advisor',
+            'users.name as user_name',
+            'users.surname as user_surname',
+            'companies.id as value',
+            'companies.name as label',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
+            DB::raw("'real' as type_company"))
+            ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
+            ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
+            ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id')
+            ->where('companies.id', $id)
+            ->first();
+
+        $student = Student::where('company_id', $company['id'])->first();
+        if ($student) {
+            $company['used'] = true;
+        } else {
+            $advisor = Advisor::where('company_id', $company['id'])->first();
+            if ($advisor){
+                $company['used'] = true;
+            } else {
+                $provider = Provider::where('company_id', $company['id'])->first();
+                if ($provider) {
+                    $company['used'] = true;
+                } else {
+                    $company['used'] = false;
+                }
+            }
+        }
+        $advisor = Advisor::where('company_id', $company['id'])->first();
+        if ($advisor) {
+            $company['is_advisor'] = true;
+        } else {
+            $company['is_advisor'] = false;
+        }
+        $provider = Provider::where('company_id', $company['id'])->first();
+        if ($provider) {
+            $company['is_provider'] = true;
+        } else {
+            $company['is_provider'] = false;
+        }
+        if ($company['potential'] === 1) {
+            $company['status'] = 'Potencial';
+        } else if ($company['active'] === 0) {
+            $company['status'] = 'Inactivo';
+        } else {
+            $company['status'] = 'Activo';
+        }
+
+        return $company;
     }
 
     public static function createCompany($data){
@@ -191,18 +241,9 @@ class Company extends Model
             'population' => $data['population'],
             'advisor_id' => $data['advisor_id'],
             'collaborator_id' => $data['collaborator_id'],
+            'active' => $data['active'],
+            'potential' => $data['potential'],
         ]);
-
-        if ($data['active'] !== '') {
-            $company->update([
-                'active' => $data['active'] == true ? 1 : 0,
-            ]);
-        }
-        if ($data['potential'] !== '') {
-            $company->update([
-                'potential' => $data['potential'] == true ? 1 : 0,
-            ]);
-        }
 
         return $company;
     }
@@ -229,19 +270,11 @@ class Company extends Model
             'province_id' => $data['province_id'],
             'population' => $data['population'],
             'advisor_id' => $data['advisor_id'],
-            'collaborator_id' => $data['collaborator_id']
+            'collaborator_id' => $data['collaborator_id'],
+            'active' => $data['active'],
+            'potential' => $data['potential']
         ]);
 
-        if ($data['active'] !== '') {
-            $company->update([
-                'active' => $data['active'] == true ? 1 : 0,
-            ]);
-        }
-        if ($data['potential'] !== '') {
-            $company->update([
-                'potential' => $data['potential'] == true ? 1 : 0,
-            ]);
-        }
         return $company;
     }
 
@@ -260,11 +293,8 @@ class Company extends Model
         return $companies->active;
     }
 
-    public static function getAdvisorsCompanies($id, $search_company_name){
-        $companies = Company::where('advisor_id', $id)
-            ->where(function ($query) use ($search_company_name) {
-                $query->orWhere('name', 'LIKE', $search_company_name);
-            })->get();
+    public static function getAdvisorsCompanies($id){
+        $companies = Company::where('advisor_id', $id)->get();
 
         return $companies;
     }

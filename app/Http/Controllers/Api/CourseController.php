@@ -32,7 +32,7 @@ class CourseController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'course' => $course
+            'course' => Course::getCourse($course->id)
         ]);
     }
 
@@ -49,12 +49,12 @@ class CourseController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'center' => $course
+            'center' => Course::getCourse($course->id)
         ]);
     }
 
     public function getCourse($id){
-        $course = Course::find($id);
+        $course = Course::getCourse($id);
         if ($course) {
             return response()->json([
                 'status' => 200,

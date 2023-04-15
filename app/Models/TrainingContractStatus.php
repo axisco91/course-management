@@ -13,10 +13,31 @@ class TrainingContractStatus extends Model
 
     protected $fillable = ['name'];
 
-    public static function getTrainingContractStatus(){
-        $contract = TrainingContractStatus::select('*', 'id as value', 'name as label')
+    public static function getTrainingContractStatuses(){
+        $statuses = TrainingContractStatus::select('*', 'id as value', 'name as label')
             ->get();
-        return $contract;
+        foreach ($statuses as $status){
+            $contract = TrainingContract::where('training_contract_status_id', $status['id'])->first();
+            if ($contract){
+                $status['used'] = true;
+            } else{
+                $status['used'] = false;
+            }
+        }
+        return $statuses;
+    }
+
+    public static function getTrainingContractStatus($id){
+        $status = TrainingContractStatus::select('*', 'id as value', 'name as label')
+            ->where('id', $id)
+            ->first();
+        $contract = TrainingContract::where('training_contract_status_id', $status['id'])->first();
+        if ($contract){
+            $status['used'] = true;
+        } else{
+            $status['used'] = false;
+        }
+        return $status;
     }
 
     public static function createTrainingContractStatus($data){

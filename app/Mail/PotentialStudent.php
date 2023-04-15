@@ -32,7 +32,6 @@ class PotentialStudent extends Mailable
     {
 
         return $this->subject('Correo recibir formación de AVZ')
-        //    ->to($this->email)
             ->view('emails.potential_student');
     }
 }

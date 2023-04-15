@@ -28,12 +28,26 @@ class Module extends Model
 
     public static function getModules(){
         $modules = Module::select('*', 'id as value', 'name as label')->get();
+        foreach ($modules as $module) {
+            $element = CertificationElement::where('module_id', $module->id)->first();
+            if ($element) {
+                $module['used'] = true;
+            } else {
+                $module['used'] = false;
+            }
+        }
         return $modules;
     }
 
     public static function getModule($id){
-        $modules = Module::select('*', 'id as value', 'name as label')->where('id', $id)->first();
-        return $modules;
+        $module = Module::select('*', 'id as value', 'name as label')->where('id', $id)->first();
+        $element = CertificationElement::where('module_id', $module->id)->first();
+        if ($element) {
+            $module['used'] = true;
+        } else {
+            $module['used'] = false;
+        }
+        return $module;
     }
 
     public static function createModule($data){
@@ -46,14 +60,9 @@ class Module extends Model
             'tutoring_hours' => $data['tutoring_hours'],
             'face_to_face_hours' => $face_to_face_hours,
             'teletraining_hours' => $data['teletraining_hours'],
-            'total_hours' => $total_hours
+            'total_hours' => $total_hours,
+            'active' => $data['active'],
         ]);
-
-        if ($data['active'] != '') {
-            $module->update([
-                'active' => $data['active'],
-            ]);
-        }
 
         return $module;
     }
@@ -74,14 +83,9 @@ class Module extends Model
                 'tutoring_hours' => $data['tutoring_hours'],
                 'face_to_face_hours' => $face_to_face_hours,
                 'teletraining_hours' => $data['teletraining_hours'],
-                'total_hours' => $total_hours
+                'total_hours' => $total_hours,
+                'active' => $data['active'],
             ]);
-
-            if ($data['active'] != '') {
-                $module->update([
-                    'active' => $data['active'],
-                ]);
-            }
 
         }
         return $module;

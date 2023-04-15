@@ -10,7 +10,7 @@ class TrainingContractStatusController extends BaseController
 {
     public function getTrainingContractStatuses() {
         try {
-            return TrainingContractStatus::getTrainingContractStatus();
+            return TrainingContractStatus::getTrainingContractStatuses();
         } catch (\Exception $e) {
             return response()->json([
                 'error' => $e.message
@@ -31,7 +31,7 @@ class TrainingContractStatusController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_contract_status' => $status
+            'training_contract_status' => TrainingContractStatus::getTrainingContractStatus($status->id)
         ]);
     }
 
@@ -48,12 +48,12 @@ class TrainingContractStatusController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_contract_status' => $status
+            'training_contract_status' => TrainingContractStatus::getTrainingContractStatus($status->id)
         ]);
     }
 
     public function getTrainingContractStatus($id){
-        $status = TrainingContractStatus::find($id);
+        $status = TrainingContractStatus::getTrainingContractStatus($id);
         if ($status) {
             return response()->json([
                 'status' => 200,

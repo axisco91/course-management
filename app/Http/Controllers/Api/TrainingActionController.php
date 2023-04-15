@@ -41,7 +41,7 @@ class TrainingActionController extends BaseController
         }
         return response()->json([
             'status' => 200,
-            'training_Action' => $training_action
+            'training_action' => TrainingAction::getTrainingAction($training_action->id)
         ]);
     }
 
@@ -58,12 +58,12 @@ class TrainingActionController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_action' => $training_action
+            'training_action' => TrainingAction::getTrainingAction($training_action->id)
         ]);
     }
 
     public function getTrainingAction($id){
-        $training_action = TrainingAction::find($id);
+        $training_action = TrainingAction::getTrainingAction($id);
         if ($training_action) {
             return response()->json([
                 'status' => 200,

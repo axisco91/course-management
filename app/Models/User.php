@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -71,15 +72,23 @@ class User extends Authenticatable
         return $users;
     }
 
+    public static function getUser($id){
+        $user = User::select('*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
+            'users.id as value')
+            ->where('users.id', $id)
+            ->first();
+        return $user;
+    }
+
     public static function createUser($data){
         $user = User::create([
             'name' => $data['name'],
             'surname' => $data['surname'],
             'username' => $data['username'],
             'email' => $data['email'],
-            'password' => $data['password'],
-            'has_commission' => $data['has_commission'] == '' ? 0 : 1,
-            'commission' => $data['commission']
+            'password' => Hash::make($data['password']),
+            'has_commission' => $data['has_commission'],
+            'commission' => $data['commission'] ? $data['commission'] : 0.0
         ]);
         return $user;
     }
@@ -91,8 +100,8 @@ class User extends Authenticatable
             'surname' => $data['surname'],
             'username' => $data['username'],
             'email' => $data['email'],
-            'has_commission' => $data['has_commission'] == '' ? 0 : 1,
-            'commission' => $data['commission']
+            'has_commission' => $data['has_commission'],
+            'commission' => $data['commission'] ? $data['commission'] : 0.0
         ]);
         return $user;
     }

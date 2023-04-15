@@ -20,7 +20,7 @@ class TrainingContract extends Model
     }
 
     public static function getTrainingContracts(){
-        $trainingContract = TrainingContract::select('training_contracts.*',
+        $trainingContracts = TrainingContract::select('training_contracts.*',
             'companies.name as company_name',
             'students.name as student_name',
             'students.surname as student_surname',
@@ -43,6 +43,33 @@ class TrainingContract extends Model
             ->leftjoin('occupations', 'occupations.id', '=', 'training_contracts.occupation_id')
             ->orderby('beginning', 'desc')
             ->get();
+        return $trainingContracts;
+    }
+
+    public static function getTrainingContract($id){
+        $trainingContract = TrainingContract::select('training_contracts.*',
+            'companies.name as company_name',
+            'students.name as student_name',
+            'students.surname as student_surname',
+            'training_contract_statuses.name as training_contract_status',
+            'providers.name as provider',
+            'provinces.name as province',
+            'on_leave_types.name as on_leave_type',
+            'advisors.name as advisor',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"),
+            'occupations.name as occupation')
+            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')
+            ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'training_contracts.province_id')
+            ->leftjoin('providers', 'providers.id', '=', 'training_contracts.provider_id')
+            ->leftjoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id')
+            ->leftjoin('on_leave_types', 'on_leave_types.id', '=', 'training_contracts.on_leave_type_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'training_contracts.advisor_id')
+            ->leftjoin('users', 'users.id', '=', 'training_contracts.collaborator_id')
+            ->leftjoin('occupations', 'occupations.id', '=', 'training_contracts.occupation_id')
+            ->where('training_contracts.id', $id)
+            ->first();
         return $trainingContract;
     }
 
@@ -77,69 +104,20 @@ class TrainingContract extends Model
             'formative_hours_first_year' => $data['formative_hours_first_year'] ? $data['formative_hours_first_year'] : 0,
             'formative_hours_second_year' => $data['formative_hours_second_year'] ? $data['formative_hours_second_year'] : 0,
             'provider_id' => $data['provider_id'],
+            'disabled' => $data['disabled'],
+            'youth_guarantee' => $data['youth_guarantee'],
+            'social_exclusion' => $data['social_exclusion'],
+            'specialty' => $data['specialty'],
+            'professional_certificate' => $data['professional_certificate'],
+            'monday' => $data['monday'],
+            'tuesday' => $data['tuesday'],
+            'wednesday' => $data['wednesday'],
+            'thursday' => $data['thursday'],
+            'friday' => $data['friday'],
+            'saturday' => $data['saturday'],
+            'sunday' => $data['sunday']
         ]);
         $training_contract->excludedDays()->sync($data['excluded_day_id']);
-
-        if ($data['disabled'] !== '') {
-            $training_contract->update([
-                'disabled' => $data['disabled']
-            ]);
-        }
-        if ($data['youth_guarantee'] !== '') {
-            $training_contract->update([
-                'youth_guarantee' => $data['youth_guarantee']
-            ]);
-        } if ($data['social_exclusion'] !== '') {
-            $training_contract->update([
-                'social_exclusion' => $data['social_exclusion']
-            ]);
-        }
-        if ($data['specialty'] !== '') {
-            $training_contract->update([
-                'specialty' => $data['specialty']
-            ]);
-        }
-        if ($data['professional_certificate'] !== '') {
-            $training_contract->update([
-                'professional_certificate' => $data['professional_certificate']
-            ]);
-        }
-        if ($data['monday'] !== '') {
-            $training_contract->update([
-                'monday' => $data['monday']
-            ]);
-        }
-        if ($data['tuesday'] !== '') {
-            $training_contract->update([
-                'tuesday' => $data['tuesday']
-            ]);
-        }
-        if ($data['wednesday'] !== '') {
-            $training_contract->update([
-                'wednesday' => $data['wednesday']
-            ]);
-        }
-        if ($data['thursday'] !== '') {
-            $training_contract->update([
-                'thursday' => $data['thursday']
-            ]);
-        }
-        if ($data['friday'] !== '') {
-            $training_contract->update([
-                'friday' => $data['friday']
-            ]);
-        }
-        if ($data['saturday'] !== '') {
-            $training_contract->update([
-                'saturday' => $data['saturday']
-            ]);
-        }
-        if ($data['sunday'] !== '') {
-            $training_contract->update([
-                'sunday' => $data['sunday']
-            ]);
-        }
-
         return $training_contract;
     }
 
@@ -174,68 +152,19 @@ class TrainingContract extends Model
             'formative_hours_first_year' => $data['formative_hours_first_year'] ? $data['formative_hours_first_year'] : 0,
             'formative_hours_second_year' => $data['formative_hours_second_year'] ? $data['formative_hours_second_year'] : 0,
             'provider_id' => $data['provider_id'],
+            'disabled' => $data['disabled'],
+            'youth_guarantee' => $data['youth_guarantee'],
+            'social_exclusion' => $data['social_exclusion'],
+            'specialty' => $data['specialty'],
+            'professional_certificate' => $data['professional_certificate'],
+            'monday' => $data['monday'],
+            'tuesday' => $data['tuesday'],
+            'wednesday' => $data['wednesday'],
+            'thursday' => $data['thursday'],
+            'friday' => $data['friday'],
+            'saturday' => $data['saturday'],
+            'sunday' => $data['sunday']
         ]);
-
-        if ($data['disabled'] !== '') {
-            $training_contract->update([
-                'disabled' => $data['disabled']
-            ]);
-        }
-        if ($data['youth_guarantee'] !== '') {
-            $training_contract->update([
-                'youth_guarantee' => $data['youth_guarantee']
-            ]);
-        } if ($data['social_exclusion'] !== '') {
-            $training_contract->update([
-                'social_exclusion' => $data['social_exclusion']
-            ]);
-        }
-        if ($data['specialty'] !== '') {
-            $training_contract->update([
-                'specialty' => $data['specialty']
-            ]);
-        }
-        if ($data['professional_certificate'] !== '') {
-            $training_contract->update([
-                'professional_certificate' => $data['professional_certificate']
-            ]);
-        }
-        if ($data['monday'] !== '') {
-            $training_contract->update([
-                'monday' => $data['monday']
-            ]);
-        }
-        if ($data['tuesday'] !== '') {
-            $training_contract->update([
-                'tuesday' => $data['tuesday']
-            ]);
-        }
-        if ($data['wednesday'] !== '') {
-            $training_contract->update([
-                'wednesday' => $data['wednesday']
-            ]);
-        }
-        if ($data['thursday'] !== '') {
-            $training_contract->update([
-                'thursday' => $data['thursday']
-            ]);
-        }
-        if ($data['friday'] !== '') {
-            $training_contract->update([
-                'friday' => $data['friday']
-            ]);
-        }
-        if ($data['saturday'] !== '') {
-            $training_contract->update([
-                'saturday' => $data['saturday']
-            ]);
-        }
-        if ($data['sunday'] !== '') {
-            $training_contract->update([
-                'sunday' => $data['sunday']
-            ]);
-        }
-
         return $training_contract;
     }
 

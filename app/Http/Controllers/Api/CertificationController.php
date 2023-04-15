@@ -29,7 +29,7 @@ class CertificationController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'certification' => $certification
+            'certification' => Certification::getCertification($certification->id)
         ]);
     }
 
@@ -46,12 +46,12 @@ class CertificationController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'student' => $certification
+            'student' => Certification::getCertification($certification->id)
         ]);
     }
 
     public function getCertification($id){
-        $certification = Certification::find($id);
+        $certification = Certification::getCertification($id);
         if ($certification) {
             return response()->json([
                 'status' => 200,

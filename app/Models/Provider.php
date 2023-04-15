@@ -38,7 +38,33 @@ class Provider extends Model
             ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id')
             ->orderBy('providers.name', 'desc')
             ->get();
+        foreach($providers as $provider) {
+            $training_action = TrainingAction::where('provider_id', $provider->id)->first();
+            if ($training_action) {
+                $provider['used'] = true;
+            } else {
+                $provider['used'] = false;
+            }
+        }
         return $providers;
+    }
+
+    public static function getProvider($id){
+        $provider = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
+            'provinces.name as province', 'providers.id as value', 'providers.name as label')
+            ->leftjoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
+            ->leftjoin('company_activities', 'company_activities.id', '=', 'providers.company_activity_id')
+            ->leftjoin('cnaes', 'cnaes.id', '=', 'providers.cnae_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id')
+            ->where('providers.id', $id)
+            ->first();
+        $training_action = TrainingAction::where('provider_id', $provider->id)->first();
+        if ($training_action) {
+            $provider['used'] = true;
+        } else {
+            $provider['used'] = false;
+        }
+        return $provider;
     }
 
     public static function createProvider($data){
@@ -64,15 +90,9 @@ class Provider extends Model
             'address' => $data['address'],
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
-            'population' => $data['population']
+            'population' => $data['population'],
+            'active' => $data['active']
         ]);
-
-        if ($data['active'] !== '') {
-            $provider->update([
-                'active' => $data['active'] == true ? 1 : 0,
-            ]);
-        }
-
         return $provider;
     }
 
@@ -100,14 +120,8 @@ class Provider extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
+            'active' => $data['active']
         ]);
-
-        if ($data['active'] !== '') {
-            $provider->update([
-                'active' => $data['active'] == true ? 1 : 0,
-            ]);
-        }
-
         return $provider;
     }
 

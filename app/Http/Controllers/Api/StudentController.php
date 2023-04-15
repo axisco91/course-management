@@ -23,7 +23,7 @@ class StudentController extends BaseController
 
     // Obtain student
     public function getStudent($id){
-        $student = Student::find($id);
+        $student = Student::getStudent($id);
         if ($student) {
             return response()->json([
                 'status' => 200,
@@ -49,7 +49,7 @@ class StudentController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'student' => $student
+            'student' => Student::getStudent($student->id)
         ]);
     }
 
@@ -66,7 +66,7 @@ class StudentController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'student' => $student
+            'student' => Student::getStudent($student->id)
         ]);
     }
 

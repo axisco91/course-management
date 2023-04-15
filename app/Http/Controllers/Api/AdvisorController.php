@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 use App\Models\Advisor;
 use App\Models\Company;
+use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -146,6 +147,17 @@ class AdvisorController extends BaseController
         } else {
             return 0;
         }
+    }
+
+    public function getAdvisorCourses($id) {
+        return Course::select('courses.*')
+            ->leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
+            ->leftjoin('billings', 'billings.id', '=', 'registrations.billing_id')
+            ->where('billings.advisor_id', $id)->get();
+    }
+
+    public function getAdvisorCompanies($id) {
+        return Company::getAdvisorsCompanies($id);
     }
 
     public function count(){

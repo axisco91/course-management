@@ -60,6 +60,7 @@ use App\Http\Controllers\API\BankHolidayGroupController;
 use App\Http\Controllers\API\TrainingContractExcludedDayController;
 use App\Http\Controllers\API\TrainingContractBonusController;
 use App\Http\Controllers\API\CertificationElementController;
+use App\Http\Controllers\API\StatisticController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -82,6 +83,19 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware('auth:sanctum')->group( function () {
 
     Route::get('pruebas', [PruebaController::class, 'index']);
+
+    /**
+     * Home
+     */
+    Route::prefix('statistics')->group(function() {
+        Route::controller(StatisticController::class)->group(function(){
+            Route::get('total_registrations', 'totalRegistrations');
+            Route::get('get_chores_welcome_messages', 'getChoresWelcomeMessages');
+            Route::get('get_number_courses', 'getNumberCourses');
+            Route::get('get_number_courses_per_month', 'getNumberCoursesPerMonth');
+        });
+    });
+
 
     /**
      * Students
@@ -127,6 +141,8 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('check-nif/{nif}', 'checkNif');
             Route::get('active', 'getActiveAdvisors');
             Route::get('count', 'count');
+            Route::get('courses/{id}', 'getAdvisorCourses');
+            Route::get('companies/{id}', 'getAdvisorCompanies');
         });
     });
 
@@ -775,11 +791,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('potential-students')->group(function() {
         Route::controller(PotentialStudentController::class)->group(function(){
             Route::get('', 'getPotentialStudents');
-            Route::post('sendEmail', 'sendEmail');
-            Route::post('sendBonusEmail', 'sendBonusEmail');
+            Route::post('send-email', 'sendEmail');
+            Route::post('send-bonus-email', 'sendBonusEmail');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getStudent');
+            Route::get('get/{id}', 'getPotentialStudent');
             Route::get('count', 'count');
         });
     });
@@ -790,7 +806,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('potential-companies')->group(function() {
         Route::controller(PotentialCompanyController::class)->group(function(){
             Route::get('', 'getPotentialCompanies');
-            Route::post('sendEmail', 'sendEmail');
+            Route::post('send-email', 'sendEmail');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCompany');

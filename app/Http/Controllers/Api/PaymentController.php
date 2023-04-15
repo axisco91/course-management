@@ -31,7 +31,7 @@ class PaymentController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'payment' => $payment
+            'payment' => Payment::getPayment($payment->id)
         ]);
     }
 
@@ -48,12 +48,12 @@ class PaymentController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'payment' => $payment
+            'payment' => Payment::getPayment($payment->id)
         ]);
     }
 
     public function getPayment($id){
-        $payment = Payment::find($id);
+        $payment = Payment::getPayment($id);
         if ($payment) {
             return response()->json([
                 'status' => 200,

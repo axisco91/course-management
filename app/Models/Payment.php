@@ -35,6 +35,19 @@ class Payment extends Model
         return $payments;
     }
 
+    public static function getPayment($id){
+        $payment = Payment::select('*', 'id as value', 'name as label')
+            ->where('id', $id)
+            ->first();
+        $billing = Billing::where('payment_id', $payment['id'])->first();
+        if ($billing){
+            $payment['used'] = true;
+        } else{
+            $payment['used'] = false;
+        }
+        return $payment;
+    }
+
     public static function createPayment($data){
         $payment = Payment::create([
             'name' => $data['name']

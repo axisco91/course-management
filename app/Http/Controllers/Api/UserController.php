@@ -32,7 +32,7 @@ class UserController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'user' => $user
+            'user' => User::getUser($user->id)
         ]);
     }
 
@@ -49,12 +49,12 @@ class UserController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'users' => $user
+            'user' => User::getUser($user->id)
         ]);
     }
 
     public function getUser($id){
-        $user = User::find($id);
+        $user = User::getUser($id);
         if ($user) {
             return response()->json([
                 'status' => 200,

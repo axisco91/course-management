@@ -36,7 +36,7 @@ class ProviderController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'provider' => $provider
+            'provider' => Provider::getProvider($provider->id)
         ]);
     }
 
@@ -54,12 +54,12 @@ class ProviderController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'provider' => $provider
+            'provider' => Provider::getProvider($provider->id)
         ]);
     }
 
     public function getProvider($id){
-        $provider = Provider::find($id);
+        $provider = Provider::getProvider($id);
         if ($provider) {
             return response()->json([
                 'status' => 200,

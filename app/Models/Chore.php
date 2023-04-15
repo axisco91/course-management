@@ -174,7 +174,7 @@ class Chore extends Model
         return $chores;
     }
 
-    public static function getChoresSendWelcome($sortBy, $sortDitection){
+    public static function getChoresSendWelcome(){
         $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name',
             'courses.beginning',
             'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group')
@@ -183,8 +183,7 @@ class Chore extends Model
             ->leftjoin('companies', 'companies.id', '=', 'chores.company_id')
             ->leftjoin('students', 'students.id', '=', 'chores.student_id')
             ->where('welcome_guid_status', 0)
-            ->orderBy($sortBy, $sortDitection)
-            ->paginate(5);
+            ->get();
 
         foreach ($chores as $chore){
             $chore['student'] = $chore['student_name'].' '.$chore['student_surname'];

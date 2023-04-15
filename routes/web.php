@@ -104,17 +104,6 @@ Route::middleware(['auth'])->group(function () {
         });
     });
     /**
-     * Students Routes
-     */
-    Route::prefix('students')->group(function() {
-        Route::controller(StudentController::class)->group(function(){
-            Route::get('', 'index');
-            Route::get('edit/{id}', 'edit');
-            Route::get('create', 'create');
-            Route::get('view/{id}', 'view');
-        });
-    });
-    /**
      * Teachers Routes
      */
     Route::prefix('teachers')->group(function() {

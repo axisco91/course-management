@@ -31,7 +31,7 @@ class OccupationController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'occupation' => $occupation
+            'occupation' => Occupation::getOccupation($occupation->id)
         ]);
     }
 
@@ -48,12 +48,12 @@ class OccupationController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'occupation' => $occupation
+            'occupation' => Occupation::getOccupation($occupation->id)
         ]);
     }
 
     public function getOccupation($id){
-        $occupation = Occupation::find($id);
+        $occupation = Occupation::getOccupation($id);
         if ($occupation) {
             return response()->json([
                 'status' => 200,

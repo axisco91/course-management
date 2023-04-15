@@ -21,6 +21,20 @@ class PotentialStudentController extends BaseController
         }
     }
 
+    public function getPotentialStudent($id) {
+        $potential_student = PotentialStudent::getPotentialStudent($id);
+        if ($potential_student) {
+            return response()->json([
+                'status' => 200,
+                'student' => $potential_student
+            ]);
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Alumno no existe'
+        ]);
+    }
+
     public function create(Request $request){
         $data = json_decode($request->getContent(), true);
         try {

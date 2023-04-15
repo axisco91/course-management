@@ -26,7 +26,33 @@ class Certification extends Model
             ->leftjoin('professional_families', 'professional_families.id', '=', 'certifications.professional_family_id')
             ->leftjoin('professional_areas', 'professional_areas.id', '=', 'certifications.professional_area_id')
             ->get();
+        foreach ($certifications as $certification) {
+            $element = TrainingContractElement::where('certification_id', $certification->id)->first();
+            if ($element) {
+                $certification['used'] = true;
+            } else {
+                $certification['used'] = false;
+            }
+        }
         return $certifications;
+    }
+
+    public static function getCertification($id){
+        $certification = Certification::select('certifications.*',
+            'professional_families.name as family',
+            'professional_areas.name as area'
+            )
+            ->leftjoin('professional_families', 'professional_families.id', '=', 'certifications.professional_family_id')
+            ->leftjoin('professional_areas', 'professional_areas.id', '=', 'certifications.professional_area_id')
+            ->where('certifications.id', $id)
+            ->first();
+        $element = TrainingContractElement::where('certification_id', $certification->id)->first();
+        if ($element) {
+            $certification['used'] = true;
+        } else {
+            $certification['used'] = false;
+        }
+        return $certification;
     }
 
     public static function createCertification($data){
@@ -36,14 +62,8 @@ class Certification extends Model
             'professional_family_id' => $data['professional_family_id'],
             'professional_area_id' => $data['professional_area_id'],
             'level' => $data['level'],
+            'active' => $data['active'],
         ]);
-
-        if($data['active'] != '') {
-            $certification->update([
-                'active' => $data['active'],
-            ]);
-        }
-
         return $certification;
     }
 
@@ -56,13 +76,8 @@ class Certification extends Model
                 'professional_family_id' => $data['professional_family_id'],
                 'professional_area_id' => $data['professional_area_id'],
                 'level' => $data['level'],
+                'active' => $data['active'],
             ]);
-
-            if($data['active'] != '') {
-                $certification->update([
-                    'active' => $data['active'],
-                ]);
-            }
         }
         return $certification;
     }
