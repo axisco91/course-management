@@ -19,9 +19,8 @@ class OnLeaveController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $on_leave = OnLeaveType::createOnLeaveType($data);
+            $on_leave = OnLeaveType::createOnLeaveType($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class OnLeaveController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $on_leave = OnLeaveType::updateOnLeaveType($id, $data);
+            $on_leave = OnLeaveType::updateOnLeaveType($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

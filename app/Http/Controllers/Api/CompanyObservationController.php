@@ -19,9 +19,8 @@ class CompanyObservationController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $observation = CompanyObservation::createCompanyObservation($data);
+            $observation = CompanyObservation::createCompanyObservation($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class CompanyObservationController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $observation = CompanyObservation::updateCompanyObservation($id, $data);
+            $observation = CompanyObservation::updateCompanyObservation($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

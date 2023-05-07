@@ -19,9 +19,8 @@ class IncidenceTypeController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $type = IncidenceType::createIncidenceType($data);
+            $type = IncidenceType::createIncidenceType($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class IncidenceTypeController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $type = IncidenceType::updateIncidenceType($id, $data);
+            $type = IncidenceType::updateIncidenceType($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

@@ -19,9 +19,8 @@ class ActionTypeController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $action_type = ActionType::createActionType($data);
+            $action_type = ActionType::createActionType($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class ActionTypeController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $action_type = ActionType::updateActionType($id, $data);
+            $action_type = ActionType::updateActionType($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

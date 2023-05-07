@@ -24,9 +24,8 @@ class TrainingContractController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $contract = TrainingContract::createTrainingContract($data);
+            $contract = TrainingContract::createTrainingContract($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -41,9 +40,8 @@ class TrainingContractController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $contract = TrainingContract::updateTrainingContract($id, $data);
+            $contract = TrainingContract::updateTrainingContract($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -141,6 +139,7 @@ class TrainingContractController extends BaseController
         $date = Carbon::parse($record->beginning_formation);
         $end_date = Carbon::parse($record->end_formation);
         $hours_days = 0;
+        $total_hours = 0;
         do {
             $excluded = TrainingContractsExcludedDay::nonWorkingDay($id, $date);
             if ($excluded != true){
@@ -186,6 +185,7 @@ class TrainingContractController extends BaseController
         } while($end_date->gt($date));
         if ($cont_days != 0){
             $hours_days = $record->total_hours / $cont_days;
+            return $record;
             $hours_days = floor($hours_days * 100) / 100;
             $record->update([
                 'total_days' => $cont_days,

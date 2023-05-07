@@ -17,9 +17,8 @@ class CertificationController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $certification = Certification::createCertification($data);
+            $certification = Certification::createCertification($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -34,9 +33,8 @@ class CertificationController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $certification = Certification::updateCertification($id, $data);
+            $certification = Certification::updateCertification($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

@@ -19,9 +19,8 @@ class PotentialCompanyController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $company = PotentialCompany::createPotentialCompany($data);
+            $company = PotentialCompany::createPotentialCompany($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class PotentialCompanyController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $company = PotentialCompany::updatePotentialCompany($id, $data);
+            $company = PotentialCompany::updatePotentialCompany($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

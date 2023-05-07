@@ -67,8 +67,4 @@ class LevelStudy extends Model
         return $level_study;
     }
 
-    public function count(){
-        return LevelStudy::count();
-    }
-
 }

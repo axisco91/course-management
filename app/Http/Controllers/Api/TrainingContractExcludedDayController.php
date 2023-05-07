@@ -25,17 +25,16 @@ class TrainingContractExcludedDayController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
-        if ($data['date']) {
-            $excluded_day = ExcludedDay::where('day', $data['date'])->first();
+        if ($request['date']) {
+            $excluded_day = ExcludedDay::where('day', $request['date'])->first();
             if (!$excluded_day){
                 $excluded_day = ExcludedDay::create([
-                    'day' => Carbon::createFromFormat('d-m-Y', $data['date'])->format('Y-m-d'),
+                    'day' => Carbon::createFromFormat('d-m-Y', $request['date'])->format('Y-m-d'),
                     'general' => 0
                 ]);
             }
             $training_contract_excluded_day = TrainingContractsExcludedDay::create([
-                'training_contract_id' => $data['training_contract_id'],
+                'training_contract_id' => $request['training_contract_id'],
                 'excluded_day_id' => $excluded_day->id
             ]);
             return response()->json([
@@ -52,18 +51,18 @@ class TrainingContractExcludedDayController extends BaseController
     }
 
     public function createGroup(Request $request){
-        $data = json_decode($request->getContent(), true);
-        $training_contract = TrainingContract::find($data['training_contract_id']);
-        if ($data['type'] === 'general') {
-            TrainingContractsExcludedDay::addGeneralDays($data['training_contract_id'], $training_contract->beginning, $training_contract->end);
+
+        $training_contract = TrainingContract::find($request['training_contract_id']);
+        if ($request['type'] === 'general') {
+            TrainingContractsExcludedDay::addGeneralDays($request['training_contract_id'], $training_contract->beginning, $training_contract->end);
         } else {
-            TrainingContractsExcludedDay::createTrainingContractExcludedDay($data['training_contract_id'], $data['id'], $data['type'], $training_contract->beginning, $training_contract->end);
+            TrainingContractsExcludedDay::createTrainingContractExcludedDay($request['training_contract_id'], $request['id'], $request['type'], $training_contract->beginning, $training_contract->end);
         }
         return response()->json([
             'status' => 200,
             'training_contract_excluded_days' => TrainingContractsExcludedDay::select('training_contracts_excluded_days.*', 'excluded_days.day')
                 ->leftJoin('excluded_days', 'excluded_days.id', '=', 'training_contracts_excluded_days.excluded_day_id')
-                ->where('training_contract_id', $data['training_contract_id'])->get()
+                ->where('training_contract_id', $request['training_contract_id'])->get()
         ]);
     }
 

@@ -19,9 +19,8 @@ class CourseTypeController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $type = CourseType::createCourseType($data);
+            $type = CourseType::createCourseType($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class CourseTypeController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $type = CourseType::updateCourseType($id, $data);
+            $type = CourseType::updateCourseType($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

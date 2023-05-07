@@ -36,9 +36,8 @@ class PotentialStudentController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $student = PotentialStudent::createPotentialStudent($data);
+            $student = PotentialStudent::createPotentialStudent($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -53,9 +52,8 @@ class PotentialStudentController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $student = PotentialStudent::updateStudent($id, $data);
+            $student = PotentialStudent::updateStudent($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -100,10 +98,9 @@ class PotentialStudentController extends BaseController
     }
 
     public function sendEmail(Request $request){
-        $data = json_decode($request->getContent(), true);
-        if ($data['email']){
+        if ($request['email']){
             try {
-                Mail::to($data['email'])->send(new PotentialPrivateEmail());
+                Mail::to($request['email'])->send(new PotentialPrivateEmail());
                 return response()->json([
                     'status' => 200
                 ]);
@@ -118,10 +115,9 @@ class PotentialStudentController extends BaseController
     }
 
     public function sendBonusEmail(Request $request){
-        $data = json_decode($request->getContent(), true);
-        if ($data['email']){
+        if ($request['email']){
             try {
-                Mail::to($data['email'])->send(new PotentialEmail());
+                Mail::to($request['email'])->send(new PotentialEmail());
                 return response()->json([
                     'status' => 200
                 ]);
@@ -136,8 +132,7 @@ class PotentialStudentController extends BaseController
     }
 
     public function checkDni(Request $request){
-        $data = json_decode($request->getContent(), true);
-        $dni = PotentialStudent::findDni($data['dni'], $data['id']);
+        $dni = PotentialStudent::findDni($request['dni'], $request['id']);
         if ($dni){
             return response()->json([
                 'exists' => true

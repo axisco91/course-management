@@ -19,9 +19,8 @@ class TrainingContractStatusController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $status = TrainingContractStatus::createTrainingContractStatus($data);
+            $status = TrainingContractStatus::createTrainingContractStatus($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class TrainingContractStatusController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $status = TrainingContractStatus::updateTrainingContractStatus($id, $data);
+            $status = TrainingContractStatus::updateTrainingContractStatus($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

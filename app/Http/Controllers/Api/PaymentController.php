@@ -19,9 +19,8 @@ class PaymentController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $payment = Payment::createPayment($data);
+            $payment = Payment::createPayment($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class PaymentController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $payment = Payment::updatePayment($id, $data);
+            $payment = Payment::updatePayment($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

@@ -19,9 +19,8 @@ class CompanyTypeController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $company_type = CompanyType::createCompanyType($data);
+            $company_type = CompanyType::createCompanyType($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class CompanyTypeController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $company_type = CompanyType::updateCompanyType($id, $data);
+            $company_type = CompanyType::updateCompanyType($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

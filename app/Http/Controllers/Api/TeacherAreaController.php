@@ -20,9 +20,8 @@ class TeacherAreaController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $teacher_area = TeacherArea::createTeacherArea($data);
+            $teacher_area = TeacherArea::createTeacherArea($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -37,9 +36,8 @@ class TeacherAreaController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $teacher_area = TeacherArea::updateTeacherArea($id, $data);
+            $teacher_area = TeacherArea::updateTeacherArea($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

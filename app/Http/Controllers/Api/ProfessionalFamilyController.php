@@ -19,9 +19,8 @@ class ProfessionalFamilyController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $family = ProfessionalFamily::createProfessionalFamily($data);
+            $family = ProfessionalFamily::createProfessionalFamily($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class ProfessionalFamilyController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $family = ProfessionalFamily::updateProfessionalFamily($id, $data);
+            $family = ProfessionalFamily::updateProfessionalFamily($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

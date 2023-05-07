@@ -19,9 +19,8 @@ class QuoteGroupController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $quote = QuoteGroup::createQuoteGroup($data);
+            $quote = QuoteGroup::createQuoteGroup($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class QuoteGroupController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $quote = QuoteGroup::updateQuoteGroup($id, $data);
+            $quote = QuoteGroup::updateQuoteGroup($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

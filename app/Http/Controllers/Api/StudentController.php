@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\API;
+use App\Models\BankHolidayGroup;
 use App\Models\Registration;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -37,9 +38,8 @@ class StudentController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $student = Student::createStudent($data);
+            $student = Student::createStudent($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -54,9 +54,8 @@ class StudentController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $student = Student::updateStudent($id, $data);
+            $student = Student::updateStudent($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -71,8 +70,7 @@ class StudentController extends BaseController
     }
 
     public function checkDni(Request $request){
-        $data = json_decode($request->getContent(), true);
-        $dni = Student::findDni($data['dni'], $data['id']);
+        $dni = Student::findDni($request['dni'], $request['id']);
         if ($dni){
             return response()->json([
                 'exists' => true
@@ -106,5 +104,18 @@ class StudentController extends BaseController
 
     public function countStudents(){
         return Student::count();
+    }
+
+    public function studentsCSV(Request $request){
+        try {
+            if ($request) {
+                return Student::getStudentCSV($request['name'], $request['surname'], $request['dni'], $request['telephone'], $request['email'], $request['company']);
+            }
+            return Student::getStudentCSV();
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e.message
+            ]);
+        }
     }
 }

@@ -19,9 +19,8 @@ class TracingController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $tracing = Tracing::createTracing($data);
+            $tracing = Tracing::createTracing($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class TracingController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $tracing = Tracing::updateTracing($id, $data);
+            $tracing = Tracing::updateTracing($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

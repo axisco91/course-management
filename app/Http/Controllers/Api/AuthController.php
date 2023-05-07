@@ -21,6 +21,7 @@ class AuthController extends BaseController
             $success['email'] = $authUser->email;
             $success['ability'] = [['action' => "manage", 'subject' => "all"]];
             $success['role'] = 'admin';
+            $success['avatar'] = $authUser->profile_photo_path;
             return $this->sendResponse($success, 'User signed in');
         }
         else{

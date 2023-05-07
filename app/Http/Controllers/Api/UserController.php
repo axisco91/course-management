@@ -20,9 +20,8 @@ class UserController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $user = User::createUser($data);
+            $user = User::createUser($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -37,9 +36,20 @@ class UserController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $user = User::updateUser($id, $data);
+            $this->uploadImage($request, $id);
+            $user = User::updateUser($id, $request);
+            $user = User::find($id);
+            if ($request->file('image')) {
+                $file = $request->file('image');
+                $filename = substr(str_shuffle(MD5(microtime())), 0, 10).substr(str_shuffle(MD5($user->name.'-'.$user->surname)), 0, 10).'.'.$file->getClientOriginalExtension();
+                $destination_path = public_path() . '/images/avatar/';
+                $request->file('image')->move($destination_path, $filename);
+                $file = '/images/avatar/'.$filename;
+                $user->update([
+                    'profile_photo_path' => $file
+                ]);
+            }
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -85,5 +95,29 @@ class UserController extends BaseController
 
     public function count(){
         return User::count();
+    }
+
+    public function uploadImage(Request $request, $id) {
+        $user = User::find($id);
+        return $request->file('image');
+        if ($request->file('image')) {
+            try {
+                $file = $request->file('image');
+                $filename = substr(str_shuffle(MD5(microtime())), 0, 10).substr(str_shuffle(MD5($user->name.'-'.$user->surname)), 0, 10).'.'.$file->getClientOriginalExtension();
+                $destination_path = public_path() . '/images/avatar/';
+                $request->file('image')->move($destination_path, $filename);
+                $file = '/images/avatar/'.$filename;
+                $user->update([
+                    'profile_photo_path' => $file
+                ]);
+            } catch (\Exception $e) {
+                return $e->getMessage();
+            }
+
+            return response()->json([
+                'status' => 200
+            ]);
+        }
+        return 'Pringado';
     }
 }

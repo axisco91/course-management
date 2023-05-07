@@ -20,9 +20,8 @@ class ExamTutorialController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $exam_tutorial = ExamTutorial::createExamsTutorial($data);
+            $exam_tutorial = ExamTutorial::createExamsTutorial($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -37,9 +36,8 @@ class ExamTutorialController extends BaseController
     }
 
     public function update($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $exam_tutorial = ExamTutorial::updateExamsTutorial($id, $data);
+            $exam_tutorial = ExamTutorial::updateExamsTutorial($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

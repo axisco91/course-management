@@ -27,9 +27,8 @@ class CertificationElementController extends BaseController
     }
 
     public function create($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $element = CertificationElement::createCertificationElement($id, $data['id'], $data['type']);
+            $element = CertificationElement::createCertificationElement($id, $request['id'], $request['type']);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

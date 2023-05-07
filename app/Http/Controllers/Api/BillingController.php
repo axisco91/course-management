@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 use App\Models\Billing;
 use App\Models\Chore;
+use App\Models\Company;
 use App\Models\Course;
 use App\Models\Student;
 use App\Models\TrainingActionLevel;
@@ -32,7 +33,7 @@ class BillingController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
+
         try {
             $billing = Billing::find($id);
             $data['is_bonus'] = $billing->is_bonus;
@@ -59,8 +60,8 @@ class BillingController extends BaseController
         $billing = Billing::find($id);
         if ($billing) {
             $course = Course::where('id', $billing->course_id)->first();
-            $student = Student::where('id', $billing->student_id)->first();
-            $billing['name'] = $course->group.'/'. $course->name .' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
+            $company = Company::where('id', $billing->company_id)->first();
+            $billing['name'] = $course->group.'/'. $course->name .' - '. $company->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
             return response()->json([
                 'status' => 200,
                 'billing' => $billing

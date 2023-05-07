@@ -20,9 +20,8 @@ class CourseController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $course = Course::createCourse($data);
+            $course = Course::createCourse($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -37,9 +36,8 @@ class CourseController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $course = Course::updateCourse($id, $data);
+            $course = Course::updateCourse($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

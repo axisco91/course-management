@@ -255,15 +255,10 @@ class Student extends Model
         return $students;
     }
 
-    public static function getBilledStudent($id, $search_student_name, $search_student_surname){
+    public static function getBilledStudent($id){
         $students = Student::select('students.*')
             ->join('registrations', 'registrations.student_id', '=', 'students.id')
-            ->where('registrations.billing_id', $id)
-            ->where(function ($query) use ($search_student_name){
-                $query->orWhere('students.name', 'LIKE', $search_student_name);
-            })->where(function ($query) use ($search_student_surname){
-                $query->orWhere('students.surname', 'LIKE', $search_student_surname);
-            })->get();
+            ->where('registrations.billing_id', $id)->get();
 
         return $students;
     }
@@ -288,4 +283,55 @@ class Student extends Model
         return $student;
     }
 
+    /**
+     * @param $id
+     * @return Student
+     */
+    public static function getStudentCSV($name = null, $surname = null, $dni = null, $telephone = null, $email = null, $company = null){
+        $students = Student::select('students.*',
+            'companies.name as company',
+            'level_studies.name as level_study',
+            'professional_categories.name as professional_category',
+            'provinces.name as province',
+            'quote_groups.name as quote_group',
+            'students.id as value',
+            DB::raw("CONCAT(students.name,' ',students.surname) as label"))
+            ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
+            ->leftjoin('level_studies', 'level_studies.id', '=', 'students.level_study_id')
+            ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
+            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id');
+
+        if ($name) {
+            $students = $students->where('students.name', 'like', '%'.$name.'%');
+        }
+        if ($surname) {
+            $students = $students->where('students.surname', 'like', '%'.$surname.'&');
+        }
+        if ($dni) {
+            $students = $students->where('students.dni', 'like', '%'.$dni.'%');
+        }
+        if ($telephone) {
+            $students = $students->where('students.telephone', 'like', '%'.$dni.'%');
+        }
+        if ($email) {
+            $students = $students->where('students.email', 'like', '%'.$email.'%');
+        }
+        if ($company) {
+            $students = $students->where('companies.name', 'like', '%'.$company.'%');
+        }
+
+        $students = $students->get();
+
+        $data = [];
+        foreach ($students as $student) {
+            $element = [
+                'Nombre' => $student['name'],
+                'Apellidos' => $student['label'],
+                'DNI' => $student['dni']
+            ];
+            $data[] = $element;
+        }
+        return $data;
+    }
 }

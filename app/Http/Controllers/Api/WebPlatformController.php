@@ -20,9 +20,8 @@ class WebPlatformController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $web = WebPlatform::createWebPlatform($data);
+            $web = WebPlatform::createWebPlatform($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -37,9 +36,8 @@ class WebPlatformController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $web = WebPlatform::updateWebPlatform($id, $data);
+            $web = WebPlatform::updateWebPlatform($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

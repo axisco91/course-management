@@ -20,9 +20,8 @@ class TrainingActionGroupController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $group = TrainingActionGroup::createTrainingActionGroup($data);
+            $group = TrainingActionGroup::createTrainingActionGroup($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -37,9 +36,8 @@ class TrainingActionGroupController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $group = TrainingActionGroup::updateTrainingActionGroup($id, $data);
+            $group = TrainingActionGroup::updateTrainingActionGroup($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

@@ -19,9 +19,8 @@ class CreditController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $credit = Credit::createCredit($data);
+            $credit = Credit::createCredit($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class CreditController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $credit = Credit::updateCredit($id, $data);
+            $credit = Credit::updateCredit($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

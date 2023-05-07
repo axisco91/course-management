@@ -36,15 +36,14 @@ class AdvisorController extends BaseController
      * @return void
      */
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            if (!$data['company_id']){
-                $company = Company::createCompany($data);
+            if (!$request['company_id']){
+                $company = Company::createCompany($request);
                 if ($company){
-                    $data['company_id'] = $company->id;
+                    $request['company_id'] = $company->id;
                 }
             }
-            $advisor = Advisor::createAdvisor($data);
+            $advisor = Advisor::createAdvisor($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -65,9 +64,8 @@ class AdvisorController extends BaseController
      * @return int
      */
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $advisor = Advisor::updateAdvisor($id, $data);
+            $advisor = Advisor::updateAdvisor($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

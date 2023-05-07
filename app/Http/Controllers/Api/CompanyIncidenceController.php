@@ -19,9 +19,8 @@ class CompanyIncidenceController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $incidence = CompanyIncidence::createCompanyIncidence($data);
+            $incidence = CompanyIncidence::createCompanyIncidence($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class CompanyIncidenceController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $incidence = CompanyIncidence::updateCompanyIncidence($id, $data);
+            $incidence = CompanyIncidence::updateCompanyIncidence($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

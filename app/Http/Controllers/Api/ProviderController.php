@@ -22,9 +22,8 @@ class ProviderController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $company = Company::createCompany($data);
+            $company = Company::createCompany($request);
             $data['company_id'] = $company->id;
             $provider = Provider::createProvider($data);
         } catch (\Exception $e){
@@ -41,9 +40,8 @@ class ProviderController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $company = Company::updateCompany($data['company_id'], $data);
+            $company = Company::updateCompany($request['company_id'], $request);
             $provider = Provider::updateProvider($id, $data);
         } catch (\Exception $e){
             return response()->json([

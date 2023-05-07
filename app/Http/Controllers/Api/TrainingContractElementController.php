@@ -23,9 +23,8 @@ class TrainingContractElementController extends BaseController
     }
 
     public function create($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $element = TrainingContractElement::createTrainingContractElement($id, $data['id'], $data['type']);
+            $element = TrainingContractElement::createTrainingContractElement($id, $request['id'], $request['type']);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

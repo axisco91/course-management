@@ -20,9 +20,8 @@ class ExcludedDayController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $excluded_day = ExcludedDay::createExcludedDay($data);
+            $excluded_day = ExcludedDay::createExcludedDay($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -37,9 +36,8 @@ class ExcludedDayController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $excluded_day = ExcludedDay::updateExcludedDay($id, $data);
+            $excluded_day = ExcludedDay::updateExcludedDay($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

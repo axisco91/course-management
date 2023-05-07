@@ -21,9 +21,8 @@ class ModuleController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $module = Module::createModule($data);
+            $module = Module::createModule($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -38,9 +37,8 @@ class ModuleController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $module = Module::updateModule($id, $data);
+            $module = Module::updateModule($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -95,9 +93,8 @@ class ModuleController extends BaseController
     }
 
     public function addUnit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $training_unit = TrainingUnitsModule::createTrainingUnitModule($id, $data['unit_id']);
+            $training_unit = TrainingUnitsModule::createTrainingUnitModule($id, $request['unit_id']);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

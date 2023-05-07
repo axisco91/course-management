@@ -23,8 +23,7 @@ class TrainingContractBonus extends Model
     ];
 
     public static function getBonuses($id){
-        $bonuses = TrainingContractBonus::select('training_contract_bonuses.*')
-            ->where('training_contract_id', $id)->get();
+        $bonuses = TrainingContractBonus::where('training_contract_id', $id)->get();
         foreach ($bonuses as $bonus) {
             switch ($bonus['month']) {
                 case 1:

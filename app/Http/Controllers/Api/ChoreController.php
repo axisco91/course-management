@@ -22,9 +22,8 @@ class ChoreController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $chore = Chore::createChore($data);
+            $chore = Chore::createChore($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -39,10 +38,8 @@ class ChoreController extends BaseController
     }
 
     public function edit($id, Request $request){
-        //   return response()->json($request);
-        $data = json_decode($request->getContent(), true);
         try {
-            $chore = Chore::updateChore($id, $data);
+            $chore = Chore::updateChore($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

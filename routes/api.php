@@ -110,6 +110,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('check_dni', 'checkDni');
             Route::get('courses/{id}', 'getStudentsCourses');
             Route::get('count', 'countStudents');
+            Route::get('csv', 'studentsCSV');
         });
     });
 
@@ -734,6 +735,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getUser');
             Route::get('count', 'count');
+            Route::post('upload-image/{id}', 'uploadImage');
         });
     });
 

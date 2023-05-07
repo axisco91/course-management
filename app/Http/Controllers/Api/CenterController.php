@@ -19,9 +19,8 @@ class CenterController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $center = Center::createCenter($data);
+            $center = Center::createCenter($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class CenterController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $center = Center::updateCenter($id, $data);
+            $center = Center::updateCenter($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

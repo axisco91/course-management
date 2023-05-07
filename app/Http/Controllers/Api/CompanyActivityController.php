@@ -19,9 +19,8 @@ class CompanyActivityController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $company_activity = CompanyActivity::createCompanyActivity($data);
+            $company_activity = CompanyActivity::createCompanyActivity($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class CompanyActivityController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $company_activity = CompanyActivity::updateCompanyActivity($id, $data);
+            $company_activity = CompanyActivity::updateCompanyActivity($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

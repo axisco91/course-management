@@ -19,9 +19,8 @@ class OccupationController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $occupation = Occupation::createOccupation($data);
+            $occupation = Occupation::createOccupation($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class OccupationController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $occupation = Occupation::updateOccupation($id, $data);
+            $occupation = Occupation::updateOccupation($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

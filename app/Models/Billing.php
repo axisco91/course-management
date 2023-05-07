@@ -54,8 +54,8 @@ class Billing extends Model
             'courses.beginning as beginning',
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
             DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'No bonificada' ELSE 'Bonificada' END) as type"),
-            DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoiced"),
-            DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charged"))
+            DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
+            DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"))
             ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
             ->leftjoin('companies', 'companies.id', '=', 'billings.company_id')
             ->leftjoin('payments', 'payments.id', '=', 'billings.payment_id')
@@ -98,7 +98,7 @@ class Billing extends Model
             'total_training_activity' => GeneralHelpers::convertComa($total_training_activity),
             'expenses' => GeneralHelpers::convertComa($data['expenses']),
             'salary_costs' => GeneralHelpers::convertComa($data['salary_costs']),
-            'payment_id' => $data['payment_id'],
+            'payment_id' => $data['payment_id'] ? $data['payment_id'] : null,
             'communication_start_date' => $data['communication_start_date'] ? Carbon::createFromFormat('d-m-Y', $data['communication_start_date'])->format('Y-m-d') : null,
             'communication_end_date' => $data['communication_end_date'] ? Carbon::createFromFormat('d-m-Y', $data['communication_end_date'])->format('Y-m-d') : null,
             'billing_number' => $data['billing_number'],

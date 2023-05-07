@@ -25,18 +25,17 @@ class RegistrationController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $student = Student::getStudent($data['student_id']);
+            $student = Student::getStudent($request['student_id']);
             $tracing_data = [
-                'course_id' => $data['course_id'],
+                'course_id' => $request['course_id'],
                 'company_id' => $student['company_id'],
                 'student_id' => $student['id'],
             ];
             $tracing = Tracing::createTracing($tracing_data);
             if ($tracing) {
                 $chore_data = [
-                    'course_id' => $data['course_id'],
+                    'course_id' => $request['course_id'],
                     'company_id' => $student['company_id'],
                     'student_id' => $student['id']
                 ];
@@ -71,36 +70,36 @@ class RegistrationController extends BaseController
                         }
                     }
                     $billing_data = [
-                        'course_id' => $data['course_id'],
+                        'course_id' => $request['course_id'],
                         'company_id' => $student['company_id'],
-                        'is_bonus' => $data['is_bonus'],
-                        'price' => $data['price'],
+                        'is_bonus' => $request['is_bonus'],
+                        'price' => $request['price'],
                         'student_id' => $student['id'],
                         'advisor_id' => $advisor_id,
                         'collaborator_id' => $collaborator_id,
                     ];
                     $billing = Billing::updateBillingRegistrations($billing_data);
                     $profitability_data =[
-                        'course_id' =>$data['course_id'],
+                        'course_id' =>$request['course_id'],
                         'company_id' => $student['company_id'],
                         'student_id' => $student['id'],
-                        'price' => $data['price'],
-                        'total' => $data['price'],
+                        'price' => $request['price'],
+                        'total' => $request['price'],
                         'advisor_percentage' => $advisor_percentage,
                         'collaborator_percentage' => $collaborator_percentage,
-                        'is_bonus' => $data['is_bonus']
+                        'is_bonus' => $request['is_bonus']
                     ];
                     $profitability = Profitability::createProfitability($profitability_data);
                     $registration_data = [
-                        'course_id' => $data['course_id'],
+                        'course_id' => $request['course_id'],
                         'company_id' => $student['company_id'],
                         'student_id' => $student['id'],
                         'billing_id' => $billing['id'],
                         'tracing_id' => $tracing['id'],
                         'chore_id' => $chore['id'],
-                        'price' => $data['price'],
+                        'price' => $request['price'],
                         'profitability_id' => $profitability['id'],
-                        'is_bonus' => $data['is_bonus']
+                        'is_bonus' => $request['is_bonus']
                     ];
                     $registration = Registration::createRegistration($registration_data);
                     $student['registration_id'] = $registration->id;
@@ -119,10 +118,6 @@ class RegistrationController extends BaseController
             'registration' => $registration,
             'student' => $student
         ]);
-    }
-
-    public function edit($id, Request $request){
-
     }
 
     public function getRegistration($id){

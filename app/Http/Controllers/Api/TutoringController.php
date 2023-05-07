@@ -19,9 +19,8 @@ class TutoringController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $tutoring = Tutoring::createTutoring($data);
+            $tutoring = Tutoring::createTutoring($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -35,9 +34,8 @@ class TutoringController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $tutoring = Tutoring::updateTutoring( $id, $data);
+            $tutoring = Tutoring::updateTutoring( $id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

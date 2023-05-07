@@ -11,10 +11,9 @@ class BankHolidayGroupController extends BaseController
 {
 
     public function getBankHolidayGroups(Request $request) {
-        $data = json_decode($request->getContent(), true);
         try {
-            if ($data) {
-                return BankHolidayGroup::getBankHolidayGroup($data['beginning'], $data['end']);
+            if ($request) {
+                return BankHolidayGroup::getBankHolidayGroup($request['beginning'], $request['end']);
             }
             return BankHolidayGroup::getBankHolidayGroup();
         } catch (\Exception $e) {
@@ -25,9 +24,8 @@ class BankHolidayGroupController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $action_type = ActionType::createActionType($data);
+            $action_type = ActionType::createActionType($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -42,9 +40,8 @@ class BankHolidayGroupController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $action_type = ActionType::updateActionType($id, $data);
+            $action_type = ActionType::updateActionType($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

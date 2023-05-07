@@ -30,9 +30,8 @@ class TrainingActionController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $training_action = TrainingAction::createTrainingAction($data);
+            $training_action = TrainingAction::createTrainingAction($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -46,9 +45,8 @@ class TrainingActionController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $training_action = TrainingAction::updateTrainingAction($id, $data);
+            $training_action = TrainingAction::updateTrainingAction($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

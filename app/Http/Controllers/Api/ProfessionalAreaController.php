@@ -19,9 +19,8 @@ class ProfessionalAreaController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $area = ProfessionalArea::createProfessionalArea($data);
+            $area = ProfessionalArea::createProfessionalArea($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class ProfessionalAreaController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $area = ProfessionalArea::updateProfessionalArea($id, $data);
+            $area = ProfessionalArea::updateProfessionalArea($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

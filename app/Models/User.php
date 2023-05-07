@@ -32,7 +32,8 @@ class User extends Authenticatable
         'surname',
         'username',
         'has_commission',
-        'commission'
+        'commission',
+        'profile_photo_path',
     ];
 
     /**

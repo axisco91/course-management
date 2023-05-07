@@ -19,9 +19,8 @@ class LevelStudyController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $level_study = LevelStudy::createLevelStudy($data);
+            $level_study = LevelStudy::createLevelStudy($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class LevelStudyController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $level_study = LevelStudy::updateLevelStudy($id, $data);
+            $level_study = LevelStudy::updateLevelStudy($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

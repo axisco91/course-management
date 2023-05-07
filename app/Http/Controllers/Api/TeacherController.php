@@ -35,9 +35,8 @@ class TeacherController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $teacher = Teacher::createTeacher($data);
+            $teacher = Teacher::createTeacher($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -52,9 +51,8 @@ class TeacherController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $teacher = Teacher::updateTeacher($id, $data);
+            $teacher = Teacher::updateTeacher($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -69,8 +67,7 @@ class TeacherController extends BaseController
     }
 
     public function checkDni(Request $request){
-        $data = json_decode($request->getContent(), true);
-        $dni = Teacher::findDni($data['dni'], $data['id']);
+        $dni = Teacher::findDni($request['dni'], $request['id']);
         if ($dni){
             return response()->json([
                 'exists' => true

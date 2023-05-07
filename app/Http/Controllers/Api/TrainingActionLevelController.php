@@ -19,9 +19,8 @@ class TrainingActionLevelController extends BaseController
     }
 
     public function create(Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $level = TrainingActionLevel::createTrainingActionLevel($data);
+            $level = TrainingActionLevel::createTrainingActionLevel($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -36,9 +35,8 @@ class TrainingActionLevelController extends BaseController
     }
 
     public function edit($id, Request $request){
-        $data = json_decode($request->getContent(), true);
         try {
-            $level = TrainingActionLevel::updateTrainingActionLevel($id, $data);
+            $level = TrainingActionLevel::updateTrainingActionLevel($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
