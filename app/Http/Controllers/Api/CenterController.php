@@ -13,7 +13,7 @@ class CenterController extends BaseController
             return Center::getCenters();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -30,7 +30,7 @@ class CenterController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'center' => $center
+            'center' => Center::getCenter($center->id)
         ]);
     }
 
@@ -40,18 +40,18 @@ class CenterController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
         return response()->json([
             'status' => 200,
-            'center' => $center
+            'center' => Center::getCenter($center->id)
         ]);
     }
 
     public function getCenter($id){
-        $center = Center::find($id);
+        $center = Center::getCenter($id);
         if ($center) {
             return response()->json([
                 'status' => 200,
@@ -74,7 +74,7 @@ class CenterController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

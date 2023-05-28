@@ -34,7 +34,7 @@ class StatisticController extends BaseController
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -44,7 +44,7 @@ class StatisticController extends BaseController
             return Chore::getChoresSendWelcome();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -54,7 +54,7 @@ class StatisticController extends BaseController
             return Course::getNumberCourses(Carbon::now()->year);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -64,7 +64,7 @@ class StatisticController extends BaseController
             return Course::getNumberCoursesPerMonth(Carbon::now()->year);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }

@@ -13,7 +13,7 @@ class ProfessionalCategoryController extends BaseController
             return ProfessionalCategory::getProfessionalCategories();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -41,7 +41,7 @@ class ProfessionalCategoryController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -75,7 +75,7 @@ class ProfessionalCategoryController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

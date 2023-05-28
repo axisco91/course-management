@@ -14,7 +14,7 @@ class ExcludedDayController extends BaseController
             return ExcludedDay::getExcludedDays();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -41,7 +41,7 @@ class ExcludedDayController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -75,7 +75,7 @@ class ExcludedDayController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

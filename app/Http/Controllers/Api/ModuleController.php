@@ -15,7 +15,7 @@ class ModuleController extends BaseController
             return Module::getModules();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -42,7 +42,7 @@ class ModuleController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -76,7 +76,7 @@ class ModuleController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

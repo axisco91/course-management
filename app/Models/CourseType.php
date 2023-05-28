@@ -50,7 +50,6 @@ class CourseType extends Model
     }
 
     public static function createCourseType($data){
-        $data = (array) $data;
         $course_type = CourseType::create([
             'name' => $data['name']
         ]);

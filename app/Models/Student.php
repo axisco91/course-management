@@ -249,6 +249,38 @@ class Student extends Model
         return $students;
     }
 
+    /**
+     * Get all students
+     */
+    public static function getActiveStudents(){
+        $students = Student::select('students.*',
+            'companies.name as company',
+            'level_studies.name as level_study',
+            'professional_categories.name as professional_category',
+            'provinces.name as province',
+            'quote_groups.name as quote_group',
+            'students.id as value',
+            DB::raw("CONCAT(students.name,' ',students.surname) as label"))
+            ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
+            ->leftjoin('level_studies', 'level_studies.id', '=', 'students.level_study_id')
+            ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
+            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')
+            ->where('active', 1)
+            ->orderBy('students.name','asc')->get();
+
+        foreach($students as $student) {
+            $registered = Registration::where('student_id', $student->id)->first();
+            if ($registered) {
+                $student['used'] = true;
+            } else {
+                $student['used'] = false;
+            }
+        }
+
+        return $students;
+    }
+
     public static function getCompanyStudents($id){
         $students = Student::where('company_id', $id)->where('active', 1)->get();
 

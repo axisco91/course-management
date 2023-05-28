@@ -20,7 +20,7 @@ class PotentialStudent extends Mailable
      */
     public function __construct()
     {
-        //$this->email = $email;
+        // $this->email = $email;
     }
 
     /**

@@ -13,7 +13,7 @@ class PotentialCompanyController extends BaseController
             return PotentialCompany::getPotentialCompanies();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -40,7 +40,7 @@ class PotentialCompanyController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -74,7 +74,7 @@ class PotentialCompanyController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

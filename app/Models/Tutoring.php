@@ -41,6 +41,8 @@ class Tutoring extends Model
         $tutoring->update([
             'name' => $data['name']
         ]);
+
+        return $tutoring;
     }
 
 }

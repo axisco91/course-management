@@ -104,7 +104,7 @@ class Course extends Model
             'fc.name as formation_center',
             'dc.name as delivery_center',
             'course_statuses.name as course_status',
-            'courses.id as value', 'courses.name as label',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
             'training_actions.name as training_action')
             ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
             ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
@@ -140,6 +140,7 @@ class Course extends Model
             'dc.name as delivery_center',
             'course_statuses.name as course_status',
             'courses.id as value', 'courses.name as label',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
             'training_actions.name as training_action')
             ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
             ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')

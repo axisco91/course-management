@@ -14,7 +14,7 @@ class TrainingActionController extends BaseController
             return TrainingAction::getTrainingActions();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -24,7 +24,7 @@ class TrainingActionController extends BaseController
             return TrainingAction::select('id as value', 'name as label')->where('active', 1)->get();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -50,7 +50,7 @@ class TrainingActionController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -84,7 +84,7 @@ class TrainingActionController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

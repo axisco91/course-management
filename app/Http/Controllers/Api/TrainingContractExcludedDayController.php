@@ -18,7 +18,7 @@ class TrainingContractExcludedDayController extends BaseController
                     ->where('training_contract_id', $request->id)->get();
             } catch (\Exception $e) {
                 return response()->json([
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }
@@ -76,7 +76,7 @@ class TrainingContractExcludedDayController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

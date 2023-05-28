@@ -52,9 +52,7 @@ class Profitability extends Model
     public static function getProfitabilities(){
         $profitabilities = Profitability::select('profitabilities.*',
             'companies.name as company_name',
-            'training_actions.name as course',
-            'training_actions.formative_action as training_action',
-            'courses.group as group',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
             'courses.beginning as beginning',
             'students.name as student_name',
             'students.surname as student_surname',
@@ -67,6 +65,24 @@ class Profitability extends Model
             ->orderBy('courses.beginning', 'desc')
             ->get();
         return $profitabilities;
+    }
+
+    public static function getProfitability($id){
+        $profitability = Profitability::select('profitabilities.*',
+            'companies.name as company_name',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
+            'courses.beginning as beginning',
+            'students.name as student_name',
+            'students.surname as student_surname',
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"))
+            ->leftjoin('companies', 'companies.id', '=', 'profitabilities.company_id')
+            ->leftjoin('courses', 'courses.id', '=', 'profitabilities.course_id')
+            ->leftjoin('students', 'students.id', '=', 'profitabilities.student_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->where('profitabilities.id', $id)
+            ->first();
+        return $profitability;
     }
 
     public static function createProfitability($data){

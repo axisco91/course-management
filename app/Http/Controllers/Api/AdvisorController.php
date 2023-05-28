@@ -19,7 +19,7 @@ class AdvisorController extends BaseController
             return Advisor::getAdvisors();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     } // end method
@@ -53,7 +53,7 @@ class AdvisorController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'advisor' => $advisor
+            'advisor' => Advisor::getAdvisor($advisor->id)
         ]);
     } // end method
 
@@ -65,17 +65,18 @@ class AdvisorController extends BaseController
      */
     public function edit($id, Request $request){
         try {
+            Company::updateCompany($request->company_id, $request);
             $advisor = Advisor::updateAdvisor($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
         return response()->json([
             'status' => 200,
-            'advisor' => $advisor
+            'advisor' => Advisor::getAdvisor($advisor->id)
         ]);
     }
 
@@ -113,7 +114,7 @@ class AdvisorController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

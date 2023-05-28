@@ -16,7 +16,7 @@ class TrainingContractElementController extends BaseController
                 return TrainingContractElement::getTrainingContractElements($id);
             } catch (\Exception $e) {
                 return response()->json([
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }
@@ -28,7 +28,7 @@ class TrainingContractElementController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
         $certification = null;
@@ -78,7 +78,7 @@ class TrainingContractElementController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

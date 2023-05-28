@@ -15,7 +15,7 @@ class TrainingContractBonusController extends BaseController
             return TrainingContractBonus::getBonuses($id);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -203,7 +203,7 @@ class TrainingContractBonusController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -237,7 +237,7 @@ class TrainingContractBonusController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

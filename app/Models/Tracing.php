@@ -54,7 +54,7 @@ class Tracing extends Model
             $number_days = 7;
         $start = $start->addDays($number_days);
         $tracings = Tracing::select('tracings.*',
-            'courses.name as course',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
             'companies.name as company',
             'students.name as student_name',
             'students.surname as student_surname',
@@ -63,6 +63,11 @@ class Tracing extends Model
             'training_actions.total_hours',
             'course_statuses.name as status',
             'courses.group as course_group',
+            'courses.welcome_date',
+            'courses.quarter_date',
+            'courses.half_date',
+            'courses.three_quarters_date',
+            'courses.final_date',
             DB::raw("CONCAT(students.name,' ',students.surname) as student"))
             ->leftjoin('courses', 'courses.id', '=', 'tracings.course_id')
             ->leftjoin('course_statuses', 'course_statuses.id', 'courses.course_status_id')
@@ -90,6 +95,42 @@ class Tracing extends Model
         return $tracings;
     }
 
+    public static function getTracing($id){
+        $tracing = Tracing::select('tracings.*',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
+            'companies.name as company',
+            'students.name as student_name',
+            'students.surname as student_surname',
+            'training_actions.number_activities',
+            'training_actions.number_units',
+            'training_actions.total_hours',
+            'course_statuses.name as status',
+            'courses.group as course_group',
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"))
+            ->leftjoin('courses', 'courses.id', '=', 'tracings.course_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', 'courses.course_status_id')
+            ->leftjoin('companies', 'companies.id', '=', 'tracings.company_id')
+            ->leftjoin('students', 'students.id', '=', 'tracings.student_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->where('tracings.id', $id)->first();
+
+        if ($tracing->final_test === 0) {
+            $tracing['final_test_name'] = 'Pendiente';
+        } else if ($tracing->final_test === 1) {
+            $tracing['final_test_name'] = 'Realizado';
+        } else if ($tracing->final_test === 2) {
+            $tracing['final_test_name'] = 'No realizado';
+        }
+        if ($tracing->questionnaire === 0) {
+            $tracing['questionnaire_name'] = 'Pendiente';
+        } else if ($tracing->questionnaire === 1) {
+            $tracing['questionnaire_name'] = 'Realizado';
+        } else if ($tracing->questionnaire === 2) {
+            $tracing['questionnaire_name'] = 'No realizado';
+        }
+        return $tracing;
+    }
+
     public static function createTracing($data){
         $tracing = Tracing::create([
             'course_id' => $data['course_id'],
@@ -106,9 +147,9 @@ class Tracing extends Model
             'company_id' => $data['company_id'],
             'student_id' => $data['student_id'],
             'last_connection' => $data['last_connection'] ? Carbon::createFromFormat('d-m-Y', $data['last_connection'])->format('Y-m-d') : null,
-            'performed_activities' => $data['performed_activities'],
-            'performed_hours' => $data['performed_hours'],
-            'performed_units' => $data['performed_units'],
+            'performed_activities' => $data['performed_activities'] ? $data['performed_activities'] : 0,
+            'performed_hours' => $data['performed_hours'] ? $data['performed_hours'] : 0,
+            'performed_units' => $data['performed_units'] ? $data['performed_units'] : 0,
             'follow_up_date' => $data['follow_up_date'] ? Carbon::createFromFormat('d-m-Y', $data['follow_up_date'])->format('Y-m-d') : null,
             'final_test' => $data['final_test'],
             'questionnaire' => $data['questionnaire'],

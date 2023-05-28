@@ -44,7 +44,7 @@ class Billing extends Model
 
     public static function getBillings(){
         $billings = Billing::select('billings.*',
-            'training_actions.name as course',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
             'training_actions.formative_action as training_action',
             'courses.group as group',
             'companies.name as company',
@@ -69,41 +69,73 @@ class Billing extends Model
         return $billings;
     }
 
+    public static function getBill($id){
+        $bill = Billing::select('billings.*',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
+            'training_actions.formative_action as training_action',
+            'courses.group as group',
+            'companies.name as company',
+            'payments.name as payment',
+            'advisors.name as advisor',
+            'course_statuses.name as status',
+            'courses.beginning as beginning',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
+            DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'No bonificada' ELSE 'Bonificada' END) as type"),
+            DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
+            DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"))
+            ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
+            ->leftjoin('companies', 'companies.id', '=', 'billings.company_id')
+            ->leftjoin('payments', 'payments.id', '=', 'billings.payment_id')
+            ->leftjoin('students', 'students.id', '=', 'billings.student_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'billings.advisor_id')
+            ->leftjoin('users', 'users.id', '=', 'billings.collaborator_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->where('billings.id', $id)
+            ->first();
+
+        return $bill;
+    }
+
     public static function updateBilling($id, $data){
         $billing = Billing::find($id);
+        $total_training_activity = 0;
 
-        if ($billing->communication_start_date != $data['communication_start_date']){
-            $status = 0;
-            if ($data['communication_start_date']){
-                $status = 1;
+        if (isset($data['communication_start_date'])) {
+            if ($billing->communication_start_date != $data['communication_start_date']){
+                $status = 0;
+                if ($data['communication_start_date']){
+                    $status = 1;
+                }
+                Billing::updateStartCommunicationDate($id, $data['communication_start_date'], $status);
             }
-            Billing::updateStartCommunicationDate($id, $data['communication_start_date'], $status);
         }
-        if ($billing->communication_end_date != $data['communication_end_date']){
-            $status = 0;
-            if ($data['communication_end_date']){
-                $status = 1;
+        if (isset($data['communication_end_date'])) {
+            if ($billing->communication_end_date != $data['communication_end_date']){
+                $status = 0;
+                if ($data['communication_end_date']){
+                    $status = 1;
+                }
+                Billing::updateCloseCommunicationDate($id, $data['communication_end_date'], $status);
             }
-            Billing::updateCloseCommunicationDate($id, $data['communication_end_date'], $status);
         }
-
-        $total_training_activity = Billing::totalTrainingActivity($data['bonus']);
+        if (isset($data['bonus'])) {
+            $total_training_activity = Billing::totalTrainingActivity($data['bonus']);
+        }
 
         $billing->update([
-            'course_id' => $data['course_id'],
-            'company_id' => $data['company_id'],
             'number_students' => $data['number_students'],
-            'billing' => GeneralHelpers::convertComa($data['billing']),
-            'bonus' => GeneralHelpers::convertComa($data['bonus']),
+            'billing' => $data['billing'] ? GeneralHelpers::convertComa($data['billing']) : 0,
+            'bonus' => $data['bonus'] ? GeneralHelpers::convertComa($data['bonus']) : 0,
             'total_training_activity' => GeneralHelpers::convertComa($total_training_activity),
-            'expenses' => GeneralHelpers::convertComa($data['expenses']),
-            'salary_costs' => GeneralHelpers::convertComa($data['salary_costs']),
+            'expenses' => $data['expenses'] ? GeneralHelpers::convertComa($data['expenses']) : 0,
+            'salary_costs' => $data['salary_costs'] ? GeneralHelpers::convertComa($data['salary_costs']) : 0,
             'payment_id' => $data['payment_id'] ? $data['payment_id'] : null,
             'communication_start_date' => $data['communication_start_date'] ? Carbon::createFromFormat('d-m-Y', $data['communication_start_date'])->format('Y-m-d') : null,
             'communication_end_date' => $data['communication_end_date'] ? Carbon::createFromFormat('d-m-Y', $data['communication_end_date'])->format('Y-m-d') : null,
             'billing_number' => $data['billing_number'],
-            'billing_date' => array_key_exists('billing_date', $data) && $data['billing_date'] ? Carbon::createFromFormat('d-m-Y', $data['billing_date'])->format('Y-m-d') : null,
-            'collection_date' => array_key_exists('collection_date', $data) && $data['collection_date'] ? Carbon::createFromFormat('d-m-Y', $data['collection_date'])->format('Y-m-d') : null,
+            'billing_date' => $data['billing_date'] ? Carbon::createFromFormat('d-m-Y', $data['billing_date'])->format('Y-m-d') : null,
+            'collection_date' => $data['collection_date'] ? Carbon::createFromFormat('d-m-Y', $data['collection_date'])->format('Y-m-d') : null,
             'bonus_status' => $data['bonus_status'],
             'observation' => $data['observation'],
             'is_bonus' => $data['is_bonus'],

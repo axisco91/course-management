@@ -13,7 +13,7 @@ class ExamTutorialController extends BaseController
                 return  ExamTutorial::getExamTutorials($id);
             } catch (\Exception $e) {
                 return response()->json([
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }
@@ -25,7 +25,7 @@ class ExamTutorialController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -41,7 +41,7 @@ class ExamTutorialController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -61,7 +61,7 @@ class ExamTutorialController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

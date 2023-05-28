@@ -17,7 +17,7 @@ class StudentController extends BaseController
             return Student::getStudents();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -59,7 +59,7 @@ class StudentController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -96,7 +96,7 @@ class StudentController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }
@@ -114,7 +114,17 @@ class StudentController extends BaseController
             return Student::getStudentCSV();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function getActiveStudents(Request $request) {
+        try {
+            return Student::getActiveStudents();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
             ]);
         }
     }

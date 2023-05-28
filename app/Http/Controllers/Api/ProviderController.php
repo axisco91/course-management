@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\API;
 use App\Models\Company;
-use App\Models\Course;
 use App\Models\Provider;
 use App\Models\TrainingAction;
 use Illuminate\Http\Request;
@@ -16,7 +15,7 @@ class ProviderController extends BaseController
             return Provider::getProviders();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -24,8 +23,10 @@ class ProviderController extends BaseController
     public function create(Request $request){
         try {
             $company = Company::createCompany($request);
-            $data['company_id'] = $company->id;
-            $provider = Provider::createProvider($data);
+            if ($company) {
+                $request['company_id'] = $company->id;
+            }
+            $provider = Provider::createProvider($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -41,12 +42,12 @@ class ProviderController extends BaseController
 
     public function edit($id, Request $request){
         try {
-            $company = Company::updateCompany($request['company_id'], $request);
-            $provider = Provider::updateProvider($id, $data);
+            Company::updateCompany($request->company_id, $request);
+            $provider = Provider::updateProvider($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -80,7 +81,7 @@ class ProviderController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

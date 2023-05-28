@@ -13,7 +13,7 @@ class CompanyIncidenceController extends BaseController
             return CompanyIncidence::getCompanyIncidences($id);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -30,7 +30,7 @@ class CompanyIncidenceController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'incidence' => $incidence
+            'incidence' => CompanyIncidence::getCompanyIncidence($incidence->id)
         ]);
     }
 
@@ -40,18 +40,18 @@ class CompanyIncidenceController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
         return response()->json([
             'status' => 200,
-            'incidence' => $incidence
+            'incidence' => CompanyIncidence::getCompanyIncidence($incidence->id)
         ]);
     }
 
     public function getCompanyIncidence($id){
-        $incidence = CompanyIncidence::find($id);
+        $incidence = CompanyIncidence::getCompanyIncidence($id);
         if ($incidence) {
             return response()->json([
                 'status' => 200,
@@ -74,7 +74,7 @@ class CompanyIncidenceController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

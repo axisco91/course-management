@@ -16,7 +16,7 @@ class ProfitabilityController extends BaseController
             return Profitability::getProfitabilities();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -43,13 +43,13 @@ class ProfitabilityController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
         return response()->json([
             'status' => 200,
-            'profitability' => $profitability
+            'profitability' => Profitability::getProfitability($profitability->id)
         ]);
     }
 
@@ -61,7 +61,7 @@ class ProfitabilityController extends BaseController
             $profitability['name'] = $course->group.'/'. $course->name .' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
             return response()->json([
                 'status' => 200,
-                'profitability' => $profitability
+                'profitability' => Profitability::getProfitability($profitability->id)
             ]);
         }
         return response()->json([
@@ -80,7 +80,7 @@ class ProfitabilityController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

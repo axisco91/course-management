@@ -13,7 +13,7 @@ class TracingController extends BaseController
             return Tracing::getTracings();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -30,7 +30,7 @@ class TracingController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'tracing' => $tracing
+            'tracing' => Tracing::getTracing($tracing->id)
         ]);
     }
 
@@ -40,18 +40,18 @@ class TracingController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
         return response()->json([
             'status' => 200,
-            'tracing' => $tracing
+            'tracing' => Tracing::getTracing($tracing->id)
         ]);
     }
 
     public function getTracing($id){
-        $tracing = Tracing::find($id);
+        $tracing = Tracing::getTracing($id);
         if ($tracing) {
             return response()->json([
                 'status' => 200,
@@ -74,7 +74,7 @@ class TracingController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

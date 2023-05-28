@@ -18,7 +18,7 @@ class TrainingContractController extends BaseController
             return TrainingContract::getTrainingContracts();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -45,7 +45,7 @@ class TrainingContractController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -79,7 +79,7 @@ class TrainingContractController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }
@@ -110,7 +110,7 @@ class TrainingContractController extends BaseController
                 return TrainingAction::getSpecialties($id);
             } catch (\Exception $e) {
                 return response()->json([
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }
@@ -122,7 +122,7 @@ class TrainingContractController extends BaseController
                 return Certification::getCertificationsNotinTrainingContract($id);
             } catch (\Exception $e) {
                 return response()->json([
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

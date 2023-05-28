@@ -74,6 +74,7 @@ use App\Http\Controllers\API\StatisticController;
 
 Route::post('login', [AuthController::class, 'signin']);
 Route::post('register', [AuthController::class, 'signup']);
+Route::post('logout', [AuthController::class, 'logout']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -111,6 +112,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('courses/{id}', 'getStudentsCourses');
             Route::get('count', 'countStudents');
             Route::get('csv', 'studentsCSV');
+            Route::get('active', 'getActiveStudents');
         });
     });
 
@@ -204,7 +206,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get', 'getCourse');
+            Route::get('get/{id}', 'getCourse');
             Route::get('set-data', 'setData');
             Route::get('students/{id}', 'getStudents');
             Route::get('count', 'count');
@@ -414,7 +416,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'center');
+            Route::get('get/{id}', 'getCenter');
             Route::get('count', 'count');
         });
     });

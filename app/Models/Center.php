@@ -27,6 +27,18 @@ class Center extends Model
         return $centers;
     }
 
+    public static function getCenter($id){
+        $center = Center::select('centers.*', 'id as value', 'name as label')->first();
+        $course = Course::orWhere('delivery_center_id', $center['id'])
+            ->orWhere('formation_center_id', $center['id'])->first();
+        if ($course){
+            $center['used'] = true;
+        } else {
+            $center['used'] = false;
+        }
+        return $center;
+    }
+
     public static function createCenter($data){
         $center =  Center::create([
             'name' => $data['name'],

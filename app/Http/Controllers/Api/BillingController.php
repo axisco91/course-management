@@ -19,7 +19,7 @@ class BillingController extends BaseController
             return Billing::getBillings();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -33,38 +33,37 @@ class BillingController extends BaseController
     }
 
     public function edit($id, Request $request){
-
         try {
-            $billing = Billing::find($id);
-            $data['is_bonus'] = $billing->is_bonus;
-            if ($data['is_bonus'] === 1){
-                $expenses = Billing::calculateExpenses($data['billing'], $data['total_training_activity']);
+            $bill = Billing::find($id);
+            $request['is_bonus'] = $bill->is_bonus;
+            if ($request['is_bonus'] === 1){
+                Billing::calculateExpenses($request['billing'], $request['total_training_activity']);
             }
-            $billing = Billing::updateBilling($id, $data);
+            $bill = Billing::updateBilling($id, $request);
 
-            //    Chore::billingDateChore($id, $data['billing_date'], $billing['invoiced']);
+            Chore::billingDateChore($id, $request['billing_date'], $bill['invoiced']);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
         return response()->json([
             'status' => 200,
-            'billing' => $billing
+            'billing' => Billing::getBill($bill->id)
         ]);
     }
 
     public function getBilling($id){
-        $billing = Billing::find($id);
-        if ($billing) {
-            $course = Course::where('id', $billing->course_id)->first();
-            $company = Company::where('id', $billing->company_id)->first();
+        $bill = Billing::getBill($id);
+        if ($bill) {
+            $course = Course::where('id', $bill->course_id)->first();
+            $company = Company::where('id', $bill->company_id)->first();
             $billing['name'] = $course->group.'/'. $course->name .' - '. $company->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
             return response()->json([
                 'status' => 200,
-                'billing' => $billing
+                'billing' => $bill
             ]);
         }
         return response()->json([
@@ -75,8 +74,17 @@ class BillingController extends BaseController
 
     public function destroy($id){
         if ($id) {
-            TrainingActionLevel::destroy($id);
-            return 1;
+            try {
+                Billing::destroy($id);
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => $e->getMessage()
+                ]);
+            }
         }
     }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Module;
 
 class TrainingUnit extends Model
 {
@@ -13,7 +14,7 @@ class TrainingUnit extends Model
 
     public function modules()
     {
-        return $this->belongsToMany(Modules::class,'training_units_modules');
+        return $this->belongsToMany(Module::class, 'training_units_modules');
     }
 
     public function certifications()
@@ -69,12 +70,12 @@ class TrainingUnit extends Model
         $total_hours = $face_to_face_hours + $data['teletraining_hours'];
         if ($training_unit){
             if ($total_hours != $training_unit->total_hours){
-                $models = $training_unit->models()->get();
+                $modules = $training_unit->modules()->get();
                 $exam_difference = $data['exam_hours'] - $training_unit->exam_hours;
                 $tutoring_difference = $data['tutoring_hours'] - $training_unit->tutoring_hours;
                 $teletraining_difference = $data['teletraining_hours'] - $training_unit->teletraining_hours;
-                foreach ($models as $model){
-                    $model->updateHours($exam_difference, $tutoring_difference, $teletraining_difference);
+                foreach ($modules as $module){
+                    $module->updateHours($exam_difference, $tutoring_difference, $teletraining_difference);
                 }
                 $certifications = $training_unit->certifications()->get();
                 foreach ($certifications as $certification){

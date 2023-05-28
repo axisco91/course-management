@@ -14,14 +14,14 @@ class TeacherController extends BaseController
             return Teacher::getTeachers();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
 
     // Obtain student
     public function getTeacher($id){
-        $teacher = Teacher::find($id);
+        $teacher = Teacher::getTeacher($id);
         if ($teacher) {
             return response()->json([
                 'status' => 200,
@@ -46,7 +46,7 @@ class TeacherController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'teacher' => $teacher
+            'teacher' => Teacher::getTeacher($teacher->id)
         ]);
     }
 
@@ -56,13 +56,13 @@ class TeacherController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
         return response()->json([
             'status' => 200,
-            'teacher' => $teacher
+            'teacher' => Teacher::getTeacher($teacher->id)
         ]);
     }
 
@@ -93,7 +93,7 @@ class TeacherController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

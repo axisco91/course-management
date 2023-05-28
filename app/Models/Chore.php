@@ -79,7 +79,7 @@ class Chore extends Model
         if ($start->dayOfWeek >= 3)
             $number_days = 5;
         $start = $start->addDays($number_days);
-        $chores = Chore::select('chores.*', 'courses.name as course',
+        $chores = Chore::select('chores.*', DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
             'companies.name as company', 'students.name as student_name',
             'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group',
             DB::raw("CONCAT(students.name,' ', students.surname) as student"),
@@ -89,6 +89,7 @@ class Chore extends Model
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
             ->leftjoin('companies', 'companies.id', '=', 'chores.company_id')
             ->leftjoin('students', 'students.id', '=', 'chores.student_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
             ->orderBy('chores.id', 'desc')->get();
 
         foreach ($chores as $chore){
@@ -216,25 +217,25 @@ class Chore extends Model
 
             $chore->update([
                 'membership_tab_status' => $data['membership_tab_status'],
-                'membership_tab_date' => $data['membership_tab_date'] ? Carbon::createFromFormat('d-m-Y', $data['membership_tab_date'])->format('Y-m-d') : null,
+                'membership_tab_date' => $data['membership_tab_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['membership_tab_date'])->format('Y-m-d') : null,
                 'economic_proposal_status' => $data['economic_proposal_status'],
-                'economic_proposal_date' => $data['economic_proposal_date'] ? Carbon::createFromFormat('d-m-Y', $data['economic_proposal_date'])->format('Y-m-d') : null,
+                'economic_proposal_date' => $data['economic_proposal_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['economic_proposal_date'])->format('Y-m-d') : null,
                 'student_tab_status' => $data['student_tab_status'],
-                'student_tab_date' => $data['student_tab_date'] ? Carbon::createFromFormat('d-m-Y', $data['student_tab_date'])->format('Y-m-d') : null,
+                'student_tab_date' => $data['student_tab_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['student_tab_date'])->format('Y-m-d') : null,
                 'welcome_guid_status' => $data['welcome_guid_status'],
-                'welcome_guid_date' => $data['welcome_guid_date'] ? Carbon::createFromFormat('d-m-Y', $data['welcome_guid_date'])->format('Y-m-d') : null,
+                'welcome_guid_date' => $data['welcome_guid_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['welcome_guid_date'])->format('Y-m-d') : null,
                 'registration_status' => $data['registration_status'],
-                'registration_date' => $data['registration_date'] ? Carbon::createFromFormat('d-m-Y', $data['registration_date'])->format('Y-m-d') : null,
+                'registration_date' => $data['registration_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['registration_date'])->format('Y-m-d') : null,
                 'diploma_status' => $data['diploma_status'],
-                'diploma_status_date' => $data['diploma_status_date'] ? Carbon::createFromFormat('d-m-Y', $data['diploma_status_date'])->format('Y-m-d') : null,
+                'diploma_status_date' => $data['diploma_status_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['diploma_status_date'])->format('Y-m-d') : null,
                 'start_communication_status' => $data['start_communication_status'],
-                'start_communication_date' => $data['start_communication_date'] ? Carbon::createFromFormat('d-m-Y', $data['start_communication_date'])->format('Y-m-d') : null,
+                'start_communication_date' => $data['start_communication_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['start_communication_date'])->format('Y-m-d') : null,
                 'close_communication_status' => $data['close_communication_status'],
-                'close_communication_date' => $data['close_communication_date'] ? Carbon::createFromFormat('d-m-Y', $data['close_communication_date'])->format('Y-m-d') : null,
+                'close_communication_date' => $data['close_communication_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['close_communication_date'])->format('Y-m-d') : null,
                 'invoiced_status' => $data['invoiced_status'],
-                'invoiced_date' => $data['invoiced_date'] ? Carbon::createFromFormat('d-m-Y', $data['invoiced_date'])->format('Y-m-d') : null,
+                'invoiced_date' => $data['invoiced_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['invoiced_date'])->format('Y-m-d') : null,
                 'bonus_sent_status' => $data['bonus_sent_status'],
-                'bonus_sent_date' => $data['bonus_sent_date'] ? Carbon::createFromFormat('d-m-Y', $data['bonus_sent_date'])->format('Y-m-d') : null
+                'bonus_sent_date' => $data['bonus_sent_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['bonus_sent_date'])->format('Y-m-d') : null
             ]);
 
             return $chore;

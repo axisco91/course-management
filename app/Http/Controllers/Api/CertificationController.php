@@ -11,7 +11,7 @@ class CertificationController extends BaseController
             return Certification::getCertifications();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -38,13 +38,13 @@ class CertificationController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
         return response()->json([
             'status' => 200,
-            'student' => Certification::getCertification($certification->id)
+            'certification' => Certification::getCertification($certification->id)
         ]);
     }
 
@@ -72,7 +72,7 @@ class CertificationController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

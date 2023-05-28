@@ -18,7 +18,7 @@ class BankHolidayGroupController extends BaseController
             return BankHolidayGroup::getBankHolidayGroup();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -45,7 +45,7 @@ class BankHolidayGroupController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -79,7 +79,7 @@ class BankHolidayGroupController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

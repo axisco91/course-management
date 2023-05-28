@@ -14,7 +14,7 @@ class CourseController extends BaseController
             return Course::getCourses();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -41,13 +41,13 @@ class CourseController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
         return response()->json([
             'status' => 200,
-            'center' => Course::getCourse($course->id)
+            'course' => Course::getCourse($course->id)
         ]);
     }
 
@@ -75,7 +75,7 @@ class CourseController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

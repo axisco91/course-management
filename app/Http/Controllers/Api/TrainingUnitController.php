@@ -13,7 +13,7 @@ class TrainingUnitController extends BaseController
             return TrainingUnit::getTrainingUnits();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e.message
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -30,7 +30,7 @@ class TrainingUnitController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_unit' => $training_unit
+            'training_unit' => TrainingUnit::getTrainingUnit($training_unit->id)
         ]);
     }
 
@@ -40,13 +40,13 @@ class TrainingUnitController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
         return response()->json([
             'status' => 200,
-            'training_unit' => $training_unit
+            'training_unit' => TrainingUnit::getTrainingUnit($training_unit->id)
         ]);
     }
 
@@ -74,7 +74,7 @@ class TrainingUnitController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

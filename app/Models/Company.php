@@ -249,7 +249,7 @@ class Company extends Model
     }
 
     public static function updateCompany($id, $data){
-        $company = Company::find($id);
+        $company = Company::where('id', $id)->first();
         $company->update([
             'name' => $data['name'],
             'nif' => $data['nif'],

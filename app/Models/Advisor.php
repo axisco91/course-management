@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Advisor extends Model
 {
@@ -31,11 +32,14 @@ class Advisor extends Model
 
     public static function getAdvisors(){
         $advisors = Advisor::select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province', 'advisors.id as value', 'advisors.name as label')
+            'provinces.name as province', 'advisors.id as value', 'advisors.name as label', 'companies.quote as quote', 'companies.average_template as average_template', 'users.id as collaborator_id',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"))
             ->leftjoin('company_types', 'company_types.id', '=', 'advisors.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'advisors.company_activity_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'advisors.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id')->orderBy('advisors.name', 'desc')
+            ->leftjoin('companies', 'companies.id', '=', 'advisors.company_id')
+            ->leftjoin('users', 'users.id', '=', 'advisors.collaborator_id')
             ->get();
         foreach ($advisors as $advisor) {
             $company = Company::where('advisor_id', $advisor->id)->first();
@@ -44,17 +48,25 @@ class Advisor extends Model
             } else {
                 $advisor['used'] = false;
             }
+            $company_info = Company::select('companies.*', 'advisors.name as advisor')
+                ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+                ->where('companies.id', $advisor->company_id)->first();
+            $advisor['advisor_id'] = $company_info->advisor_id;
+            $advisor['advisor'] = $company_info->advisor;
         }
         return $advisors;
     }
 
     public static function getAdvisor($id){
         $advisor = Advisor::select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province', 'advisors.id as value', 'advisors.name as label')
+            'provinces.name as province', 'advisors.id as value', 'advisors.name as label', 'companies.quote as quote', 'companies.average_template as average_template', 'users.id as collaborator_id',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"))
             ->leftjoin('company_types', 'company_types.id', '=', 'advisors.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'advisors.company_activity_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'advisors.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id')->orderBy('advisors.name', 'desc')
+            ->leftjoin('companies', 'companies.id', '=', 'advisors.company_id')
+            ->leftjoin('users', 'users.id', '=', 'advisors.collaborator_id')
             ->where('advisors.id', $id)
             ->first();
         $company = Company::where('advisor_id', $advisor->id)->first();
@@ -63,6 +75,11 @@ class Advisor extends Model
         } else {
             $advisor['used'] = false;
         }
+        $company_info = Company::select('companies.*', 'advisors.name as advisor')
+            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+            ->where('companies.id', $advisor->company_id)->first();
+        $advisor['advisor_id'] = $company_info->advisor_id;
+        $advisor['advisor'] = $company_info->advisor;
         return $advisor;
     }
 

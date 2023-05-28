@@ -5,8 +5,7 @@ use App\Mail\PotentialPrivateStudent as PotentialPrivateEmail;
 use App\Mail\PotentialStudent as PotentialEmail;
 use App\Models\PotentialStudent;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
 use Mockery\Exception;
 
 class PotentialStudentController extends BaseController
@@ -16,7 +15,7 @@ class PotentialStudentController extends BaseController
             return PotentialStudent::getPotentialStudents();
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
     }
@@ -57,7 +56,7 @@ class PotentialStudentController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
 
@@ -91,7 +90,7 @@ class PotentialStudentController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }

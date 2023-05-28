@@ -32,7 +32,7 @@ class Teacher extends Model
             ->orderBy('teachers.name','asc')->get();
 
         foreach ($teachers as $teacher) {
-            $course = Course::where('teacher_id', $teacher->id);
+            $course = Course::where('teacher_id', $teacher->id)->first();
             if ($course) {
                 $teacher['used'] = true;
             } else {
@@ -41,6 +41,23 @@ class Teacher extends Model
             $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
         }
         return $teachers;
+    }
+
+    public static function getTeacher($id){
+        $teacher = Teacher::select('teachers.*', 'provinces.name as province', 'teachers.id as value',
+            DB::raw("CONCAT(teachers.name,' ', teachers.surname) as label"))
+            ->leftjoin('provinces', 'provinces.id', '=', 'teachers.province_id')
+            ->where('teachers.id', $id)->first();
+
+        $course = Course::where('teacher_id', $teacher->id)
+            ->first();
+        if ($course) {
+            $teacher['used'] = true;
+        } else {
+            $teacher['used'] = false;
+        }
+        $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
+        return $teacher;
     }
 
     public static function findDni($dni, $id = null){

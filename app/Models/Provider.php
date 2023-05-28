@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Provider extends Model
 {
@@ -31,11 +32,15 @@ class Provider extends Model
 
     public static function getProviders(){
         $providers = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province', 'providers.id as value', 'providers.name as label')
+            'provinces.name as province', 'providers.id as value', 'providers.name as label', 'companies.quote as quote', 'companies.average_template as average_template', 'users.id as collaborator_id',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"), 'advisors.name as advisor', 'companies.advisor_id as advisor_id')
             ->leftjoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'providers.company_activity_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'providers.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id')
+            ->leftjoin('companies', 'companies.id', '=', 'providers.company_id')
+            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
             ->orderBy('providers.name', 'desc')
             ->get();
         foreach($providers as $provider) {
@@ -70,7 +75,7 @@ class Provider extends Model
     public static function createProvider($data){
         $provider = Provider::create([
             'name' => $data['name'],
-            'company_id' => $data['id'],
+            'company_id' => $data['company_id'],
             'irpf' => $data['irpf'],
             'commission' => $data['commission'],
             'contact_1' => $data['contact_1'],

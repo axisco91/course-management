@@ -14,6 +14,12 @@ class CertificationElementController extends BaseController
 
     public function getElements($id) {
         return response()->json([
+            'elements' => CertificationElement::getCertificationElements($id)
+        ]);
+    }
+
+    public function getElement($id) {
+        return response()->json([
             'elements' => CertificationElement::getCertificationElement($id)
         ]);
     }
@@ -32,7 +38,7 @@ class CertificationElementController extends BaseController
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
-                'error' => $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
         $module = null;
@@ -45,16 +51,7 @@ class CertificationElementController extends BaseController
             $unit = TrainingUnit::select('training_units.*', 'training_units.id as value', 'training_units.name as label')
                 ->where('id', $element->training_unit_id)->first();
         }
-        $element = CertificationElement::select('certification_elements.*', 'training_units.name as training_unit_name',
-            'training_units.exam_hours as training_unit_exam_hours', 'modules.exam_hours as module_exam_hours',
-            'training_units.tutoring_hours as training_unit_tutoring_hours', 'modules.tutoring_hours as module_tutoring_hours',
-            'training_units.face_to_face_hours as training_unit.face_to_face_hours', 'modules.face_to_face_hours as module_face_to_face_hours',
-            'training_units.teletraining_hours as training_unit_teletraining_hours', 'modules.teletraining_hours as module_teletraining_hours',
-            'training_units.total_hours as training_unit.total_hours', 'modules.total_hours as module_total_hours',
-            'training_units.formative_unit', 'modules.name as module_name', 'modules.formative_module')
-            ->leftjoin('training_units', 'training_units.id', '=', 'certification_elements.training_unit_id')
-            ->leftjoin('modules', 'modules.id', '=', 'certification_elements.module_id')
-            ->where('certification_elements.id', $element->id)->first();
+        $element = CertificationElement::getCertificationElement($element->id);
         return response()->json([
             'status' => 200,
             'element' => $element,
@@ -72,10 +69,12 @@ class CertificationElementController extends BaseController
                 if ($element->module_id) {
                     $module = Module::select('modules.*', 'modules.id as value', 'modules.name as label')
                         ->where('id', $element->module_id)->first();
+                    $module = Module::getModule($module->id);
                 }
                 if ($element->training_unit_id) {
                     $unit = TrainingUnit::select('training_units.*', 'training_units.id as value', 'training_units.name as label')
                         ->where('id', $element->training_unit_id)->first();
+                    $unit = TrainingUnit::getTrainingUnit($unit->id);
                 }
                 CertificationElement::deleteCertificationElement($id);
                 CertificationElement::destroy($id);
@@ -87,7 +86,7 @@ class CertificationElementController extends BaseController
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
-                    'error' => $e->getMessage()
+                    'message' => $e->getMessage()
                 ]);
             }
         }
