@@ -25,8 +25,8 @@ class Payment extends Model
         $payments = Payment::select('*', 'id as value', 'name as label')
             ->get();
         foreach ($payments as $payment){
-            $billing = Billing::where('payment_id', $payment['id'])->first();
-            if ($billing){
+            $bill = Bill::where('payment_id', $payment['id'])->first();
+            if ($bill){
                 $payment['used'] = true;
             } else{
                 $payment['used'] = false;
@@ -39,8 +39,8 @@ class Payment extends Model
         $payment = Payment::select('*', 'id as value', 'name as label')
             ->where('id', $id)
             ->first();
-        $billing = Billing::where('payment_id', $payment['id'])->first();
-        if ($billing){
+        $bill = Bill::where('payment_id', $payment['id'])->first();
+        if ($bill){
             $payment['used'] = true;
         } else{
             $payment['used'] = false;

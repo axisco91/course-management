@@ -37,9 +37,10 @@ class Advisor extends Model
             ->leftjoin('company_types', 'company_types.id', '=', 'advisors.company_type_id')
             ->leftjoin('company_activities', 'company_activities.id', '=', 'advisors.company_activity_id')
             ->leftjoin('cnaes', 'cnaes.id', '=', 'advisors.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id')->orderBy('advisors.name', 'desc')
+            ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id')
             ->leftjoin('companies', 'companies.id', '=', 'advisors.company_id')
             ->leftjoin('users', 'users.id', '=', 'advisors.collaborator_id')
+            ->orderBy('advisors.name', 'desc')
             ->get();
         foreach ($advisors as $advisor) {
             $company = Company::where('advisor_id', $advisor->id)->first();
@@ -205,6 +206,71 @@ class Advisor extends Model
         }
         $advisor = $advisor->first();
         return $advisor;
+    }
+
+    public static function getAdvisorCSV($name = null, $nif = null, $type = null, $activity = null, $province = null){
+        $advisors = Advisor::select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
+            'provinces.name as province', 'advisors.id as value', 'advisors.name as label', 'companies.quote as quote', 'companies.average_template as average_template', 'users.id as collaborator_id',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"))
+            ->leftjoin('company_types', 'company_types.id', '=', 'advisors.company_type_id')
+            ->leftjoin('company_activities', 'company_activities.id', '=', 'advisors.company_activity_id')
+            ->leftjoin('cnaes', 'cnaes.id', '=', 'advisors.cnae_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id')->orderBy('advisors.name', 'desc')
+            ->leftjoin('companies', 'companies.id', '=', 'advisors.company_id')
+            ->leftjoin('users', 'users.id', '=', 'advisors.collaborator_id');
+
+        if ($name) {
+            $advisors = $advisors->where('advisors.name', 'like', '%'.$name.'%');
+        }
+        if ($nif) {
+            $advisors = $advisors->where('advisors.nif', 'like', '%'.$nif.'&');
+        }
+        if ($type) {
+            $advisors = $advisors->where('company_types.name', 'like', '%'.$type.'%');
+        }
+        if ($activity) {
+            $advisors = $advisors->where('company_activities.name', 'like', '%'.$activity.'%');
+        }
+        if ($province) {
+            $advisors = $advisors->where('provinces.name', 'like', '%'.$province.'%');
+        }
+
+        $advisors = $advisors->orderBy('advisors.name', 'desc')->get();
+
+        $data = [];
+        foreach ($advisors as $advisor) {
+            $status = $advisor['potential'] == 1 ? 'Potential' : ($advisor['active'] == 0 ? 'Inactivo' : 'Active');
+            $element = [
+                'Nombre' => $advisor['name'],
+                'CIF' => $advisor['nif'],
+                'Tipo empresa' => $advisor['type'],
+                'Actividad empresa' => $advisor['activity'],
+                'Correo' => $advisor['email'],
+                'Teléfono' => $advisor['telephone'],
+                'Representante legal' => $advisor['legal_representative'],
+                'Dni representante legal' => $advisor['dni_legal_representative'],
+                'IRPF' => $advisor['irpf'],
+                'Commisiones' => $advisor['commission'],
+                'Contacto 1' => $advisor['contact_1'],
+                'Contacto 2' => $advisor['contact_2'],
+                'Contacto 3' => $advisor['contact_3'],
+                'C. cotización' => $advisor['quote'],
+                'Colaborador' => $advisor['collaborator'],
+                'CNAE' => $advisor['cnae'],
+                'Plantilla media' => $advisor['average_template'],
+                'Iban' => $advisor['iban'],
+                'Sepa' => $advisor['sepa'],
+                'B2B' => $advisor['b2b'],
+                'Dirección' => $advisor['address'],
+                'Código postal' => $advisor['post_code'],
+                'Provincia' => $advisor['province'],
+                'Población' => $advisor['population'],
+                'Asesoría' => $advisor['advisor'],
+                'Estado' => $status
+            ];
+            $data[] = $element;
+        }
+        return $data;
     }
 
 }

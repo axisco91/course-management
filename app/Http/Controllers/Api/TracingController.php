@@ -83,4 +83,17 @@ class TracingController extends BaseController
     public function count(){
         return Tracing::count();
     }
+
+    public function tracingsCSV(Request $request){
+        try {
+            if ($request) {
+                return Tracing::getTracingCSV($request['course'], $request['company'], $request['student'], $request['status'], $request['beginning'], $request['end']);
+            }
+            return Tracing::getTracingCSV();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

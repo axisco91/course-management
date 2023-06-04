@@ -74,8 +74,22 @@ class TrainingContract extends Model
     }
 
     public static function createTrainingContract($data){
+        $training = TrainingContract::orderBy('id', 'desc')->first();
+        $id = $training['id']+1;
+        if ($id < 10) {
+            $number_cfa = '000'.$id;
+        }
+        else if ($id < 100) {
+            $number_cfa = '00'.$id;
+        }
+        else if ($id < 1000) {
+            $number_cfa = '0'.$id;
+        } else {
+            $number_cfa = $id;
+        }
+
         $training_contract = TrainingContract::create([
-            'number_cfa' => $data['number_cfa'],
+            'number_cfa' => $number_cfa,
             'company_id' => $data['company_id'],
             'student_id' => $data['student_id'],
             'company_tutor' => $data['company_tutor'],

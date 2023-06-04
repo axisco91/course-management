@@ -185,7 +185,6 @@ class TrainingContractController extends BaseController
         } while($end_date->gt($date));
         if ($cont_days != 0){
             $hours_days = $record->total_hours / $cont_days;
-            return $record;
             $hours_days = floor($hours_days * 100) / 100;
             $record->update([
                 'total_days' => $cont_days,

@@ -22,12 +22,19 @@ class ExamTutorial extends Model
         return $exam_tutorials;
     }
 
+    public static function getExamTutorial($id){
+        $exam_tutorials = ExamTutorial::select('exams_tutorials.*', 'centers.name as center')
+            ->leftjoin('centers', 'centers.id', '=', 'exams_tutorials.center_id')
+            ->where('exams_tutorials.id', $id)->get();
+        return $exam_tutorials;
+    }
+
     public static function createExamsTutorial($data){
         return ExamTutorial::create([
             'training_contract_id' => $data['training_contract_id'],
             'center_id' => $data['center_id'],
             'type' => $data['type'],
-            'date' => $data['date'],
+            'date' => Carbon::createFromFormat('d-m-Y',$data['date'])->toDateString(),
             'beginning' => Carbon::createFromFormat('H:i:s', $data['beginning'].':00')->toTimeString(),
             'end' => $data['end'] ? Carbon::createFromFormat('H:i:s', $data['end'].':00')->toTimeString() : ''
         ]);;
@@ -35,13 +42,14 @@ class ExamTutorial extends Model
 
     public static function updateExamsTutorial($id, $data){
         $exam_tutorial = ExamTutorial::find($id);
-        return $exam_tutorial->create([
+        $exam_tutorial = $exam_tutorial->update([
             'training_contract_id' => $data['training_contract_id'],
             'center_id' => $data['center_id'],
             'type' => $data['type'],
-            'date' => $data['date'],
-            'beginning' => Carbon::createFromFormat('H:i:s', $data['beginning'].':00')->toTimeString(),
-            'end' => $data['end'] ? Carbon::createFromFormat('H:i:s', $data['end'].':00')->toTimeString() : ''
+            'date' => Carbon::createFromFormat('d-m-Y',$data['date'])->toDateString(),
+            'beginning' => $data['beginning'],
+            'end' => $data['end']
         ]);;
+        return $exam_tutorial;
     }
 }

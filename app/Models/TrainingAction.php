@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class TrainingAction extends Model
 {
@@ -86,8 +87,7 @@ class TrainingAction extends Model
     }
 
     public static function getTrainingActions(){
-        $trainingActions = TrainingAction::
-        select('training_actions.*',
+        $trainingActions = TrainingAction::select('training_actions.*',
             'action_types.name as action_type', 'professional_families.name as professional_family',
             'professional_areas.name as professional_area', 'modalities.name as modality',
             'training_action_levels.name as training_action_level', 'training_action_groups.name as training_action_group',
@@ -251,5 +251,88 @@ class TrainingAction extends Model
             ->where('specialty', 1)
             ->whereNotIn('id', $training_contracts_specialties)->get();
         return $training_actions;
+    }
+
+    public static function getTrainingActionCSV($formative_actions = null, $name = null, $professional_family = null, $professional_area = null, $modality = null, $provider = null){
+        $trainingActions = TrainingAction::select('training_actions.*',
+            'action_types.name as action_type',
+            'professional_families.name as professional_family',
+            'professional_areas.name as professional_area',
+            'modalities.name as modality',
+            'training_action_levels.name as training_action_level',
+            'training_action_groups.name as training_action_group',
+            'tutorings.name as tutoring',
+            'web_platforms.name as web_platform',
+            'providers.name as provider',
+            DB::raw('(CASE
+                        WHEN in_catalog = "0" THEN "No"
+                        WHEN in_catalog = "1" THEN "Si"
+                        END) AS in_catalog'),
+            DB::raw('(CASE
+                        WHEN training_actions.active = "0" THEN "Inactivo"
+                        WHEN training_actions.active = "1" THEN "Activo"
+                        END) AS active'))
+            ->leftjoin('action_types', 'action_types.id', '=', 'training_actions.action_type_id')
+            ->leftjoin('professional_families', 'professional_families.id', '=', 'training_actions.professional_family_id')
+            ->leftjoin('professional_areas', 'professional_areas.id', '=', 'training_actions.professional_area_id')
+            ->leftjoin('modalities', 'modalities.id', '=', 'training_actions.modality_id')
+            ->leftjoin('training_action_levels', 'training_action_levels.id', '=', 'training_actions.training_action_level_id')
+            ->leftjoin('training_action_groups', 'training_action_groups.id', '=', 'training_actions.training_action_group_id')
+            ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
+            ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
+            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
+
+        if ($formative_actions) {
+            $trainingActions = $trainingActions->where('training_actions.formative_action', 'like', '%'.$formative_actions.'%');
+        }
+        if ($name) {
+            $trainingActions = $trainingActions->where('training_actions.name', 'like', '%'.$name.'&');
+        }
+        if ($professional_family) {
+            $trainingActions = $trainingActions->where('professional_families.name', 'like', '%'.$professional_family.'%');
+        }
+        if ($professional_area) {
+            $trainingActions = $trainingActions->where('professional_areas.name', 'like', '%'.$professional_area.'%');
+        }
+        if ($modality) {
+            $trainingActions = $trainingActions->where('modalities.name', 'like', '%'.$modality.'%');
+        }
+        if ($provider) {
+            $trainingActions = $trainingActions->where('providers.name', 'like', '%'.$provider.'%');
+        }
+
+        $trainingActions = $trainingActions->orderBy('training_actions.id','asc')->get();
+
+        $data = [];
+        foreach ($trainingActions as $trainingAction) {
+            $element = [
+                'Acción Formativa' => $trainingAction['formative_action'],
+                'Nombre' => $trainingAction['name'],
+                'Tipo Acción' => $trainingAction['action_type'],
+                'Familia Professional' => $trainingAction['professional_family'],
+                'Área Professional' => $trainingAction['professional_area'],
+                'Modalidad' => $trainingAction['modality'],
+                'Nivel' => $trainingAction['training_action_level'],
+                'Grupo' => $trainingAction['training_action_group'],
+                'Tutorización' => $trainingAction['tutoring'],
+                'En Catalogo' => $trainingAction['in_catalog'],
+                'Horas Presenciales' => $trainingAction['face_to_face_hours'],
+                'Horas Teleformación' => $trainingAction['teletraining_hours'],
+                'Horas totales' => $trainingAction['total_hours'],
+                'Precio' => $trainingAction['price'],
+                'Objetivos' => $trainingAction['objectives'],
+                'Contenido' => $trainingAction['content'],
+                'Usuario' => $trainingAction['user'],
+                'Contraseña' => $trainingAction['password'],
+                'Plataforma' => $trainingAction['web_platform'],
+                'Observaciones' => $trainingAction['observations'],
+                'Número Actividades' => $trainingAction['number_activities'],
+                'Número Unidades' => $trainingAction['number_units'],
+                'Proveedor' => $trainingAction['provider'],
+                'Estado' => $trainingAction['active']
+            ];
+            $data[] = $element;
+        }
+        return $data;
     }
 }

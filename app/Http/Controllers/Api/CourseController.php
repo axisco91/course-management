@@ -93,4 +93,17 @@ class CourseController extends BaseController
     public function count(){
         return Course::count();
     }
+
+    public function coursesCSV(Request $request){
+        try {
+            if ($request) {
+                return Course::getCourseCSV($request['formative_action'], $request['name'], $request['group'], $request['type'], $request['status'], $request['company']);
+            }
+            return Course::getCourseCSV();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

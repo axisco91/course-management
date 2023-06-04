@@ -30,7 +30,7 @@ class TrainingContractIncidenceController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'incidence' => $incidence
+            'incidence' => TrainingContractIncidence::getTrainingContractIncidence($incidence->id)
         ]);
     }
 
@@ -46,7 +46,7 @@ class TrainingContractIncidenceController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'incidence' => $incidence
+            'incidence' => TrainingContractIncidence::getTrainingContractIncidence($incidence->id)
         ]);
     }
 

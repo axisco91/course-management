@@ -279,4 +279,61 @@ class Chore extends Model
         return $chore;
     }
 
+    public static function getChoreCSV($course = null, $company = null, $student = null, $status = null, $beginning = null, $end = null){
+        $chores = Chore::select('chores.*', DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
+            'companies.name as company', 'students.name as student_name',
+            'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group',
+            DB::raw("CONCAT(students.name,' ', students.surname) as student"),
+            'courses.beginning as beginning',
+            'courses.end as end')
+            ->leftjoin('courses', 'courses.id', '=', 'chores.course_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->leftjoin('companies', 'companies.id', '=', 'chores.company_id')
+            ->leftjoin('students', 'students.id', '=', 'chores.student_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');
+
+        if ($course) {
+            $chores = $chores->where('courses.id', $course);
+        }
+        if ($company) {
+            $chores = $chores->where('companies.id', $company);
+        }
+        if ($student) {
+            $chores = $chores->where('students.id', 'LIKE', $student);
+        }
+        if ($status) {
+            $chores = $chores->where('courses.course_status_id', 'LIKE', $status);
+        }
+        if ($beginning) {
+            $chores = $chores->where('courses.beginning', '>=', $beginning);
+        }
+        if ($end) {
+            $chores = $chores->where('courses.beginning', '<=', $end);
+        }
+
+        $chores = $chores->orderBy('chores.id', 'desc')->get();
+
+        $data = [];
+        foreach ($chores as $chore) {
+            $element = [
+                'Curso' => $chore['course'],
+                'Empresa' => $chore['company'],
+                'Alumno' => $chore['student'],
+                'Estado' => $chore['status'],
+                'Ficha Adhesión' => $chore['membership_tab_status'] == 0 ? 'Pendiente' : ($chore['membership_tab_status'] == 1 ? 'Enviado' : ($chore['membership_tab_status'] == 2 ? 'Recibido' : 'No procede')),
+                'Propuesta Económica' => $chore['economic_proposal_status'] == 0 ? 'Pendiente' : ($chore['economic_proposal_status'] == 1 ? 'Enviado' : 'Recibido'),
+                'Ficha Alumno' => $chore['student_tab_status'] == 0 ? 'Pendiente' : ($chore['student_tab_status'] == 1 ? 'Enviado' : 'Recibido'),
+                'Guia Bienvenida' => $chore['welcome_guid_status'] == 0 ? 'Pendiente' : ($chore['welcome_guid_status'] == 1 ? 'Enviado' : 'Recibido'),
+                'Matriculación' => $chore['registration_status'] == 0 ? 'Pendiente' : 'Realizada',
+                'Diploma' => $chore['diploma_status'] == 0 ? 'Pendiente' : ($chore['diploma_status'] == 1 ? 'Enviada' : 'No procede'),
+                'Comunicación Inicio' => $chore['start_communication_status'] == 0 ? 'Pendiente' : ($chore['start_communication_status'] == 1 ? 'Realizada' : 'No procede'),
+                'Comunicación Cierre' => $chore['close_communication_status'] == 0 ? 'Pendiente' : ($chore['close_communication_status'] == 1 ? 'Realizada' : 'No procede'),
+                'Facturado' => $chore['invoiced_status'] == 0 ? 'Pendiente' : ($chore['invoiced_status'] == 1 ? 'Realizada' : 'No procede'),
+                'Bonificacion Enviada' => $chore['bonus_sent_status'] == 0 ? 'Pendiente' : ($chore['bonus_sent_status'] == 1 ? 'Realizada' : 'No procede')
+            ];
+            $data[] = $element;
+        }
+        return $data;
+    }
+
 }

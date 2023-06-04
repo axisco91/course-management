@@ -235,7 +235,8 @@ class Student extends Model
             ->leftjoin('level_studies', 'level_studies.id', '=', 'students.level_study_id')
             ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
-            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')->orderBy('students.name','asc')->get();
+            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')
+            ->orderBy('students.name','asc')->get();
 
         foreach($students as $student) {
             $registered = Registration::where('student_id', $student->id)->first();
@@ -266,7 +267,7 @@ class Student extends Model
             ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
             ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')
-            ->where('active', 1)
+            ->where('students.active', 1)
             ->orderBy('students.name','asc')->get();
 
         foreach($students as $student) {
@@ -353,14 +354,37 @@ class Student extends Model
             $students = $students->where('companies.name', 'like', '%'.$company.'%');
         }
 
-        $students = $students->get();
+        $students = $students->orderBy('students.name','asc')->get();
 
         $data = [];
         foreach ($students as $student) {
+            $disabled = $student['disabled'] === 1 ? 'Si' : 'No';
+            $status = $student['active'] === 1 ? 'Activo' : 'Inactivo';
             $element = [
                 'Nombre' => $student['name'],
-                'Apellidos' => $student['label'],
-                'DNI' => $student['dni']
+                'Apellidos' => $student['surname'],
+                'DNI' => $student['dni'],
+                'Correo' => $student['email'],
+                'Teléfono' => $student['telephone'],
+                'Empresa' => $student['company'],
+                'Usuario' => $student['user'],
+                'Contraseña' => $student['password'],
+                'Fecha Nacimiento' => $student['level_study'],
+                'Descapacitado' => $disabled,
+                'Nº Seguridad Social' => $student['social_security_number'],
+                'C. Cotización' => $student['c_quote'],
+                'Grupo Cotización' => $student['quote_group'],
+                'Categoría Profesional' => $student['professional_category'],
+                'Salario Bruto Anual' => $student['annual_gross_salary'],
+                'Horas Anuales' => $student['annual_hours'],
+                'Coste Hora Bruto del Trabajador' => $student['hourly_cost_worker_gross'],
+                'Dirección' => $student['direction'],
+                'Código Postal' => $student['post_code'],
+                'Provincia' => $student['province'],
+                'Población' => $student['population'],
+                'Iban' => $student['iban'],
+                'Observaciones' => $student['observation'],
+                'Estado' => $status
             ];
             $data[] = $element;
         }

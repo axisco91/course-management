@@ -61,7 +61,7 @@ class TrainingContractBonusController extends BaseController
             $i = $first_month;
             for($cont;$cont <= $last_year; $cont++) {
                 if ($cont == $last_year) {
-                    $k = $actual_last_month;
+                    $k = $actual_date->format('m');
                 } else {
                     $k = 12;
                 }
@@ -193,7 +193,7 @@ class TrainingContractBonusController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'bonus' => $bonus
+            'bonus' => TrainingContractBonus::getBonus($bonus->id)
         ]);
     }
 
@@ -209,7 +209,7 @@ class TrainingContractBonusController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'bonus' => $bonus
+            'bonus' => TrainingContractBonus::getBonus($bonus->id)
         ]);
     }
 

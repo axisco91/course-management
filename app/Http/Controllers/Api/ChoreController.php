@@ -89,4 +89,17 @@ class ChoreController extends BaseController
     public function count(){
         return Chore::count();
     }
+
+    public function choresCSV(Request $request){
+        try {
+            if ($request) {
+                return Chore::getChoreCSV($request['course'], $request['company'], $request['student'], $request['status'], $request['beginning'], $request['end']);
+            }
+            return Chore::getChoreCSV();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

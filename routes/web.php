@@ -60,3 +60,11 @@ use App\Http\Controllers\TrainingContractIncidenceController;
 */
 
 Route::get('/', 'HomeController@index')->name('home');
+
+// clear cache
+Route::get('/clear-cache', function() {
+    Artisan::call('optimize:clear');
+    Artisan::call('cache:clear');
+    Artisan::call('route:clear');
+    echo Artisan::output();
+});

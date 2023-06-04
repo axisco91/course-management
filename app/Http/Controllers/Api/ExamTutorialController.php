@@ -31,11 +31,11 @@ class ExamTutorialController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'exam_tutorial' => $exam_tutorial,
+            'exam_tutorial' => ExamTutorial::getExamTutorial($exam_tutorial->id),
         ]);
     }
 
-    public function update($id, Request $request){
+    public function edit($id, Request $request){
         try {
             $exam_tutorial = ExamTutorial::updateExamsTutorial($id, $request);
         } catch (\Exception $e){
@@ -47,7 +47,7 @@ class ExamTutorialController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'exam_tutorial' => $exam_tutorial,
+            'exam_tutorial' => ExamTutorial::getExamTutorial($id),
         ]);
     }
 

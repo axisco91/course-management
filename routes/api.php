@@ -48,7 +48,7 @@ use App\Http\Controllers\API\TrainingContractController;
 use App\Http\Controllers\API\CenterController;
 use App\Http\Controllers\API\CourseController;
 use App\Http\Controllers\API\ChoreController;
-use App\Http\Controllers\API\BillingController;
+use App\Http\Controllers\API\BillController;
 use App\Http\Controllers\Api\CompanyIncidenceController;
 use App\Http\Controllers\API\CreditController;
 use App\Http\Controllers\API\TrainingContractStatusController;
@@ -61,6 +61,7 @@ use App\Http\Controllers\API\TrainingContractExcludedDayController;
 use App\Http\Controllers\API\TrainingContractBonusController;
 use App\Http\Controllers\API\CertificationElementController;
 use App\Http\Controllers\API\StatisticController;
+use App\Http\Controllers\API\TrainingContractBillController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -146,6 +147,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('count', 'count');
             Route::get('courses/{id}', 'getAdvisorCourses');
             Route::get('companies/{id}', 'getAdvisorCompanies');
+            Route::get('csv', 'advisorsCSV');
         });
     });
 
@@ -210,6 +212,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('set-data', 'setData');
             Route::get('students/{id}', 'getStudents');
             Route::get('count', 'count');
+            Route::get('csv', 'coursesCSV');
         });
     });
 
@@ -516,6 +519,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('check_dni', 'checkDni');
             Route::get('courses/{id}', 'getTeachersCourses');
             Route::get('count', 'count');
+            Route::get('csv', 'teachersCSV');
         });
     });
 
@@ -533,7 +537,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('active', 'getActiveTrainingActions');
             Route::get('courses/{id}', 'getCourses');
             Route::get('count', 'count');
-
+            Route::get('csv', 'trainingActionsCSV');
         });
     });
 
@@ -624,9 +628,9 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('training-contract-elements')->group(function() {
         Route::controller(TrainingContractElementController::class)->group(function(){
-            Route::get('elements/{id}', 'getElements');
             Route::post('create/{id}', 'create');
             Route::get('destroy/{id}', 'destroy');
+            Route::get('{id}', 'getElements');
         });
     });
 
@@ -646,7 +650,7 @@ Route::middleware('auth:sanctum')->group( function () {
     /**
      * Training Contract Bonuses
      */
-   /* Route::prefix('training-contract-bonuses')->group(function() {
+    Route::prefix('training-contract-bonuses')->group(function() {
         Route::controller(TrainingContractBonusController::class)->group(function(){
             Route::get('generate/{id}', 'generate');
             Route::post('create', 'create');
@@ -655,7 +659,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get/{id}', 'getTrainingContractBonus');
             Route::get('{id}', 'trainingContractBonuses');
         });
-    });*/
+    });
 
     /**
      * Chore
@@ -667,6 +671,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getChore');
             Route::get('count', 'count');
+            Route::get('csv', 'choresCSV');
         });
     });
 
@@ -680,20 +685,22 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTracing');
             Route::get('count', 'count');
+            Route::get('csv', 'tracingsCSV');
         });
     });
 
     /**
-     * Billings
+     * Bills
      */
-    Route::prefix('billings')->group(function() {
-        Route::controller(BillingController::class)->group(function(){
-            Route::get('', 'getBillings');
+    Route::prefix('bills')->group(function() {
+        Route::controller(BillController::class)->group(function(){
+            Route::get('', 'getBills');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getBilling');
-            Route::get('students/{id}', 'getBillingStudents');
+            Route::get('get/{id}', 'getBill');
+            Route::get('students/{id}', 'getBillStudents');
             Route::get('count', 'count');
+            Route::get('csv', 'billsCSV');
         });
     });
 
@@ -709,6 +716,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get/{id}', 'getProfitability');
             Route::get('students/{id}', 'getStudents');
             Route::get('count', 'count');
+            Route::get('csv', 'profitsCSV');
         });
     });
 
@@ -786,6 +794,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('convert-advisor/{id}', 'convertAdvisor');
             Route::get('convert-provider/{id}', 'convertProvider');
             Route::get('count', 'count');
+            Route::get('csv', 'companiesCSV');
         });
     });
 
@@ -838,7 +847,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('/{id}', 'getBankHolidayGroup');
             Route::get('count', 'count');
         });
     });
@@ -854,7 +862,29 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
         });
     });
+    
+    /**
+     * ExamTutorial
+     */
+    Route::prefix('exams-tutorials')->group(function() {
+        Route::controller(ExamTutorialController::class)->group(function(){
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('{id}', 'getExamTutorial');
+        });
+    });
 
+    Route::prefix('training-contract-bills')->group(function() {
+        Route::controller(TrainingContractBillController::class)->group(function(){
+            Route::get('', 'getBills');
+            Route::get('get/{id}', 'getBill');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('years', 'years');
+            Route::get('csv', 'billsCSV');
+        });
+    });
 
 });
 
@@ -896,27 +926,5 @@ Route::prefix('provinces')->group(function() {
         Route::get('', 'provinces');
         Route::get('get/{id}', 'province');
         Route::get('provinces-with-excluded-days', 'provincesWithExcludedDays');
-    });
-});
-
-/**
- * ExamTutorial
- */
-Route::prefix('exams-tutorials')->group(function() {
-    Route::controller(ExamTutorialController::class)->group(function(){
-        Route::post('create/{id}', 'create');
-        Route::get('destroy/{id}', 'destroy');
-        Route::get('{id}', 'getExamTutorial');
-    });
-});
-
-Route::prefix('training-contract-bonuses')->group(function() {
-    Route::controller(TrainingContractBonusController::class)->group(function(){
-        Route::post('generate/{id}', 'generate');
-        Route::post('create', 'create');
-        Route::post('edit/{id}', 'edit');
-        Route::get('destroy/{id}', 'destroy');
-        Route::get('get/{id}', 'getTrainingContractBonus');
-        Route::get('{id}', 'trainingContractBonuses');
     });
 });

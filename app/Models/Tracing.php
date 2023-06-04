@@ -168,4 +168,80 @@ class Tracing extends Model
         return $tracing;
     }
 
+    public static function getTracingCSV($course = null, $company = null, $student = null, $status = null, $beginning = null, $end = null){
+        $start = Carbon::now();
+        $number_days = 5;
+        if ($start->dayOfWeek >= 2)
+            $number_days = 7;
+        $start = $start->addDays($number_days);
+        $tracings = Tracing::select('tracings.*',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
+            'companies.name as company',
+            'students.name as student_name',
+            'students.surname as student_surname',
+            'training_actions.number_activities',
+            'training_actions.number_units',
+            'training_actions.total_hours',
+            'course_statuses.name as status',
+            'courses.group as course_group',
+            'courses.welcome_date',
+            'courses.quarter_date',
+            'courses.half_date',
+            'courses.three_quarters_date',
+            'courses.final_date',
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"))
+            ->leftjoin('courses', 'courses.id', '=', 'tracings.course_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', 'courses.course_status_id')
+            ->leftjoin('companies', 'companies.id', '=', 'tracings.company_id')
+            ->leftjoin('students', 'students.id', '=', 'tracings.student_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');
+
+        if ($course) {
+            $tracings = $tracings->where('courses.id', $course);
+        }
+        if ($company) {
+            $tracings = $tracings->where('companies.id', $company);
+        }
+        if ($student) {
+            $tracings = $tracings->where('students.id', 'LIKE', $student);
+        }
+        if ($status) {
+            $tracings = $tracings->where('courses.course_status_id', 'LIKE', $status);
+        }
+        if ($beginning) {
+            $tracings = $tracings->where('courses.beginning', '>=', $beginning);
+        }
+        if ($end) {
+            $tracings = $tracings->where('courses.beginning', '<=', $end);
+        }
+
+        $tracings = $tracings->orderBy('tracings.id', 'desc')->get();
+
+        $data = [];
+        foreach ($tracings as $tracing) {
+            $element = [
+                'Curso' => $tracing['course'],
+                'Empresa' => $tracing['company'],
+                'Alumno' => $tracing['student'],
+                'Estado' => $tracing['status'],
+                'Horas Realizadas' => $tracing['performed_hours'],
+                'Horas Totales' => $tracing['total_hours'],
+                'Actividades Realizadas' => $tracing['performed_activities'],
+                'Actividades Totales' => $tracing['number_activities'],
+                'Unidades Realizadas' => $tracing['performed_units'],
+                'Unidades Totales' => $tracing['number_units'],
+                'Fecha Seguimiento' => $tracing->follow_up_date ? \Carbon\Carbon::parse($tracing->follow_up_date)->format('d/m/Y') : '',
+                'Test Final' => $tracing['final_test'] == 0 ? 'Pendiente' : ($tracing['final_test'] == 1 ? 'Realizado' : 'No realizado'),
+                'Cuestionario' => $tracing['questionnaire'] == 0 ? 'Pendiente' : ($tracing['questionnaire'] == 1 ? 'Realizado' : 'No realizado'),
+                'Bienvenida' => $tracing['welcome_message'] == 1 ? 'Si' : 'No',
+                'Mensaje 25%' => $tracing['quarter_message'] == 1 ? 'Si' : 'No',
+                'Mensaje 50%' => $tracing['half_message'] == 1 ? 'Si' : 'No',
+                'Mensaje 75%' => $tracing['three_quarters_message'] == 1 ? 'Si' : 'No',
+                'Finalización' => $tracing['final_message'] == 1 ? 'Si' : 'No'
+            ];
+            $data[] = $element;
+        }
+        return $data;
+    }
+
 }

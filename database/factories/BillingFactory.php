@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\Billing;
+use App\Models\Bill;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 class BillingFactory extends Factory
 {
-    protected $model = Billing::class;
+    protected $model = Bill::class;
 
     public function definition()
     {

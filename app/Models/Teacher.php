@@ -133,4 +133,51 @@ class Teacher extends Model
 
         return $teacher;
     }
+
+    public static function getTeachersCSV($name = null, $surname = null, $email = null, $dni = null, $telephone = null){
+        $teachers = Teacher::select('teachers.*',
+            'provinces.name as province_name')
+            ->leftjoin('provinces', 'provinces.id', '=', 'teachers.province_id');
+
+        if ($name) {
+            $teachers = $teachers->where('teachers.name', 'like', '%'.$name.'%');
+        }
+        if ($surname) {
+            $teachers = $teachers->where('teachers.surname', 'like', '%'.$surname.'&');
+        }
+        if ($dni) {
+            $teachers = $teachers->where('teachers.dni', 'like', '%'.$dni.'%');
+        }
+        if ($telephone) {
+            $teachers = $teachers->where('teachers.telephone', 'like', '%'.$dni.'%');
+        }
+        if ($email) {
+            $teachers = $teachers->where('teachers.email', 'like', '%'.$email.'%');
+        }
+
+        $teachers = $teachers->orderBy('teachers.name','asc')->get();
+
+        $data = [];
+        foreach ($teachers as $teacher) {
+            $status = $teacher['active'] === 1 ? 'Activo' : 'Inactivo';
+            $element = [
+                'Nombre' => $teacher['name'],
+                'Apellidos' => $teacher['surname'],
+                'DNI' => $teacher['dni'],
+                'Correo' => $teacher['email'],
+                'Teléfono' => $teacher['telephone'],
+                'Usuario' => $teacher['user'],
+                'Password' => $teacher['password'],
+                'Observaciones' => $teacher['observations'],
+                'Iban' => $teacher['iban'],
+                'Dirección' => $teacher['address'],
+                'Código Postal' => $teacher['post_code'],
+                'Provincia' => $teacher['province'],
+                'Población' => $teacher['population'],
+                'Estado' => $status
+            ];
+            $data[] = $element;
+        }
+        return $data;
+    }
 }

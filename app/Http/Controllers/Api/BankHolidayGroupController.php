@@ -55,20 +55,6 @@ class BankHolidayGroupController extends BaseController
         ]);
     }
 
-    public function getActionType($id){
-        $action_type = ActionType::find($id);
-        if ($action_type) {
-            return response()->json([
-                'status' => 200,
-                'action_type' => $action_type
-            ]);
-        }
-        return response()->json([
-            'status' => 400,
-            'message' => 'Tipo Acción no existe'
-        ]);
-    }
-
     public function destroy($id){
         if ($id) {
             try {
@@ -83,9 +69,5 @@ class BankHolidayGroupController extends BaseController
                 ]);
             }
         }
-    }
-
-    public function count(){
-        return ActionType::count();
     }
 }

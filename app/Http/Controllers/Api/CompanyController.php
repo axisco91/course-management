@@ -163,4 +163,17 @@ class CompanyController extends BaseController
     public function count(){
         return Company::count();
     }
+
+    public function companiesCSV(Request $request){
+        try {
+            if ($request) {
+                return Company::getCompanyCSV($request['name'], $request['nif'], $request['type'], $request['activity'], $request['advisor'], $request['province'], $request['status'], $request['collaborator']);
+            }
+            return Company::getCompanyCSV();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

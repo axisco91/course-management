@@ -105,7 +105,8 @@ class Course extends Model
             'dc.name as delivery_center',
             'course_statuses.name as course_status',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
-            'training_actions.name as training_action')
+            'training_actions.name as training_action',
+            'training_actions.formative_action as formative_action')
             ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
             ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
             ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
@@ -116,8 +117,10 @@ class Course extends Model
             ->get();
 
         foreach ($courses as $course){
-           // $registrations = Registration::where('course_id', $course->id)->get();
-           // $course['registration'] = $registrations;
+            $registrations = Registration::select('registrations.*', 'companies.name')
+                ->leftjoin('companies', 'companies.id', '=', 'registrations.company_id')
+                ->where('course_id', $course->id)->get();
+            $course['registrations'] = $registrations;
             $registration = Registration::where('course_id', $course->id)->first();
             if ($registration) {
                 $course['used'] = true;
@@ -141,7 +144,8 @@ class Course extends Model
             'course_statuses.name as course_status',
             'courses.id as value', 'courses.name as label',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
-            'training_actions.name as training_action')
+            'training_actions.name as training_action',
+            'training_actions.formative_action as formative_action')
             ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
             ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
             ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
@@ -149,6 +153,7 @@ class Course extends Model
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
             ->where('courses.id', $id)
+            ->orderBy('courses.beginning', 'asc')
             ->first();
 
         $registration = Registration::where('course_id', $course->id)->first();
@@ -381,6 +386,80 @@ class Course extends Model
             $per_month[] = count($courses);
         }
         return $per_month;
+    }
+
+    public static function getCourseCSV($formative_action = null, $name = null, $group = null, $type = null, $status = null, $company = null){
+        $courses = Course::select('courses.*',
+            'course_types.name as course_type',
+            DB::raw("CONCAT(teachers.name,' ', teachers.surname) as teacher"),
+            'fc.name as formation_center',
+            'dc.name as delivery_center',
+            'course_statuses.name as course_status',
+            'training_actions.formative_action as formative_action',
+            'training_actions.name as training_action',
+            'training_actions.formative_action as formative_action',
+            DB::raw('IF(courses.nebrija = 1, "Si", "No") as nebrija'),
+            DB::raw("CONCAT(IF(monday = 1, 'Lunes ', ''), IF(tuesday = 1, 'Martes ', ''), IF(wednesday = 1, 'Miercoles ', ''), IF(thursday = 1, 'Jueves ', ''), IF(friday = 1, 'Viernes ', ''), IF(saturday = 1, 'Sabado', ''), IF(sunday = 1, 'Domingo', '')) as days"),
+            Db::raw('IF(outsourced = 1, "Si", "No") as outsourced'),
+            Db::raw('IF(reactivated, "Si", "No") as reactivated'))
+            ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
+            ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
+            ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
+            ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');
+
+        if ($formative_action) {
+            $courses = $courses->where('courses.name', 'like', '%'.$formative_action.'%');
+        }
+        if ($name) {
+            $courses = $courses->where('courses.name', 'like', '%'.$name.'&');
+        }
+        if ($group) {
+            $courses = $courses->where('courses.group', 'like', '%'.$group.'%');
+        }
+        if ($type) {
+            $courses = $courses->where('course_types.name', $type);
+        }
+        if ($status) {
+            $courses = $courses->where('course_statuses.name', $status);
+        }
+        if ($company) {
+            $registrations = Registration::where('company_id', $company)->groupBy('course_id')->pluck('course_id')->toArray();
+            $courses = $courses->where(function ($query) use ($registrations){
+                $query->WhereIn('courses.id', $registrations);
+            });
+        }
+
+        $courses = $courses->orderBy('courses.beginning', 'asc')->get();
+
+        $data = [];
+        foreach ($courses as $course) {
+            $beginning = \Carbon\Carbon::parse($course['beginning'])->format('d/m/Y');
+            $end = Carbon::parse($course['end'])->format('d/m/Y');
+            $element = [
+                'Acción Formativa' => $course['formative_action'],
+                'Grupo' => $course['group'],
+                'Nombre' => $course['name'],
+                'Tipo curso' => $course['course_type'],
+                'Fecha Inicio' => $beginning,
+                'Fecha Fin' => $end,
+                'Docente' => $course['teacher'],
+                'Nebrija' => $course['nebrija'],
+                'Centro Formativo' => $course['formation_center'],
+                'Centro impartición' => $course['delivery_center'],
+                'Estado' => $course['course_status'],
+                'Horario Mañana' => $course['morning_schedule'],
+                'Horario Tarde' => $course['afternoon_schedule'],
+                'Días Impartición' => $course['days'],
+                'Subcontratado' => $course['outsourced'],
+                'Precio' => $course['price'],
+                'Reactivado' => $course['reactivated'],
+                'Observaciones' => $course['course_observation'],
+            ];
+            $data[] = $element;
+        }
+        return $data;
     }
 
 }

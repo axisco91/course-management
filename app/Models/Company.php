@@ -124,8 +124,8 @@ class Company extends Model
             ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
             ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
-            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id');
-        $companies = $companies->orderBy('companies.name', 'asc')
+            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id')
+            ->orderBy('companies.name', 'asc')
             ->get();
 
         foreach ($companies as $company) {
@@ -326,6 +326,84 @@ class Company extends Model
             CompanyObservation::createCompanyObservation($data);
         }
         PotentialCompany::find($potential_id)->delete();
+    }
+
+    public static function getCompanyCSV($name = null, $nif = null, $type = null, $activity = null, $advisor = null, $province = null, $status = null, $collaborator = null){
+        $companies = Company::select('companies.*', 'company_types.name as type',
+            'company_activities.name as activity', 'cnaes.name as cnae',
+            'provinces.name as province',
+            'advisors.name as advisor',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
+            DB::raw("'real' as type_company"))
+            ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
+            ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
+            ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id');
+
+        if ($name) {
+            $companies = $companies->where('companies.name', 'like', '%'.$name.'%');
+        }
+        if ($nif) {
+            $companies = $companies->where('companies.nif', 'like', '%'.$nif.'&');
+        }
+        if ($type) {
+            $companies = $companies->where('company_types.name', 'like', '%'.$type.'%');
+        }
+        if ($activity) {
+            $companies = $companies->where('company_activities.name', 'like', '%'.$activity.'%');
+        }
+        if ($advisor) {
+            $companies = $companies->where('advisor.name', 'like', '%'.$advisor.'%');
+        }
+        if ($province) {
+            $companies = $companies->where('provinces.name', 'like', '%'.$province.'%');
+        }
+        if ($status) {
+            if ($status == 'Potential') {
+                $companies = $companies->where('companies.potential', 1);
+            }else if ($status == 'Inactivo'){
+                $companies = $companies->where('companies.active', 0)->where('companies.potential', 0);
+            } else if ($status == 'Activo'){
+                $companies = $companies->where('companies.active', 1)->where('companies.potential', 0);
+            }
+        }
+        if ($collaborator) {
+            //$companies = $companies->where('users.name', 'like', '%'.$province.'%');
+        }
+
+        $companies = $companies->orderBy('companies.name', 'asc')->get();
+
+        $data = [];
+        foreach ($companies as $company) {
+            $status = $company['potential'] == 1 ? 'Potential' : ($company['active'] == 0 ? 'Inactivo' : 'Active');
+            $element = [
+                'Nombre' => $company['name'],
+                'CIF' => $company['nif'],
+                'Tipo empresa' => $company['type'],
+                'Actividad empresa' => $company['activity'],
+                'Correo' => $company['email'],
+                'Teléfono' => $company['telephone'],
+                'Representante legal' => $company['legal_representative'],
+                'Dni representante legal' => $company['dni_legal_representative'],
+                'C. cotización' => $company['quote'],
+                'Colaborador' => $company['collaborator'],
+                'CNAE' => $company['cnae'],
+                'Plantilla media' => $company['average_template'],
+                'Iban' => $company['iban'],
+                'Sepa' => $company['sepa'],
+                'B2B' => $company['b2b'],
+                'Dirección' => $company['address'],
+                'Código postal' => $company['post_code'],
+                'Provincia' => $company['province'],
+                'Población' => $company['population'],
+                'Asesoría' => $company['advisor'],
+                'Estado' => $status
+            ];
+            $data[] = $element;
+        }
+        return $data;
     }
 
 }

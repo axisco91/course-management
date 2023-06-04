@@ -96,4 +96,17 @@ class ProfitabilityController extends BaseController
     public function count(){
         return Profitability::count();
     }
+
+    public function profitsCSV(Request $request){
+        try {
+            if ($request) {
+                return Profitability::getProfitCSV($request['course'], $request['company'], $request['status']);
+            }
+            return Profitability::getProfitCSV();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

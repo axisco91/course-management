@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class Billing extends Model
+class Bill extends Model
 {
 	use HasFactory;
 
@@ -43,7 +43,7 @@ class Billing extends Model
     }
 
     public static function getBillings(){
-        $billings = Billing::select('billings.*',
+        $bills = Bill::select('billings.*',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
             'training_actions.formative_action as training_action',
             'courses.group as group',
@@ -52,6 +52,7 @@ class Billing extends Model
             'advisors.name as advisor',
             'course_statuses.name as status',
             'courses.beginning as beginning',
+            DB::raw("YEAR(courses.beginning) as year"),
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
             DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'No bonificada' ELSE 'Bonificada' END) as type"),
             DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
@@ -66,11 +67,11 @@ class Billing extends Model
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
             ->orderBy('courses.beginning', 'desc')->get();
 
-        return $billings;
+        return $bills;
     }
 
     public static function getBill($id){
-        $bill = Billing::select('billings.*',
+        $bill = Bill::select('billings.*',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
             'training_actions.formative_action as training_action',
             'courses.group as group',
@@ -79,6 +80,7 @@ class Billing extends Model
             'advisors.name as advisor',
             'course_statuses.name as status',
             'courses.beginning as beginning',
+            DB::raw("YEAR(courses.beginning) as year"),
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
             DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'No bonificada' ELSE 'Bonificada' END) as type"),
             DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
@@ -98,32 +100,32 @@ class Billing extends Model
     }
 
     public static function updateBilling($id, $data){
-        $billing = Billing::find($id);
+        $bill = Bill::find($id);
         $total_training_activity = 0;
 
         if (isset($data['communication_start_date'])) {
-            if ($billing->communication_start_date != $data['communication_start_date']){
+            if ($bill->communication_start_date != $data['communication_start_date']){
                 $status = 0;
                 if ($data['communication_start_date']){
                     $status = 1;
                 }
-                Billing::updateStartCommunicationDate($id, $data['communication_start_date'], $status);
+                Bill::updateStartCommunicationDate($id, $data['communication_start_date'], $status);
             }
         }
         if (isset($data['communication_end_date'])) {
-            if ($billing->communication_end_date != $data['communication_end_date']){
+            if ($bill->communication_end_date != $data['communication_end_date']){
                 $status = 0;
                 if ($data['communication_end_date']){
                     $status = 1;
                 }
-                Billing::updateCloseCommunicationDate($id, $data['communication_end_date'], $status);
+                Bill::updateCloseCommunicationDate($id, $data['communication_end_date'], $status);
             }
         }
         if (isset($data['bonus'])) {
-            $total_training_activity = Billing::totalTrainingActivity($data['bonus']);
+            $total_training_activity = Bill::totalTrainingActivity($data['bonus']);
         }
 
-        $billing->update([
+        $bill->update([
             'number_students' => $data['number_students'],
             'billing' => $data['billing'] ? GeneralHelpers::convertComa($data['billing']) : 0,
             'bonus' => $data['bonus'] ? GeneralHelpers::convertComa($data['bonus']) : 0,
@@ -147,21 +149,21 @@ class Billing extends Model
             'charged' => $data['charged'],
             'remitted' => $data['remitted']
         ]);
-        return $billing;
+        return $bill;
     }
 
     public function updateBillingRegistrations($data){
-        $billing = Billing::where('course_id', $data['course_id'])
+        $bill = Bill::where('course_id', $data['course_id'])
             ->where('company_id', $data['company_id'])
             ->where('is_bonus', $data['is_bonus'])->first();
         $company = Company::find($data['company_id']);
 
-        if ($billing && $company['name'] != 'SIN EMPRESA'){
-            $total_training_activity = GeneralHelpers::convertComa($data['price']) + $billing['billing'];
-            $expenses = Billing::calculateExpenses($data['price'] + $billing['billing'], $total_training_activity);
-            $billing->update([
-                'number_students' => $billing['number_students']+1,
-                'billing' => $data['price'] + $billing['billing'],
+        if ($bill && $company['name'] != 'SIN EMPRESA'){
+            $total_training_activity = GeneralHelpers::convertComa($data['price']) + $bill['billing'];
+            $expenses = Bill::calculateExpenses($data['price'] + $bill['billing'], $total_training_activity);
+            $bill->update([
+                'number_students' => $bill['number_students']+1,
+                'billing' => $data['price'] + $bill['billing'],
                 'total_training_activity' => $total_training_activity,
                 'expenses' => $expenses,
                 'advisor_id' => $data['advisor_id'],
@@ -169,8 +171,8 @@ class Billing extends Model
             ]);
         } else {
             $total_training_activity = GeneralHelpers::convertComa($data['price']);
-            $expenses = Billing::calculateExpenses($data['price'], $total_training_activity);
-            $billing = Billing::create([
+            $expenses = Bill::calculateExpenses($data['price'], $total_training_activity);
+            $bill = Bill::create([
                 'course_id' => $data['course_id'],
                 'company_id' => $data['company_id'],
                 'number_students' => 1,
@@ -182,12 +184,12 @@ class Billing extends Model
                 'collaborator_id' => $data['collaborator_id']
             ]);
             if ($company['name'] == 'SIN EMPRESA'){
-                $billing->update([
+                $bill->update([
                     'student_id' => $data['student_id']
                 ]);
             }
         }
-        return $billing;
+        return $bill;
     }
 
     public static function calculateExpenses($price, $total){
@@ -199,8 +201,8 @@ class Billing extends Model
     }
 
     public static function updateStartCommunicationDate($id, $date, $status){
-        $billing = Billing::find($id);
-        $billing->update([
+        $bill = Bill::find($id);
+        $bill->update([
             'communication_start_date' => $date ? Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') : null,
         ]);
         $registrations = Registration::billingRegistration($id);
@@ -209,8 +211,8 @@ class Billing extends Model
         }
     }
     public static function updateCloseCommunicationDate($id, $date, $status){
-        $billing = Billing::find($id);
-        $billing->update([
+        $bill = Bill::find($id);
+        $bill->update([
             'communication_end_date' => $date ? Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') : null
         ]);
         $registrations = Registration::billingRegistration($id);
@@ -220,8 +222,8 @@ class Billing extends Model
     }
 
     public static function updateInvicedDate($id, $date, $status){
-        $billing = Billing::find($id);
-        $billing->update([
+        $bill = Bill::find($id);
+        $bill->update([
             'billing_date' => $date ? Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') : null,
             'invoiced' => $status,
             'bonus_status' => $status
@@ -230,5 +232,80 @@ class Billing extends Model
         foreach ($registrations as $registration) {
             Chore::billingDateChore($registration->chore_id, $date, $status);
         }
+    }
+
+    public static function getBillCSV($course = null, $company = null, $type = null, $invoiced = null, $charged = null){
+        $bills = Bill::select('billings.*',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
+            'training_actions.formative_action as training_action',
+            'courses.group as group',
+            'companies.name as company',
+            'payments.name as payment',
+            'advisors.name as advisor',
+            'course_statuses.name as status',
+            'courses.beginning as beginning',
+            DB::raw("YEAR(courses.beginning) as year"),
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
+            DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'No bonificada' ELSE 'Bonificada' END) as type"),
+            DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
+            DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"))
+            ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
+            ->leftjoin('companies', 'companies.id', '=', 'billings.company_id')
+            ->leftjoin('payments', 'payments.id', '=', 'billings.payment_id')
+            ->leftjoin('students', 'students.id', '=', 'billings.student_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'billings.advisor_id')
+            ->leftjoin('users', 'users.id', '=', 'billings.collaborator_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id');
+
+        if ($course) {
+            $bills = $bills->where('training_actions.name', 'like', '%'.$course.'%');
+        }
+        if ($company) {
+            $bills = $bills->where('companies.name', 'like', '%'.$company.'&');
+        }
+        if ($type) {
+            if ($type === 'No bonificada') {
+                $bills = $bills->where('billings.is_bonus', 1);
+            } else if ($type === 'Bonificada') {
+                $bills = $bills->where('billings.is_bonus', 0);
+            }
+        }
+        if ($invoiced) {
+            if ($invoiced === 'Si') {
+                $bills = $bills->where('billings.invoiced', 1);
+            } else if ($invoiced === 'No') {
+                $bills = $bills->where('billings.invoiced', 0);
+            }
+        }
+        if ($charged) {
+            if ($charged === 'Si') {
+                $bills = $bills->where('billings.charge', 1);
+            } else if ($charged === 'No') {
+                $bills = $bills->where('billings.charge', 0);
+            }
+        }
+
+        $bills = $bills->orderBy('courses.beginning', 'desc')->get();
+
+        $data = [];
+        foreach ($bills as $bill) {
+            $element = [
+                'Nº Factura' => $bill['billing_number'],
+                'Curso' => $bill['course'],
+                'Año' => $bill['year'],
+                'Tipo' => $bill['type'],
+                'Empresa' => $bill['company'],
+                'Asesoría' => $bill['advisor'],
+                'Collaborador' => $bill['collaborator'],
+                'Numero Alumnos' => $bill['number_students'],
+                'Factura' => $bill['billing'],
+                'Fecha Factura' => $bill['billing_date'],
+                'Fecha Cobro' => $bill['collection_date'],
+                'Cobrado' => $bill['charge']
+            ];
+            $data[] = $element;
+        }
+        return $data;
     }
 }

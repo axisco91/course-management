@@ -56,6 +56,7 @@ class Profitability extends Model
             'courses.beginning as beginning',
             'students.name as student_name',
             'students.surname as student_surname',
+            DB::raw("YEAR(courses.beginning) as year"),
             DB::raw("CONCAT(students.name,' ',students.surname) as student"))
             ->leftjoin('companies', 'companies.id', '=', 'profitabilities.company_id')
             ->leftjoin('courses', 'courses.id', '=', 'profitabilities.course_id')
@@ -74,6 +75,7 @@ class Profitability extends Model
             'courses.beginning as beginning',
             'students.name as student_name',
             'students.surname as student_surname',
+            DB::raw("YEAR(courses.beginning) as year"),
             DB::raw("CONCAT(students.name,' ',students.surname) as student"))
             ->leftjoin('companies', 'companies.id', '=', 'profitabilities.company_id')
             ->leftjoin('courses', 'courses.id', '=', 'profitabilities.course_id')
@@ -237,6 +239,66 @@ class Profitability extends Model
             'total_cost' => $total_cost,
             'benefits' => $benefits
         ];
+    }
+
+    public static function getProfitCSV($course = null, $company = null, $status = null){
+        $profits = Profitability::select('profitabilities.*',
+            'companies.name as company',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
+            'courses.beginning as beginning',
+            'students.name as student_name',
+            'students.surname as student_surname',
+            DB::raw("CONCAT(profitabilities.price, ' €')"),
+            DB::raw("YEAR(courses.beginning) as year"),
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"),
+            DB::raw("CONCAT(teacher, ' €')"),
+            DB::raw("CONCAT(management, ' €')"),
+            DB::raw("CONCAT(nebrija_title, ' €')"),
+            DB::raw("CONCAT(discount, ' €')"),
+            DB::raw("CONCAT(collaborator_commission, ' €')"),
+            DB::raw("CONCAT(advisor_commission, ' €')"),
+            DB::raw("CONCAT(total, ' €')"),
+            DB::raw('CONCAT(benefits, " €")'),
+            DB::raw("CONCAT(ROUND((benefits*benefits)/profitabilities.price, 2), ' €') as rentabilidad"))
+            ->leftjoin('companies', 'companies.id', '=', 'profitabilities.company_id')
+            ->leftjoin('courses', 'courses.id', '=', 'profitabilities.course_id')
+            ->leftjoin('students', 'students.id', '=', 'profitabilities.student_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id');
+
+        if ($course) {
+            $profits = $profits->where('courses.name', 'like', '%'.$course.'%');
+        }
+        if ($company) {
+            $profits = $profits->where('companies.name', 'like', '%'.$company.'&');
+        }
+        if ($status) {
+            $profits = $profits->where('course_statuses.name', 'like', '%'.$status.'%');
+        }
+        $profits = $profits->orderBy('courses.beginning', 'desc')->get();
+
+        $data = [];
+        foreach ($profits as $profit) {
+            $element = [
+                'Curso' => $profit['course'],
+                'Año' => $profit['year'],
+                'Empresa' => $profit['company'],
+                'Alumnos' => $profit['student'],
+                'Precio' => $profit['price'],
+                'Licencia' => $profit['license'],
+                'Docente' => $profit['teacher'],
+                'Gestión' => $profit['management'],
+                'Titulo Nebrija' => $profit['nebrija_title'],
+                'Descuento' => $profit['discount'],
+                'Comisión Colaborador' => $profit['collaborator_commission'],
+                'Comisión Asesoría' => $profit['advisor_commission'],
+                'Total' => $profit['total'],
+                'Beneficio' => $profit['benefits'],
+                'Rentabilidad' => $profit['rentabilidad']
+            ];
+            $data[] = $element;
+        }
+        return $data;
     }
 
 }

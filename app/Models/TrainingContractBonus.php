@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -118,8 +119,8 @@ class TrainingContractBonus extends Model
             'collaborator_id' => $training_contract->collaborator_id,
             'month' => $data['month'],
             'year' => $data['year'],
-            'start' => $data['start'],
-            'end' => $data['end'],
+            'start' => Carbon::parse($data['start'])->toDateString(),
+            'end' => Carbon::parse($data['end'])->toDateString(),
             'amount' => $data['amount'],
             'invoiced' => $data['invoiced'],
             'hours' => $data['hours']
@@ -143,6 +144,14 @@ class TrainingContractBonus extends Model
         ]);
 
         return $bonus;
+    }
+
+    public static function bonusesWithNoBills() {
+        $bonuses = TrainingContractBonus::whereNotIn('id', function ($query) {
+            $query->select('training_contract_bonus_id')
+                ->from('training_contract_bills');
+        })->get();
+        return $bonuses;
     }
 
 }

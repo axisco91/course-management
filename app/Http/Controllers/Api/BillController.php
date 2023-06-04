@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\Billing;
+use App\Models\Bill;
 use App\Models\Chore;
 use App\Models\Company;
 use App\Models\Course;
@@ -12,11 +12,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class BillingController extends BaseController
+class BillController extends BaseController
 {
-    public function getBillings() {
+    public function getBills() {
         try {
-            return Billing::getBillings();
+            return Bill::getBillings();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -34,12 +34,12 @@ class BillingController extends BaseController
 
     public function edit($id, Request $request){
         try {
-            $bill = Billing::find($id);
+            $bill = Bill::find($id);
             $request['is_bonus'] = $bill->is_bonus;
             if ($request['is_bonus'] === 1){
-                Billing::calculateExpenses($request['billing'], $request['total_training_activity']);
+                Bill::calculateExpenses($request['billing'], $request['total_training_activity']);
             }
-            $bill = Billing::updateBilling($id, $request);
+            $bill = Bill::updateBilling($id, $request);
 
             Chore::billingDateChore($id, $request['billing_date'], $bill['invoiced']);
         } catch (\Exception $e){
@@ -51,16 +51,16 @@ class BillingController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'billing' => Billing::getBill($bill->id)
+            'billing' => Bill::getBill($bill->id)
         ]);
     }
 
-    public function getBilling($id){
-        $bill = Billing::getBill($id);
+    public function getBill($id){
+        $bill = Bill::getBill($id);
         if ($bill) {
             $course = Course::where('id', $bill->course_id)->first();
             $company = Company::where('id', $bill->company_id)->first();
-            $billing['name'] = $course->group.'/'. $course->name .' - '. $company->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
+            $bill['name'] = $course->group.'/'. $course->name .' - '. $company->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
             return response()->json([
                 'status' => 200,
                 'billing' => $bill
@@ -75,7 +75,7 @@ class BillingController extends BaseController
     public function destroy($id){
         if ($id) {
             try {
-                Billing::destroy($id);
+                Bill::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -88,12 +88,25 @@ class BillingController extends BaseController
         }
     }
 
-    public function getBillingStudents($id)
+    public function getBillStudents($id)
     {
         return response()->json(Student::getBilledStudent($id));
     }
 
     public function count(){
-        return Billing::count();
+        return Bill::count();
+    }
+
+    public function billsCSV(Request $request){
+        try {
+            if ($request) {
+                return Bill::getBillCSV($request['course'], $request['company'], $request['type'], $request['invoiced'], $request['charged']);
+            }
+            return Bill::getBillCSV();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 }

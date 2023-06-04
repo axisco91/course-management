@@ -77,7 +77,7 @@ class Registration extends Model
      */
     public function billing()
     {
-        return $this->hasOne('App\Models\billing', 'id', 'billing_id');
+        return $this->hasOne('App\Models\Bill', 'id', 'billing_id');
     }
 
     public static function getRegistrated($course_id){
@@ -118,16 +118,16 @@ class Registration extends Model
         $registration = Registration::where('course_id', $course_id)
             ->where('student_id', $id)->first();
         if ($registration) {
-            $billing = Billing::where('course_id',$registration['course_id'])
+            $bill = Bill::where('course_id',$registration['course_id'])
                 ->where('company_id', $registration['company_id'])
                 ->where('is_bonus', $registration['is_bonus'])->first();
-            if ($billing){
-                if ($billing['number_students']-1 == 0) {
-                    $billing->delete();
+            if ($bill){
+                if ($bill['number_students']-1 == 0) {
+                    $bill->delete();
                 } else {
-                    $billing->update([
-                        'number_students' => $billing['number_students']-1,
-                        'billing' => $billing['billing'] - $registration['price']
+                    $bill->update([
+                        'number_students' => $bill['number_students']-1,
+                        'billing' => $bill['billing'] - $registration['price']
                     ]);
                 }
             }
@@ -213,8 +213,8 @@ class Registration extends Model
         return true;
     }
 
-    public static function billingRegistration($billing_id){
-        $registrations = Registration::where('billing_id', $billing_id)->get();
+    public static function billingRegistration($bill_id){
+        $registrations = Registration::where('billing_id', $bill_id)->get();
 
         return $registrations;
     }

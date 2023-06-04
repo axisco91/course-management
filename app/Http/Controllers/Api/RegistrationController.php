@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API;
 use App\Models\Advisor;
-use App\Models\Billing;
+use App\Models\Bill;
 use App\Models\Chore;
 use App\Models\Company;
 use App\Models\Profitability;
@@ -69,7 +69,7 @@ class RegistrationController extends BaseController
                             $collaborator_percentage = $user['commission'];
                         }
                     }
-                    $billing_data = [
+                    $bill_data = [
                         'course_id' => $request['course_id'],
                         'company_id' => $student['company_id'],
                         'is_bonus' => $request['is_bonus'],
@@ -78,7 +78,7 @@ class RegistrationController extends BaseController
                         'advisor_id' => $advisor_id,
                         'collaborator_id' => $collaborator_id,
                     ];
-                    $billing = Billing::updateBillingRegistrations($billing_data);
+                    $bill = Bill::updateBillingRegistrations($bill_data);
                     $profitability_data =[
                         'course_id' =>$request['course_id'],
                         'company_id' => $student['company_id'],
@@ -94,7 +94,7 @@ class RegistrationController extends BaseController
                         'course_id' => $request['course_id'],
                         'company_id' => $student['company_id'],
                         'student_id' => $student['id'],
-                        'billing_id' => $billing['id'],
+                        'billing_id' => $bill['id'],
                         'tracing_id' => $tracing['id'],
                         'chore_id' => $chore['id'],
                         'price' => $request['price'],

@@ -162,4 +162,17 @@ class AdvisorController extends BaseController
     public function count(){
         return Advisor::count();
     }
+
+    public function advisorsCSV(Request $request){
+        try {
+            if ($request) {
+                return Advisor::getAdvisorCSV($request['name'], $request['nif'], $request['type'], $request['activity'], $request['advisor'], $request['province']);
+            }
+            return Advisor::getAdvisorCSV();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }
