@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
 use Validator;
 use App\Models\User;
+use Spatie\Permission\Traits\HasRoles;
 
 class AuthController extends BaseController
 {
@@ -16,12 +17,13 @@ class AuthController extends BaseController
     {
         if(Auth::attempt(['username' => $request->username, 'password' => $request->password, 'active' => 1])){
             $authUser = Auth::user();
+            $roles = Auth::user()->getRoleNames();
             $success['accessToken'] =  $authUser->createToken('MyAuthApp')->plainTextToken;
             $success['fullname'] =  $authUser->name.' '.$authUser->surname;
             $success['username'] = $authUser->username;
             $success['email'] = $authUser->email;
             $success['ability'] = [['action' => "manage", 'subject' => "all"]];
-            $success['role'] = 'admin';
+            $success['role'] = $roles ? $roles[0] : 'admin';
             $success['avatar'] = $authUser->profile_photo_path;
             return $this->sendResponse($success, 'User signed in');
         }

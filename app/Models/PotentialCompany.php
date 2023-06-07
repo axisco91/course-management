@@ -128,5 +128,4 @@ class PotentialCompany extends Model
 
         return $company;
     }
-
 }

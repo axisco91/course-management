@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 use App\Mail\PotentialPrivateStudent as PotentialPrivateEmail;
 use App\Mail\PotentialStudent as PotentialEmail;
 use App\Models\PotentialStudent;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Mockery\Exception;
@@ -63,20 +64,6 @@ class PotentialStudentController extends BaseController
         return response()->json([
             'status' => 200,
             'potential_student' => $student
-        ]);
-    }
-
-    public function getTrainingActionLevel($id){
-        $student = PotentialStudent::find($id);
-        if ($student) {
-            return response()->json([
-                'status' => 200,
-                'potential_student' => $student
-            ]);
-        }
-        return response()->json([
-            'status' => 400,
-            'message' => 'Alumno no existe'
         ]);
     }
 
@@ -145,5 +132,25 @@ class PotentialStudentController extends BaseController
 
     public function count(){
         return PotentialStudent::count();
+    }
+
+    public function convertStudent($id, Request $request) {
+        try {
+            $student = Student::createStudent($request);
+            $potential_student = PotentialStudent::find($id);
+            $potential_student->update([
+                'converted' => 1
+            ]);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'student' => $potential_student
+        ]);
     }
 }

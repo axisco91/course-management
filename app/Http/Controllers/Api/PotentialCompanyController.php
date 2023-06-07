@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\API;
+use App\Models\Company;
 use App\Models\PotentialCompany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -82,5 +83,25 @@ class PotentialCompanyController extends BaseController
 
     public function count(){
         return PotentialCompany::count();
+    }
+
+    public function convertCompany($id, Request $request) {
+        try {
+            Company::createCompany($request);
+            $potential_company = PotentialCompany::find($id);
+            $potential_company->update([
+                'converted' => 1
+            ]);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'company' => $potential_company
+        ]);
     }
 }

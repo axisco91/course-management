@@ -80,7 +80,7 @@ class Teacher extends Model
         return $teacher;
     }
 
-    public function createTeacher($data){
+    public static function createTeacher($data){
         $teacher = Teacher::create([
             'name' => $data['name'],
             'surname' => $data['surname'],
@@ -106,9 +106,8 @@ class Teacher extends Model
         return $teacher;
     }
 
-    public function updateTeacher($id, $data){
+    public static function updateTeacher($id, $data){
         $teacher = Teacher::find($id);
-
         $teacher->update([
             'name' => $data['name'],
             'surname' => $data['surname'],
@@ -123,9 +122,6 @@ class Teacher extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
-        ]);
-
-        $teacher->update([
             'active' => $data['active']
         ]);
 

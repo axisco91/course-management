@@ -62,6 +62,7 @@ use App\Http\Controllers\API\TrainingContractBonusController;
 use App\Http\Controllers\API\CertificationElementController;
 use App\Http\Controllers\API\StatisticController;
 use App\Http\Controllers\API\TrainingContractBillController;
+use App\Http\Controllers\API\RoleController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -98,6 +99,14 @@ Route::middleware('auth:sanctum')->group( function () {
         });
     });
 
+    /**
+     * Roles
+     */
+    Route::prefix('roles')->group(function() {
+        Route::controller(RoleController::class)->group(function(){
+            Route::get('', 'getRoles');
+        });
+    });
 
     /**
      * Students
@@ -291,7 +300,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('level-studies')->group(function() {
         Route::controller(LevelStudyController::class)->group(function(){
-            Route::get('', 'levelStudies');
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
@@ -443,7 +451,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('company-activities')->group(function() {
         Route::controller(CompanyActivityController::class)->group(function(){
-            Route::get('', 'companyActivities');
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
@@ -457,7 +464,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('company-types')->group(function() {
         Route::controller(CompanyTypeController::class)->group(function(){
-            Route::get('', 'companyTypes');
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
@@ -754,7 +760,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('cnaes')->group(function() {
         Route::controller(CnaeController::class)->group(function(){
-            Route::get('', 'cnaes');
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
@@ -810,6 +815,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getPotentialStudent');
             Route::get('count', 'count');
+            Route::post('convert/{id}', 'convertStudent');
         });
     });
 
@@ -822,8 +828,9 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('send-email', 'sendEmail');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getCompany');
+            Route::get('get/{id}', 'getPotentialCompany');
             Route::get('count', 'count');
+            Route::post('convert/{id}', 'convertCompany');
         });
     });
 
@@ -862,7 +869,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
         });
     });
-    
+
     /**
      * ExamTutorial
      */
@@ -926,5 +933,38 @@ Route::prefix('provinces')->group(function() {
         Route::get('', 'provinces');
         Route::get('get/{id}', 'province');
         Route::get('provinces-with-excluded-days', 'provincesWithExcludedDays');
+    });
+});
+
+Route::prefix('level-studies')->group(function() {
+    Route::controller(LevelStudyController::class)->group(function(){
+        Route::get('', 'levelStudies');
+    });
+});
+
+/**
+ * Company Types
+ */
+Route::prefix('company-types')->group(function() {
+    Route::controller(CompanyTypeController::class)->group(function(){
+        Route::get('', 'companyTypes');
+    });
+});
+
+/**
+ * Company Activities
+ */
+Route::prefix('company-activities')->group(function() {
+    Route::controller(CompanyActivityController::class)->group(function(){
+        Route::get('', 'companyActivities');
+    });
+});
+
+/**
+ * Cnaes
+ */
+Route::prefix('cnaes')->group(function() {
+    Route::controller(CnaeController::class)->group(function(){
+        Route::get('', 'cnaes');
     });
 });

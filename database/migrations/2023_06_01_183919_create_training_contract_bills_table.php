@@ -33,7 +33,7 @@ class CreateTrainingContractBillsTable extends Migration
             $table->tinyInteger('month');
             $table->integer('year');
             $table->double('amount')->nullable();
-            $table->tinyInteger('modalities');
+            $table->string('modality');
             $table->tinyInteger('hours')->nullable();
             $table->tinyInteger('price_hours')->default(5);
             $table->tinyInteger('charged')->default(0);
