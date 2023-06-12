@@ -169,7 +169,10 @@ class Course extends Model
     public static function createCourse($data){
 
         $course_info = Course::courseDates(Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d'));
-
+        $anulado = CourseStatus::where('name', 'ANULADO')->first();
+        if ($data['canceled'] == 1) {
+            $course_info['course_status_id'] = $anulado->id;
+        }
         $course = Course::create([
             'name' => $data['name'],
             'training_action_id' => $data['training_action_id'],
@@ -207,7 +210,10 @@ class Course extends Model
     public static function updateCourse($id, $data){
 
         $course_info = Course::courseDates(Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d'));
-
+        $anulado = CourseStatus::where('name', 'ANULADO')->first();
+        if ($data['canceled'] == 1) {
+            $course_info['course_status_id'] = $anulado->id;
+        }
         $course = Course::find($id);
         $course->update([
             'name' => $data['name'],

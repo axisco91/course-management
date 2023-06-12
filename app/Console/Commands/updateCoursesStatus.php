@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Helpers\CourseStatusHelper;
 use App\Models\Course;
+use App\Models\CourseStatus;
 use Illuminate\Console\Command;
 
 class updateCoursesStatus extends Command
@@ -43,8 +44,10 @@ class updateCoursesStatus extends Command
         $courses = Course::all();
 
         foreach ($courses as $course){
-
-            $course_status_id = CourseStatusHelper::updateCourseStatus($course->beginning, $course->end);
+            $anulado = CourseStatus::where('name', 'ANULADO')->first();
+            if ($anulado->id != $course->course_status_id) {
+                $course_status_id = CourseStatusHelper::updateCourseStatus($course->beginning, $course->end);
+            }
 
             $course->update([
                 'course_status_id' => $course_status_id
