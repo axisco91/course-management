@@ -247,11 +247,11 @@ class Course extends Model
         if ($training_action_id > 0){
             $training_action = TrainingAction::find($training_action_id);
             if ($training_action_id < 10){
-                $name = '00'.$training_action_id.' - '.$training_action['name'];
+                $name = '00'.$training_action_id;
             } else if ($training_action_id < 100){
-                $name = '0'.$training_action_id.' - '.$training_action['name'];
+                $name = '0'.$training_action_id;
             } else {
-                $name = $training_action_id.' - '.$training_action['name'];
+                $name = $training_action_id;
             }
             $num_courses = Course::numbercourses($training_action['id']);
             $cont = $num_courses->count();
@@ -272,7 +272,7 @@ class Course extends Model
         }
 
         return [
-            'name' => $name,
+            'name' => $name.' / '. $group .' - '.$training_action['name'],
             'group' => $group,
             'price' => $price
         ];

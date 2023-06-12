@@ -1,7 +1,10 @@
 <?php
 
 namespace App\Http\Controllers\API;
+use App\Models\Course;
+use App\Models\Student;
 use App\Models\Tracing;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -53,6 +56,9 @@ class TracingController extends BaseController
     public function getTracing($id){
         $tracing = Tracing::getTracing($id);
         if ($tracing) {
+            $course = Course::where('id', $tracing->course_id)->first();
+            $student = Student::where('id', $tracing->student_id)->first();
+            $tracing['name'] = $course->group.'/'. $course->name .' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
             return response()->json([
                 'status' => 200,
                 'tracing' => $tracing
