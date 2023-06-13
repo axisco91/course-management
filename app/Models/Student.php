@@ -289,8 +289,9 @@ class Student extends Model
     }
 
     public static function getBilledStudent($id){
-        $students = Student::select('students.*')
+        $students = Student::select('students.*', 'companies.name as company_name')
             ->join('registrations', 'registrations.student_id', '=', 'students.id')
+            ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
             ->where('registrations.billing_id', $id)->get();
 
         return $students;

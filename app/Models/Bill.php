@@ -43,6 +43,7 @@ class Bill extends Model
     }
 
     public static function getBillings(){
+        $cfa = CourseType::where('name', 'CFA')->first();
         $bills = Bill::select('billings.*',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
             'training_actions.formative_action as training_action',
@@ -54,7 +55,7 @@ class Bill extends Model
             'courses.beginning as beginning',
             DB::raw("YEAR(courses.beginning) as year"),
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
-            DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'No bonificada' ELSE 'Bonificada' END) as type"),
+            DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'Bonificada' ELSE 'No bonificada' END) as type"),
             DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
             DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"))
             ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
@@ -64,8 +65,12 @@ class Bill extends Model
             ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
             ->leftjoin('advisors', 'advisors.id', '=', 'billings.advisor_id')
             ->leftjoin('users', 'users.id', '=', 'billings.collaborator_id')
-            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
-            ->orderBy('courses.beginning', 'desc')->get();
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id');
+
+        if ($cfa) {
+            $bills = $bills->where('course_type_id', '!=', $cfa->id);
+        }
+        $bills = $bills->orderBy('courses.beginning', 'desc')->get();
 
         return $bills;
     }
@@ -82,7 +87,7 @@ class Bill extends Model
             'courses.beginning as beginning',
             DB::raw("YEAR(courses.beginning) as year"),
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
-            DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'No bonificada' ELSE 'Bonificada' END) as type"),
+            DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'Bonificada' ELSE 'No bonificada' END) as type"),
             DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
             DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"))
             ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
@@ -246,7 +251,7 @@ class Bill extends Model
             'courses.beginning as beginning',
             DB::raw("YEAR(courses.beginning) as year"),
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
-            DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'No bonificada' ELSE 'Bonificada' END) as type"),
+            DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'Bonificada' ELSE 'No bonificada' END) as type"),
             DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
             DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"))
             ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
@@ -284,6 +289,10 @@ class Bill extends Model
             } else if ($charged === 'No') {
                 $bills = $bills->where('billings.charge', 0);
             }
+        }
+        $cfa = CourseType::where('name', 'CFA')->first();
+        if ($cfa) {
+            $bills = $bills->where('course_type_id', '!=', $cfa->id);
         }
 
         $bills = $bills->orderBy('courses.beginning', 'desc')->get();

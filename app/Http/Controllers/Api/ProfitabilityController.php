@@ -57,12 +57,18 @@ class ProfitabilityController extends BaseController
         $profitability = Profitability::find($id);
         if ($profitability) {
             $course = Course::where('id', $profitability->course_id)->first();
-            $student = Student::where('id', $profitability->student_id)->first();
-            $profitability['name'] = $course->group.'/'. $course->name .' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
-            return response()->json([
-                'status' => 200,
-                'profitability' => Profitability::getProfitability($profitability->id)
-            ]);
+            if ($course) {
+                $beginning = Carbon::parse($course->beginning)->format('d/m/Y');
+                $end = Carbon::parse($course->end)->format('d/m/Y');
+
+                return response()->json([
+                    'status' => 200,
+                    'profitability' => [
+                        'id' => $profitability->id,
+                        'name' => $course->group.'/'. $course->name .' '.$beginning.' - '.$end
+                    ]
+                ]);
+            }
         }
         return response()->json([
             'status' => 400,
@@ -89,7 +95,9 @@ class ProfitabilityController extends BaseController
     public function getStudents($id){
         $profitabilities = Profitability::find($id);
         $registrations = $profitabilities->registrations()->get()->pluck('student_id')->toArray();
-        $students = Student::whereIn('id', $registrations)->get();
+        $students = Student::select('students.*', 'companies.name as company_name')
+            ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
+            ->whereIn('students.id', $registrations)->get();
         return response()->json($students);
     }
 

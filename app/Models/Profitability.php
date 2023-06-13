@@ -63,8 +63,14 @@ class Profitability extends Model
             ->leftjoin('students', 'students.id', '=', 'profitabilities.student_id')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
-            ->orderBy('courses.beginning', 'desc')
-            ->get();
+            ->orderBy('courses.beginning', 'desc');
+
+        $cfa = CourseType::where('name', 'CFA')->first();
+        if ($cfa) {
+            $profitabilities = $profitabilities->where('course_type_id', '!=', $cfa->id);
+        }
+
+        $profitabilities = $profitabilities->get();
         return $profitabilities;
     }
 
@@ -276,7 +282,10 @@ class Profitability extends Model
             $profits = $profits->where('course_statuses.name', 'like', '%'.$status.'%');
         }
         $profits = $profits->orderBy('courses.beginning', 'desc')->get();
-
+        $cfa = CourseType::where('name', 'CFA')->first();
+        if ($cfa) {
+            $profits = $profits->where('course_type_id', '!=', $cfa->id);
+        }
         $data = [];
         foreach ($profits as $profit) {
             $element = [

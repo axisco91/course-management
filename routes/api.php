@@ -711,20 +711,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
 
-    /**
-     * Profitabilities
-     */
-    Route::prefix('profitabilities')->group(function() {
-        Route::controller(ProfitabilityController::class)->group(function(){
-            Route::get('', 'getProfitabilities');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getProfitability');
-            Route::get('students/{id}', 'getStudents');
-            Route::get('count', 'count');
-            Route::get('csv', 'profitsCSV');
-        });
-    });
+
 
     /**
      * Registrations
@@ -966,5 +953,20 @@ Route::prefix('company-activities')->group(function() {
 Route::prefix('cnaes')->group(function() {
     Route::controller(CnaeController::class)->group(function(){
         Route::get('', 'cnaes');
+    });
+});
+
+/**
+ * Profitabilities
+ */
+Route::prefix('profitabilities')->group(function() {
+    Route::controller(ProfitabilityController::class)->group(function(){
+        Route::get('', 'getProfitabilities');
+        Route::post('edit/{id}', 'edit');
+        Route::get('destroy/{id}', 'destroy');
+        Route::get('get/{id}', 'getProfitability');
+        Route::get('students/{id}', 'getStudents');
+        Route::get('count', 'count');
+        Route::get('csv', 'profitsCSV');
     });
 });
