@@ -305,10 +305,10 @@ class Chore extends Model
             $chores = $chores->where('courses.course_status_id', 'LIKE', $status);
         }
         if ($beginning) {
-            $chores = $chores->where('courses.beginning', '>=', $beginning);
+            $chores = $chores->where('courses.beginning', '>=', Carbon::parse($beginning));
         }
         if ($end) {
-            $chores = $chores->where('courses.beginning', '<=', $end);
+            $chores = $chores->where('courses.beginning', '<=', Carbon::parse($end));
         }
 
         $chores = $chores->orderBy('chores.id', 'desc')->get();

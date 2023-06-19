@@ -152,7 +152,8 @@ class AdvisorController extends BaseController
         return Course::select('courses.*')
             ->leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
             ->leftjoin('billings', 'billings.id', '=', 'registrations.billing_id')
-            ->where('billings.advisor_id', $id)->get();
+            ->where('billings.advisor_id', $id)
+            ->groupBy('courses.id')->get();
     }
 
     public function getAdvisorCompanies($id) {
@@ -166,7 +167,7 @@ class AdvisorController extends BaseController
     public function advisorsCSV(Request $request){
         try {
             if ($request) {
-                return Advisor::getAdvisorCSV($request['name'], $request['nif'], $request['type'], $request['activity'], $request['advisor'], $request['province']);
+                return Advisor::getAdvisorCSV($request['name'], $request['nif'], $request['type'], $request['activity'], $request['advisor'], $request['province'], $request['inactive']);
             }
             return Advisor::getAdvisorCSV();
         } catch (\Exception $e) {

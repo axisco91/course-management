@@ -208,7 +208,7 @@ class Advisor extends Model
         return $advisor;
     }
 
-    public static function getAdvisorCSV($name = null, $nif = null, $type = null, $activity = null, $province = null){
+    public static function getAdvisorCSV($name = null, $nif = null, $type = null, $activity = null, $province = null, $inactive = 'false'){
         $advisors = Advisor::select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province', 'advisors.id as value', 'advisors.name as label', 'companies.quote as quote', 'companies.average_template as average_template', 'users.id as collaborator_id',
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"))
@@ -234,39 +234,74 @@ class Advisor extends Model
         if ($province) {
             $advisors = $advisors->where('provinces.name', 'like', '%'.$province.'%');
         }
+        if ($inactive == 'false') {
+            $advisors = $advisors->where('advisors.active', 1);
+        }
 
         $advisors = $advisors->orderBy('advisors.name', 'desc')->get();
 
         $data = [];
-        foreach ($advisors as $advisor) {
-            $status = $advisor['potential'] == 1 ? 'Potential' : ($advisor['active'] == 0 ? 'Inactivo' : 'Active');
+        if (count($advisors) > 0) {
+            foreach ($advisors as $advisor) {
+                $status = $advisor['potential'] == 1 ? 'Potential' : ($advisor['active'] == 0 ? 'Inactivo' : 'Active');
+                $element = [
+                    'Nombre' => $advisor['name'],
+                    'CIF' => $advisor['nif'],
+                    'Tipo empresa' => $advisor['type'],
+                    'Actividad empresa' => $advisor['activity'],
+                    'Correo' => $advisor['email'],
+                    'Teléfono' => $advisor['telephone'],
+                    'Representante legal' => $advisor['legal_representative'],
+                    'Dni representante legal' => $advisor['dni_legal_representative'],
+                    'IRPF' => $advisor['irpf'],
+                    'Commisiones' => $advisor['commission'],
+                    'Contacto 1' => $advisor['contact_1'],
+                    'Contacto 2' => $advisor['contact_2'],
+                    'Contacto 3' => $advisor['contact_3'],
+                    'C. cotización' => $advisor['quote'],
+                    'Colaborador' => $advisor['collaborator'],
+                    'CNAE' => $advisor['cnae'],
+                    'Plantilla media' => $advisor['average_template'],
+                    'Iban' => $advisor['iban'],
+                    'Sepa' => $advisor['sepa'],
+                    'B2B' => $advisor['b2b'],
+                    'Dirección' => $advisor['address'],
+                    'Código postal' => $advisor['post_code'],
+                    'Provincia' => $advisor['province'],
+                    'Población' => $advisor['population'],
+                    'Asesoría' => $advisor['advisor'],
+                    'Estado' => $status
+                ];
+                $data[] = $element;
+            }
+        } else {
             $element = [
-                'Nombre' => $advisor['name'],
-                'CIF' => $advisor['nif'],
-                'Tipo empresa' => $advisor['type'],
-                'Actividad empresa' => $advisor['activity'],
-                'Correo' => $advisor['email'],
-                'Teléfono' => $advisor['telephone'],
-                'Representante legal' => $advisor['legal_representative'],
-                'Dni representante legal' => $advisor['dni_legal_representative'],
-                'IRPF' => $advisor['irpf'],
-                'Commisiones' => $advisor['commission'],
-                'Contacto 1' => $advisor['contact_1'],
-                'Contacto 2' => $advisor['contact_2'],
-                'Contacto 3' => $advisor['contact_3'],
-                'C. cotización' => $advisor['quote'],
-                'Colaborador' => $advisor['collaborator'],
-                'CNAE' => $advisor['cnae'],
-                'Plantilla media' => $advisor['average_template'],
-                'Iban' => $advisor['iban'],
-                'Sepa' => $advisor['sepa'],
-                'B2B' => $advisor['b2b'],
-                'Dirección' => $advisor['address'],
-                'Código postal' => $advisor['post_code'],
-                'Provincia' => $advisor['province'],
-                'Población' => $advisor['population'],
-                'Asesoría' => $advisor['advisor'],
-                'Estado' => $status
+                'Nombre' => '',
+                'CIF' => '',
+                'Tipo empresa' => '',
+                'Actividad empresa' => '',
+                'Correo' => '',
+                'Teléfono' => '',
+                'Representante legal' => '',
+                'Dni representante legal' => '',
+                'IRPF' => '',
+                'Commisiones' => '',
+                'Contacto 1' => '',
+                'Contacto 2' => '',
+                'Contacto 3' => '',
+                'C. cotización' => '',
+                'Colaborador' => '',
+                'CNAE' => '',
+                'Plantilla media' => '',
+                'Iban' => '',
+                'Sepa' => '',
+                'B2B' => '',
+                'Dirección' => '',
+                'Código postal' => '',
+                'Provincia' => '',
+                'Población' => '',
+                'Asesoría' => '',
+                'Estado' => ''
             ];
             $data[] = $element;
         }

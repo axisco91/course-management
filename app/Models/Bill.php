@@ -298,20 +298,38 @@ class Bill extends Model
         $bills = $bills->orderBy('courses.beginning', 'desc')->get();
 
         $data = [];
-        foreach ($bills as $bill) {
+        if ($bills > 0) {
+            foreach ($bills as $bill) {
+                $element = [
+                    'Nº Factura' => $bill['billing_number'],
+                    'Curso' => $bill['course'],
+                    'Año' => $bill['year'],
+                    'Tipo' => $bill['type'],
+                    'Empresa' => $bill['company'],
+                    'Asesoría' => $bill['advisor'],
+                    'Collaborador' => $bill['collaborator'],
+                    'Numero Alumnos' => $bill['number_students'],
+                    'Factura' => $bill['billing'],
+                    'Fecha Factura' => $bill['billing_date'],
+                    'Fecha Cobro' => $bill['collection_date'],
+                    'Cobrado' => $bill['charge']
+                ];
+                $data[] = $element;
+            }
+        } else {
             $element = [
-                'Nº Factura' => $bill['billing_number'],
-                'Curso' => $bill['course'],
-                'Año' => $bill['year'],
-                'Tipo' => $bill['type'],
-                'Empresa' => $bill['company'],
-                'Asesoría' => $bill['advisor'],
-                'Collaborador' => $bill['collaborator'],
-                'Numero Alumnos' => $bill['number_students'],
-                'Factura' => $bill['billing'],
-                'Fecha Factura' => $bill['billing_date'],
-                'Fecha Cobro' => $bill['collection_date'],
-                'Cobrado' => $bill['charge']
+                'Nº Factura' => '',
+                'Curso' => '',
+                'Año' => '',
+                'Tipo' => '',
+                'Empresa' => '',
+                'Asesoría' => '',
+                'Collaborador' => '',
+                'Numero Alumnos' => '',
+                'Factura' => '',
+                'Fecha Factura' => '',
+                'Fecha Cobro' => '',
+                'Cobrado' => ''
             ];
             $data[] = $element;
         }

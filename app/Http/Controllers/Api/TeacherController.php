@@ -106,7 +106,7 @@ class TeacherController extends BaseController
     public function teachersCSV(Request $request){
         try {
             if ($request) {
-                return Teacher::getTeachersCSV($request['name'], $request['surname'], $request['email'], $request['dni'], $request['telephone']);
+                return Teacher::getTeachersCSV($request['name'], $request['surname'], $request['email'], $request['dni'], $request['telephone'], $request['inactive']);
             }
             return Teacher::getTeachersCSV();
         } catch (\Exception $e) {

@@ -218,26 +218,50 @@ class Tracing extends Model
         $tracings = $tracings->orderBy('tracings.id', 'desc')->get();
 
         $data = [];
-        foreach ($tracings as $tracing) {
+        if (count($tracings) > 0) {
+            foreach ($tracings as $tracing) {
+                $element = [
+                    'Curso' => $tracing['course'],
+                    'Empresa' => $tracing['company'],
+                    'Alumno' => $tracing['student'],
+                    'Estado' => $tracing['status'],
+                    'Horas Realizadas' => $tracing['performed_hours'],
+                    'Horas Totales' => $tracing['total_hours'],
+                    'Actividades Realizadas' => $tracing['performed_activities'],
+                    'Actividades Totales' => $tracing['number_activities'],
+                    'Unidades Realizadas' => $tracing['performed_units'],
+                    'Unidades Totales' => $tracing['number_units'],
+                    'Fecha Seguimiento' => $tracing->follow_up_date ? \Carbon\Carbon::parse($tracing->follow_up_date)->format('d/m/Y') : '',
+                    'Test Final' => $tracing['final_test'] == 0 ? 'Pendiente' : ($tracing['final_test'] == 1 ? 'Realizado' : 'No realizado'),
+                    'Cuestionario' => $tracing['questionnaire'] == 0 ? 'Pendiente' : ($tracing['questionnaire'] == 1 ? 'Realizado' : 'No realizado'),
+                    'Bienvenida' => $tracing['welcome_message'] == 1 ? 'Si' : 'No',
+                    'Mensaje 25%' => $tracing['quarter_message'] == 1 ? 'Si' : 'No',
+                    'Mensaje 50%' => $tracing['half_message'] == 1 ? 'Si' : 'No',
+                    'Mensaje 75%' => $tracing['three_quarters_message'] == 1 ? 'Si' : 'No',
+                    'Finalización' => $tracing['final_message'] == 1 ? 'Si' : 'No'
+                ];
+                $data[] = $element;
+            }
+        } else {
             $element = [
-                'Curso' => $tracing['course'],
-                'Empresa' => $tracing['company'],
-                'Alumno' => $tracing['student'],
-                'Estado' => $tracing['status'],
-                'Horas Realizadas' => $tracing['performed_hours'],
-                'Horas Totales' => $tracing['total_hours'],
-                'Actividades Realizadas' => $tracing['performed_activities'],
-                'Actividades Totales' => $tracing['number_activities'],
-                'Unidades Realizadas' => $tracing['performed_units'],
-                'Unidades Totales' => $tracing['number_units'],
-                'Fecha Seguimiento' => $tracing->follow_up_date ? \Carbon\Carbon::parse($tracing->follow_up_date)->format('d/m/Y') : '',
-                'Test Final' => $tracing['final_test'] == 0 ? 'Pendiente' : ($tracing['final_test'] == 1 ? 'Realizado' : 'No realizado'),
-                'Cuestionario' => $tracing['questionnaire'] == 0 ? 'Pendiente' : ($tracing['questionnaire'] == 1 ? 'Realizado' : 'No realizado'),
-                'Bienvenida' => $tracing['welcome_message'] == 1 ? 'Si' : 'No',
-                'Mensaje 25%' => $tracing['quarter_message'] == 1 ? 'Si' : 'No',
-                'Mensaje 50%' => $tracing['half_message'] == 1 ? 'Si' : 'No',
-                'Mensaje 75%' => $tracing['three_quarters_message'] == 1 ? 'Si' : 'No',
-                'Finalización' => $tracing['final_message'] == 1 ? 'Si' : 'No'
+                'Curso' => '',
+                'Empresa' => '',
+                'Alumno' => '',
+                'Estado' => '',
+                'Horas Realizadas' => '',
+                'Horas Totales' => '',
+                'Actividades Realizadas' => '',
+                'Actividades Totales' => '',
+                'Unidades Realizadas' => '',
+                'Unidades Totales' => '',
+                'Fecha Seguimiento' => '',
+                'Test Final' => '',
+                'Cuestionario' => '',
+                'Bienvenida' => '',
+                'Mensaje 25%' => '',
+                'Mensaje 50%' => '',
+                'Mensaje 75%' => '',
+                'Finalización' => ''
             ];
             $data[] = $element;
         }

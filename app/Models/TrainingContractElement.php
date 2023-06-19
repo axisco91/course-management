@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class TrainingContractElement extends Model
 {
@@ -73,5 +75,82 @@ class TrainingContractElement extends Model
                 'total_hours' => - $hours
             ]);
         }
+    }
+
+    public static function getElements(){
+        $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+            DB::raw("IFNULL(certifications.name, CONCAT(training_actions.formative_action, ' ', training_actions.name)) AS course"),
+            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"), 'companies.name as company', 'students.dni as dni')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
+            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
+            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
+            ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
+            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')->get();
+        return $training_contract_elements;
+    }
+
+    public static function getElementsCSV($student = null, $company = null, $beginning = null, $end = null){
+        $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
+            DB::raw("IFNULL(certifications.name, CONCAT(training_actions.formative_action, ' ', training_actions.name)) AS course"),
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"), 'companies.name as company', 'students.dni as dni')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
+            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
+            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
+            ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
+            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id');
+
+        if ($student) {
+            $training_contract_elements = $training_contract_elements->where('students.id', 'LIKE', $student);
+        }
+        if ($company) {
+            $training_contract_elements = $training_contract_elements->where('companies.id', $company);
+        }
+        if ($beginning) {
+            $training_contract_elements = $training_contract_elements->where('training_contract_elements.beginning', '>=', $beginning);
+        }
+        if ($end) {
+            $training_contract_elements = $training_contract_elements->where('training_contract_elements.beginning', '<=', $end);
+        }
+
+        $training_contract_elements = $training_contract_elements->get();
+
+        $data = [];
+        if (count($training_contract_elements) > 0) {
+            foreach($training_contract_elements as $training_contract_element) {
+                $beginning = \Carbon\Carbon::parse($training_contract_element['beginning'])->format('d/m/Y');
+                $end = Carbon::parse($training_contract_element['end'])->format('d/m/Y');
+                $element = [
+                    'Nombre Curso' => $training_contract_element['course'],
+                    'Empresa' => $training_contract_element['company'],
+                    'Alumno' => $training_contract_element['student'],
+                    'DNI' => $training_contract_element['DNI'],
+                    'Inicio' => $beginning,
+                    'Fin' => $end,
+                ];
+                $data[] = $element;
+            }
+        } else {
+            $element = [
+                'Nombre Curso' => '',
+                'Empresa' => '',
+                'Alumno' => '',
+                'DNI' => '',
+                'Inicio' => '',
+                'Fin' => '',
+            ];
+            $data[] = $element;
+        }
+        return $data;
+    }
+
+    public static function getTrainingContractElement($id){
+        $training_contract_element = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
+            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
+            ->where('training_contract_elements.id', $id)->first();
+        return $training_contract_element;
     }
 }

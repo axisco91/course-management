@@ -117,7 +117,7 @@ class TrainingActionController extends BaseController
     public function trainingActionsCSV(Request $request){
         try {
             if ($request) {
-                return TrainingAction::getTrainingActionCSV($request['formative_actions'], $request['name'], $request['professional_family'], $request['professional_area'], $request['modality'], $request['provider']);
+                return TrainingAction::getTrainingActionCSV($request['formative_actions'], $request['name'], $request['professional_family'], $request['professional_area'], $request['modality'], $request['provider'], $request['inactive']);
             }
             return TrainingAction::getTrainingActionCSV();
         } catch (\Exception $e) {

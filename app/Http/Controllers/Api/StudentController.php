@@ -109,7 +109,7 @@ class StudentController extends BaseController
     public function studentsCSV(Request $request){
         try {
             if ($request) {
-                return Student::getStudentCSV($request['name'], $request['surname'], $request['dni'], $request['telephone'], $request['email'], $request['company']);
+                return Student::getStudentCSV($request['name'], $request['surname'], $request['dni'], $request['telephone'], $request['email'], $request['company'], $request['inactive']);
             }
             return Student::getStudentCSV();
         } catch (\Exception $e) {

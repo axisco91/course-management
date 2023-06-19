@@ -440,28 +440,52 @@ class Course extends Model
         $courses = $courses->orderBy('courses.beginning', 'asc')->get();
 
         $data = [];
-        foreach ($courses as $course) {
-            $beginning = \Carbon\Carbon::parse($course['beginning'])->format('d/m/Y');
-            $end = Carbon::parse($course['end'])->format('d/m/Y');
+        if (count($courses)) {
+            foreach ($courses as $course) {
+                $beginning = \Carbon\Carbon::parse($course['beginning'])->format('d/m/Y');
+                $end = Carbon::parse($course['end'])->format('d/m/Y');
+                $element = [
+                    'Acción Formativa' => $course['formative_action'],
+                    'Grupo' => $course['group'],
+                    'Nombre' => $course['name'],
+                    'Tipo curso' => $course['course_type'],
+                    'Fecha Inicio' => $beginning,
+                    'Fecha Fin' => $end,
+                    'Docente' => $course['teacher'],
+                    'Nebrija' => $course['nebrija'],
+                    'Centro Formativo' => $course['formation_center'],
+                    'Centro impartición' => $course['delivery_center'],
+                    'Estado' => $course['course_status'],
+                    'Horario Mañana' => $course['morning_schedule'],
+                    'Horario Tarde' => $course['afternoon_schedule'],
+                    'Días Impartición' => $course['days'],
+                    'Subcontratado' => $course['outsourced'],
+                    'Precio' => $course['price'],
+                    'Reactivado' => $course['reactivated'],
+                    'Observaciones' => $course['course_observation'],
+                ];
+                $data[] = $element;
+            }
+        } else {
             $element = [
-                'Acción Formativa' => $course['formative_action'],
-                'Grupo' => $course['group'],
-                'Nombre' => $course['name'],
-                'Tipo curso' => $course['course_type'],
-                'Fecha Inicio' => $beginning,
-                'Fecha Fin' => $end,
-                'Docente' => $course['teacher'],
-                'Nebrija' => $course['nebrija'],
-                'Centro Formativo' => $course['formation_center'],
-                'Centro impartición' => $course['delivery_center'],
-                'Estado' => $course['course_status'],
-                'Horario Mañana' => $course['morning_schedule'],
-                'Horario Tarde' => $course['afternoon_schedule'],
-                'Días Impartición' => $course['days'],
-                'Subcontratado' => $course['outsourced'],
-                'Precio' => $course['price'],
-                'Reactivado' => $course['reactivated'],
-                'Observaciones' => $course['course_observation'],
+                'Acción Formativa' => '',
+                'Grupo' => '',
+                'Nombre' => '',
+                'Tipo curso' => '',
+                'Fecha Inicio' => '',
+                'Fecha Fin' => '',
+                'Docente' => '',
+                'Nebrija' => '',
+                'Centro Formativo' => '',
+                'Centro impartición' => '',
+                'Estado' => '',
+                'Horario Mañana' => '',
+                'Horario Tarde' => '',
+                'Días Impartición' => '',
+                'Subcontratado' => '',
+                'Precio' => '',
+                'Reactivado' => '',
+                'Observaciones' => '',
             ];
             $data[] = $element;
         }

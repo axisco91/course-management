@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PracticeController;
@@ -33,5 +34,12 @@ Route::get('/clear-cache', function() {
     Artisan::call('optimize:clear');
     Artisan::call('cache:clear');
     Artisan::call('route:clear');
+    echo Artisan::output();
+});
+
+Route::get('/updateCoursesStatus', function() {
+    ob_start();
+    Artisan::call('updateCoursesStatus');
+    ob_end_clean();
     echo Artisan::output();
 });

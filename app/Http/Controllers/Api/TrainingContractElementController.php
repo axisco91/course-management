@@ -10,10 +10,23 @@ use Illuminate\Http\Request;
 class TrainingContractElementController extends BaseController
 {
 
-    public function getElements($id) {
+    public function getTrainingContractElements($id) {
         if ($id) {
             try {
-                return TrainingContractElement::getTrainingContractElements($id);
+                $elements = TrainingContractElement::getTrainingContractElements($id);
+                $planned = 0;
+                foreach ($elements as $element) {
+                    if ($element->certification_total_hours) {
+                        $planned = $planned + $element->training_action_total_hours;
+                    } else if ($element->training_action_total_hours) {
+                        $planned = $planned + $element->training_action_total_hours;
+                    }
+                }
+                return response()->json([
+                    'status' => 200,
+                    'elements' => $elements,
+                    'planned' => $planned
+                ]);
             } catch (\Exception $e) {
                 return response()->json([
                     'message' => $e->getMessage()
@@ -57,12 +70,19 @@ class TrainingContractElementController extends BaseController
     public function destroy($id){
         if ($id) {
             try {
-                $element = TrainingContractElement::find($id);
+                $element = TrainingContractElement::getTrainingContractElement($id);
                 $certification = null;
                 $training_action = null;
+                $planned_hours = 0;
+                if ($element->certification_total_hours) {
+                    $planned_hours = $element->training_action_total_hours;
+                } else if ($element->training_action_total_hours) {
+                    $planned_hours = $element->training_action_total_hours;
+                }
                 if ($element->certification_id) {
                     $certification = Certification::select('certifications.*', 'certifications.id as value', 'certifications.name as label')
-                        ->where('id', $element->certification_id)->first();
+                        ->where('id', $element->certification_id)
+                        ->first();
                 }
                 if ($element->training_action_id) {
                     $training_action = TrainingAction::select('training_actions.*', 'training_actions.id as value', 'training_actions.name as label')
@@ -73,7 +93,8 @@ class TrainingContractElementController extends BaseController
                 return response()->json([
                     'status' => 200,
                     'certification' => $certification,
-                    'training_action' => $training_action
+                    'training_action' => $training_action,
+                    'planned_hours' => $planned_hours
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
@@ -81,6 +102,29 @@ class TrainingContractElementController extends BaseController
                     'message' => $e->getMessage()
                 ]);
             }
+        }
+    }
+
+    public function getElements(){
+        try {
+            return TrainingContractElement::getElements();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function trainingContractElementsCSV(Request $request){
+        try {
+            if ($request) {
+                return TrainingContractElement::getElementsCSV($request['student'], $request['company'], $request['beginning'], $request['end']);
+            }
+            return TrainingContractElement::getElementsCSV();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
         }
     }
 

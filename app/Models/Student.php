@@ -321,7 +321,7 @@ class Student extends Model
      * @param $id
      * @return Student
      */
-    public static function getStudentCSV($name = null, $surname = null, $dni = null, $telephone = null, $email = null, $company = null){
+    public static function getStudentCSV($name = null, $surname = null, $dni = null, $telephone = null, $email = null, $company = null, $inactive = 'false'){
         $students = Student::select('students.*',
             'companies.name as company',
             'level_studies.name as level_study',
@@ -336,6 +336,9 @@ class Student extends Model
             ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
             ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id');
 
+        if ($inactive == 'false') {
+            $students = $students->where('students.active', 1);
+        }
         if ($name) {
             $students = $students->where('students.name', 'like', '%'.$name.'%');
         }
@@ -358,37 +361,68 @@ class Student extends Model
         $students = $students->orderBy('students.name','asc')->get();
 
         $data = [];
-        foreach ($students as $student) {
-            $disabled = $student['disabled'] === 1 ? 'Si' : 'No';
-            $status = $student['active'] === 1 ? 'Activo' : 'Inactivo';
+        if (count($students) > 0) {
+            foreach ($students as $student) {
+                $disabled = $student['disabled'] === 1 ? 'Si' : 'No';
+                $status = $student['active'] === 1 ? 'Activo' : 'Inactivo';
+                $element = [
+                    'Nombre' => $student['name'],
+                    'Apellidos' => $student['surname'],
+                    'DNI' => $student['dni'],
+                    'Correo' => $student['email'],
+                    'Teléfono' => $student['telephone'],
+                    'Empresa' => $student['company'],
+                    'Usuario' => $student['user'],
+                    'Contraseña' => $student['password'],
+                    'Fecha Nacimiento' => $student['level_study'],
+                    'Descapacitado' => $disabled,
+                    'Nº Seguridad Social' => $student['social_security_number'],
+                    'C. Cotización' => $student['c_quote'],
+                    'Grupo Cotización' => $student['quote_group'],
+                    'Categoría Profesional' => $student['professional_category'],
+                    'Salario Bruto Anual' => $student['annual_gross_salary'],
+                    'Horas Anuales' => $student['annual_hours'],
+                    'Coste Hora Bruto del Trabajador' => $student['hourly_cost_worker_gross'],
+                    'Dirección' => $student['direction'],
+                    'Código Postal' => $student['post_code'],
+                    'Provincia' => $student['province'],
+                    'Población' => $student['population'],
+                    'Iban' => $student['iban'],
+                    'Observaciones' => $student['observation'],
+                    'Estado' => $status
+                ];
+                $data[] = $element;
+            }
+        } else {
             $element = [
-                'Nombre' => $student['name'],
-                'Apellidos' => $student['surname'],
-                'DNI' => $student['dni'],
-                'Correo' => $student['email'],
-                'Teléfono' => $student['telephone'],
-                'Empresa' => $student['company'],
-                'Usuario' => $student['user'],
-                'Contraseña' => $student['password'],
-                'Fecha Nacimiento' => $student['level_study'],
-                'Descapacitado' => $disabled,
-                'Nº Seguridad Social' => $student['social_security_number'],
-                'C. Cotización' => $student['c_quote'],
-                'Grupo Cotización' => $student['quote_group'],
-                'Categoría Profesional' => $student['professional_category'],
-                'Salario Bruto Anual' => $student['annual_gross_salary'],
-                'Horas Anuales' => $student['annual_hours'],
-                'Coste Hora Bruto del Trabajador' => $student['hourly_cost_worker_gross'],
-                'Dirección' => $student['direction'],
-                'Código Postal' => $student['post_code'],
-                'Provincia' => $student['province'],
-                'Población' => $student['population'],
-                'Iban' => $student['iban'],
-                'Observaciones' => $student['observation'],
-                'Estado' => $status
+                'Nombre' => '',
+                'Apellidos' => '',
+                'DNI' => '',
+                'Correo' => '',
+                'Teléfono' => '',
+                'Empresa' => '',
+                'Usuario' => '',
+                'Contraseña' => '',
+                'Fecha Nacimiento' => '',
+                'Descapacitado' => '',
+                'Nº Seguridad Social' => '',
+                'C. Cotización' => '',
+                'Grupo Cotización' => '',
+                'Categoría Profesional' => '',
+                'Salario Bruto Anual' => '',
+                'Horas Anuales' => '',
+                'Coste Hora Bruto del Trabajador' => '',
+                'Dirección' => '',
+                'Código Postal' => '',
+                'Provincia' => '',
+                'Población' => '',
+                'Iban' => '',
+                'Observaciones' => '',
+                'Estado' => ''
             ];
             $data[] = $element;
         }
+
         return $data;
     }
 }

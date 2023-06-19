@@ -253,7 +253,7 @@ class TrainingAction extends Model
         return $training_actions;
     }
 
-    public static function getTrainingActionCSV($formative_actions = null, $name = null, $professional_family = null, $professional_area = null, $modality = null, $provider = null){
+    public static function getTrainingActionCSV($formative_actions = null, $name = null, $professional_family = null, $professional_area = null, $modality = null, $provider = null, $inactive = 'false'){
         $trainingActions = TrainingAction::select('training_actions.*',
             'action_types.name as action_type',
             'professional_families.name as professional_family',
@@ -300,36 +300,69 @@ class TrainingAction extends Model
         if ($provider) {
             $trainingActions = $trainingActions->where('providers.name', 'like', '%'.$provider.'%');
         }
+        if ($inactive == 'false') {
+            $trainingActions = $trainingActions->where('training_actions.active', 1);
+        }
 
         $trainingActions = $trainingActions->orderBy('training_actions.id','asc')->get();
 
         $data = [];
-        foreach ($trainingActions as $trainingAction) {
+        if (count($trainingActions) > 0) {
+            foreach ($trainingActions as $trainingAction) {
+                $element = [
+                    'Acción Formativa' => $trainingAction['formative_action'],
+                    'Nombre' => $trainingAction['name'],
+                    'Tipo Acción' => $trainingAction['action_type'],
+                    'Familia Professional' => $trainingAction['professional_family'],
+                    'Área Professional' => $trainingAction['professional_area'],
+                    'Modalidad' => $trainingAction['modality'],
+                    'Nivel' => $trainingAction['training_action_level'],
+                    'Grupo' => $trainingAction['training_action_group'],
+                    'Tutorización' => $trainingAction['tutoring'],
+                    'En Catalogo' => $trainingAction['in_catalog'],
+                    'Horas Presenciales' => $trainingAction['face_to_face_hours'],
+                    'Horas Teleformación' => $trainingAction['teletraining_hours'],
+                    'Horas totales' => $trainingAction['total_hours'],
+                    'Precio' => $trainingAction['price'],
+                    'Objetivos' => $trainingAction['objectives'],
+                    'Contenido' => $trainingAction['content'],
+                    'Usuario' => $trainingAction['user'],
+                    'Contraseña' => $trainingAction['password'],
+                    'Plataforma' => $trainingAction['web_platform'],
+                    'Observaciones' => $trainingAction['observations'],
+                    'Número Actividades' => $trainingAction['number_activities'],
+                    'Número Unidades' => $trainingAction['number_units'],
+                    'Proveedor' => $trainingAction['provider'],
+                    'Estado' => $trainingAction['active']
+                ];
+                $data[] = $element;
+            }
+        } else {
             $element = [
-                'Acción Formativa' => $trainingAction['formative_action'],
-                'Nombre' => $trainingAction['name'],
-                'Tipo Acción' => $trainingAction['action_type'],
-                'Familia Professional' => $trainingAction['professional_family'],
-                'Área Professional' => $trainingAction['professional_area'],
-                'Modalidad' => $trainingAction['modality'],
-                'Nivel' => $trainingAction['training_action_level'],
-                'Grupo' => $trainingAction['training_action_group'],
-                'Tutorización' => $trainingAction['tutoring'],
-                'En Catalogo' => $trainingAction['in_catalog'],
-                'Horas Presenciales' => $trainingAction['face_to_face_hours'],
-                'Horas Teleformación' => $trainingAction['teletraining_hours'],
-                'Horas totales' => $trainingAction['total_hours'],
-                'Precio' => $trainingAction['price'],
-                'Objetivos' => $trainingAction['objectives'],
-                'Contenido' => $trainingAction['content'],
-                'Usuario' => $trainingAction['user'],
-                'Contraseña' => $trainingAction['password'],
-                'Plataforma' => $trainingAction['web_platform'],
-                'Observaciones' => $trainingAction['observations'],
-                'Número Actividades' => $trainingAction['number_activities'],
-                'Número Unidades' => $trainingAction['number_units'],
-                'Proveedor' => $trainingAction['provider'],
-                'Estado' => $trainingAction['active']
+                'Acción Formativa' => '',
+                'Nombre' => '',
+                'Tipo Acción' => '',
+                'Familia Professional' => '',
+                'Área Professional' => '',
+                'Modalidad' => '',
+                'Nivel' => '',
+                'Grupo' => '',
+                'Tutorización' => '',
+                'En Catalogo' => '',
+                'Horas Presenciales' => '',
+                'Horas Teleformación' => '',
+                'Horas totales' => '',
+                'Precio' => '',
+                'Objetivos' => '',
+                'Contenido' => '',
+                'Usuario' => '',
+                'Contraseña' => '',
+                'Plataforma' => '',
+                'Observaciones' => '',
+                'Número Actividades' => '',
+                'Número Unidades' => '',
+                'Proveedor' => '',
+                'Estado' => ''
             ];
             $data[] = $element;
         }

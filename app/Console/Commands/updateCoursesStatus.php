@@ -6,6 +6,7 @@ use App\Helpers\CourseStatusHelper;
 use App\Models\Course;
 use App\Models\CourseStatus;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 class updateCoursesStatus extends Command
 {
@@ -53,7 +54,10 @@ class updateCoursesStatus extends Command
                 'course_status_id' => $course_status_id
             ]);
         }
-
+        Mail::raw('', function($message){
+            $message->to('franciscohoskins@gmail.com');
+            $message->subject('Cron passed course update');
+        });
         return 0;
     }
 }

@@ -634,9 +634,11 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('training-contract-elements')->group(function() {
         Route::controller(TrainingContractElementController::class)->group(function(){
+            Route::get('', 'getElements');
             Route::post('create/{id}', 'create');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('{id}', 'getElements');
+            Route::get('csv', 'trainingContractElementsCSV');
+            Route::get('{id}', 'getTrainingContractElements');
         });
     });
 
@@ -711,7 +713,20 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
 
-
+    /**
+     * Profitabilities
+     */
+    Route::prefix('profitabilities')->group(function() {
+        Route::controller(ProfitabilityController::class)->group(function(){
+            Route::get('', 'getProfitabilities');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'getProfitability');
+            Route::get('students/{id}', 'getStudents');
+            Route::get('count', 'count');
+            Route::get('csv', 'profitsCSV');
+        });
+    });
 
     /**
      * Registrations
@@ -953,20 +968,5 @@ Route::prefix('company-activities')->group(function() {
 Route::prefix('cnaes')->group(function() {
     Route::controller(CnaeController::class)->group(function(){
         Route::get('', 'cnaes');
-    });
-});
-
-/**
- * Profitabilities
- */
-Route::prefix('profitabilities')->group(function() {
-    Route::controller(ProfitabilityController::class)->group(function(){
-        Route::get('', 'getProfitabilities');
-        Route::post('edit/{id}', 'edit');
-        Route::get('destroy/{id}', 'destroy');
-        Route::get('get/{id}', 'getProfitability');
-        Route::get('students/{id}', 'getStudents');
-        Route::get('count', 'count');
-        Route::get('csv', 'profitsCSV');
     });
 });

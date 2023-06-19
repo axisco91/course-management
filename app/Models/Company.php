@@ -376,30 +376,57 @@ class Company extends Model
         $companies = $companies->orderBy('companies.name', 'asc')->get();
 
         $data = [];
-        foreach ($companies as $company) {
-            $status = $company['potential'] == 1 ? 'Potential' : ($company['active'] == 0 ? 'Inactivo' : 'Active');
+        if (count($companies) > 0) {
+            foreach ($companies as $company) {
+                $status = $company['potential'] == 1 ? 'Potential' : ($company['active'] == 0 ? 'Inactivo' : 'Active');
+                $element = [
+                    'Nombre' => $company['name'],
+                    'CIF' => $company['nif'],
+                    'Tipo empresa' => $company['type'],
+                    'Actividad empresa' => $company['activity'],
+                    'Correo' => $company['email'],
+                    'Teléfono' => $company['telephone'],
+                    'Representante legal' => $company['legal_representative'],
+                    'Dni representante legal' => $company['dni_legal_representative'],
+                    'C. cotización' => $company['quote'],
+                    'Colaborador' => $company['collaborator'],
+                    'CNAE' => $company['cnae'],
+                    'Plantilla media' => $company['average_template'],
+                    'Iban' => $company['iban'],
+                    'Sepa' => $company['sepa'],
+                    'B2B' => $company['b2b'],
+                    'Dirección' => $company['address'],
+                    'Código postal' => $company['post_code'],
+                    'Provincia' => $company['province'],
+                    'Población' => $company['population'],
+                    'Asesoría' => $company['advisor'],
+                    'Estado' => $status
+                ];
+                $data[] = $element;
+            }
+        } else {
             $element = [
-                'Nombre' => $company['name'],
-                'CIF' => $company['nif'],
-                'Tipo empresa' => $company['type'],
-                'Actividad empresa' => $company['activity'],
-                'Correo' => $company['email'],
-                'Teléfono' => $company['telephone'],
-                'Representante legal' => $company['legal_representative'],
-                'Dni representante legal' => $company['dni_legal_representative'],
-                'C. cotización' => $company['quote'],
-                'Colaborador' => $company['collaborator'],
-                'CNAE' => $company['cnae'],
-                'Plantilla media' => $company['average_template'],
-                'Iban' => $company['iban'],
-                'Sepa' => $company['sepa'],
-                'B2B' => $company['b2b'],
-                'Dirección' => $company['address'],
-                'Código postal' => $company['post_code'],
-                'Provincia' => $company['province'],
-                'Población' => $company['population'],
-                'Asesoría' => $company['advisor'],
-                'Estado' => $status
+                'Nombre' => '',
+                'CIF' => '',
+                'Tipo empresa' => '',
+                'Actividad empresa' => '',
+                'Correo' => '',
+                'Teléfono' => '',
+                'Representante legal' => '',
+                'Dni representante legal' => '',
+                'C. cotización' => '',
+                'Colaborador' => '',
+                'CNAE' => '',
+                'Plantilla media' => '',
+                'Iban' => '',
+                'Sepa' => '',
+                'B2B' => '',
+                'Dirección' => '',
+                'Código postal' => '',
+                'Provincia' => '',
+                'Población' => '',
+                'Asesoría' => '',
+                'Estado' => ''
             ];
             $data[] = $element;
         }

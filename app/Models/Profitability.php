@@ -287,23 +287,44 @@ class Profitability extends Model
             $profits = $profits->where('course_type_id', '!=', $cfa->id);
         }
         $data = [];
-        foreach ($profits as $profit) {
+        if (count($profits) > 0) {
+            foreach ($profits as $profit) {
+                $element = [
+                    'Curso' => $profit['course'],
+                    'Año' => $profit['year'],
+                    'Empresa' => $profit['company'],
+                    'Alumnos' => $profit['student'],
+                    'Precio' => $profit['price'],
+                    'Licencia' => $profit['license'],
+                    'Docente' => $profit['teacher'],
+                    'Gestión' => $profit['management'],
+                    'Titulo Nebrija' => $profit['nebrija_title'],
+                    'Descuento' => $profit['discount'],
+                    'Comisión Colaborador' => $profit['collaborator_commission'],
+                    'Comisión Asesoría' => $profit['advisor_commission'],
+                    'Total' => $profit['total'],
+                    'Beneficio' => $profit['benefits'],
+                    'Rentabilidad' => $profit['rentabilidad']
+                ];
+                $data[] = $element;
+            }
+        } else {
             $element = [
-                'Curso' => $profit['course'],
-                'Año' => $profit['year'],
-                'Empresa' => $profit['company'],
-                'Alumnos' => $profit['student'],
-                'Precio' => $profit['price'],
-                'Licencia' => $profit['license'],
-                'Docente' => $profit['teacher'],
-                'Gestión' => $profit['management'],
-                'Titulo Nebrija' => $profit['nebrija_title'],
-                'Descuento' => $profit['discount'],
-                'Comisión Colaborador' => $profit['collaborator_commission'],
-                'Comisión Asesoría' => $profit['advisor_commission'],
-                'Total' => $profit['total'],
-                'Beneficio' => $profit['benefits'],
-                'Rentabilidad' => $profit['rentabilidad']
+                'Curso' => '',
+                'Año' => '',
+                'Empresa' => '',
+                'Alumnos' => '',
+                'Precio' => '',
+                'Licencia' => '',
+                'Docente' => '',
+                'Gestión' => '',
+                'Titulo Nebrija' => '',
+                'Descuento' => '',
+                'Comisión Colaborador' => '',
+                'Comisión Asesoría' => '',
+                'Total' => '',
+                'Beneficio' => '',
+                'Rentabilidad' => ''
             ];
             $data[] = $element;
         }
