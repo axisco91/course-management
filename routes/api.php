@@ -614,24 +614,6 @@ Route::middleware('auth:sanctum')->group( function () {
     /**
      * Contracts
      */
-    Route::prefix('training-contracts')->group(function() {
-        Route::controller(TrainingContractController::class)->group(function(){
-            Route::get('', 'getTrainingContracts');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getTrainingContract');
-            Route::get('cfa-number', 'getCFANumber');
-            Route::get('specialties/{id}', 'getSpecialties');
-            Route::get('certifications/{id}', 'getCertifications');
-            Route::get('count', 'countTrainingContracts');
-            Route::post('calculate-hours/{id}', 'calculateHours');
-        });
-    });
-
-    /**
-     * Contracts
-     */
     Route::prefix('training-contract-elements')->group(function() {
         Route::controller(TrainingContractElementController::class)->group(function(){
             Route::get('', 'getElements');
@@ -892,6 +874,24 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('years', 'years');
             Route::get('csv', 'billsCSV');
+        });
+    });
+
+    /**
+     * Contracts
+     */
+    Route::prefix('training-contracts')->group(function() {
+        Route::controller(TrainingContractController::class)->group(function(){
+            Route::get('', 'getTrainingContracts');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'getTrainingContract');
+            Route::get('cfa-number', 'getCFANumber');
+            Route::get('specialties/{id}', 'getSpecialties');
+            Route::get('certifications/{id}', 'getCertifications');
+            Route::get('count', 'countTrainingContracts');
+            Route::post('calculate-hours/{id}', 'calculateHours');
         });
     });
 

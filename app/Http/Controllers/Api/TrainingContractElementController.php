@@ -73,11 +73,11 @@ class TrainingContractElementController extends BaseController
                 $element = TrainingContractElement::getTrainingContractElement($id);
                 $certification = null;
                 $training_action = null;
-                $planned_hours = 0;
+                $formation_hours = 0;
                 if ($element->certification_total_hours) {
-                    $planned_hours = $element->training_action_total_hours;
+                    $formation_hours = $element->training_action_total_hours;
                 } else if ($element->training_action_total_hours) {
-                    $planned_hours = $element->training_action_total_hours;
+                    $formation_hours = $element->training_action_total_hours;
                 }
                 if ($element->certification_id) {
                     $certification = Certification::select('certifications.*', 'certifications.id as value', 'certifications.name as label')
@@ -94,7 +94,7 @@ class TrainingContractElementController extends BaseController
                     'status' => 200,
                     'certification' => $certification,
                     'training_action' => $training_action,
-                    'planned_hours' => $planned_hours
+                    'formation_hours' => $formation_hours
                 ]);
             } catch (\Exception $e) {
                 return response()->json([

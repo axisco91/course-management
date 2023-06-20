@@ -129,7 +129,8 @@ class TrainingContract extends Model
             'thursday' => $data['thursday'],
             'friday' => $data['friday'],
             'saturday' => $data['saturday'],
-            'sunday' => $data['sunday']
+            'sunday' => $data['sunday'],
+            'total_hours' => $data['annually_day_hours'],
         ]);
         $training_contract->excludedDays()->sync($data['excluded_day_id']);
         return $training_contract;
@@ -177,15 +178,16 @@ class TrainingContract extends Model
             'thursday' => $data['thursday'],
             'friday' => $data['friday'],
             'saturday' => $data['saturday'],
-            'sunday' => $data['sunday']
+            'sunday' => $data['sunday'],
+            'total_hours' => $data['formative_hours_first_year'] + $data['formative_hours_second_year'],
         ]);
         return $training_contract;
     }
 
     public function updateHours($exam_difference, $tutoring_difference, $teletraining_difference){
-        $total_hours = $this->total_hours + $exam_difference + $tutoring_difference + $teletraining_difference;
+        $formation_hours = $this->formation_hours + $exam_difference + $tutoring_difference + $teletraining_difference;
         $this->update([
-            'total_hours' => $total_hours
+            'formation_hours' => formation_hours
         ]);
     }
 
@@ -209,7 +211,7 @@ class TrainingContract extends Model
         }
         $training_contract = TrainingContract::find($id);
         $training_contract->update([
-            'total_hours' => $hours
+            'formation_hours' => $hours
         ]);
         return $hours;
     }

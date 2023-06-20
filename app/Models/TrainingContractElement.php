@@ -51,7 +51,7 @@ class TrainingContractElement extends Model
 
         $training_contract = TrainingContract::find($training_contract_id);
         $training_contract->update([
-            'total_hours' => $training_contract['total_hours'] + $hours
+            'formation_hours' => $training_contract['formation_hours'] + $hours
         ]);
         return $training_contract_element;
     }
@@ -72,7 +72,7 @@ class TrainingContractElement extends Model
                 $training_contract_element->delete();
             }
             $training_contract->update([
-                'total_hours' => - $hours
+                'formation_hours' => - $hours
             ]);
         }
     }

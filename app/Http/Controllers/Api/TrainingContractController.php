@@ -203,11 +203,11 @@ class TrainingContractController extends BaseController
 
             if ($training_element->training_action_id){
                 $training_action = TrainingAction::find($training_element->training_action_id);
-                $total_hours = $training_action->total_hours;
+                $total_hours = $total_hours + $training_action->total_hours;
                 $total_days = $total_hours / $hours_days;
             } else if($training_element->certification_id) {
                 $certification = Certification::find($training_element->certification_id);
-                $total_hours = $certification->total_hours;
+                $total_hours = $total_hours + $certification->total_hours;
                 $total_days = $total_hours / $hours_days;
             } else {
                 break;
@@ -216,8 +216,8 @@ class TrainingContractController extends BaseController
             $training_element->update([
                 'total_days' => $total_days
             ]);
-            while($total_days != 0){
-                $excluded = TrainingContractsExcludedDay::nonWorkingDay($id, $date);
+            do {
+                $excluded = TrainingContractsExcludedDay::nonWorkingDay($id, $beginning);
                 if ($excluded != true){
                     switch($beginning->dayOfWeek){
                         case 0:
@@ -257,13 +257,16 @@ class TrainingContractController extends BaseController
                             break;
                     }
                 }
-                $end = $beginning->addDay();
-            }
+                $beginning = $beginning->addDay();
+            } while($end_date->gt($beginning));
             $training_element->update([
-                'end' => $end
+                'end' => $end_date
             ]);
             $beginning = $beginning->addDay();
         }
+        $record->update([
+            'formation_hours' => $total_hours
+        ]);
         return response()->json([
             'status' => 200,
             'total_hours' => $total_hours,
