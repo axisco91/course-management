@@ -128,4 +128,19 @@ class TrainingContractElementController extends BaseController
         }
     }
 
+    public function orderTrainingContractElements(Request $request) {
+        try {
+            if ($request->elementListChange) {
+                TrainingContractElement::orderTrainingContractElement($request->elementListChange);
+                return response()->json([
+                    'status' => 200,
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
 }

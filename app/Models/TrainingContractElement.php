@@ -11,14 +11,16 @@ class TrainingContractElement extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days'];
+    protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days', 'order'];
 
     public static function getTrainingContractElements($training_contract_id){
         $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
-            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours')
+            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
+        'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
+        'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
-            ->where('training_contract_id', $training_contract_id)->get();
+            ->where('training_contract_id', $training_contract_id)->orderBy('order', 'asc')->get();
         return $training_contract_elements;
     }
 
@@ -79,22 +81,26 @@ class TrainingContractElement extends Model
 
     public static function getElements(){
         $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
-            DB::raw("IFNULL(certifications.name, CONCAT(training_actions.formative_action, ' ', training_actions.name)) AS course"),
+            DB::raw("IFNULL(certifications.name, training_actions.name) AS course"),
             'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
-            DB::raw("CONCAT(students.name,' ',students.surname) as student"), 'companies.name as company', 'students.dni as dni')
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"), 'companies.name as company', 'students.dni as dni',
+            'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
+            'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
             ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
-            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')->get();
+            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')->orderBy('order', 'asc')->get();
         return $training_contract_elements;
     }
 
     public static function getElementsCSV($student = null, $company = null, $beginning = null, $end = null){
         $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
             'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
-            DB::raw("IFNULL(certifications.name, CONCAT(training_actions.formative_action, ' ', training_actions.name)) AS course"),
-            DB::raw("CONCAT(students.name,' ',students.surname) as student"), 'companies.name as company', 'students.dni as dni')
+            DB::raw("IFNULL(certifications.name, training_actions.name) AS course"),
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"), 'companies.name as company', 'students.dni as dni',
+            'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
+            'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
@@ -114,7 +120,7 @@ class TrainingContractElement extends Model
             $training_contract_elements = $training_contract_elements->where('training_contract_elements.beginning', '<=', $end);
         }
 
-        $training_contract_elements = $training_contract_elements->get();
+        $training_contract_elements = $training_contract_elements->orderBy('order', 'asc')->get();
 
         $data = [];
         if (count($training_contract_elements) > 0) {
@@ -153,4 +159,16 @@ class TrainingContractElement extends Model
             ->where('training_contract_elements.id', $id)->first();
         return $training_contract_element;
     }
+
+    public static function orderTrainingContractElement($data) {
+        $cont = 1;
+        foreach ($data as $element) {
+            $training_contract_element = TrainingContractElement::find($element['id']);
+            $training_contract_element->update([
+                'order' => $cont
+            ]);
+            $cont++;
+        }
+    }
+
 }

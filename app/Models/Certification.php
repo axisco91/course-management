@@ -11,7 +11,7 @@ class Certification extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'total_hours', 'code', 'professional_family_id', 'professional_area_id', 'level'];
+    protected $fillable = ['name', 'total_hours', 'code', 'professional_family_id', 'professional_area_id', 'level', 'face_to_face_hours', 'teletraining_hours'];
 
     public function trainingContracts()
     {

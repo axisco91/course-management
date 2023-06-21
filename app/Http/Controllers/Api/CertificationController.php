@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\API;
 use App\Models\Certification;
+use App\Models\CertificationElement;
+use App\Models\Module;
+use App\Models\TrainingUnit;
 use Illuminate\Http\Request;
 
 class CertificationController extends BaseController
@@ -80,5 +83,32 @@ class CertificationController extends BaseController
 
     public function count(){
         return Certification::count();
+    }
+
+    public function recalculateHours(){
+        $certifications = Certification::all();
+        foreach($certifications as $certification) {
+            $hours = 0;
+            $face_to_face_hours = 0;
+            $teletraining_hours = 0;
+            $certification_elements = CertificationElement::where('certification_id', $certification->id)->get();
+            foreach ($certification_elements as $certification_element) {
+                if ($certification_element){
+                    if ($certification_element->training_unit_id) {
+                        $training_unit = TrainingUnit::find($certification_element->training_unit_id);
+                        $face_to_face_hours = $face_to_face_hours + $training_unit['face_to_face_hours'];
+                        $teletraining_hours = $teletraining_hours + $training_unit['teletraining_hours'];
+                    } else if($certification_element->module_id) {
+                        $module = Module::find($certification_element->module_id);
+                        $face_to_face_hours = $face_to_face_hours + $module['face_to_Face_hours'];
+                        $teletraining_hours = $teletraining_hours + $module['teletraining_hours'];
+                    }
+                }
+            }
+            $certification->update([
+                'face_to_face_hours' => $face_to_face_hours,
+                'teletraining_hours' => $teletraining_hours
+            ]);
+        }
     }
 }
