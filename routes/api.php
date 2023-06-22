@@ -547,7 +547,24 @@ Route::middleware('auth:sanctum')->group( function () {
         });
     });
 
-
+    /**
+     * Certifications
+     */
+    Route::prefix('certifications')->group(function() {
+        Route::controller(CertificationController::class)->group(function(){
+            Route::get('', 'certifications');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'getCertification');
+            Route::get('elements/{id}', 'getElements');
+            Route::post('add-Element/{id}', 'addElement');
+            Route::post('remove-element/{id}', 'removeElement');
+            Route::get('not-used-units/{id}', 'getNotUsedUnits');
+            Route::get('not-used-modules/{id}', 'getNotUsedModules');
+            Route::get('count', 'count');
+        });
+    });
 
     /**
      * Certifications
@@ -952,25 +969,5 @@ Route::prefix('company-activities')->group(function() {
 Route::prefix('cnaes')->group(function() {
     Route::controller(CnaeController::class)->group(function(){
         Route::get('', 'cnaes');
-    });
-});
-
-/**
- * Certifications
- */
-Route::prefix('certifications')->group(function() {
-    Route::controller(CertificationController::class)->group(function(){
-        Route::get('', 'certifications');
-        Route::post('create', 'create');
-        Route::post('edit/{id}', 'edit');
-        Route::get('destroy/{id}', 'destroy');
-        Route::get('get/{id}', 'getCertification');
-        Route::get('elements/{id}', 'getElements');
-        Route::post('add-Element/{id}', 'addElement');
-        Route::post('remove-element/{id}', 'removeElement');
-        Route::get('not-used-units/{id}', 'getNotUsedUnits');
-        Route::get('not-used-modules/{id}', 'getNotUsedModules');
-        Route::get('count', 'count');
-        Route::get('recalculate', 'recalculateHours');
     });
 });

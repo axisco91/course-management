@@ -271,7 +271,8 @@ class TrainingContractController extends BaseController
             'status' => 200,
             'total_hours' => $total_hours,
             'daily_hours' => $daily_hours,
-            'total_days' => $cont_days
+            'total_days' => $cont_days,
+            'elements' => $training_contract_certifications
         ]);
     }
 }
