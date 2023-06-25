@@ -201,14 +201,14 @@ class TrainingContractController extends BaseController
                 'beginning' => $beginning
             ]);
 
-            if ($training_element->training_action_id){
+              if ($training_element->training_action_id){
                 $training_action = TrainingAction::find($training_element->training_action_id);
                 $total_hours = $total_hours + $training_action->total_hours;
-                $total_days = $total_hours / $hours_days;
+                $total_days = $training_action->total_hours / $hours_days;
             } else if($training_element->certification_id) {
                 $certification = Certification::find($training_element->certification_id);
                 $total_hours = $total_hours + $certification->total_hours;
-                $total_days = $total_hours / $hours_days;
+                $total_days = $training_action->total_hours / $hours_days;
             } else {
                 break;
             }
@@ -258,15 +258,18 @@ class TrainingContractController extends BaseController
                     }
                 }
                 $beginning = $beginning->addDay();
-            } while($end_date->gt($beginning));
+            } while($total_days > 0);
             $training_element->update([
-                'end' => $end_date
+                'end' => $beginning
             ]);
             $beginning = $beginning->addDay();
         }
         $record->update([
             'formation_hours' => $total_hours
         ]);
+
+        $training_contract_certifications = TrainingContractElement::getTrainingContractElements($id);
+
         return response()->json([
             'status' => 200,
             'total_hours' => $total_hours,
