@@ -14,19 +14,33 @@ class CourseOrigin extends Model
 
     protected $fillable = ['name'];
 
-    public static function getCourseOrigin(){
+    public static function getCourseOrigins(){
         $origins = CourseOrigin::select('*', 'id as value', 'name as label')
             ->get();
 
         foreach ($origins as $origin){
-            $training_unit = TrainingUnit::where('course_origin_id', $origin['id'])->first();
-            if ($training_unit){
+            $training_action = TrainingAction::where('course_origin_id', $origin['id'])->first();
+            if ($training_action){
                 $origin['used'] = true;
             } else{
                 $origin['used'] = false;
             }
         }
         return $origins;
+    }
+
+    public static function getCourseOrigin($id){
+        $origin = CourseOrigin::select('*', 'id as value', 'name as label')
+            ->where('id', $id)
+            ->first();
+
+        $training_action = TrainingAction::where('course_origin_id', $origin['id'])->first();
+        if ($training_action){
+            $origin['used'] = true;
+        } else{
+            $origin['used'] = false;
+        }
+        return $origin;
     }
 
     public static function createCourseOrigin($data){

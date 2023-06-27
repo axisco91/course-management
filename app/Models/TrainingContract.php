@@ -101,7 +101,6 @@ class TrainingContract extends Model
             'end' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
             'beginning_formation' => $data['beginning_formation'] ? Carbon::createFromFormat('d-m-Y', $data['beginning_formation'])->format('Y-m-d') : null,
             'end_formation' => $data['end_formation'] ? Carbon::createFromFormat('d-m-Y', $data['end_formation'])->format('Y-m-d') : null,
-            'formation_hours' => $data['formation_hours'],
             'annually_day_hours' => $data['annually_day_hours'],
             'bonus_hours_first_year' => $data['bonus_hours_first_year'] ? $data['bonus_hours_first_year'] : 0,
             'bonus_hours_second_year' => $data['bonus_hours_second_year'] ? $data['bonus_hours_second_year'] : 0,
@@ -130,7 +129,7 @@ class TrainingContract extends Model
             'friday' => $data['friday'],
             'saturday' => $data['saturday'],
             'sunday' => $data['sunday'],
-            'total_hours' => $data['annually_day_hours'],
+            'total_hours' => $data['total_hours'],
         ]);
         $training_contract->excludedDays()->sync($data['excluded_day_id']);
         return $training_contract;
@@ -179,7 +178,7 @@ class TrainingContract extends Model
             'friday' => $data['friday'],
             'saturday' => $data['saturday'],
             'sunday' => $data['sunday'],
-            'total_hours' => $data['formative_hours_first_year'] + $data['formative_hours_second_year'],
+            'total_hours' => $data['total_hours'],
         ]);
         return $training_contract;
     }

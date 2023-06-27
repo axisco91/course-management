@@ -12,7 +12,7 @@ class TrainingAction extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'formative_action','action_type_id','professional_family_id','professional_area_id','modality_id','training_action_level_id','training_action_group_id','tutoring_id','course_z','course_avz','active','in_catalog','face_to_face_hours','teletraining_hours','total_hours','price','objectives','content','user', 'password','web_platform_id','observations','number_activities','number_units','provider_id', 'specialty'];
+    protected $fillable = ['name', 'formative_action','action_type_id','professional_family_id','professional_area_id','modality_id','training_action_level_id','training_action_group_id','tutoring_id','course_z','course_avz','active','in_catalog','face_to_face_hours','teletraining_hours','total_hours','price','objectives','content','user', 'password','web_platform_id','observations','number_activities','number_units','provider_id', 'specialty', 'course_origin_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -91,7 +91,7 @@ class TrainingAction extends Model
             'action_types.name as action_type', 'professional_families.name as professional_family',
             'professional_areas.name as professional_area', 'modalities.name as modality',
             'training_action_levels.name as training_action_level', 'training_action_groups.name as training_action_group',
-            'tutorings.name as tutoring', 'web_platforms.name as web_platform', 'providers.name as provider')
+            'tutorings.name as tutoring', 'web_platforms.name as web_platform', 'providers.name as provider', 'course_origins.name as course_origin')
             ->leftjoin('action_types', 'action_types.id', '=', 'training_actions.action_type_id')
             ->leftjoin('professional_families', 'professional_families.id', '=', 'training_actions.professional_family_id')
             ->leftjoin('professional_areas', 'professional_areas.id', '=', 'training_actions.professional_area_id')
@@ -101,6 +101,7 @@ class TrainingAction extends Model
             ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
             ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
             ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id')
+            ->leftjoin('course_origins', 'course_origins.id', '=', 'training_actions.course_origin_id')
             ->orderby('id', 'asc')
             ->get();
         foreach($trainingActions as $trainingAction) {
@@ -119,7 +120,7 @@ class TrainingAction extends Model
             'action_types.name as action_type', 'professional_families.name as professional_family',
             'professional_areas.name as professional_area', 'modalities.name as modality',
             'training_action_levels.name as training_action_level', 'training_action_groups.name as training_action_group',
-            'tutorings.name as tutoring', 'web_platforms.name as web_platform', 'providers.name as provider')
+            'tutorings.name as tutoring', 'web_platforms.name as web_platform', 'providers.name as provider', 'course_origins.name as course_origin')
             ->leftjoin('action_types', 'action_types.id', '=', 'training_actions.action_type_id')
             ->leftjoin('professional_families', 'professional_families.id', '=', 'training_actions.professional_family_id')
             ->leftjoin('professional_areas', 'professional_areas.id', '=', 'training_actions.professional_area_id')
@@ -129,6 +130,7 @@ class TrainingAction extends Model
             ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
             ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
             ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id')
+            ->leftjoin('course_origins', 'course_origins.id', '=', 'training_actions.course_origin_id')
             ->where('training_actions.id', $id)
             ->first();
         $course = Course::where('training_action_id', $trainingAction->id)->first();
@@ -176,7 +178,8 @@ class TrainingAction extends Model
             'provider_id' => $data['provider_id'],
             'active' => $data['active'],
             'specialty' => $data['specialty'],
-            'in_catalog' => $data['in_catalog']
+            'in_catalog' => $data['in_catalog'],
+            'course_origin_id' => $data['course_origin_id'] != -1 ? $data['course_origin_id'] : null,
         ]);
 
         return $training_action;
@@ -205,7 +208,8 @@ class TrainingAction extends Model
             'observations' => $data['observations'],
             'number_activities' => $data['number_activities'] ? $data['number_activities'] : 0,
             'number_units' => $data['number_units'] ? $data['number_units'] : 0,
-            'provider_id' => $data['provider_id']
+            'provider_id' => $data['provider_id'],
+            'course_origin_id' => $data['course_origin_id'] != -1 ? $data['course_origin_id'] : null,
         ]);
         $training_action->update([
             'active' => $data['active']
@@ -246,7 +250,7 @@ class TrainingAction extends Model
         $training_contracts_specialties = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
             ->whereNotNull('training_action_id')
             ->pluck('training_action_id');
-        $training_actions = TrainingAction::select('training_actions.*', 'training_actions.id as value', 'training_actions.name as label')
+        $training_actions = TrainingAction::select('training_actions.*', 'training_actions.id as value', DB::raw("CONCAT(training_actions.name,' (', training_actions.total_hours,' hours)') as label"))
             ->where('active', 1)
             ->where('specialty', 1)
             ->whereNotIn('id', $training_contracts_specialties)->get();

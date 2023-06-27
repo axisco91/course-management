@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Certification extends Model
 {
@@ -86,7 +87,7 @@ class Certification extends Model
         $training_contracts_certifications = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
             ->whereNotNull('certification_id')
             ->pluck('certification_id');
-        $certifications = Certification::select('certifications.*', 'certifications.id as value', 'certifications.name as label')
+        $certifications = Certification::select('certifications.*', 'certifications.id as value', DB::raw("CONCAT(certifications.name,' (', certifications.total_hours,' hours)') as label"))
             ->whereNotIn('id', $training_contracts_certifications)
             ->where('active', 1)->get();
         return $certifications;

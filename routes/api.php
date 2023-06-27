@@ -63,6 +63,7 @@ use App\Http\Controllers\API\CertificationElementController;
 use App\Http\Controllers\API\StatisticController;
 use App\Http\Controllers\API\TrainingContractBillController;
 use App\Http\Controllers\API\RoleController;
+use App\Http\Controllers\API\CourseOriginController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -830,6 +831,19 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getWebPlatform');
             Route::get('count', 'count');
+        });
+    });
+
+    /**
+     * Web platforms
+     */
+    Route::prefix('course-origins')->group(function() {
+        Route::controller(CourseOriginController::class)->group(function(){
+            Route::get('', 'getCourseOrigins');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'getCourseOrigin');
         });
     });
 
