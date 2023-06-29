@@ -250,7 +250,7 @@ class TrainingAction extends Model
         $training_contracts_specialties = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
             ->whereNotNull('training_action_id')
             ->pluck('training_action_id');
-        $training_actions = TrainingAction::select('training_actions.*', 'training_actions.id as value', DB::raw("CONCAT(training_actions.name,' (', training_actions.total_hours,' hours)') as label"))
+        $training_actions = TrainingAction::select('training_actions.*', 'training_actions.id as value', DB::raw("CONCAT(training_actions.name,' (', training_actions.total_hours,' horas)') as label"))
             ->where('active', 1)
             ->where('specialty', 1)
             ->whereNotIn('id', $training_contracts_specialties)->get();

@@ -121,7 +121,7 @@ class Student extends Model
             'company_id' => $data['company_id'],
             'user' => $data['user'],
             'password' => $data['password'],
-            'disabled' => $data['disabled'] == true ? 1 : 0,
+            'disabled' => $data['disabled'],
             'date_of_birth' => $data['date_of_birth'] ? Carbon::createFromFormat('d-m-Y', $data['date_of_birth'])->format('Y-m-d') : null,
             'level_study_id' => $data['level_study_id'],
             'social_security_number' => $data['social_security_number'] ? $data['social_security_number'] : null,
@@ -138,7 +138,6 @@ class Student extends Model
             'observation' => $data['observation'] ? $data['observation'] : null,
             'iban' => $data['iban'] ? $data['iban'] : null,
             'active' => $data['active'],
-            'disabled' => $data['disabled']
         ]);
 
         return $student;
@@ -174,7 +173,7 @@ class Student extends Model
             'observation' => $data['observation'] ? $data['observation'] : null,
             'iban' => $data['iban'] ? $data['iban'] : null,
             'disabled' => $data['disabled'],
-            'active' => $data['active']
+            'active' => $data['active'],
         ]);
 
         return $student;

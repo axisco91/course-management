@@ -87,7 +87,7 @@ class Certification extends Model
         $training_contracts_certifications = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
             ->whereNotNull('certification_id')
             ->pluck('certification_id');
-        $certifications = Certification::select('certifications.*', 'certifications.id as value', DB::raw("CONCAT(certifications.name,' (', certifications.total_hours,' hours)') as label"))
+        $certifications = Certification::select('certifications.*', 'certifications.id as value', DB::raw("CONCAT(certifications.name,' (', certifications.total_hours,' horas)') as label"))
             ->whereNotIn('id', $training_contracts_certifications)
             ->where('active', 1)->get();
         return $certifications;

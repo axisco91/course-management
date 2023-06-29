@@ -25,7 +25,7 @@ class ExamTutorial extends Model
     public static function getExamTutorial($id){
         $exam_tutorials = ExamTutorial::select('exams_tutorials.*', 'centers.name as center')
             ->leftjoin('centers', 'centers.id', '=', 'exams_tutorials.center_id')
-            ->where('exams_tutorials.id', $id)->get();
+            ->where('exams_tutorials.id', $id)->first();
         return $exam_tutorials;
     }
 

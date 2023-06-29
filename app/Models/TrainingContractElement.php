@@ -20,20 +20,26 @@ class TrainingContractElement extends Model
         'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
-            ->where('training_contract_id', $training_contract_id)->orderBy('order', 'asc')->get();
+            ->where('training_contract_id', $training_contract_id)
+            ->whereDate('beginning', '<=', Carbon::now())
+            ->whereDate('end', '>=', Carbon::now())->orderBy('order', 'asc')->get();
         return $training_contract_elements;
     }
 
     public static function createTrainingContractElement($training_contract_id, $element_id, $type){
         $hours = 0;
         $training_contract_element = null;
+        $last_training_contract_element = TrainingContractElement::where('training_contract_id', $training_contract_id)
+        ->orderBy('order', 'desc')->first();
+        $order = $last_training_contract_element ? $last_training_contract_element->order + 1 : 1;
         if ($type == 'certification_id'){
             $training_contract_element = TrainingContractElement::where('certification_id', $element_id)
                 ->where('training_contract_id', $training_contract_id)->first();
             if (!$training_contract_element){
                 $training_contract_element = TrainingContractElement::create([
                     'training_contract_id' => $training_contract_id,
-                    'certification_id' => $element_id
+                    'certification_id' => $element_id,
+                    'order' => $order
                 ]);
                 $certification = Certification::find($element_id);
                 $hours = $certification['total_hours'];
@@ -44,7 +50,8 @@ class TrainingContractElement extends Model
             if (!$training_contract_element){
                 $training_contract_element = TrainingContractElement::create([
                     'training_contract_id' => $training_contract_id,
-                    'training_action_id' => $element_id
+                    'training_action_id' => $element_id,
+                    'order' => $order
                 ]);
                 $training_action = TrainingAction::find($element_id);
                 $hours = $training_action['total_hours'];

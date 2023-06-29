@@ -95,9 +95,6 @@ class Teacher extends Model
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
-        ]);
-
-        $teacher->update([
             'active' => $data['active']
         ]);
 
