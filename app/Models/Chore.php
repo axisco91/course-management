@@ -39,7 +39,8 @@ class Chore extends Model
         'quarter_date_sent',
         'half_date_sent',
         'three_quarters_date_sent',
-        'final_date_sent'];
+        'final_date_sent',
+        'training_contract_element_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

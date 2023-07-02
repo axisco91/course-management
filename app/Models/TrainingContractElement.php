@@ -11,18 +11,18 @@ class TrainingContractElement extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days', 'order'];
+    protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days', 'order', 'course_id'];
 
     public static function getTrainingContractElements($training_contract_id){
         $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+            'training_contracts.number_cfa as cfa',
             'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
         'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
         'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
-            ->where('training_contract_id', $training_contract_id)
-            ->whereDate('beginning', '<=', Carbon::now())
-            ->whereDate('end', '>=', Carbon::now())->orderBy('order', 'asc')->get();
+            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
+            ->where('training_contract_id', $training_contract_id)->orderBy('order', 'asc')->get();
         return $training_contract_elements;
     }
 
@@ -88,7 +88,7 @@ class TrainingContractElement extends Model
 
     public static function getElements(){
         $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
-            DB::raw("IFNULL(certifications.name, training_actions.name) AS course"),
+            DB::raw("IFNULL(certifications.name, training_actions.name) AS course"), 'training_contracts.number_cfa as cfa',
             'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
             DB::raw("CONCAT(students.name,' ',students.surname) as student"), 'companies.name as company', 'students.dni as dni',
             'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
@@ -97,13 +97,15 @@ class TrainingContractElement extends Model
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
             ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
-            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')->orderBy('order', 'asc')->get();
+            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')
+            ->whereDate('training_contract_elements.beginning', '<=', Carbon::now())
+            ->whereDate('training_contract_elements.end', '>=', Carbon::now())->orderBy('order', 'asc')->get();
         return $training_contract_elements;
     }
 
     public static function getElementsCSV($student = null, $company = null, $beginning = null, $end = null){
         $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
-            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
+            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours', 'training_contracts.number_cfa as cfa',
             DB::raw("IFNULL(certifications.name, training_actions.name) AS course"),
             DB::raw("CONCAT(students.name,' ',students.surname) as student"), 'companies.name as company', 'students.dni as dni',
             'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
@@ -112,7 +114,9 @@ class TrainingContractElement extends Model
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
             ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
-            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id');
+            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')
+            ->whereDate('training_contract_elements.beginning', '<=', Carbon::now())
+            ->whereDate('training_contract_elements.end', '>=', Carbon::now());
 
         if ($student) {
             $training_contract_elements = $training_contract_elements->where('students.id', 'LIKE', $student);
@@ -135,6 +139,7 @@ class TrainingContractElement extends Model
                 $beginning = \Carbon\Carbon::parse($training_contract_element['beginning'])->format('d/m/Y');
                 $end = Carbon::parse($training_contract_element['end'])->format('d/m/Y');
                 $element = [
+                    'CFA' => $training_contract_element['cfa'],
                     'Nombre Curso' => $training_contract_element['course'],
                     'Empresa' => $training_contract_element['company'],
                     'Alumno' => $training_contract_element['student'],
@@ -146,6 +151,7 @@ class TrainingContractElement extends Model
             }
         } else {
             $element = [
+                'CFA' => '',
                 'Nombre Curso' => '',
                 'Empresa' => '',
                 'Alumno' => '',

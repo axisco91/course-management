@@ -278,6 +278,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingContractStatus');
+            Route::get('register', 'registers');
             Route::get('count', 'count');
         });
     });
@@ -907,6 +908,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('certifications/{id}', 'getCertifications');
             Route::get('count', 'countTrainingContracts');
             Route::post('calculate-hours/{id}', 'calculateHours');
+            Route::get('csv', 'trainingContractCSV');
         });
     });
 

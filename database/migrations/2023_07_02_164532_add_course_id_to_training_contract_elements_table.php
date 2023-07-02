@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddCourseOriginIdToTrainingActionsTable extends Migration
+class AddCourseIdToTrainingContractElementsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddCourseOriginIdToTrainingActionsTable extends Migration
      */
     public function up()
     {
-        Schema::table('training_actions', function (Blueprint $table) {
-            $table->foreignId('course_origin_id')->index()->nullable()->onUpdate('cascade')->onDelete('setNull');
+        Schema::table('training_contract_elements', function (Blueprint $table) {
+            $table->foreignId('course_id')->index()->nullable()->onUpdate('cascade')->onDelete('setNull');
         });
     }
 
@@ -25,8 +25,8 @@ class AddCourseOriginIdToTrainingActionsTable extends Migration
      */
     public function down()
     {
-        Schema::table('training_actions', function (Blueprint $table) {
-            $table->dropColumn('course_origin_id');
+        Schema::table('training_contract_elements', function (Blueprint $table) {
+            $table->dropColumn('course_id');
         });
     }
 }

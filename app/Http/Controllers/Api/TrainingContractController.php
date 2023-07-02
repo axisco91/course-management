@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 use App\Models\Certification;
+use App\Models\Course;
 use App\Models\TrainingAction;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractElement;
@@ -13,6 +14,10 @@ use Illuminate\Support\Facades\Validator;
 
 class TrainingContractController extends BaseController
 {
+    /**
+     * Obtenemos todos los CFA
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getTrainingContracts() {
         try {
             return TrainingContract::getTrainingContracts();
@@ -23,6 +28,11 @@ class TrainingContractController extends BaseController
         }
     }
 
+    /**
+     * Creamos el CFA
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function create(Request $request){
         try {
             $contract = TrainingContract::createTrainingContract($request);
@@ -39,6 +49,12 @@ class TrainingContractController extends BaseController
         ]);
     }
 
+    /**
+     * Editamos el CFA
+     * @param $id
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function edit($id, Request $request){
         try {
             $contract = TrainingContract::updateTrainingContract($id, $request);
@@ -55,6 +71,11 @@ class TrainingContractController extends BaseController
         ]);
     }
 
+    /**
+     * Obtenemos el CFA
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getTrainingContract($id){
         $contract = TrainingContract::getTrainingContract($id);
         if ($contract) {
@@ -69,6 +90,11 @@ class TrainingContractController extends BaseController
         ]);
     }
 
+    /**
+     * Eliminamos el CFA
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse|void
+     */
     public function destroy($id){
         if ($id) {
             try {
@@ -85,6 +111,10 @@ class TrainingContractController extends BaseController
         }
     }
 
+    /**
+     * Obtenemos el numbero CFA
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getCFANumber(){
         $training = TrainingContract::orderBy('id', 'desc')->first();
         $id = $training['id']+1;
@@ -104,6 +134,11 @@ class TrainingContractController extends BaseController
         ]);
     }
 
+    /**
+     * Obtenemos las especialidades
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse|void
+     */
     public function getSpecialties($id) {
         if ($id) {
             try {
@@ -116,6 +151,11 @@ class TrainingContractController extends BaseController
         }
     }
 
+    /**
+     * Obtenemos los certificaciones
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse|void
+     */
     public function getCertifications($id) {
         if ($id) {
             try {
@@ -132,6 +172,11 @@ class TrainingContractController extends BaseController
         return TrainingContract::count();
     }
 
+    /**
+     * Calcula las horas del curso y le añade fechas a los cursos
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function calculateHours($id) {
         $record = TrainingContract::findOrFail($id);
         $training_contract_certifications = TrainingContractElement::getTrainingContractElements($id);
@@ -277,5 +322,135 @@ class TrainingContractController extends BaseController
             'total_days' => $cont_days,
             'elements' => $training_contract_certifications
         ]);
+    }
+
+    /**
+     * Crea el curso y matricula al alumno
+     * @return void
+     */
+    public function register(Request $request) {
+        try {
+            if ($request->id) {
+                $training_contract_element = TrainingContractElement::find($request->id);
+                if ($training_contract_element) {
+                    $training_contract = TrainingContract::find($training_contract_element->training_contract_id);
+                    if ($training_contract) {
+                        if ($training_contract_element->training_action_id) {
+                            $training_action = TrainingAction::find($training_contract_element->training_action_id);
+                            $course_data = Course::setName($training_contract_element->training_action_id, null);
+                            $data = [
+                                'name' => $training_action->formative_action.' - '.$training_action->name,
+                                'training_action_id' => $training_contract_element->training_action_id,
+                                'group' => $course_data->group,
+                                'teacher_id' => null,
+                                'beginning' => $training_contract_element->beginning,
+                                'end' => $training_contract_element->end,
+                                'morning_schedule' => null,
+                                'afternoon_schedule' => null,
+                                'formation_center_id' => null,
+                                'delivery_center_id' => null,
+                                'course_observation' => null,
+                                'welcome_date' => $training_contract_element->beginning,
+                                'final_date' => $training_contract_element->end,
+                                'price' => 0,
+                                'nebrija' => 0,
+                                'monday' => 0,
+                                'tuesday' =>0,
+                                'wednesday' => 0,
+                                'thursday' => 0,
+                                'friday' => 0,
+                                'saturday' => 0,
+                                'sunday' => 0,
+                                'outsourced' => 0,
+                                'reactivated' => 0
+                            ];
+                            $course = Course::createCourse($data);
+                            $tracing_data = [
+                                'course_id' => $course->id,
+                                'company_id' => $training_contract->company_id,
+                                'student_id' => $training_contract->student_id,
+                            ];
+                            $tracing = Tracing::createTracing($tracing_data);
+                            if ($tracing) {
+                                $tracing->training_contract_element_id = $training_contract_element->id;
+                                $chore_data = [
+                                    'course_id' => $course->id,
+                                    'company_id' => $training_contract->company_id,
+                                    'student_id' => $training_contract->student_id,
+                                ];
+                                $chore = Chore::createChore($chore_data);
+                                if ($chore) {
+                                    $chore->training_contract_element_id = $training_contract_element->id;
+                                    $advisor_id = null;
+                                    $collaborator_id = null;
+                                    $company = Company::find($training_contract->company_id);
+                                    $advisor = Advisor::find($company->advisor_id);
+                                    $advisor_percentage = null;
+                                    $collaborator_percentage = null;
+                                    if ($advisor) {
+                                        if ($advisor['collaborator_id']){
+                                            $collaborator_id = $advisor['collaborator_id'];
+                                        }
+                                        if ($advisor['commission']){
+                                            $advisor_percentage = intval($advisor['commission']);
+                                        }
+                                    }
+                                    if ($company){
+                                        if ($company['advisor_id']){
+                                            $advisor_id = $company['advisor_id'];
+                                        }
+                                        if ($company['collaborator_id']){
+                                            $collaborator_id = $company['collaborator_id'];
+                                        }
+                                    }
+                                    if ($collaborator_id){
+                                        $user = User::find($collaborator_id);
+                                        if ($user){
+                                            $collaborator_percentage = $user['commission'];
+                                        }
+                                    }
+                                    $registration_data = [
+                                        'course_id' => $request['course_id'],
+                                        'company_id' => $training_contract->company_id,
+                                        'student_id' => $training_contract->student_id,
+                                        'billing_id' => null,
+                                        'tracing_id' => $tracing['id'],
+                                        'chore_id' => $chore['id'],
+                                        'price' => $request['price'],
+                                        'profitability_id' => null,
+                                        'is_bonus' => $request['is_bonus']
+                                    ];
+                                    $registration = Registration::createRegistration($registration_data);
+                                    $training_contract_element->course_id = $course->id;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'registration' => $registration
+        ]);
+    }
+
+    public function trainingContractCSV(Request $request){
+        try {
+            if ($request) {
+                return TrainingContract::getTrainingContractsCSV($request['company'], $request['student_id'], $request['status']);
+            }
+            return TrainingContract::getTrainingContractsCSV();
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 }

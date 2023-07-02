@@ -105,7 +105,7 @@ class Course extends Model
             'dc.name as delivery_center',
             'course_statuses.name as course_status',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
-            'training_actions.name as training_action',
+            DB::raw("CONCAT(training_actions.formative_action,' - ',training_actions.name) as training_action"),
             'training_actions.formative_action as formative_action')
             ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
             ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
@@ -144,7 +144,7 @@ class Course extends Model
             'course_statuses.name as course_status',
             'courses.id as value', 'courses.name as label',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
-            'training_actions.name as training_action',
+            DB::raw("CONCAT(training_actions.formative_action,' - ',training_actions.name) as training_action"),
             'training_actions.formative_action as formative_action')
             ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
             ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
@@ -259,8 +259,9 @@ class Course extends Model
             } else {
                 $name = $training_action_id;
             }
-            $num_courses = Course::numbercourses($training_action['id']);
-            $cont = $num_courses->count();
+            $num_courses = Course::where( 'training_action_id',$training_action['id'])
+                ->orderby('group', 'desc')->first();
+            $cont = intval($num_courses->group);
             $cont = $cont+1;
             if ($cont < 10){
                 $group = '000'.$cont;

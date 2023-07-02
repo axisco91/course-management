@@ -41,7 +41,7 @@ class TrainingContract extends Model
             ->leftjoin('advisors', 'advisors.id', '=', 'training_contracts.advisor_id')
             ->leftjoin('users', 'users.id', '=', 'training_contracts.collaborator_id')
             ->leftjoin('occupations', 'occupations.id', '=', 'training_contracts.occupation_id')
-            ->orderby('beginning', 'desc')
+            ->orderby('training_contracts.beginning', 'desc')
             ->get();
         return $trainingContracts;
     }
@@ -135,6 +135,12 @@ class TrainingContract extends Model
         return $training_contract;
     }
 
+    /**
+     * Actualizamos los contratos de formación
+     * @param $id
+     * @param $data
+     * @return mixed
+     */
     public static function updateTrainingContract($id, $data){
         $training_contract = TrainingContract::find($id);
         $training_contract->update([
@@ -183,35 +189,76 @@ class TrainingContract extends Model
         return $training_contract;
     }
 
-    public function updateHours($exam_difference, $tutoring_difference, $teletraining_difference){
-        $formation_hours = $this->formation_hours + $exam_difference + $tutoring_difference + $teletraining_difference;
-        $this->update([
-            'formation_hours' => formation_hours
-        ]);
-    }
+    /**
+     * Sacamos los datos para el csv
+     * @param $company
+     * @param $student_id
+     * @param $status
+     * @return array
+     */
+    public static function getTrainingContractsCSV($company = null, $student_id = null, $status = null){
+        $trainingContracts = TrainingContract::select('training_contracts.*',
+            'companies.name as company_name',
+            'students.name as student_name',
+            'students.surname as student_surname',
+            'training_contract_statuses.name as training_contract_status',
+            'providers.name as provider',
+            'provinces.name as province',
+            'on_leave_types.name as on_leave_type',
+            'advisors.name as advisor',
+            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"),
+            'occupations.name as occupation')
+            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')
+            ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
+            ->leftjoin('provinces', 'provinces.id', '=', 'training_contracts.province_id')
+            ->leftjoin('providers', 'providers.id', '=', 'training_contracts.provider_id')
+            ->leftjoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id')
+            ->leftjoin('on_leave_types', 'on_leave_types.id', '=', 'training_contracts.on_leave_type_id')
+            ->leftjoin('advisors', 'advisors.id', '=', 'training_contracts.advisor_id')
+            ->leftjoin('users', 'users.id', '=', 'training_contracts.collaborator_id')
+            ->leftjoin('occupations', 'occupations.id', '=', 'training_contracts.occupation_id');
 
-    public static function calculateTotalHours($id){
-        $elements = TrainingContractElement::where('training_contract_id', $id)->get();
-        $hours = 0;
-        if ($elements){
-            foreach ($elements as $element){
-                if ($element->certification_id){
-                    $certification = Certification::find($element->certification_id);
-                    if ($certification){
-                        $hours = $hours + $certification->total_hours;
-                    }
-                } else if($element->training_action_id){
-                    $training_action = TrainingAction::find($element->triaining_action_id);
-                    if ($training_action){
-                        $hours = $hours + $training_action->total_hours;
-                    }
-                }
-            }
+        if ($company) {
+            $trainingContracts = $trainingContracts->where('companies.name', $company);
         }
-        $training_contract = TrainingContract::find($id);
-        $training_contract->update([
-            'formation_hours' => $hours
-        ]);
-        return $hours;
+        if ($student_id) {
+            $trainingContracts = $trainingContracts->where('training_contracts.student_id', $student_id);
+        }
+        if ($status) {
+            $trainingContracts = $trainingContracts->where('training_contract_statuses.name', $status);
+        }
+
+        $trainingContracts = $trainingContracts->orderBy('training_contracts.beginning', 'asc')->get();
+
+        $data = [];
+        if (count($trainingContracts) > 0) {
+            foreach($trainingContracts as $trainingContract) {
+                $beginning = \Carbon\Carbon::parse($trainingContract['beginning'])->format('d/m/Y');
+                $end = Carbon::parse($trainingContract['end'])->format('d/m/Y');
+                $element = [
+                    'NÚMERO CFA' => $trainingContract['number_cfa'],
+                    'EMPRESA' => $trainingContract['company_name'],
+                    'ALUMNO' => $trainingContract['student'],
+                    'ESTADO' => $trainingContract['training_contract_status'],
+                    'PROVEEDOR' => $trainingContract['provider'],
+                    'INICIO' => $beginning,
+                    'FIN' => $end,
+                ];
+                $data[] = $element;
+            }
+        } else {
+            $element = [
+                'CFA' => '',
+                'EMPRESA' => '',
+                'ALUMNO' => '',
+                'ESTADO' => '',
+                'PROVEEDOR' => '',
+                'INICIO' => '',
+                'FIN' => '',
+            ];
+            $data[] = $element;
+        }
+        return $data;
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 use App\Models\Course;
 use App\Models\TrainingAction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -21,7 +22,7 @@ class TrainingActionController extends BaseController
 
     public function getActiveTrainingActions() {
         try {
-            return TrainingAction::select('id as value', 'name as label')->where('active', 1)->get();
+            return TrainingAction::select('id as value', DB::raw("CONCAT(formative_action,' - ',name) as label"))->where('active', 1)->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
