@@ -13,7 +13,7 @@ class TrainingContractElementController extends BaseController
     public function getTrainingContractElements($id) {
         if ($id) {
             try {
-                $elements = TrainingContractElement::getTrainingContractElements($id);
+                $elements = TrainingContractElement::info()->trainingContracts($id)->get();
                 $planned = 0;
                 foreach ($elements as $element) {
                     if ($element->certification_total_hours) {

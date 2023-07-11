@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateExcludedDaysTable extends Migration
+class CreateProvinceFestivalsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,11 @@ class CreateExcludedDaysTable extends Migration
      */
     public function up()
     {
-        Schema::create('excluded_days', function (Blueprint $table) {
+        Schema::create('province_festivals', function (Blueprint $table) {
             $table->id();
             $table->date('day');
+            $table->string('nombre')->nullable();
+            $table->foreignId('province_id')->index()->nullable()->onUpdate('cascade')->onDelete('setNull');
         });
     }
 
@@ -26,6 +28,6 @@ class CreateExcludedDaysTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('excluded_days');
+        Schema::dropIfExists('province_festivals');
     }
 }

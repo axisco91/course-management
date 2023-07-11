@@ -106,12 +106,18 @@ class Tracing extends Model
             'training_actions.total_hours',
             'course_statuses.name as status',
             'courses.group as course_group',
+            'courses.welcome_date',
+            'courses.quarter_date',
+            'courses.half_date',
+            'courses.three_quarters_date',
+            'courses.final_date',
             DB::raw("CONCAT(students.name,' ',students.surname) as student"))
             ->leftjoin('courses', 'courses.id', '=', 'tracings.course_id')
             ->leftjoin('course_statuses', 'course_statuses.id', 'courses.course_status_id')
             ->leftjoin('companies', 'companies.id', '=', 'tracings.company_id')
             ->leftjoin('students', 'students.id', '=', 'tracings.student_id')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->orderBy('tracings.id', 'desc')
             ->where('tracings.id', $id)->first();
 
         if ($tracing->final_test === 0) {

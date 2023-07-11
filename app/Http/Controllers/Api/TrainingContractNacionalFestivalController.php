@@ -1,19 +1,20 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\Chore;
-use App\Models\Course;
-use App\Models\Student;
-use Carbon\Carbon;
+use App\Models\ExcludedDayType;
+use App\Models\NacionalFestival;
+use App\Models\TrainingActionLevel;
+use App\Models\TrainingContractFestival;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class ChoreController extends BaseController
+class TrainingContractNacionalFestivalController extends BaseController
 {
-    public function getChores() {
+    public function getTrainingContractNacionalFestivals($id) {
         try {
-            return Chore::getChores();
+            return TrainingContractFestival::where('training_contract_id', $id)->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -23,7 +24,10 @@ class ChoreController extends BaseController
 
     public function create(Request $request){
         try {
-            $chore = Chore::createChore($request);
+            $festival = TrainingContractFestival::create([
+                'training_contract_id' => $request->name,
+                'day' => Carbon::createFromFormat('d-m-Y', $request->day)->format('Y-m-d')
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -33,13 +37,17 @@ class ChoreController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'chore' => $chore
+            'nacional_festival' => $festival
         ]);
     }
 
     public function edit($id, Request $request){
         try {
-            $chore = Chore::updateChore($id, $request);
+            $festival = NacionalFestival::find($id);
+            $festival->update([
+                'name' => $request->name,
+                'day' => Carbon::createFromFormat('d-m-Y', $request->day)->format('Y-m-d')
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -49,28 +57,14 @@ class ChoreController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'chore' => Chore::getChore($chore->id)
-        ]);
-    }
-
-    public function getChore($id){
-        $chore = Chore::getChore($id);
-        if ($chore) {
-            return response()->json([
-                'status' => 200,
-                'chore' => $chore
-            ]);
-        }
-        return response()->json([
-            'status' => 400,
-            'message' => 'Seguimiento no existe'
+            'nacional_festival' => $festival
         ]);
     }
 
     public function destroy($id){
         if ($id) {
             try {
-                Chore::destroy($id);
+                NacionalFestival::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -80,23 +74,6 @@ class ChoreController extends BaseController
                     'message' => $e->getMessage()
                 ]);
             }
-        }
-    }
-
-    public function count(){
-        return Chore::count();
-    }
-
-    public function choresCSV(Request $request){
-        try {
-            if ($request) {
-                return Chore::getChoreCSV($request['course'], $request['company'], $request['student'], $request['status'], $request['beginning'], $request['end']);
-            }
-            return Chore::getChoreCSV();
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
         }
     }
 }

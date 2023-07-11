@@ -1,17 +1,19 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\ExcludedDay;
+use App\Models\ExcludedDayType;
+use App\Models\NacionalFestival;
 use App\Models\TrainingActionLevel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class ExcludedDayController extends BaseController
+class NacionalFestivalController extends BaseController
 {
-    public function getExcludedDays() {
+    public function getNacionalFestivals() {
         try {
-            return ExcludedDay::getExcludedDays();
+            return NacionalFestival::all();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -21,7 +23,10 @@ class ExcludedDayController extends BaseController
 
     public function create(Request $request){
         try {
-            $excluded_day = ExcludedDay::createExcludedDay($request);
+            $festival = NacionalFestival::create([
+                'name' => $request->name,
+                'day' => Carbon::createFromFormat('d-m-Y', $request->day)->format('Y-m-d')
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -31,13 +36,17 @@ class ExcludedDayController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'excluded_day' => $excluded_day
+            'nacional_festival' => $festival
         ]);
     }
 
     public function edit($id, Request $request){
         try {
-            $excluded_day = ExcludedDay::updateExcludedDay($id, $request);
+            $festival = NacionalFestival::find($id);
+            $festival->update([
+                'name' => $request->name,
+                'day' => Carbon::createFromFormat('d-m-Y', $request->day)->format('Y-m-d')
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -47,28 +56,14 @@ class ExcludedDayController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'excluded_day' => $excluded_day
-        ]);
-    }
-
-    public function getExcludedDay($id){
-        $excluded_day = ExcludedDay::find($id);
-        if ($excluded_day) {
-            return response()->json([
-                'status' => 200,
-                'excluded_day' => $excluded_day
-            ]);
-        }
-        return response()->json([
-            'status' => 400,
-            'message' => 'Día excludido no existe'
+            'nacional_festival' => $festival
         ]);
     }
 
     public function destroy($id){
         if ($id) {
             try {
-                ExcludedDay::destroy($id);
+                NacionalFestival::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -79,9 +74,5 @@ class ExcludedDayController extends BaseController
                 ]);
             }
         }
-    }
-
-    public function count(){
-        return ExcludedDay::count();
     }
 }

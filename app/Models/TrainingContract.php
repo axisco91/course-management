@@ -16,7 +16,7 @@ class TrainingContract extends Model
     protected $guarded = [];
 
     public function excludedDays(){
-        return $this->belongsToMany(ExcludedDay::class, 'training_contracts_excluded_days', 'training_contract_id', 'excluded_day_id');
+        return $this->belongsToMany(ExcludedDayType::class, 'training_contracts_excluded_days', 'training_contract_id', 'excluded_day_id');
     }
 
     public static function getTrainingContracts(){

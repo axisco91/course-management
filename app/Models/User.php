@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Models\Role;
 
 use Spatie\Permission\Traits\HasRoles;
 
@@ -97,7 +98,7 @@ class User extends Authenticatable
             'active' => $data['active']
         ]);
         $roles = [$data['roles']];
-        $user->syncRoles($roles);
+        $user->syncRoles($roles[0]);
         return $user;
     }
 
@@ -113,7 +114,7 @@ class User extends Authenticatable
             'active' => $data['active']
         ]);
         $roles = [$data['roles']];
-        $user->syncRoles($roles);
+        $user->syncRoles($roles[0]);
         return $user;
     }
 
@@ -135,9 +136,5 @@ class User extends Authenticatable
         $user = $user->first();
 
         return $user;
-    }
-
-    public static function getRoleNames(){
-        return [];
     }
 }

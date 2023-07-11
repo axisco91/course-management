@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class TrainingContractsExcludedDay extends Model
 {
@@ -11,83 +13,98 @@ class TrainingContractsExcludedDay extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['training_contract_id','excluded_day_id'];
+    protected $fillable = ['training_contract_id','excluded_day_type_id', 'day', 'description', 'group'];
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function teacher()
-    {
-        return $this->hasOne('App\Models\Teacher', 'id', 'teacher_id');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function teacherArea()
-    {
-        return $this->hasOne('App\Models\TeacherArea', 'id', 'teacher_area_id');
-    }
-
-    public static function addGeneralDays($id, $start, $end){
-        $excluded_days = ExcludedDay::select('excluded_days.*')->where('general', 1)
-            ->whereBetween('day', [$start, $end])->get();
-        if ($excluded_days){
-            foreach ($excluded_days as $excluded_day){
-                $excluded = TrainingContractsExcludedDay::where('training_contract_id', $id)
-                    ->where('excluded_day_id', $excluded_day->id)->first();
-                if (!$excluded){
+    public static function createExcludedDay($data){
+        $training_contract = TrainingContract::where('id', $data['training_contract_id'])->first();
+        // vemos otros grupos para obtener el numero de grupo mas alto
+        $other_groups = TrainingContractsExcludedDay::where('training_contract_id', $training_contract->id)
+            ->orderBy('group', 'desc')
+            ->first();
+        $start = Carbon::parse($data['beginning']);
+        $end = Carbon::parse($data['end']);
+        $group = 1;
+        if ($other_groups) {
+            $group = $other_groups->group + 1;
+        }
+        while ($start <= $end) {
+            $festival = TrainingContractFestival::existDay($start, $training_contract->id)->first();
+            if (!$festival) {
+                $working_day = false;
+                switch($start->dayOfWeek){
+                    case 0:
+                        if ($training_contract->sunday == 1){
+                            $working_day = true;
+                        }
+                        break;
+                    case 1:
+                        if ($training_contract->monday == 1){
+                            $working_day = true;
+                        }
+                        break;
+                    case 2:
+                        if ($training_contract->tuesday == 1){
+                            $working_day = true;
+                        }
+                        break;
+                    case 3:
+                        if ($training_contract->wednesday == 1){
+                            $working_day = true;
+                        }
+                        break;
+                    case 4:
+                        if ($training_contract->thursday == 1){
+                            $working_day = true;
+                        }
+                        break;
+                    case 5:
+                        if ($training_contract->friday == 1){
+                            $working_day = true;
+                        }
+                        break;
+                    case 6:
+                        if ($training_contract->saturday == 1){
+                            $working_day = true;
+                        }
+                        break;
+                }
+            }
+            if ($working_day) {
+                $excluded_day = TrainingContractsExcludedDay::where('training_contract_id', $training_contract->id)
+                    ->where('day', $start)->first();
+                if ($excluded_day) {
+                    $excluded_day->update([
+                        'excluded_day_type_id' => $data['excluded_day_type_id'],
+                        'group' => $group
+                    ]);
+                } else {
                     TrainingContractsExcludedDay::create([
-                        'training_contract_id' => $id,
-                        'excluded_day_id' => $excluded_day->id
+                        'day' => $start->toDateString(),
+                        'training_contract_id' => $training_contract->id,
+                        'excluded_day_type_id' => $data['excluded_day_type_id'],
+                        'group' => $group
                     ]);
                 }
             }
+            $start->addDay();
         }
-        return true;
-    }
 
-    public static function createTrainingContractExcludedDay($training_contract, $id, $type, $start, $end){
-        if ($type == 'province'){
-            $provinces = Province::find($id);
-            $excluded_days = $provinces->excludedDays();
-        } else if ($type == 'group'){
-            $groups = BankHolidayGroup::find($id);
-            $excluded_days = $groups->excludedDays();
-        }
-        if ($start && $end){
-            $excluded_days = $excluded_days->whereBetween('day', [$start, $end]);
-        } else if($start){
-            $excluded_days = $excluded_days->whereDate('day', '>=', $start);
-        } else if ($end){
-            $excluded_days = $excluded_days->whereDate('day', '<=', $end);
-        }
-        $excluded_days = $excluded_days->get();
-        if ($excluded_days){
-            foreach ($excluded_days as $excluded_day){
-                $training_contract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $training_contract)
-                    ->where('excluded_day_id', $excluded_day->id)->first();
-                if (!$training_contract_excluded){
-                    TrainingContractsExcludedDay::create([
-                        'training_contract_id' => $training_contract,
-                        'excluded_day_id' => $excluded_day->id
-                    ]);
-                }
-            }
-        }
         return true;
     }
 
     public static function nonWorkingDay($training_contract_id, $date){
-        $excluded_day = ExcludedDay::where('day', $date)->first();
-
-        if ($excluded_day){
-            $training_contract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $training_contract_id)->where('excluded_day_id', $excluded_day->id)
-            ->first();
-            if ($training_contract_excluded){
-                return true;
-            }
+        $training_contract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $training_contract_id)->where('day', $date)
+        ->first();
+        if ($training_contract_excluded){
+            return true;
         }
         return false;
+    }
+
+    public function scopeSameGroup($query, $trainingContractId) {
+        return $query->select('group', DB::raw("CONCAT(excluded_day_types.name, ' ', DATE_FORMAT(MIN(training_contracts_excluded_days.day), '%e/%c/%Y'), ' - ', DATE_FORMAT(MAX(training_contracts_excluded_days.day), '%e/%c/%Y'), ' Número de dias: ', COUNT(*)) as name"))
+            ->join('excluded_day_types', 'excluded_day_types.id', '=', 'training_contracts_excluded_days.excluded_day_type_id')
+            ->where('training_contract_id', $trainingContractId)
+            ->groupBy('group');
     }
 }

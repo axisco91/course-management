@@ -26,7 +26,7 @@ class BankHolidayGroupsExcludedDay extends Model
      */
     public function teacherArea()
     {
-        return $this->hasOne('App\Models\ExcludedDay', 'id', 'excluded_day_id');
+        return $this->hasOne('App\Models\ExcludedDayType', 'id', 'excluded_day_id');
     }
 
 }

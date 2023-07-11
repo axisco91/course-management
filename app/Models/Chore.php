@@ -176,6 +176,106 @@ class Chore extends Model
         return $chores;
     }
 
+    public static function getChore($id){
+        $start = Carbon::now();
+        $number_days = 3;
+        if ($start->dayOfWeek >= 3)
+            $number_days = 5;
+        $start = $start->addDays($number_days);
+        $chore = Chore::select('chores.*', DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
+            'companies.name as company', 'students.name as student_name',
+            'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group',
+            DB::raw("CONCAT(students.name,' ', students.surname) as student"),
+            'courses.beginning as beginning',
+            'courses.end as end')
+            ->leftjoin('courses', 'courses.id', '=', 'chores.course_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->leftjoin('companies', 'companies.id', '=', 'chores.company_id')
+            ->leftjoin('students', 'students.id', '=', 'chores.student_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->where('chores.id', $id)->first();
+
+        if ($chore->membership_tab_status == 0) {
+            $chore['membership_tab_status_name'] = 'Pendiente';
+        } else if ($chore->membership_tab_status == 1) {
+            $chore['membership_tab_status_name'] = 'Enviada';
+        } else if ($chore->membership_tab_status == 2) {
+            $chore['membership_tab_status_name'] = 'Recibida';
+        } else if ($chore->membership_tab_status == 3) {
+            $chore['membership_tab_status_name'] = 'No procede';
+        }
+
+        if ($chore->economic_proposal_status == 0) {
+            $chore['economic_proposal_status_name'] = 'Pendiente';
+        } else if ($chore->economic_proposal_status == 1) {
+            $chore['economic_proposal_status_name'] = 'Enviada';
+        } else if ($chore->economic_proposal_status == 2) {
+            $chore['economic_proposal_status_name'] = 'Recibida';
+        }
+
+        if ($chore->student_tab_status == 0) {
+            $chore['student_tab_status_name'] = 'Pendiente';
+        } else if ($chore->student_tab_status == 1) {
+            $chore['student_tab_status_name'] = 'Enviada';
+        } else if ($chore->student_tab_status == 2) {
+            $chore['student_tab_status_name'] = 'Recibida';
+        }
+
+        if ($chore->welcome_guid_status == 0) {
+            $chore['welcome_guid_status_name'] = 'Pendiente';
+        } else if ($chore->welcome_guid_status == 1) {
+            $chore['welcome_guid_status_name'] = 'Realizada';
+        }
+
+        if ($chore->registration_status == 0) {
+            $chore['registration_status_name'] = 'Pendiente';
+        } else if ($chore->registration_status == 1) {
+            $chore['registration_status_name'] = 'Realizada';
+        }
+
+        if ($chore->diploma_status == 0) {
+            $chore['diploma_status_name'] = 'Pendiente';
+        } else if ($chore->diploma_status == 1) {
+            $chore['diploma_status_name'] = 'Realizada';
+        } else if ($chore->diploma_status == 2) {
+            $chore['diploma_status_name'] = 'No procede';
+        }
+
+        if ($chore->start_communication_status == 0) {
+            $chore['start_communication_status_name'] = 'Pendiente';
+        } else if ($chore->start_communication_status == 1) {
+            $chore['start_communication_status_name'] = 'Realizada';
+        } else if ($chore->start_communication_status == 2) {
+            $chore['start_communication_status_name'] = 'No procede';
+        }
+
+        if ($chore->close_communication_status == 0) {
+            $chore['close_communication_status_name'] = 'Pendiente';
+        } else if ($chore->close_communication_status == 1) {
+            $chore['close_communication_status_name'] = 'Realizada';
+        } else if ($chore->close_communication_status == 2) {
+            $chore['close_communication_status_name'] = 'No procede';
+        }
+
+        if ($chore->invoiced_status == 0) {
+            $chore['invoiced_status_name'] = 'Pendiente';
+        } else if ($chore->invoiced_status == 1) {
+            $chore['invoiced_status_name'] = 'Realizada';
+        } else if ($chore->invoiced_status == 2) {
+            $chore['invoiced_status_name'] = 'No procede';
+        }
+
+        if ($chore->bonus_sent_status == 0) {
+            $chore['bonus_sent_status_name'] = 'Pendiente';
+        } else if ($chore->bonus_sent_status == 1) {
+            $chore['bonus_sent_status_name'] = 'Realizada';
+        } else if ($chore->bonus_sent_status == 2) {
+            $chore['bonus_sent_status_name'] = 'No procede';
+        }
+
+        return $chore;
+    }
+
     public static function getChoresSendWelcome(){
         $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name',
             'courses.beginning',

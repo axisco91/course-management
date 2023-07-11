@@ -84,12 +84,12 @@ class ProvinceController extends BaseController
         return Province::count();
     }
 
-    public function provincesWithExcludedDays(Request $request) {
+    public function provincesWithFestivals(Request $request) {
         try {
             if ($request){
-                return Province::getProvincesWithExcludedDays($request->beginning, $request->end);
+                return Province::provincesWithFestivals($request->beginning, $request->end)->get();
             }
-            return Province::getProvincesWithExcludedDays();
+            return Province::provincesWithFestivals()->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()

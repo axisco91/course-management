@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\TrainingAction;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractElement;
+use App\Models\TrainingContractFestival;
 use App\Models\TrainingContractsExcludedDay;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -36,6 +37,25 @@ class TrainingContractController extends BaseController
     public function create(Request $request){
         try {
             $contract = TrainingContract::createTrainingContract($request);
+            if ($request->has('clone_id')) {
+                $trainingContractElements = TrainingContractElement::trainingContracts($request->clone_id)->get();
+                foreach ($trainingContractElements as $trainingContractElement) {
+                    TrainingContractElement::create([
+                        'training_contract_id' => $contract->id,
+                        'certification_id' => $trainingContractElement->certification_id,
+                        'training_action_id' => $trainingContractElement->training_action_id
+                    ]);
+                }
+            }
+            $elements = TrainingContractElement::info()->trainingContracts($contract->id)->get();
+            $planned = 0;
+            foreach ($elements as $element) {
+                if ($element->certification_total_hours) {
+                    $planned = $planned + $element->training_action_total_hours;
+                } else if ($element->training_action_total_hours) {
+                    $planned = $planned + $element->training_action_total_hours;
+                }
+            }
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -45,7 +65,8 @@ class TrainingContractController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_contract' => TrainingAction::getTrainingAction($contract->id)
+            'training_contract' => TrainingAction::getTrainingAction($contract->id),
+            'training_contract_elements' =>$elements
         ]);
     }
 
@@ -188,42 +209,45 @@ class TrainingContractController extends BaseController
         do {
             $excluded = TrainingContractsExcludedDay::nonWorkingDay($id, $date);
             if ($excluded != true){
-                switch($date->dayOfWeek){
-                    case 0:
-                        if ($record->sunday == 1){
-                            $cont_days++;
-                        }
-                        break;
-                    case 1:
-                        if ($record->monday == 1){
-                            $cont_days++;
-                        }
-                        break;
-                    case 2:
-                        if ($record->tuesday == 1){
-                            $cont_days++;
-                        }
-                        break;
-                    case 3:
-                        if ($record->wednesday == 1){
-                            $cont_days++;
-                        }
-                        break;
-                    case 4:
-                        if ($record->thursday == 1){
-                            $cont_days++;
-                        }
-                        break;
-                    case 5:
-                        if ($record->friday == 1){
-                            $cont_days++;
-                        }
-                        break;
-                    case 6:
-                        if ($record->saturday == 1){
-                            $cont_days++;
-                        }
-                        break;
+                $excluded = TrainingContractFestival::existDay($date, $record->id)->first();
+                if (!$excluded){
+                    switch($date->dayOfWeek){
+                        case 0:
+                            if ($record->sunday == 1){
+                                $cont_days++;
+                            }
+                            break;
+                        case 1:
+                            if ($record->monday == 1){
+                                $cont_days++;
+                            }
+                            break;
+                        case 2:
+                            if ($record->tuesday == 1){
+                                $cont_days++;
+                            }
+                            break;
+                        case 3:
+                            if ($record->wednesday == 1){
+                                $cont_days++;
+                            }
+                            break;
+                        case 4:
+                            if ($record->thursday == 1){
+                                $cont_days++;
+                            }
+                            break;
+                        case 5:
+                            if ($record->friday == 1){
+                                $cont_days++;
+                            }
+                            break;
+                        case 6:
+                            if ($record->saturday == 1){
+                                $cont_days++;
+                            }
+                            break;
+                    }
                 }
             }
             $date->addDay();
@@ -264,42 +288,45 @@ class TrainingContractController extends BaseController
             do {
                 $excluded = TrainingContractsExcludedDay::nonWorkingDay($id, $beginning);
                 if ($excluded != true){
-                    switch($beginning->dayOfWeek){
-                        case 0:
-                            if ($record->sunday == 1){
-                                $total_days--;
-                            }
-                            break;
-                        case 1:
-                            if ($record->monday == 1){
-                                $total_days--;
-                            }
-                            break;
-                        case 2:
-                            if ($record->tuesday == 1){
-                                $total_days--;
-                            }
-                            break;
-                        case 3:
-                            if ($record->wednesday == 1){
-                                $total_days--;
-                            }
-                            break;
-                        case 4:
-                            if ($record->thursday == 1){
-                                $total_days--;
-                            }
-                            break;
-                        case 5:
-                            if ($record->friday == 1){
-                                $total_days--;
-                            }
-                            break;
-                        case 6:
-                            if ($record->saturday == 1){
-                                $total_days--;
-                            }
-                            break;
+                    $excluded = TrainingContractFestival::existDay($beginning, $record->id)->first();
+                    if (!$excluded) {
+                        switch ($beginning->dayOfWeek) {
+                            case 0:
+                                if ($record->sunday == 1) {
+                                    $total_days--;
+                                }
+                                break;
+                            case 1:
+                                if ($record->monday == 1) {
+                                    $total_days--;
+                                }
+                                break;
+                            case 2:
+                                if ($record->tuesday == 1) {
+                                    $total_days--;
+                                }
+                                break;
+                            case 3:
+                                if ($record->wednesday == 1) {
+                                    $total_days--;
+                                }
+                                break;
+                            case 4:
+                                if ($record->thursday == 1) {
+                                    $total_days--;
+                                }
+                                break;
+                            case 5:
+                                if ($record->friday == 1) {
+                                    $total_days--;
+                                }
+                                break;
+                            case 6:
+                                if ($record->saturday == 1) {
+                                    $total_days--;
+                                }
+                                break;
+                        }
                     }
                 }
                 $beginning = $beginning->addDay();

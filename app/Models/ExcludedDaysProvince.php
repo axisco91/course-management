@@ -18,7 +18,7 @@ class ExcludedDaysProvince extends Model
      */
     public function excludedDays()
     {
-        return $this->hasOne('App\Models\ExcludedDay', 'id', 'excluded_day_id');
+        return $this->hasOne('App\Models\ExcludedDayType', 'id', 'excluded_day_id');
     }
 
     /**

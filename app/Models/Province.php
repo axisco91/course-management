@@ -31,7 +31,7 @@ class Province extends Model
     }
 
     public function excludedDays(){
-        return $this->belongsToMany(ExcludedDay::class, 'excluded_days_provinces', 'province_id', 'excluded_day_id');
+        return $this->belongsToMany(ExcludedDayType::class, 'excluded_days_provinces', 'province_id', 'excluded_day_id');
     }
 
     public static function getProvinces(){
@@ -56,14 +56,13 @@ class Province extends Model
         return $province;
     }
 
-    public static function getProvincesWithExcludedDays($start = null, $end = null){
-        $provinces = Province::select('provinces.*', 'provinces.id as value', 'provinces.name as label')
-            ->leftjoin('excluded_days_provinces', 'excluded_days_provinces.province_id', '=', 'provinces.id')
-            ->leftjoin('excluded_days', 'excluded_days.id', '=', 'excluded_days_provinces.excluded_day_id');
+    public function scopeProvincesWithFestivals($query, $start = null, $end = null){
+        $query->select('provinces.*', 'provinces.id as value', 'provinces.name as label')
+            ->leftjoin('province_festivals', 'province_festivals.province_id', '=', 'provinces.id');
         if ($start && $end){
-            $provinces->whereBetween('excluded_days.day', [$start, $end]);
+            $query->whereBetween('province_festivals.day', [$start, $end]);
         }
-        $provinces = $provinces->groupBy('provinces.id')->get();
-        return $provinces;
+        $query->groupBy('provinces.id');
+        return $query;
     }
 }

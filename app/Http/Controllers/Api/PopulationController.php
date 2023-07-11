@@ -1,19 +1,16 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\Chore;
-use App\Models\Course;
-use App\Models\Student;
-use Carbon\Carbon;
+use App\Models\Population;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class ChoreController extends BaseController
+class PopulationController extends BaseController
 {
-    public function getChores() {
+    public function populations() {
         try {
-            return Chore::getChores();
+            return Population::select('populations.*', 'populations.id as value', 'populations.name as label')->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -23,7 +20,9 @@ class ChoreController extends BaseController
 
     public function create(Request $request){
         try {
-            $chore = Chore::createChore($request);
+            $population = Population::create([
+                'name' => $request->name
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -33,13 +32,14 @@ class ChoreController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'chore' => $chore
+            'population' => Population::select('populations.*', 'populations.id as value', 'populations.name as label')->where('id', $population->id)->first()
         ]);
     }
 
     public function edit($id, Request $request){
         try {
-            $chore = Chore::updateChore($id, $request);
+            $population = Population::find($id);
+            $population->name = $request->name;
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -49,28 +49,28 @@ class ChoreController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'chore' => Chore::getChore($chore->id)
+            'population' => Population::select('populations.*', 'populations.id as value', 'populations.name as label')->where('id', $population->id)->first()
         ]);
     }
 
-    public function getChore($id){
-        $chore = Chore::getChore($id);
-        if ($chore) {
+    public function getPopulation($id){
+        $population = Population::find($id);
+        if ($population) {
             return response()->json([
                 'status' => 200,
-                'chore' => $chore
+                'population' => $population
             ]);
         }
         return response()->json([
             'status' => 400,
-            'message' => 'Seguimiento no existe'
+            'message' => 'Plataforma no existe'
         ]);
     }
 
     public function destroy($id){
         if ($id) {
             try {
-                Chore::destroy($id);
+                Population::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -83,20 +83,15 @@ class ChoreController extends BaseController
         }
     }
 
-    public function count(){
-        return Chore::count();
-    }
-
-    public function choresCSV(Request $request){
+    public function populationsWithFestivals(Request $request) {
         try {
-            if ($request) {
-                return Chore::getChoreCSV($request['course'], $request['company'], $request['student'], $request['status'], $request['beginning'], $request['end']);
+            if ($request){
+                return Population::populationsWithFestivals($request->beginning, $request->end)->get();
             }
-            return Chore::getChoreCSV();
+            return Province::getPopulationsWithFestivals()->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
             ]);
         }
-    }
-}
+    }}

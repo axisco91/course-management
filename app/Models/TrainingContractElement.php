@@ -184,4 +184,21 @@ class TrainingContractElement extends Model
         }
     }
 
+    public function scopeInfo($query) {
+        return $query->select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+            'training_contracts.number_cfa as cfa',
+            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
+            'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
+            'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
+            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
+            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
+            ->orderBy('order', 'asc');
+    }
+
+    public function scopeTrainingContracts($query, $trainingContractId){
+        return $query->where('training_contract_id', $trainingContractId)
+            ->orderBy('order', 'asc');
+    }
+
 }

@@ -52,7 +52,7 @@ class ProfessionalCategoryController extends BaseController
     }
 
     public function getProfessionalCategories($id){
-        $category = ProfessionalCategory::getProfessionalCategories($id);
+        $category = ProfessionalCategory::getProfessionalCategory($id);
         if ($category) {
             return response()->json([
                 'status' => 200,

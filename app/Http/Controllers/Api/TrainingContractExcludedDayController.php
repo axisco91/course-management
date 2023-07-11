@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Http\Controllers\API;
-use App\Models\ExcludedDay;
+use App\Models\ExcludedDayType;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractsExcludedDay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class TrainingContractExcludedDayController extends BaseController
 {
@@ -13,9 +14,8 @@ class TrainingContractExcludedDayController extends BaseController
     public function getTrainingContractExcludedDays(Request $request) {
         if ($request->has('id')) {
             try {
-                return TrainingContractsExcludedDay::select('training_contracts_excluded_days.*', 'excluded_days.day')
-                    ->leftJoin('excluded_days', 'excluded_days.id', '=', 'training_contracts_excluded_days.excluded_day_id')
-                    ->where('training_contract_id', $request->id)->get();
+                return TrainingContractsExcludedDay::sameGroup($request->id)
+                    ->get();
             } catch (\Exception $e) {
                 return response()->json([
                     'message' => $e->getMessage()
@@ -25,23 +25,15 @@ class TrainingContractExcludedDayController extends BaseController
     }
 
     public function create(Request $request){
-        if ($request['date']) {
-            $excluded_day = ExcludedDay::where('day', $request['date'])->first();
-            if (!$excluded_day){
-                $excluded_day = ExcludedDay::create([
-                    'day' => Carbon::createFromFormat('d-m-Y', $request['date'])->format('Y-m-d'),
-                    'general' => 0
-                ]);
-            }
-            $training_contract_excluded_day = TrainingContractsExcludedDay::create([
-                'training_contract_id' => $request['training_contract_id'],
-                'excluded_day_id' => $excluded_day->id
-            ]);
+        if ($request['beginning'] && $request['end'] && $request['excluded_day_type_id']) {
+            TrainingContractsExcludedDay::createExcludedDay($request);
             return response()->json([
                 'status' => 200,
-                'training_contract_excluded_day' =>  TrainingContractsExcludedDay::select('training_contracts_excluded_days.*', 'excluded_days.day')
-                    ->leftJoin('excluded_days', 'excluded_days.id', '=', 'training_contracts_excluded_days.excluded_day_id')
-                    ->where('training_contracts_excluded_days.id', $training_contract_excluded_day->id)->first()
+                'training_contract_excluded_days' =>  TrainingContractsExcludedDay::select(DB::raw("CONCAT(excluded_day_types.name, ' ', DATE_FORMAT(MIN(training_contracts_excluded_days.day), '%e/%c/%Y'), ' - ', DATE_FORMAT(MAX(training_contracts_excluded_days.day), '%e/%c/%Y'), ' Número de dias: ', COUNT(*)) as name"))
+                    ->join('excluded_day_types', 'excluded_day_types.id', '=', 'training_contracts_excluded_days.excluded_day_type_id')
+                    ->where('training_contract_id', $request->training_contract_id)
+                    ->groupBy('group')
+                    ->get()
             ]);
         }
         return response()->json([
@@ -66,10 +58,17 @@ class TrainingContractExcludedDayController extends BaseController
         ]);
     }
 
-    public function destroy($id){
-        if ($id) {
+    public function destroy($group){
+        if ($group) {
             try {
-                TrainingContractsExcludedDay::destroy($id);
+                $excludedDays = TrainingContractsExcludedDay::where('group', $group)->get();
+                foreach ($excludedDays as $excludedDay) {
+                    TrainingContractsExcludedDay::destroy($excludedDay->id);
+                }
+                return response()->json([
+                    'status' => 200,
+                    'excluded' => $excludedDays
+                ]);
                 return response()->json([
                     'status' => 200,
                 ]);

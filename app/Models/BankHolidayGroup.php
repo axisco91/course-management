@@ -17,7 +17,7 @@ class BankHolidayGroup extends Model
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function excludedDays(){
-        return $this->belongsToMany(ExcludedDay::class, 'bank_holiday_groups_excluded_days', 'group_id', 'excluded_day_id');
+        return $this->belongsToMany(ExcludedDayType::class, 'bank_holiday_groups_excluded_days', 'group_id', 'excluded_day_id');
     }
 
     public static function getBankHolidayGroup($start = null, $end = null){

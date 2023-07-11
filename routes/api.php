@@ -34,7 +34,7 @@ use App\Http\Controllers\API\ModuleController;
 use App\Http\Controllers\API\TrainingUnitController;
 use App\Http\Controllers\API\CourseStatusController;
 use App\Http\Controllers\API\CourseTypeController;
-use App\Http\Controllers\API\ExcludedDayController;
+use App\Http\Controllers\API\ExcludedDayTypeController;
 use App\Http\Controllers\API\IncidenceTypeController;
 use App\Http\Controllers\API\OccupationController;
 use App\Http\Controllers\API\OnLeaveController;
@@ -64,6 +64,12 @@ use App\Http\Controllers\API\StatisticController;
 use App\Http\Controllers\API\TrainingContractBillController;
 use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\CourseOriginController;
+use App\Http\Controllers\API\NacionalFestivalController;
+use App\Http\Controllers\API\ProvinceFestivalController;
+use App\Http\Controllers\API\PopulationFestivalController;
+use App\Http\Controllers\API\PopulationController;
+use App\Http\Controllers\API\TrainingContractFestivalController;
+use App\Http\Controllers\API\PermissionController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -101,11 +107,23 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
+     * Permisos
+     */
+    Route::prefix('permissions')->group(function() {
+        Route::controller(PermissionController::class)->group(function(){
+            Route::get('', 'permissions');
+        });
+    });
+
+    /**
      * Roles
      */
     Route::prefix('roles')->group(function() {
         Route::controller(RoleController::class)->group(function(){
             Route::get('', 'getRoles');
+            Route::get('get/{id}', 'getRole');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
         });
     });
 
@@ -822,7 +840,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Web platforms
+     * Plataformas
      */
     Route::prefix('web-platforms')->group(function() {
         Route::controller(WebPlatformController::class)->group(function(){
@@ -836,7 +854,21 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Web platforms
+     * Poblaciones
+     */
+    Route::prefix('populations')->group(function() {
+        Route::controller(PopulationController::class)->group(function(){
+            Route::get('', 'populations');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'getPopulation');
+            Route::get('populations-with-festivals', 'populationsWithFestivals');
+        });
+    });
+
+    /**
+     * Origen cursos
      */
     Route::prefix('course-origins')->group(function() {
         Route::controller(CourseOriginController::class)->group(function(){
@@ -866,12 +898,60 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('', 'getTrainingContractExcludedDays');
             Route::post('create', 'create');
             Route::post('createGroup', 'createGroup');
+            Route::get('destroy/{group}', 'destroy');
+        });
+    });
+
+    /**
+     * Training contract festivals
+     */
+    Route::prefix('training-contract-festivals')->group(function() {
+        Route::controller(TrainingContractFestivalController::class)->group(function(){
+            Route::get('', 'getTrainingContractFestivals');
+            Route::post('create', 'create');
+            Route::post('createGroup', 'createGroup');
             Route::get('destroy/{id}', 'destroy');
         });
     });
 
     /**
-     * ExamTutorial
+     * Festivos nacionales
+     */
+    Route::prefix('nacional-festivals')->group(function() {
+        Route::controller(NacionalFestivalController::class)->group(function(){
+            Route::get('', 'getNacionalFestivals');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+        });
+    });
+
+    /**
+     * Festivos provincias
+     */
+    Route::prefix('province-festivals')->group(function() {
+        Route::controller(ProvinceFestivalController::class)->group(function(){
+            Route::get('', 'getProvinceFestivals');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+        });
+    });
+
+    /**
+     * Festivos poblaciones
+     */
+    Route::prefix('population-festivals')->group(function() {
+        Route::controller(PopulationFestivalController::class)->group(function(){
+            Route::get('', 'getPopulationFestivals');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+        });
+    });
+
+    /**
+     * Examen - tutorías
      */
     Route::prefix('exams-tutorials')->group(function() {
         Route::controller(ExamTutorialController::class)->group(function(){
@@ -882,6 +962,18 @@ Route::middleware('auth:sanctum')->group( function () {
         });
     });
 
+    /**
+     * Dias excluidos
+     */
+    Route::prefix('excluded-day-types')->group(function() {
+        Route::controller(ExcludedDayTypeController::class)->group(function(){
+            Route::get('', 'getExcludedDayTypes');
+        });
+    });
+
+    /**
+     * Facturas de CFA
+     */
     Route::prefix('training-contract-bills')->group(function() {
         Route::controller(TrainingContractBillController::class)->group(function(){
             Route::get('', 'getBills');
@@ -894,7 +986,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Contracts
+     * CFA
      */
     Route::prefix('training-contracts')->group(function() {
         Route::controller(TrainingContractController::class)->group(function(){
@@ -915,7 +1007,7 @@ Route::middleware('auth:sanctum')->group( function () {
 });
 
 /**
- * Professional Category
+ * Categoria Profesional
  */
 Route::prefix('professional-categories')->group(function() {
     Route::controller(ProfessionalCategoryController::class)->group(function(){
@@ -926,7 +1018,7 @@ Route::prefix('professional-categories')->group(function() {
 });
 
 /**
- * Students
+ * Alumnos
  */
 Route::prefix('potential-students')->group(function() {
     Route::controller(PotentialStudentController::class)->group(function(){
@@ -936,7 +1028,7 @@ Route::prefix('potential-students')->group(function() {
 });
 
 /**
- * Companies
+ * Empresas
  */
 Route::prefix('potential-companies')->group(function() {
     Route::controller(PotentialCompanyController::class)->group(function(){
@@ -945,16 +1037,19 @@ Route::prefix('potential-companies')->group(function() {
 });
 
 /**
- * Province
+ * Provincias
  */
 Route::prefix('provinces')->group(function() {
     Route::controller(ProvinceController::class)->group(function(){
         Route::get('', 'provinces');
         Route::get('get/{id}', 'province');
-        Route::get('provinces-with-excluded-days', 'provincesWithExcludedDays');
+        Route::get('provinces-with-festivals', 'provincesWithFestivals');
     });
 });
 
+/**
+ * Nivel de alumnos
+ */
 Route::prefix('level-studies')->group(function() {
     Route::controller(LevelStudyController::class)->group(function(){
         Route::get('', 'levelStudies');
@@ -962,7 +1057,7 @@ Route::prefix('level-studies')->group(function() {
 });
 
 /**
- * Company Types
+ * Tipos empresas
  */
 Route::prefix('company-types')->group(function() {
     Route::controller(CompanyTypeController::class)->group(function(){
@@ -971,7 +1066,7 @@ Route::prefix('company-types')->group(function() {
 });
 
 /**
- * Company Activities
+ * Actividades de empresas
  */
 Route::prefix('company-activities')->group(function() {
     Route::controller(CompanyActivityController::class)->group(function(){

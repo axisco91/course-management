@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
+use Spatie\Permission\Models\Role;
 use Validator;
 use App\Models\User;
 use Spatie\Permission\Traits\HasRoles;
@@ -18,12 +19,21 @@ class AuthController extends BaseController
         if(Auth::attempt(['username' => $request->username, 'password' => $request->password, 'active' => 1])){
             $authUser = Auth::user();
             $roles = Auth::user()->getRoleNames();
+            $permissions = $authUser->getAllPermissions()->pluck('name');
+            $success['ability'] = [];
+            if ($permissions) {
+                foreach ($permissions as $permission) {
+                    $ability = explode('.', $permission);
+                    $success['ability'][] = ['action' => $ability[0], 'subject' => $ability[1]];
+                }
+            } else {
+                $success['ability'][] = ['action' => 'manage', 'subject' => 'all'];
+            }
             $success['accessToken'] =  $authUser->createToken('MyAuthApp')->plainTextToken;
             $success['fullname'] =  $authUser->name.' '.$authUser->surname;
             $success['username'] = $authUser->username;
             $success['email'] = $authUser->email;
-            $success['ability'] = [['action' => "manage", 'subject' => "all"]];
-            $success['role'] = $roles ? $roles[0] : 'admin';
+            $success['role'] = $roles && isset($roles[0]) ? $roles[0] : 'admin';
             $success['avatar'] = $authUser->profile_photo_path;
         //    $success['permissions'] = ['create_students', 'edit_students'];
             return $this->sendResponse($success, 'User signed in');

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateExcludedDaysTable extends Migration
+class CreateExcludedDayTypesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,9 @@ class CreateExcludedDaysTable extends Migration
      */
     public function up()
     {
-        Schema::create('excluded_days', function (Blueprint $table) {
+        Schema::create('excluded_day_types', function (Blueprint $table) {
             $table->id();
-            $table->date('day');
+            $table->string('name');
         });
     }
 
@@ -26,6 +26,6 @@ class CreateExcludedDaysTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('excluded_days');
+        Schema::dropIfExists('excluded_day_types');
     }
 }

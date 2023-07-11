@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateExcludedDaysTable extends Migration
+class AddDescriptionToPermissionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,8 @@ class CreateExcludedDaysTable extends Migration
      */
     public function up()
     {
-        Schema::create('excluded_days', function (Blueprint $table) {
-            $table->id();
-            $table->date('day');
+        Schema::table('permissions', function (Blueprint $table) {
+            $table->string('description')->nullable();
         });
     }
 
@@ -26,6 +25,8 @@ class CreateExcludedDaysTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('excluded_days');
+        Schema::table('permissions', function (Blueprint $table) {
+            $table->dropColumn('description');
+        });
     }
 }

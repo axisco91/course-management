@@ -261,16 +261,20 @@ class Course extends Model
             }
             $num_courses = Course::where( 'training_action_id',$training_action['id'])
                 ->orderby('group', 'desc')->first();
-            $cont = intval($num_courses->group);
-            $cont = $cont+1;
-            if ($cont < 10){
-                $group = '000'.$cont;
-            } else if ($cont < 100){
-                $group = '00'.$cont;
-            } else if ($cont < 1000){
-                $group = '0'.$cont;
+            if ($num_courses) {
+                $cont = intval($num_courses->group);
+                $cont = $cont+1;
+                if ($cont < 10){
+                    $group = '000'.$cont;
+                } else if ($cont < 100){
+                    $group = '00'.$cont;
+                } else if ($cont < 1000){
+                    $group = '0'.$cont;
+                } else {
+                    $group = $cont;
+                }
             } else {
-                $group = $cont;
+                $group = '0001';
             }
             $price = '';
             if ($id == null){
