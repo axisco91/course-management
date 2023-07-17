@@ -95,7 +95,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::get('pruebas', [PruebaController::class, 'index']);
 
     /**
-     * Home
+     * Estadisticas
      */
     Route::prefix('statistics')->group(function() {
         Route::controller(StatisticController::class)->group(function(){
@@ -128,7 +128,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Students
+     * Alumnos
      */
     Route::prefix('students')->group(function() {
         Route::controller(StudentController::class)->group(function(){
@@ -146,7 +146,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Action Types
+     * Tipos Acciones
      */
     Route::prefix('action-types')->group(function() {
         Route::controller(ActionTypeController::class)->group(function(){
@@ -160,7 +160,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Advisors
+     * Asesorías
      */
     Route::prefix('advisors')->group(function() {
         Route::controller(AdvisorController::class)->group(function(){
@@ -180,7 +180,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Advisor Incidence
+     * Incidencias de asesorías
      */
     Route::prefix('advisor-incidences')->group(function() {
         Route::controller(AdvisorIncidenceController::class)->group(function(){
@@ -192,7 +192,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Collaboradores
+     * Colaboradores
      */
     Route::prefix('collaborators')->group(function() {
         Route::controller(CollaboratorController::class)->group(function(){
@@ -201,7 +201,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Course Type
+     * Tipo cursos
      */
     Route::prefix('course-types')->group(function() {
         Route::controller(CourseTypeController::class)->group(function(){
@@ -215,7 +215,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Course Status
+     * Estado del curso
      */
     Route::prefix('course-statuses')->group(function() {
         Route::controller(CourseStatusController::class)->group(function(){
@@ -228,7 +228,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Course
+     * Cursos
      */
     Route::prefix('courses')->group(function() {
         Route::controller(CourseController::class)->group(function(){
@@ -245,7 +245,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Incidence Type
+     * Tipo incidencias
      */
     Route::prefix('incidence-types')->group(function() {
         Route::controller(IncidenceTypeController::class)->group(function(){
@@ -259,7 +259,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Training Action Levels
+     * Niveles de acciones formativas
      */
     Route::prefix('training-action-levels')->group(function() {
         Route::controller(TrainingActionLevelController::class)->group(function(){
@@ -273,7 +273,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Training Action Groups
+     * Grupos acciones formativas
      */
     Route::prefix('training-action-groups')->group(function() {
         Route::controller(TrainingActionGroupController::class)->group(function(){
@@ -287,7 +287,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Training Contract Statuses
+     * Estado de CFA
      */
     Route::prefix('training-contract-statuses')->group(function() {
         Route::controller(TrainingContractStatusController::class)->group(function(){
@@ -302,7 +302,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * On leave types
+     * Tipos de
      */
     Route::prefix('on-leave-types')->group(function() {
         Route::controller(OnLeaveController::class)->group(function(){
@@ -316,7 +316,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Level Studies
+     * Nivel de estudios
      */
     Route::prefix('level-studies')->group(function() {
         Route::controller(LevelStudyController::class)->group(function(){
@@ -329,7 +329,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Quote Groups
+     * Grupo de
      */
     Route::prefix('quote-groups')->group(function() {
         Route::controller(QuoteGroupController::class)->group(function(){
@@ -343,7 +343,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Teacher Areas
+     * Áreas de docentes
      */
     Route::prefix('teacher-areas')->group(function() {
         Route::controller(TeacherAreaController::class)->group(function(){
@@ -357,7 +357,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Professional Areas
+     * Áreas de profesionales
      */
     Route::prefix('professional-areas')->group(function() {
         Route::controller(ProfessionalAreaController::class)->group(function(){
@@ -371,7 +371,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Professional Category
+     * Categoría de profesional
      */
     Route::prefix('professional-categories')->group(function() {
         Route::controller(ProfessionalCategoryController::class)->group(function(){
@@ -382,7 +382,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Professional Family
+     * Familia profesional
      */
     Route::prefix('professional-families')->group(function() {
         Route::controller(ProfessionalFamilyController::class)->group(function(){
@@ -396,7 +396,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Modality
+     * Modalidad
      */
     Route::prefix('modalities')->group(function() {
         Route::controller(ModalityController::class)->group(function(){
@@ -410,7 +410,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Modality
+     * Pagos
      */
     Route::prefix('payments')->group(function() {
         Route::controller(PaymentController::class)->group(function(){
@@ -424,7 +424,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Provider
+     * Proveedor
      */
     Route::prefix('providers')->group(function() {
         Route::controller(ProviderController::class)->group(function(){
@@ -439,7 +439,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Center
+     * Centro
      */
     Route::prefix('centers')->group(function() {
         Route::controller(CenterController::class)->group(function(){
@@ -453,7 +453,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Tutoring
+     * Tutorías
      */
     Route::prefix('tutorings')->group(function() {
         Route::controller(TutoringController::class)->group(function(){
@@ -467,7 +467,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Company Activities
+     * Actividades de empresas
      */
     Route::prefix('company-activities')->group(function() {
         Route::controller(CompanyActivityController::class)->group(function(){
@@ -480,7 +480,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Company Types
+     * Tipos de empresas
      */
     Route::prefix('company-types')->group(function() {
         Route::controller(CompanyTypeController::class)->group(function(){
@@ -493,7 +493,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Company Observations
+     * Observaciones de empresa
      */
     Route::prefix('company-observations')->group(function() {
         Route::controller(CompanyObservationController::class)->group(function(){
@@ -506,7 +506,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Company Incidences
+     * Incidencias
      */
     Route::prefix('company-incidences')->group(function() {
         Route::controller(CompanyIncidenceController::class)->group(function(){
@@ -519,7 +519,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Company Credit
+     * Créditos
      */
     Route::prefix('credits')->group(function() {
         Route::controller(CreditController::class)->group(function(){
@@ -533,7 +533,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Teachers
+     * Docentes
      */
     Route::prefix('teachers')->group(function() {
         Route::controller(TeacherController::class)->group(function(){
@@ -550,7 +550,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Training Actions
+     * Acciones formativas
      */
     Route::prefix('training-actions')->group(function() {
         Route::controller(TrainingActionController::class)->group(function(){
@@ -568,7 +568,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Certifications
+     * Certificados
      */
     Route::prefix('certifications')->group(function() {
         Route::controller(CertificationController::class)->group(function(){
@@ -587,7 +587,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Certifications
+     * Elementos de certificados
      */
     Route::prefix('certification-elements')->group(function() {
         Route::controller(CertificationElementController::class)->group(function(){
@@ -600,7 +600,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * Modules
+     * Modulos
      */
     Route::prefix('modules')->group(function() {
         Route::controller(ModuleController::class)->group(function(){
@@ -642,6 +642,8 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('csv', 'trainingContractElementsCSV');
             Route::post('order', 'orderTrainingContractElements');
             Route::get('{id}', 'getTrainingContractElements');
+            Route::get('get/{id}', 'getElement');
+            Route::post('edit-date/{id}', 'editDate');
         });
     });
 

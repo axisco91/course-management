@@ -6,6 +6,7 @@ use App\Models\TrainingAction;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractElement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class TrainingContractElementController extends BaseController
 {
@@ -143,4 +144,34 @@ class TrainingContractElementController extends BaseController
         }
     }
 
+    public function getElement($id) {
+        try {
+            $element = TrainingContractElement::find($id);
+            return response()->json([
+                'status' => 200,
+                'element' => $element
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+    public function editDate($id, Request $request) {
+        try {
+            $element = TrainingContractElement::find($id);
+            $element->update([
+                'beginning' =>  $request['beginning'] ? Carbon::createFromFormat('d-m-Y', $request['beginning'])->format('Y-m-d') : null,
+                'end' =>  $request['end'] ? Carbon::createFromFormat('d-m-Y', $request['end'])->format('Y-m-d') : null,
+            ]);
+            return response()->json([
+                'status' => 200,
+                'element' =>  TrainingContractElement::info()->where('training_contract_elements.id', $element->id)->first()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

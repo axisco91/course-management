@@ -57,7 +57,8 @@ class Bill extends Model
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
             DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'Bonificada' ELSE 'No bonificada' END) as type"),
             DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
-            DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"))
+            DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"),
+            DB::raw("(CASE WHEN billings.bonus_status='1' THEN 'Enviado' ELSE 'Pendiente' END) as bonus_status_name"))
             ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
             ->leftjoin('companies', 'companies.id', '=', 'billings.company_id')
             ->leftjoin('payments', 'payments.id', '=', 'billings.payment_id')
@@ -89,7 +90,8 @@ class Bill extends Model
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
             DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'Bonificada' ELSE 'No bonificada' END) as type"),
             DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
-            DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"))
+            DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"),
+            DB::raw("(CASE WHEN billings.bonus_status='1' THEN 'Enviado' ELSE 'Pendiente' END) as bonus_status_name"))
             ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
             ->leftjoin('companies', 'companies.id', '=', 'billings.company_id')
             ->leftjoin('payments', 'payments.id', '=', 'billings.payment_id')
