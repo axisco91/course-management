@@ -1003,6 +1003,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('count', 'countTrainingContracts');
             Route::post('calculate-hours/{id}', 'calculateHours');
             Route::get('csv', 'trainingContractCSV');
+            Route::post('register/{id}', 'register');
         });
     });
 
