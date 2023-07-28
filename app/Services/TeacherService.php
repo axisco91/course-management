@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Teacher;
+use Illuminate\Support\Carbon;
+
+class TeacherService
+{
+    /**
+     * Función para crear un docente
+     * @param array $data
+     * @return mixed
+     */
+    public function create(array $data)
+    {
+        $teacher = Teacher::create([
+            'name' => $data['name'],
+            'surname' => $data['surname'],
+            'dni' => $data['dni'],
+            'email' => $data['email'],
+            'telephone' => $data['telephone'],
+            'user' => $data['user'],
+            'password' => $data['password'],
+            'observations' => $data['observations'],
+            'iban' => $data['iban'],
+            'address' => $data['address'],
+            'post_code' => $data['post_code'],
+            'province_id' => $data['province_id'],
+            'population' => $data['population'],
+            'active' => $data['active']
+        ]);
+        $teacher->teacherAreas()->sync($data['teacher_areas']);
+        return $teacher;
+    }
+
+    /**
+     * Función para editar un docente
+     */
+    public function update(Teacher $teacher, array $data) {
+        $teacher->update([
+            'name' => $data['name'],
+            'surname' => $data['surname'],
+            'dni' => $data['dni'],
+            'email' => $data['email'],
+            'telephone' => $data['telephone'],
+            'user' => $data['user'],
+            'password' => $data['password'],
+            'observations' => $data['observations'],
+            'iban' => $data['iban'],
+            'address' => $data['address'],
+            'post_code' => $data['post_code'],
+            'province_id' => $data['province_id'],
+            'population' => $data['population'],
+            'active' => $data['active']
+        ]);
+
+        $teacher->teacherAreas()->sync($data['teacher_areas']);
+
+        return $teacher;
+    }
+}

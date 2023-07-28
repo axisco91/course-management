@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 use App\Models\Course;
 use App\Models\Registration;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -87,7 +88,7 @@ class CourseController extends BaseController
     }
 
     public function getStudents($id){
-        return response()->json(Registration::getRegistrated($id));
+        return response()->json(Student::getRegistrated($id));
     }
 
     public function count(){

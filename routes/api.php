@@ -2,74 +2,74 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\ActionTypeController;
-use App\Http\Controllers\API\AdvisorController;
-use App\Http\Controllers\API\AdvisorIncidenceController;
-use App\Http\Controllers\API\PruebaController;
-use App\Http\Controllers\API\TeacherController;
-use App\Http\Controllers\API\TrainingActionLevelController;
-use App\Http\Controllers\API\TrainingActionGroupController;
-use App\Http\Controllers\API\StudentController;
-use App\Http\Controllers\API\CompanyController;
-use App\Http\Controllers\API\LevelStudyController;
-use App\Http\Controllers\API\QuoteGroupController;
-use App\Http\Controllers\API\ProfessionalCategoryController;
-use App\Http\Controllers\API\ProvinceController;
-use App\Http\Controllers\API\TeacherAreaController;
-use App\Http\Controllers\API\CompanyActivityController;
-use App\Http\Controllers\API\CompanyTypeController;
-use App\Http\Controllers\API\CnaeController;
-use App\Http\Controllers\API\CollaboratorController;
-use App\Http\Controllers\API\TrainingActionController;
-use App\Http\Controllers\API\ProfessionalFamilyController;
-use App\Http\Controllers\API\ModalityController;
-use App\Http\Controllers\API\TutoringController;
-use App\Http\Controllers\API\WebPlatformController;
-use App\Http\Controllers\API\ProfessionalAreaController;
-use App\Http\Controllers\API\ProviderController;
-use App\Http\Controllers\API\CompanyObservationController;
-use App\Http\Controllers\API\CertificationController;
-use App\Http\Controllers\API\ModuleController;
-use App\Http\Controllers\API\TrainingUnitController;
-use App\Http\Controllers\API\CourseStatusController;
-use App\Http\Controllers\API\CourseTypeController;
-use App\Http\Controllers\API\ExcludedDayTypeController;
-use App\Http\Controllers\API\IncidenceTypeController;
-use App\Http\Controllers\API\OccupationController;
-use App\Http\Controllers\API\OnLeaveController;
-use App\Http\Controllers\API\PaymentController;
-use App\Http\Controllers\API\PotentialCompanyController;
-use App\Http\Controllers\API\PotentialStudentController;
-use App\Http\Controllers\API\ProfitabilityController;
-use App\Http\Controllers\API\TracingController;
-use App\Http\Controllers\API\UserController;
-use App\Http\Controllers\API\TrainingContractController;
-use App\Http\Controllers\API\CenterController;
-use App\Http\Controllers\API\CourseController;
-use App\Http\Controllers\API\ChoreController;
-use App\Http\Controllers\API\BillController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ActionTypeController;
+use App\Http\Controllers\Api\AdvisorController;
+use App\Http\Controllers\Api\AdvisorIncidenceController;
+use App\Http\Controllers\Api\PruebaController;
+use App\Http\Controllers\Api\TeacherController;
+use App\Http\Controllers\Api\TrainingActionLevelController;
+use App\Http\Controllers\Api\TrainingActionGroupController;
+use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\LevelStudyController;
+use App\Http\Controllers\Api\QuoteGroupController;
+use App\Http\Controllers\Api\ProfessionalCategoryController;
+use App\Http\Controllers\Api\ProvinceController;
+use App\Http\Controllers\Api\TeacherAreaController;
+use App\Http\Controllers\Api\CompanyActivityController;
+use App\Http\Controllers\Api\CompanyTypeController;
+use App\Http\Controllers\Api\CnaeController;
+use App\Http\Controllers\Api\CollaboratorController;
+use App\Http\Controllers\Api\TrainingActionController;
+use App\Http\Controllers\Api\ProfessionalFamilyController;
+use App\Http\Controllers\Api\ModalityController;
+use App\Http\Controllers\Api\TutoringController;
+use App\Http\Controllers\Api\WebPlatformController;
+use App\Http\Controllers\Api\ProfessionalAreaController;
+use App\Http\Controllers\Api\ProviderController;
+use App\Http\Controllers\Api\CompanyObservationController;
+use App\Http\Controllers\Api\CertificationController;
+use App\Http\Controllers\Api\ModuleController;
+use App\Http\Controllers\Api\TrainingUnitController;
+use App\Http\Controllers\Api\CourseStatusController;
+use App\Http\Controllers\Api\CourseTypeController;
+use App\Http\Controllers\Api\ExcludedDayTypeController;
+use App\Http\Controllers\Api\IncidenceTypeController;
+use App\Http\Controllers\Api\OccupationController;
+use App\Http\Controllers\Api\OnLeaveController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PotentialCompanyController;
+use App\Http\Controllers\Api\PotentialStudentController;
+use App\Http\Controllers\Api\ProfitabilityController;
+use App\Http\Controllers\Api\TracingController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\TrainingContractController;
+use App\Http\Controllers\Api\CenterController;
+use App\Http\Controllers\Api\CourseController;
+use App\Http\Controllers\Api\ChoreController;
+use App\Http\Controllers\Api\BillController;
 use App\Http\Controllers\Api\CompanyIncidenceController;
-use App\Http\Controllers\API\CreditController;
-use App\Http\Controllers\API\TrainingContractStatusController;
-use App\Http\Controllers\API\TrainingContractIncidenceController;
-use App\Http\Controllers\API\RegistrationController;
-use App\Http\Controllers\API\TrainingContractElementController;
-use App\Http\Controllers\API\ExamTutorialController;
-use App\Http\Controllers\API\BankHolidayGroupController;
-use App\Http\Controllers\API\TrainingContractExcludedDayController;
-use App\Http\Controllers\API\TrainingContractBonusController;
-use App\Http\Controllers\API\CertificationElementController;
-use App\Http\Controllers\API\StatisticController;
-use App\Http\Controllers\API\TrainingContractBillController;
-use App\Http\Controllers\API\RoleController;
-use App\Http\Controllers\API\CourseOriginController;
-use App\Http\Controllers\API\NacionalFestivalController;
-use App\Http\Controllers\API\ProvinceFestivalController;
-use App\Http\Controllers\API\PopulationFestivalController;
-use App\Http\Controllers\API\PopulationController;
-use App\Http\Controllers\API\TrainingContractFestivalController;
-use App\Http\Controllers\API\PermissionController;
+use App\Http\Controllers\Api\CreditController;
+use App\Http\Controllers\Api\TrainingContractStatusController;
+use App\Http\Controllers\Api\TrainingContractIncidenceController;
+use App\Http\Controllers\Api\RegistrationController;
+use App\Http\Controllers\Api\TrainingContractElementController;
+use App\Http\Controllers\Api\ExamTutorialController;
+use App\Http\Controllers\Api\BankHolidayGroupController;
+use App\Http\Controllers\Api\TrainingContractExcludedDayController;
+use App\Http\Controllers\Api\TrainingContractBonusController;
+use App\Http\Controllers\Api\CertificationElementController;
+use App\Http\Controllers\Api\StatisticController;
+use App\Http\Controllers\Api\TrainingContractBillController;
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\CourseOriginController;
+use App\Http\Controllers\Api\NacionalFestivalController;
+use App\Http\Controllers\Api\ProvinceFestivalController;
+use App\Http\Controllers\Api\PopulationFestivalController;
+use App\Http\Controllers\Api\PopulationController;
+use App\Http\Controllers\Api\TrainingContractFestivalController;
+use App\Http\Controllers\Api\PermissionController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -139,7 +139,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get/{id}', 'getStudent');
             Route::post('check_dni', 'checkDni');
             Route::get('courses/{id}', 'getStudentsCourses');
-            Route::get('count', 'countStudents');
             Route::get('csv', 'studentsCSV');
             Route::get('active', 'getActiveStudents');
         });
@@ -155,7 +154,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getActionType');
-            Route::get('count', 'count');
         });
     });
 
@@ -172,7 +170,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('convert-advisor/{id}', 'convertAdvisor');
             Route::get('check-nif/{nif}', 'checkNif');
             Route::get('active', 'getActiveAdvisors');
-            Route::get('count', 'count');
             Route::get('courses/{id}', 'getAdvisorCourses');
             Route::get('companies/{id}', 'getAdvisorCompanies');
             Route::get('csv', 'advisorsCSV');
@@ -210,7 +207,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCourseType');
-            Route::get('count', 'count');
         });
     });
 
@@ -223,7 +219,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('count', 'count');
         });
     });
 
@@ -239,7 +234,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get/{id}', 'getCourse');
             Route::get('set-data', 'setData');
             Route::get('students/{id}', 'getStudents');
-            Route::get('count', 'count');
             Route::get('csv', 'coursesCSV');
         });
     });
@@ -254,7 +248,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getIncidenceType');
-            Route::get('count', 'count');
         });
     });
 
@@ -268,7 +261,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingActionLevel');
-            Route::get('count', 'count');
         });
     });
 
@@ -282,7 +274,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingActionGroup');
-            Route::get('count', 'count');
         });
     });
 
@@ -297,7 +288,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingContractStatus');
             Route::get('register', 'registers');
-            Route::get('count', 'count');
         });
     });
 
@@ -311,7 +301,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getOnLeaveType');
-            Route::get('count', 'count');
         });
     });
 
@@ -324,7 +313,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getLevelStudy');
-            Route::get('count', 'count');
         });
     });
 
@@ -338,7 +326,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingActionLevel');
-            Route::get('count', 'count');
         });
     });
 
@@ -352,7 +339,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingActionLevel');
-            Route::get('count', 'count');
         });
     });
 
@@ -366,7 +352,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getProfessionalArea');
-            Route::get('count', 'count');
         });
     });
 
@@ -391,7 +376,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getProfessionalFamily');
-            Route::get('count', 'count');
         });
     });
 
@@ -405,7 +389,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getModality');
-            Route::get('count', 'count');
         });
     });
 
@@ -419,7 +402,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getPayment');
-            Route::get('count', 'count');
         });
     });
 
@@ -434,7 +416,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getProvider');
             Route::get('training-actions/{id}', 'getTrainingActions');
-            Route::get('count', 'count');
         });
     });
 
@@ -448,7 +429,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCenter');
-            Route::get('count', 'count');
         });
     });
 
@@ -462,7 +442,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'tutoring');
-            Route::get('count', 'count');
         });
     });
 
@@ -475,7 +454,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCompanyActivity');
-            Route::get('count', 'count');
         });
     });
 
@@ -488,7 +466,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCompanyType');
-            Route::get('count', 'count');
         });
     });
 
@@ -528,7 +505,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCredit');
             Route::get('{id}', 'getCredits');
-            Route::get('count', 'count');
         });
     });
 
@@ -544,7 +520,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get/{id}', 'getTeacher');
             Route::post('check_dni', 'checkDni');
             Route::get('courses/{id}', 'getTeachersCourses');
-            Route::get('count', 'count');
             Route::get('csv', 'teachersCSV');
         });
     });
@@ -562,7 +537,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('formative-action', 'getFormativeAction');
             Route::get('active', 'getActiveTrainingActions');
             Route::get('courses/{id}', 'getCourses');
-            Route::get('count', 'count');
             Route::get('csv', 'trainingActionsCSV');
         });
     });
@@ -582,7 +556,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('remove-element/{id}', 'removeElement');
             Route::get('not-used-units/{id}', 'getNotUsedUnits');
             Route::get('not-used-modules/{id}', 'getNotUsedModules');
-            Route::get('count', 'count');
         });
     });
 
@@ -613,7 +586,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('add-unit/{id}', 'addUnit');
             Route::post('remove-unit/{id}', 'removeUnit');
             Route::get('not-used-units/{id}', 'getNotUsedUnits');
-            Route::get('count', 'count');
         });
     });
 
@@ -627,7 +599,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingUnit');
-            Route::get('count', 'count');
         });
     });
 
@@ -683,7 +654,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getChore');
-            Route::get('count', 'count');
             Route::get('csv', 'choresCSV');
         });
     });
@@ -697,25 +667,11 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTracing');
-            Route::get('count', 'count');
             Route::get('csv', 'tracingsCSV');
         });
     });
 
-    /**
-     * Bills
-     */
-    Route::prefix('bills')->group(function() {
-        Route::controller(BillController::class)->group(function(){
-            Route::get('', 'getBills');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getBill');
-            Route::get('students/{id}', 'getBillStudents');
-            Route::get('count', 'count');
-            Route::get('csv', 'billsCSV');
-        });
-    });
+
 
 
     /**
@@ -728,7 +684,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getProfitability');
             Route::get('students/{id}', 'getStudents');
-            Route::get('count', 'count');
             Route::get('csv', 'profitsCSV');
         });
     });
@@ -757,7 +712,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getUser');
-            Route::get('count', 'count');
             Route::post('upload-image/{id}', 'uploadImage');
         });
     });
@@ -771,7 +725,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCnae');
-            Route::get('count', 'count');
         });
     });
 
@@ -785,7 +738,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getOccupation');
-            Route::get('count', 'count');
         });
     });
 
@@ -805,7 +757,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('convert-client/{id}', 'convertClient');
             Route::get('convert-advisor/{id}', 'convertAdvisor');
             Route::get('convert-provider/{id}', 'convertProvider');
-            Route::get('count', 'count');
             Route::get('csv', 'companiesCSV');
         });
     });
@@ -821,7 +772,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getPotentialStudent');
-            Route::get('count', 'count');
             Route::post('convert/{id}', 'convertStudent');
         });
     });
@@ -836,8 +786,21 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getPotentialCompany');
-            Route::get('count', 'count');
             Route::post('convert/{id}', 'convertCompany');
+        });
+    });
+
+    /**
+     * Bills
+     */
+    Route::prefix('bills')->group(function() {
+        Route::controller(BillController::class)->group(function(){
+            Route::get('', 'getBills');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'getBill');
+            Route::get('students/{id}', 'getBillStudents');
+            Route::get('csv', 'billsCSV');
         });
     });
 
@@ -851,7 +814,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getWebPlatform');
-            Route::get('count', 'count');
         });
     });
 
@@ -888,7 +850,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('count', 'count');
         });
     });
 
@@ -1000,7 +961,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('cfa-number', 'getCFANumber');
             Route::get('specialties/{id}', 'getSpecialties');
             Route::get('certifications/{id}', 'getCertifications');
-            Route::get('count', 'countTrainingContracts');
             Route::post('calculate-hours/{id}', 'calculateHours');
             Route::get('csv', 'trainingContractCSV');
             Route::post('register/{id}', 'register');
@@ -1016,7 +976,6 @@ Route::prefix('professional-categories')->group(function() {
     Route::controller(ProfessionalCategoryController::class)->group(function(){
         Route::get('', 'professionalCategories');
         Route::get('get/{id}', 'getProfessionalCategories');
-        Route::get('count', 'count');
     });
 });
 

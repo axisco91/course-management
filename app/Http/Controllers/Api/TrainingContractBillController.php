@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 use App\Models\Company;
 use App\Models\Student;
 use App\Models\TrainingContractBill;

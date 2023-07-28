@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 use App\Models\Certification;
 use App\Models\CertificationElement;
 use App\Models\Module;

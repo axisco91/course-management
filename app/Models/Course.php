@@ -316,17 +316,9 @@ class Course extends Model
         ];
     }
 
-    public static function getTeachersCourses($id){
-        $courses = Course::where('teacher_id', $id)->orderBy('beginning', 'DESC')->get();
-
-        foreach ($courses as $course){
-            $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
-            $course['beginning'] = $beginning;
-            $end = Carbon::parse($course['end'])->format('d/m/Y');
-            $course['end'] = $end;
-        }
-
-        return $courses;
+    public function scopeTeacherCourses($query, $id) {
+        return $query->where('teacher_id', $id)
+            ->orderBy('beginning', 'DESC');
     }
 
     public static function messageDates($beggining, $end){
@@ -354,34 +346,17 @@ class Course extends Model
         ];
     }
 
-    public static function getTrainingActionCourse($id, $search_course_name = null, $search_course_group = null)
-    {
-        $courses = Course::where('training_action_id', $id)->orderBy('beginning', 'DESC')->get();
-        foreach ($courses as $course){
-            $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
-            $course['beginning'] = $beginning;
-            $end = Carbon::parse($course['end'])->format('d/m/Y');
-            $course['end'] = $end;
-        }
-
-        return $courses;
+    public function scopeTrainingActionCourses($query, $id) {
+        return $query->where('training_action_id', $id)
+            ->orderBy('beginning', 'DESC');
     }
 
-    public static function getCompanyCourses($id){
+    public function scopeCompanyCourses($query, $id) {
         $registrations = Registration::where('company_id', $id)->groupBy('course_id')->pluck('course_id')->toArray();
-        $courses = Course::select('courses.*')
+        return $query->select('courses.*')
             ->where(function ($query) use ($registrations){
                 $query->WhereIn('courses.id', $registrations);
-            })
-            ->orderBy('beginning', 'DESC')
-            ->get();
-        foreach ($courses as $course){
-            $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
-            $course['beginning'] = $beginning;
-            $end = Carbon::parse($course['end'])->format('d/m/Y');
-            $course['end'] = $end;
-        }
-        return $courses;
+            });
     }
 
     public static function getNumberCourses($year){

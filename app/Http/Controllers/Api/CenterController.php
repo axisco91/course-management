@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 use App\Models\Center;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;

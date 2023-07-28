@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 use App\Models\Company;
 use App\Models\Provider;
 use App\Models\TrainingAction;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class ProviderController extends BaseController
 {

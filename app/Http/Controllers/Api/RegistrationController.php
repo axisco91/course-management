@@ -1,110 +1,147 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 use App\Models\Advisor;
 use App\Models\Bill;
-use App\Models\Chore;
 use App\Models\Company;
 use App\Models\Profitability;
 use App\Models\Registration;
 use App\Models\Student;
-use App\Models\Tracing;
 use App\Models\User;
+use App\Services\BillService;
+use App\Services\ProfitabilityService;
+use App\Services\RegistrationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class RegistrationController extends BaseController
 {
+    private $registrationService;
+    private $billService;
+    private $profitabilityService;
+
+    public function __construct(RegistrationService $registrationService, BillService $billService, ProfitabilityService $profitabilityService)
+    {
+        $this->registrationService = $registrationService;
+        $this->billService = $billService;
+        $this->profitabilityService = $profitabilityService;
+    }
+
+    /**
+     * Obtenemos los alumnos matriculados
+     * @param $id
+     * @return mixed
+     */
     public function getRegistrations($id) {
-        return  Registration::getRegistrated($id);
+        return Student::getRegistrated($id)
+            ->get();
     }
 
+    /**
+     * Obtenemos los alumnos no matriculados
+     * @param $id
+     * @return mixed
+     */
     public function getNotRegistered($id) {
-        return  Registration::getUnregistrated($id);
+        return Student::getUnregistrated($id)
+            ->get();
     }
 
+    /**
+     * Creamos la matriculación
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function create(Request $request){
         try {
-            $student = Student::getStudent($request['student_id']);
-            $tracing_data = [
+            $student = Student::find($request['student_id']);
+            // Obtenemos los datos de asesorías y colaboradores
+            $advisor_id = null;
+            $collaborator_id = null;
+            $company = Company::find($student['company_id']);
+            $advisor = Advisor::find($company->advisor_id);
+            $advisor_percentage = null;
+            $collaborator_percentage = null;
+            if ($advisor) {
+                if ($advisor['collaborator_id']){
+                    $collaborator_id = $advisor['collaborator_id'];
+                }
+                if ($advisor['commission']){
+                    $advisor_percentage = intval($advisor['commission']);
+                }
+            }
+            if ($company){
+                if ($company['advisor_id']){
+                    $advisor_id = $company['advisor_id'];
+                }
+                if ($company['collaborator_id']){
+                    $collaborator_id = $company['collaborator_id'];
+                }
+            }
+            if ($collaborator_id){
+                $user = User::find($collaborator_id);
+                if ($user){
+                    $collaborator_percentage = $user['commission'];
+                }
+            }
+            // Vemos si ya existe una factura sino creamos otro
+            $bill = Bill::where('course_id', $request->course_id)
+                ->where('company_id', $company->id)
+                ->where('is_bonus', $request->is_bonus)->first();
+            $billData = [
+                'course_id' => $request['course_id'],
+                'company_id' => $student['company_id'],
+                'is_bonus' => $request['is_bonus'],
+                'price' => $request['price'],
+                'student_id' => $student['id'],
+                'advisor_id' => $advisor_id,
+                'collaborator_id' => $collaborator_id,
+                'company_name' => $company['name']
+            ];
+            if ($bill && $company['name'] != 'SIN EMPRESA'){
+                $bill = $this->billService->updateBillingRegistrations($bill, $billData);
+            } else {
+                $bill = $this->billService->createBillingRegistrations($billData);
+            }
+            // Vemos si existe la rentabilidad sino creamos otra
+            $profitabilityData =[
+                'course_id' =>$request['course_id'],
+                'company_id' => $student['company_id'],
+                'student_id' => $student['id'],
+                'price' => $request['price'],
+                'total' => $request['price'],
+                'advisor_percentage' => $advisor_percentage,
+                'collaborator_percentage' => $collaborator_percentage,
+                'is_bonus' => $request['is_bonus']
+            ];
+            if ($request->is_bonus) {
+                $profitabilityData['student_id'] = null;
+                $profitability = Profitability::select('profitabilities.*')->leftjoin('registrations', 'registrations.profitability_id', '=', 'profitabilities.id')
+                    ->where('profitabilities.course_id', $request->course_id)
+                    ->where('profitabilities.company_id', $request->company_id)
+                    ->where('registrations.is_bonus', $request->is_bonus)->first();
+                if ($profitability) {
+                    $profitability = $this->profitabilityService->updateRegistration($profitability, $profitabilityData);
+                } else {
+                    $profitability = $this->profitabilityService->create($profitabilityData);
+                }
+            } else {
+                $profitability = $this->profitabilityService->create($profitabilityData);
+            }
+
+            // Creamos la matriculación junto con los datos de tareas y seguimiento
+            $data = [
                 'course_id' => $request['course_id'],
                 'company_id' => $student['company_id'],
                 'student_id' => $student['id'],
+                'advisor_id' => $advisor_id,
+                'collaborator_id' => $collaborator_id,
+                'price' => $request['price'],
+                'profitability_id' => $profitability['id'],
+                'is_bonus' => $request['is_bonus'],
+                'billing_id' => $bill->id
             ];
-            $tracing = Tracing::createTracing($tracing_data);
-            if ($tracing) {
-                $chore_data = [
-                    'course_id' => $request['course_id'],
-                    'company_id' => $student['company_id'],
-                    'student_id' => $student['id']
-                ];
-                $chore = Chore::createChore($chore_data);
-                if ($chore) {
-                    $advisor_id = null;
-                    $collaborator_id = null;
-                    $company = Company::find($student['company_id']);
-                    $advisor = Advisor::find($company->advisor_id);
-                    $advisor_percentage = null;
-                    $collaborator_percentage = null;
-                    if ($advisor) {
-                        if ($advisor['collaborator_id']){
-                            $collaborator_id = $advisor['collaborator_id'];
-                        }
-                        if ($advisor['commission']){
-                            $advisor_percentage = intval($advisor['commission']);
-                        }
-                    }
-                    if ($company){
-                        if ($company['advisor_id']){
-                            $advisor_id = $company['advisor_id'];
-                        }
-                        if ($company['collaborator_id']){
-                            $collaborator_id = $company['collaborator_id'];
-                        }
-                    }
-                    if ($collaborator_id){
-                        $user = User::find($collaborator_id);
-                        if ($user){
-                            $collaborator_percentage = $user['commission'];
-                        }
-                    }
-                    $bill_data = [
-                        'course_id' => $request['course_id'],
-                        'company_id' => $student['company_id'],
-                        'is_bonus' => $request['is_bonus'],
-                        'price' => $request['price'],
-                        'student_id' => $student['id'],
-                        'advisor_id' => $advisor_id,
-                        'collaborator_id' => $collaborator_id,
-                    ];
-                    $bill = Bill::updateBillingRegistrations($bill_data);
-                    $profitability_data =[
-                        'course_id' =>$request['course_id'],
-                        'company_id' => $student['company_id'],
-                        'student_id' => $student['id'],
-                        'price' => $request['price'],
-                        'total' => $request['price'],
-                        'advisor_percentage' => $advisor_percentage,
-                        'collaborator_percentage' => $collaborator_percentage,
-                        'is_bonus' => $request['is_bonus']
-                    ];
-                    $profitability = Profitability::createProfitability($profitability_data);
-                    $registration_data = [
-                        'course_id' => $request['course_id'],
-                        'company_id' => $student['company_id'],
-                        'student_id' => $student['id'],
-                        'billing_id' => $bill['id'],
-                        'tracing_id' => $tracing['id'],
-                        'chore_id' => $chore['id'],
-                        'price' => $request['price'],
-                        'profitability_id' => $profitability['id'],
-                        'is_bonus' => $request['is_bonus']
-                    ];
-                    $registration = Registration::createRegistration($registration_data);
-                    $student['registration_id'] = $registration->id;
-                }
-            }
+            $registration = $this->registrationService->create($data);
+            $student['registration_id'] = $registration->id;
 
         } catch (\Exception $e){
             return response()->json([
@@ -120,6 +157,11 @@ class RegistrationController extends BaseController
         ]);
     }
 
+    /**
+     * Obtenemos la matriculación
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getRegistration($id){
         $registration = Registration::find($id);
         if ($registration) {
@@ -134,12 +176,17 @@ class RegistrationController extends BaseController
         ]);
     }
 
+    /**
+     * Eliminamos la matriculación
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse|void
+     */
     public function destroy($id){
         if ($id) {
             try {
                 $registration = Registration::find($id);
-                $student = Student::getStudent($registration['student_id']);
-                Registration::unregistration($registration['student_id'], $registration['course_id']);
+                $student = Student::find($registration['student_id']);
+                $this->registrationService->destroy($registration);
                 return response()->json([
                     'status' => 200,
                     'student' => $student

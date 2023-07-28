@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 use App\Mail\PotentialPrivateStudent as PotentialPrivateEmail;
 use App\Mail\PotentialStudent as PotentialEmail;
 use App\Models\PotentialStudent;

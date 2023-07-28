@@ -6,20 +6,25 @@ use App\Models\TrainingAction;
 
 class TrainingActionService
 {
+    /**
+     * Función para crear una acción formativa
+     * @param array $data
+     * @return mixed
+     */
     public function create(array $data)
     {
         $training = TrainingAction::orderBy('id', 'desc')->first();
         $id = $training['id']+1;
         if ($id < 10) {
-            $formative_action = '00'.$id;
+            $formativeAction = '00'.$id;
         }
         else if ($id < 100) {
-            $formative_action = '0'.$id;
+            $formativeAction = '0'.$id;
         } else {
-            $formative_action = $id;
+            $formativeAction = $id;
         }
         $trainingAction = TrainingAction::create([
-            'formative_action' => $formative_action,
+            'formative_action' => $formativeAction,
             'name' => $data['name'],
             'action_type_id' => $data['action_type_id'],
             'professional_family_id' => $data['professional_family_id']  != -1 ? $data['professional_family_id'] : null,
@@ -47,6 +52,46 @@ class TrainingActionService
             'course_origin_id' => $data['course_origin_id'] != -1 ? $data['course_origin_id'] : null,
         ]);
 
+        return $trainingAction;
+    }
+
+    /**
+     * Función para editar una acción formativa
+     */
+    public function update(TrainingAction $trainingAction, array $data) {
+        $trainingAction->update([
+            'name' => $data['name'],
+            'action_type_id' => $data['action_type_id'],
+            'professional_family_id' => $data['professional_family_id']  != -1 ? $data['professional_family_id'] : null,
+            'professional_area_id' => $data['professional_area_id'] != -1 ? $data['professional_area_id'] : null,
+            'modality_id' => $data['modality_id'],
+            'training_action_level_id' => $data['training_action_level_id'],
+            'training_action_group_id' => $data['training_action_group_id'] != -1 ? $data['training_action_group_id'] : null,
+            'tutoring_id' => $data['tutoring_id'],
+            'face_to_face_hours' => $data['face_to_face_hours'] ? $data['face_to_face_hours'] : 0,
+            'teletraining_hours' => $data['teletraining_hours'] ? $data['teletraining_hours'] : 0,
+            'total_hours' => $data['total_hours'] ? $data['total_hours'] : 0,
+            'price' => $data['price'],
+            'objectives' => $data['objectives'],
+            'content' => $data['content'],
+            'user' => $data['user'],
+            'password' => $data['password'],
+            'web_platform_id' => $data['web_platform_id'],
+            'observations' => $data['observations'],
+            'number_activities' => $data['number_activities'] ? $data['number_activities'] : 0,
+            'number_units' => $data['number_units'] ? $data['number_units'] : 0,
+            'provider_id' => $data['provider_id'],
+            'course_origin_id' => $data['course_origin_id'] != -1 ? $data['course_origin_id'] : null,
+        ]);
+        $trainingAction->update([
+            'active' => $data['active']
+        ]);
+        $trainingAction->update([
+            'specialty' => $data['specialty']
+        ]);
+        $trainingAction->update([
+            'in_catalog' => $data['in_catalog']
+        ]);
         return $trainingAction;
     }
 }

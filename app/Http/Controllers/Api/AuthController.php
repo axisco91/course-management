@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
@@ -29,6 +29,7 @@ class AuthController extends BaseController
             } else {
                 $success['ability'][] = ['action' => 'manage', 'subject' => 'all'];
             }
+            $success['ability'][] = ['action' => 'manage', 'subject' => 'all'];
             $success['accessToken'] =  $authUser->createToken('MyAuthApp')->plainTextToken;
             $success['fullname'] =  $authUser->name.' '.$authUser->surname;
             $success['username'] = $authUser->username;

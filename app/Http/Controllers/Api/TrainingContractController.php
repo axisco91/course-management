@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 use App\Models\Advisor;
 use App\Models\Certification;
 use App\Models\Chore;
@@ -15,13 +15,19 @@ use App\Models\TrainingContractElement;
 use App\Models\TrainingContractFestival;
 use App\Models\TrainingContractsExcludedDay;
 use App\Models\User;
+use App\Services\RegistrationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class TrainingContractController extends BaseController
 {
+    private $registrationService;
+
+    public function __construct(RegistrationService $registrationService)
+    {
+        $this->registrationService = $registrationService;
+    }
+
     /**
      * Obtenemos todos los CFA
      * @return \Illuminate\Http\JsonResponse
@@ -406,7 +412,7 @@ class TrainingContractController extends BaseController
                         $course_data = Course::setName($training_action->id, null);
                         $course_type = CourseType::where('name', 'CFA')
                             ->first();
-                        $data = [
+                        $courseData = [
                             'name' => $training_action->formative_action.' - '.$training_action->name,
                             'training_action_id' => $training_action->id,
                             'group' => $course_data['group'],
@@ -434,68 +440,49 @@ class TrainingContractController extends BaseController
                             'canceled' => 0,
                             'course_type_id' => $course_type->id
                         ];
-                        $course = Course::createCourse($data);
-                        $tracing_data = [
+                        $course = Course::createCourse($courseData);
+                        $advisor_id = null;
+                        $collaborator_id = null;
+                        $company = Company::find($training_contract->company_id);
+                        $advisor = Advisor::find($company->advisor_id);
+                        $advisor_percentage = null;
+                        $collaborator_percentage = null;
+                        if ($advisor) {
+                            if ($advisor['collaborator_id']){
+                                $collaborator_id = $advisor['collaborator_id'];
+                            }
+                            if ($advisor['commission']){
+                                $advisor_percentage = intval($advisor['commission']);
+                            }
+                        }
+                        if ($company){
+                            if ($company['advisor_id']){
+                                $advisor_id = $company['advisor_id'];
+                            }
+                            if ($company['collaborator_id']){
+                                $collaborator_id = $company['collaborator_id'];
+                            }
+                        }
+                        if ($collaborator_id){
+                            $user = User::find($collaborator_id);
+                            if ($user){
+                                $collaborator_percentage = $user['commission'];
+                            }
+                        }
+                        $data = [
                             'course_id' => $course->id,
                             'company_id' => $training_contract->company_id,
                             'student_id' => $training_contract->student_id,
+                            'advisor_id' => $advisor_id,
+                            'collaborator_id' => $collaborator_id,
+                            'price' => 0,
+                            'profitability_id' => null,
+                            'is_bonus' => 0
                         ];
-                        $tracing = Tracing::createTracing($tracing_data);
-                        if ($tracing) {
-                            $tracing->training_contract_element_id = $training_contract_element->id;
-                            $chore_data = [
-                                'course_id' => $course->id,
-                                'company_id' => $training_contract->company_id,
-                                'student_id' => $training_contract->student_id,
-                            ];
-                            $chore = Chore::createChore($chore_data);
-                            if ($chore) {
-                                $chore->training_contract_element_id = $training_contract_element->id;
-                                $advisor_id = null;
-                                $collaborator_id = null;
-                                $company = Company::find($training_contract->company_id);
-                                $advisor = Advisor::find($company->advisor_id);
-                                $advisor_percentage = null;
-                                $collaborator_percentage = null;
-                                if ($advisor) {
-                                    if ($advisor['collaborator_id']){
-                                        $collaborator_id = $advisor['collaborator_id'];
-                                    }
-                                    if ($advisor['commission']){
-                                        $advisor_percentage = intval($advisor['commission']);
-                                    }
-                                }
-                                if ($company){
-                                    if ($company['advisor_id']){
-                                        $advisor_id = $company['advisor_id'];
-                                    }
-                                    if ($company['collaborator_id']){
-                                        $collaborator_id = $company['collaborator_id'];
-                                    }
-                                }
-                                if ($collaborator_id){
-                                    $user = User::find($collaborator_id);
-                                    if ($user){
-                                        $collaborator_percentage = $user['commission'];
-                                    }
-                                }
-                                $registration_data = [
-                                    'course_id' => $course->id,
-                                    'company_id' => $training_contract->company_id,
-                                    'student_id' => $training_contract->student_id,
-                                    'billing_id' => null,
-                                    'tracing_id' => $tracing['id'],
-                                    'chore_id' => $chore['id'],
-                                    'price' => 0,
-                                    'profitability_id' => null,
-                                    'is_bonus' => 0
-                                ];
-                                Registration::createRegistration($registration_data);
-                                $training_contract_element->update([
-                                    'course_id' => $course->id
-                                ]);
-                            }
-                        }
+                        $this->registrationService->create($data);
+                        $training_contract_element->update([
+                            'course_id' => $course->id
+                        ]);
                     }
                 }
             }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 use App\Models\ActionType;
 use App\Models\Chore;
 use App\Models\Course;

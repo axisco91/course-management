@@ -86,12 +86,30 @@ class TrainingAction extends Model
         return $this->hasOne('App\Models\WebPlatform', 'id', 'web_platform_id');
     }
 
-    public static function getTrainingActions(){
-        $trainingActions = TrainingAction::select('training_actions.*',
-            'action_types.name as action_type', 'professional_families.name as professional_family',
-            'professional_areas.name as professional_area', 'modalities.name as modality',
-            'training_action_levels.name as training_action_level', 'training_action_groups.name as training_action_group',
-            'tutorings.name as tutoring', 'web_platforms.name as web_platform', 'providers.name as provider', 'course_origins.name as course_origin')
+    public function scopeActive($query) {
+        return $query->select('id as value', DB::raw("CONCAT(formative_action,' - ',name) as label"))
+            ->where('active', 1);
+    }
+
+    public function scopeTrainingAction($query) {
+        return $query->select('training_actions.*',
+            'action_types.name as action_type',
+            'professional_families.name as professional_family',
+            'professional_areas.name as professional_area',
+            'modalities.name as modality',
+            'training_action_levels.name as training_action_level',
+            'training_action_groups.name as training_action_group',
+            'tutorings.name as tutoring',
+            'web_platforms.name as web_platform',
+            'providers.name as provider',
+            DB::raw('(CASE
+                        WHEN in_catalog = "0" THEN "No"
+                        WHEN in_catalog = "1" THEN "Si"
+                        END) AS in_catalog'),
+            DB::raw('(CASE
+                        WHEN training_actions.active = "0" THEN "Inactivo"
+                        WHEN training_actions.active = "1" THEN "Activo"
+                        END) AS status'))
             ->leftjoin('action_types', 'action_types.id', '=', 'training_actions.action_type_id')
             ->leftjoin('professional_families', 'professional_families.id', '=', 'training_actions.professional_family_id')
             ->leftjoin('professional_areas', 'professional_areas.id', '=', 'training_actions.professional_area_id')
@@ -100,127 +118,7 @@ class TrainingAction extends Model
             ->leftjoin('training_action_groups', 'training_action_groups.id', '=', 'training_actions.training_action_group_id')
             ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
             ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
-            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id')
-            ->leftjoin('course_origins', 'course_origins.id', '=', 'training_actions.course_origin_id')
-            ->orderby('id', 'asc')
-            ->get();
-        foreach($trainingActions as $trainingAction) {
-            $course = Course::where('training_action_id', $trainingAction->id)->first();
-            if ($course) {
-                $trainingAction['used'] = true;
-            } else {
-                $trainingAction['used'] = false;
-            }
-        }
-        return $trainingActions;
-    }
-
-    public static function getTrainingAction($id){
-        $trainingAction = TrainingAction::select('training_actions.*',
-            'action_types.name as action_type', 'professional_families.name as professional_family',
-            'professional_areas.name as professional_area', 'modalities.name as modality',
-            'training_action_levels.name as training_action_level', 'training_action_groups.name as training_action_group',
-            'tutorings.name as tutoring', 'web_platforms.name as web_platform', 'providers.name as provider', 'course_origins.name as course_origin')
-            ->leftjoin('action_types', 'action_types.id', '=', 'training_actions.action_type_id')
-            ->leftjoin('professional_families', 'professional_families.id', '=', 'training_actions.professional_family_id')
-            ->leftjoin('professional_areas', 'professional_areas.id', '=', 'training_actions.professional_area_id')
-            ->leftjoin('modalities', 'modalities.id', '=', 'training_actions.modality_id')
-            ->leftjoin('training_action_levels', 'training_action_levels.id', '=', 'training_actions.training_action_level_id')
-            ->leftjoin('training_action_groups', 'training_action_groups.id', '=', 'training_actions.training_action_group_id')
-            ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
-            ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
-            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id')
-            ->leftjoin('course_origins', 'course_origins.id', '=', 'training_actions.course_origin_id')
-            ->where('training_actions.id', $id)
-            ->first();
-        $course = Course::where('training_action_id', $trainingAction->id)->first();
-        if ($course) {
-            $trainingAction['used'] = true;
-        } else {
-            $trainingAction['used'] = false;
-        }
-        return $trainingAction;
-    }
-
-    public static function createTrainingAction($data){
-        $training = TrainingAction::orderBy('id', 'desc')->first();
-        $id = $training['id']+1;
-        if ($id < 10) {
-            $formative_action = '00'.$id;
-        }
-        else if ($id < 100) {
-            $formative_action = '0'.$id;
-        } else {
-            $formative_action = $id;
-        }
-        $training_action = TrainingAction::create([
-            'formative_action' => $formative_action,
-            'name' => $data['name'],
-            'action_type_id' => isset($data['action_type_id']) ? $data['action_type_id'] : null,
-            'professional_family_id' => isset($data['professional_family_id']) && $data['professional_family_id'] != -1 ? $data['professional_family_id'] : null,
-            'professional_area_id' => isset($data['professional_area_id']) && $data['professional_area_id'] != -1 ? $data['professional_area_id'] : null,
-            'modality_id' => isset($data['modality_id']) && $data['modality_id'] != -1 ? $data['modality_id'] : null,
-            'training_action_level_id' => isset($data['training_action_level_id']) && $data['training_action_level_id'] != -1 ? $data['training_action_level_id'] : null,
-            'training_action_group_id' => isset($data['training_action_group_id']) && $data['training_action_group_id'] != -1 ? $data['training_action_group_id'] : null,
-            'tutoring_id' => isset($data['tutoring_id']) && $data['tutoring_id'] != -1 ? $data['tutoring_id'] : null,
-            'face_to_face_hours' => $data['face_to_face_hours'] ? $data['face_to_face_hours'] : 0,
-            'teletraining_hours' => $data['teletraining_hours'] ? $data['teletraining_hours'] : 0,
-            'total_hours' => $data['total_hours'] ? $data['total_hours'] : 0,
-            'price' => isset($data['price']) ? $data['price'] : 0,
-            'objectives' => isset($data['objectives']) ? $data['objectives'] : '',
-            'content' => isset($data['content']) ? $data['content'] : '',
-            'user' => isset($data['user']) ? $data['user'] : null,
-            'password' => isset($data['password']) ? $data['password'] : null,
-            'web_platform_id' => isset($data['web_platform_id']) ? $data['web_platform_id'] : null,
-            'observations' => isset($data['observations']) ? $data['observations'] : null,
-            'number_activities' => isset($data['number_activities']) ? $data['number_activities'] : 0,
-            'number_units' => isset($data['number_units']) ? $data['number_units'] : 0,
-            'provider_id' => isset($data['provider_id']) ? $data['provider_id'] : null,
-            'active' => $data['active'],
-            'specialty' => $data['specialty'],
-            'in_catalog' => $data['in_catalog'],
-            'course_origin_id' => isset($data['course_origin_id']) && $data['course_origin_id'] != -1 ? $data['course_origin_id'] : null,
-        ]);
-
-        return $training_action;
-    }
-
-    public static function updateTrainingAction($id, $data){
-        $training_action = TrainingAction::find($id);
-        $training_action->update([
-            'name' => $data['name'],
-            'action_type_id' => $data['action_type_id'],
-            'professional_family_id' => $data['professional_family_id']  != -1 ? $data['professional_family_id'] : null,
-            'professional_area_id' => $data['professional_area_id'] != -1 ? $data['professional_area_id'] : null,
-            'modality_id' => $data['modality_id'],
-            'training_action_level_id' => $data['training_action_level_id'],
-            'training_action_group_id' => $data['training_action_group_id'] != -1 ? $data['training_action_group_id'] : null,
-            'tutoring_id' => $data['tutoring_id'],
-            'face_to_face_hours' => $data['face_to_face_hours'] ? $data['face_to_face_hours'] : 0,
-            'teletraining_hours' => $data['teletraining_hours'] ? $data['teletraining_hours'] : 0,
-            'total_hours' => $data['total_hours'] ? $data['total_hours'] : 0,
-            'price' => $data['price'],
-            'objectives' => $data['objectives'],
-            'content' => $data['content'],
-            'user' => $data['user'],
-            'password' => $data['password'],
-            'web_platform_id' => $data['web_platform_id'],
-            'observations' => $data['observations'],
-            'number_activities' => $data['number_activities'] ? $data['number_activities'] : 0,
-            'number_units' => $data['number_units'] ? $data['number_units'] : 0,
-            'provider_id' => $data['provider_id'],
-            'course_origin_id' => $data['course_origin_id'] != -1 ? $data['course_origin_id'] : null,
-        ]);
-        $training_action->update([
-            'active' => $data['active']
-        ]);
-        $training_action->update([
-            'specialty' => $data['specialty']
-        ]);
-        $training_action->update([
-            'in_catalog' => $data['in_catalog']
-        ]);
-        return $training_action;
+            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
     }
 
     public static function getProviderTrainingActions($id)
@@ -255,121 +153,5 @@ class TrainingAction extends Model
             ->where('specialty', 1)
             ->whereNotIn('id', $training_contracts_specialties)->get();
         return $training_actions;
-    }
-
-    public static function getTrainingActionCSV($formative_actions = null, $name = null, $professional_family = null, $professional_area = null, $modality = null, $provider = null, $inactive = 'false'){
-        $trainingActions = TrainingAction::select('training_actions.*',
-            'action_types.name as action_type',
-            'professional_families.name as professional_family',
-            'professional_areas.name as professional_area',
-            'modalities.name as modality',
-            'training_action_levels.name as training_action_level',
-            'training_action_groups.name as training_action_group',
-            'tutorings.name as tutoring',
-            'web_platforms.name as web_platform',
-            'providers.name as provider',
-            DB::raw('(CASE
-                        WHEN in_catalog = "0" THEN "No"
-                        WHEN in_catalog = "1" THEN "Si"
-                        END) AS in_catalog'),
-            DB::raw('(CASE
-                        WHEN training_actions.active = "0" THEN "Inactivo"
-                        WHEN training_actions.active = "1" THEN "Activo"
-                        END) AS active'))
-            ->leftjoin('action_types', 'action_types.id', '=', 'training_actions.action_type_id')
-            ->leftjoin('professional_families', 'professional_families.id', '=', 'training_actions.professional_family_id')
-            ->leftjoin('professional_areas', 'professional_areas.id', '=', 'training_actions.professional_area_id')
-            ->leftjoin('modalities', 'modalities.id', '=', 'training_actions.modality_id')
-            ->leftjoin('training_action_levels', 'training_action_levels.id', '=', 'training_actions.training_action_level_id')
-            ->leftjoin('training_action_groups', 'training_action_groups.id', '=', 'training_actions.training_action_group_id')
-            ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
-            ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
-            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
-
-        if ($formative_actions) {
-            $trainingActions = $trainingActions->where('training_actions.formative_action', 'like', '%'.$formative_actions.'%');
-        }
-        if ($name) {
-            $trainingActions = $trainingActions->where('training_actions.name', 'like', '%'.$name.'&');
-        }
-        if ($professional_family) {
-            $trainingActions = $trainingActions->where('professional_families.name', 'like', '%'.$professional_family.'%');
-        }
-        if ($professional_area) {
-            $trainingActions = $trainingActions->where('professional_areas.name', 'like', '%'.$professional_area.'%');
-        }
-        if ($modality) {
-            $trainingActions = $trainingActions->where('modalities.name', 'like', '%'.$modality.'%');
-        }
-        if ($provider) {
-            $trainingActions = $trainingActions->where('providers.name', 'like', '%'.$provider.'%');
-        }
-        if ($inactive == 'false') {
-            $trainingActions = $trainingActions->where('training_actions.active', 1);
-        }
-
-        $trainingActions = $trainingActions->orderBy('training_actions.id','asc')->get();
-
-        $data = [];
-        if (count($trainingActions) > 0) {
-            foreach ($trainingActions as $trainingAction) {
-                $element = [
-                    'Acción Formativa' => $trainingAction['formative_action'],
-                    'Nombre' => $trainingAction['name'],
-                    'Tipo Acción' => $trainingAction['action_type'],
-                    'Familia Professional' => $trainingAction['professional_family'],
-                    'Área Professional' => $trainingAction['professional_area'],
-                    'Modalidad' => $trainingAction['modality'],
-                    'Nivel' => $trainingAction['training_action_level'],
-                    'Grupo' => $trainingAction['training_action_group'],
-                    'Tutorización' => $trainingAction['tutoring'],
-                    'En Catalogo' => $trainingAction['in_catalog'],
-                    'Horas Presenciales' => $trainingAction['face_to_face_hours'],
-                    'Horas Teleformación' => $trainingAction['teletraining_hours'],
-                    'Horas totales' => $trainingAction['total_hours'],
-                    'Precio' => $trainingAction['price'],
-                    'Objetivos' => $trainingAction['objectives'],
-                    'Contenido' => $trainingAction['content'],
-                    'Usuario' => $trainingAction['user'],
-                    'Contraseña' => $trainingAction['password'],
-                    'Plataforma' => $trainingAction['web_platform'],
-                    'Observaciones' => $trainingAction['observations'],
-                    'Número Actividades' => $trainingAction['number_activities'],
-                    'Número Unidades' => $trainingAction['number_units'],
-                    'Proveedor' => $trainingAction['provider'],
-                    'Estado' => $trainingAction['active']
-                ];
-                $data[] = $element;
-            }
-        } else {
-            $element = [
-                'Acción Formativa' => '',
-                'Nombre' => '',
-                'Tipo Acción' => '',
-                'Familia Professional' => '',
-                'Área Professional' => '',
-                'Modalidad' => '',
-                'Nivel' => '',
-                'Grupo' => '',
-                'Tutorización' => '',
-                'En Catalogo' => '',
-                'Horas Presenciales' => '',
-                'Horas Teleformación' => '',
-                'Horas totales' => '',
-                'Precio' => '',
-                'Objetivos' => '',
-                'Contenido' => '',
-                'Usuario' => '',
-                'Contraseña' => '',
-                'Plataforma' => '',
-                'Observaciones' => '',
-                'Número Actividades' => '',
-                'Número Unidades' => '',
-                'Proveedor' => '',
-                'Estado' => ''
-            ];
-            $data[] = $element;
-        }
-        return $data;
     }
 }

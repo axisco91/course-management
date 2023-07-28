@@ -106,222 +106,8 @@ class Student extends Model
         return $this->hasMany('App\Models\Tracing', 'student_id', 'id');
     }
 
-    /**
-     * @param $data
-     * @return Create Student
-     */
-    public static function createStudent($data){
-
-        $student = Student::create([
-            'name' => $data['name'],
-            'surname' => $data['surname'],
-            'dni' => $data['dni'],
-            'telephone' => $data['telephone'],
-            'email' => $data['email'],
-            'company_id' => $data['company_id'],
-            'user' => $data['user'],
-            'password' => $data['password'],
-            'disabled' => $data['disabled'],
-            'date_of_birth' => $data['date_of_birth'] ? Carbon::createFromFormat('d-m-Y', $data['date_of_birth'])->format('Y-m-d') : null,
-            'level_study_id' => $data['level_study_id'],
-            'social_security_number' => $data['social_security_number'] ? $data['social_security_number'] : null,
-            'c_quote' => $data['c_quote'] ? $data['c_quote'] : null,
-            'quote_group_id' => $data['quote_group_id'] ? $data['quote_group_id'] : null,
-            'professional_category_id' => $data['professional_category_id'] ? $data['professional_category_id'] : null,
-            'annual_gross_salary' => $data['annual_gross_salary'] ? $data['annual_gross_salary'] : null,
-            'annual_hours' => $data['annual_hours'] ? $data['annual_hours'] : null,
-            'hourly_cost_worker_gross' => $data['hourly_cost_worker_gross'] ? $data['hourly_cost_worker_gross'] : null,
-            'direction' => $data['direction'] ? $data['direction'] : null,
-            'post_code' => $data['post_code'] ? $data['post_code'] : null,
-            'province_id' => $data['province_id'] ? $data['province_id'] : null,
-            'population' => $data['population'] ? $data['population'] : null,
-            'observation' => $data['observation'] ? $data['observation'] : null,
-            'iban' => $data['iban'] ? $data['iban'] : null,
-            'active' => $data['active'],
-        ]);
-
-        return $student;
-    }
-
-    /**
-     * Update Student
-     */
-    public static function updateStudent($id, $data){
-        $student = Student::find($id);
-        $student->update([
-            'name' => $data['name'],
-            'surname' => $data['surname'],
-            'dni' => $data['dni'],
-            'telephone' => $data['telephone'],
-            'email' => $data['email'],
-            'company_id' => $data['company_id'],
-            'user' => $data['user'],
-            'password' => $data['password'],
-            'date_of_birth' => $data['date_of_birth'] ? Carbon::createFromFormat('d-m-Y', $data['date_of_birth'])->format('Y-m-d') : null,
-            'level_study_id' => $data['level_study_id'],
-            'social_security_number' => $data['social_security_number'] ? $data['social_security_number'] : null,
-            'c_quote' => $data['c_quote'] ? $data['c_quote'] : null,
-            'quote_group_id' => $data['quote_group_id'] ? $data['quote_group_id'] : null,
-            'professional_category_id' => $data['professional_category_id'] ? $data['professional_category_id'] : null,
-            'annual_gross_salary' => $data['annual_gross_salary'] ? $data['annual_gross_salary'] : null,
-            'annual_hours' => $data['annual_hours'] ? $data['annual_hours'] : null,
-            'hourly_cost_worker_gross' => $data['hourly_cost_worker_gross'] ? $data['hourly_cost_worker_gross'] : null,
-            'direction' => $data['direction'] ? $data['direction'] : null,
-            'post_code' => $data['post_code'] ? $data['post_code'] : null,
-            'province_id' => $data['province_id'] ? $data['province_id'] : null,
-            'population' => $data['population'] ? $data['population'] : null,
-            'observation' => $data['observation'] ? $data['observation'] : null,
-            'iban' => $data['iban'] ? $data['iban'] : null,
-            'disabled' => $data['disabled'],
-            'active' => $data['active'],
-        ]);
-
-        return $student;
-    }
-
-    /**
-     * @param $id
-     * @return Student
-     */
-    public static function getStudent($id){
-        $student = Student::select('students.*',
-            'companies.name as company',
-            'level_studies.name as level_study',
-            'professional_categories.name as professional_category',
-            'provinces.name as province',
-            'quote_groups.name as quote_group',
-            'students.id as value',
-            DB::raw("CONCAT(students.name,' ',students.surname) as label"))
-            ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
-            ->leftjoin('level_studies', 'level_studies.id', '=', 'students.level_study_id')
-            ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
-            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')
-            ->where('students.id', $id)->first();
-        $registered = Registration::where('student_id', $student->id)->first();
-        if ($registered) {
-            $student['used'] = true;
-        } else {
-            $student['used'] = false;
-        }
-        return $student;
-    }
-
-    /**
-     * Update active or inactive
-     */
-    public static function activeInactive($id, $state){
-        $student = Student::findOrFail($id);
-        $student->update([
-            'active' => $state
-        ]);
-        return $student;
-    }
-
-    /**
-     * Get all students
-     */
-    public static function getStudents(){
-        $students = Student::select('students.*',
-            'companies.name as company',
-            'level_studies.name as level_study',
-            'professional_categories.name as professional_category',
-            'provinces.name as province',
-            'quote_groups.name as quote_group',
-            'students.id as value',
-            DB::raw("CONCAT(students.name,' ',students.surname) as label"))
-            ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
-            ->leftjoin('level_studies', 'level_studies.id', '=', 'students.level_study_id')
-            ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
-            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')
-            ->orderBy('students.name','asc')->get();
-
-        foreach($students as $student) {
-            $registered = Registration::where('student_id', $student->id)->first();
-            if ($registered) {
-                $student['used'] = true;
-            } else {
-                $student['used'] = false;
-            }
-        }
-
-        return $students;
-    }
-
-    /**
-     * Get all students
-     */
-    public static function getActiveStudents(){
-        $students = Student::select('students.*',
-            'companies.name as company',
-            'level_studies.name as level_study',
-            'professional_categories.name as professional_category',
-            'provinces.name as province',
-            'quote_groups.name as quote_group',
-            'students.id as value',
-            DB::raw("CONCAT(students.name,' ',students.surname) as label"))
-            ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
-            ->leftjoin('level_studies', 'level_studies.id', '=', 'students.level_study_id')
-            ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
-            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')
-            ->where('students.active', 1)
-            ->orderBy('students.name','asc')->get();
-
-        foreach($students as $student) {
-            $registered = Registration::where('student_id', $student->id)->first();
-            if ($registered) {
-                $student['used'] = true;
-            } else {
-                $student['used'] = false;
-            }
-        }
-
-        return $students;
-    }
-
-    public static function getCompanyStudents($id){
-        $students = Student::where('company_id', $id)->where('active', 1)->get();
-
-        return $students;
-    }
-
-    public static function getBilledStudent($id){
-        $students = Student::select('students.*', 'companies.name as company_name')
-            ->join('registrations', 'registrations.student_id', '=', 'students.id')
-            ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
-            ->where('registrations.billing_id', $id)->get();
-
-        return $students;
-    }
-
-    public static function findDni($dni, $id = null){
-        $student = Student::where('dni', $dni);
-        if ($id){
-            $student = $student->where('id', '!=', $id);
-        }
-        $student = $student->first();
-
-        return $student;
-    }
-
-    public static function findUser($user, $id = null){
-        $student = Student::where('user', $user);
-        if ($id){
-            $student = $student->where('id', '!=', $id);
-        }
-        $student = $student->first();
-
-        return $student;
-    }
-
-    /**
-     * @param $id
-     * @return Student
-     */
-    public static function getStudentCSV($name = null, $surname = null, $dni = null, $telephone = null, $email = null, $company = null, $inactive = 'false'){
-        $students = Student::select('students.*',
+    public function scopeStudent($query){
+        return $query->select('students.*',
             'companies.name as company',
             'level_studies.name as level_study',
             'professional_categories.name as professional_category',
@@ -334,94 +120,34 @@ class Student extends Model
             ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
             ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id');
+    }
 
-        if ($inactive == 'false') {
-            $students = $students->where('students.active', 1);
-        }
-        if ($name) {
-            $students = $students->where('students.name', 'like', '%'.$name.'%');
-        }
-        if ($surname) {
-            $students = $students->where('students.surname', 'like', '%'.$surname.'&');
-        }
-        if ($dni) {
-            $students = $students->where('students.dni', 'like', '%'.$dni.'%');
-        }
-        if ($telephone) {
-            $students = $students->where('students.telephone', 'like', '%'.$dni.'%');
-        }
-        if ($email) {
-            $students = $students->where('students.email', 'like', '%'.$email.'%');
-        }
-        if ($company) {
-            $students = $students->where('companies.name', 'like', '%'.$company.'%');
-        }
+    public function scopeCompanyStudents($query, $id) {
+        return $query->where('company_id', $id)
+            ->where('active', 1);
+    }
 
-        $students = $students->orderBy('students.name','asc')->get();
+    public function scopeBilledStudent($query, $id) {
+        return $query->select('students.*', 'companies.name as company_name')
+            ->join('registrations', 'registrations.student_id', '=', 'students.id')
+            ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
+            ->where('registrations.billing_id', $id);
+    }
 
-        $data = [];
-        if (count($students) > 0) {
-            foreach ($students as $student) {
-                $disabled = $student['disabled'] === 1 ? 'Si' : 'No';
-                $status = $student['active'] === 1 ? 'Activo' : 'Inactivo';
-                $element = [
-                    'Nombre' => $student['name'],
-                    'Apellidos' => $student['surname'],
-                    'DNI' => $student['dni'],
-                    'Correo' => $student['email'],
-                    'Teléfono' => $student['telephone'],
-                    'Empresa' => $student['company'],
-                    'Usuario' => $student['user'],
-                    'Contraseña' => $student['password'],
-                    'Fecha Nacimiento' => $student['level_study'],
-                    'Descapacitado' => $disabled,
-                    'Nº Seguridad Social' => $student['social_security_number'],
-                    'C. Cotización' => $student['c_quote'],
-                    'Grupo Cotización' => $student['quote_group'],
-                    'Categoría Profesional' => $student['professional_category'],
-                    'Salario Bruto Anual' => $student['annual_gross_salary'],
-                    'Horas Anuales' => $student['annual_hours'],
-                    'Coste Hora Bruto del Trabajador' => $student['hourly_cost_worker_gross'],
-                    'Dirección' => $student['direction'],
-                    'Código Postal' => $student['post_code'],
-                    'Provincia' => $student['province'],
-                    'Población' => $student['population'],
-                    'Iban' => $student['iban'],
-                    'Observaciones' => $student['observation'],
-                    'Estado' => $status
-                ];
-                $data[] = $element;
-            }
-        } else {
-            $element = [
-                'Nombre' => '',
-                'Apellidos' => '',
-                'DNI' => '',
-                'Correo' => '',
-                'Teléfono' => '',
-                'Empresa' => '',
-                'Usuario' => '',
-                'Contraseña' => '',
-                'Fecha Nacimiento' => '',
-                'Descapacitado' => '',
-                'Nº Seguridad Social' => '',
-                'C. Cotización' => '',
-                'Grupo Cotización' => '',
-                'Categoría Profesional' => '',
-                'Salario Bruto Anual' => '',
-                'Horas Anuales' => '',
-                'Coste Hora Bruto del Trabajador' => '',
-                'Dirección' => '',
-                'Código Postal' => '',
-                'Provincia' => '',
-                'Población' => '',
-                'Iban' => '',
-                'Observaciones' => '',
-                'Estado' => ''
-            ];
-            $data[] = $element;
-        }
+    public function scopeGetRegistrated($query, $courseId){
+        return $query->select('students.*', 'registrations.is_bonus', 'companies.name as company_name',
+            'registrations.id as registration_id',
+            DB::raw("CONCAT(students.name,' ',students.surname) as student"))
+            ->leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
+            ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
+            ->where('registrations.course_id', $courseId);
+    }
 
-        return $data;
+    public function scopeGetUnregistrated($query, $courseId){
+        $registations = Student::leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
+            ->where('registrations.course_id', '=', $courseId)->pluck('student_id');
+        return $query->select('students.*', 'students.id as value', DB::raw("CONCAT(students.name,' ',students.surname) as label"))
+            ->where('active', 1)
+            ->whereNotIn('id', $registations);
     }
 }
