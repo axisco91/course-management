@@ -12,7 +12,7 @@ class AdvisorIncidenceController extends BaseController
      * Get Advisor Incidences
      * @return mixed
      */
-    public function getTrainingActionLevels(Request $request) {
+    public function getAdvisorIncidences(Request $request) {
         return AdvisorIncidence::getAdvisorIncidences($request->advisor_id);
     }
 

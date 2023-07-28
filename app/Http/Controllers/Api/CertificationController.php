@@ -81,10 +81,10 @@ class CertificationController extends BaseController
         }
     }
 
-    public function count(){
-        return Certification::count();
-    }
-
+    /**
+     * Volver a calcular horas de los certificados
+     * @return void
+     */
     public function recalculateHours(){
         $certifications = Certification::all();
         foreach($certifications as $certification) {

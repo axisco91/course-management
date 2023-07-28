@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Course;
 use App\Models\Provider;
 use App\Models\Student;
+use App\Services\AdvisorService;
 use App\Services\CompanyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -14,10 +15,12 @@ use Illuminate\Support\Carbon;
 class CompanyController extends BaseController
 {
     private $companyService;
+    private $advisorService;
 
-    public function __construct(CompanyService $companyService)
+    public function __construct(CompanyService $companyService, AdvisorService $advisorService)
     {
         $this->companyService = $companyService;
+        $this->advisorService = $advisorService;
     }
 
     /**
@@ -199,6 +202,11 @@ class CompanyController extends BaseController
             $company = Company::company()
                 ->where('companies.id', $element->id)
                 ->first();
+            $advisor = Advisor::where('company_id', $company->id)->first();
+            if ($advisor) {
+                $data['company_id'] = $company->id;
+                $this->advisorService->updateAdvisorCompany($advisor, $data);
+            }
             $student = Student::where('company_id', $company['id'])->first();
             if ($student) {
                 $company['used'] = true;

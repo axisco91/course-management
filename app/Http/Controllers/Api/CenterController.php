@@ -2,15 +2,38 @@
 
 namespace App\Http\Controllers\Api;
 use App\Models\Center;
+use App\Models\Course;
+use App\Services\CenterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class CenterController extends BaseController
 {
+    private $centerService;
+
+    public function __construct(CenterService $centerService)
+    {
+        $this->centerService = $centerService;
+    }
+
+    /**
+     * Obtener centros
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getCenters() {
         try {
-            return Center::getCenters();
+            $centers = Center::getCenters()->get();
+            foreach ($centers as $center) {
+                 $course = Course::orWhere('delivery_center_id', $center['id'])
+                     ->orWhere('formation_center_id', $center['id'])->first();
+                 if ($course){
+                     $center['used'] = true;
+                 } else {
+                     $center['used'] = false;
+                 }
+            }
+            return $centers;
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -18,41 +41,18 @@ class CenterController extends BaseController
         }
     }
 
-    public function create(Request $request){
-        try {
-            $center = Center::createCenter($request);
-        } catch (\Exception $e){
-            return response()->json([
-                'status' => 400,
-                'message' => $e->getMessage()
-            ]);
-        }
-
-        return response()->json([
-            'status' => 200,
-            'center' => Center::getCenter($center->id)
-        ]);
-    }
-
-    public function edit($id, Request $request){
-        try {
-            $center = Center::updateCenter($id, $request);
-        } catch (\Exception $e){
-            return response()->json([
-                'status' => 400,
-                'message' => $e->getMessage()
-            ]);
-        }
-
-        return response()->json([
-            'status' => 200,
-            'center' => Center::getCenter($center->id)
-        ]);
-    }
-
     public function getCenter($id){
-        $center = Center::getCenter($id);
+        $center = Center::getCenters()
+            ->where('id', $id)
+            ->first();
         if ($center) {
+            $course = Course::orWhere('delivery_center_id', $center['id'])
+                ->orWhere('formation_center_id', $center['id'])->first();
+            if ($course){
+                $center['used'] = true;
+            } else {
+                $center['used'] = false;
+            }
             return response()->json([
                 'status' => 200,
                 'center' => $center
@@ -64,6 +64,79 @@ class CenterController extends BaseController
         ]);
     }
 
+    /**
+     * Crear
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function create(Request $request){
+        try {
+            $data = $request->all();
+            $element = $this->centerService->create($data);
+            $center = Center::getCenters()
+                ->where('id', $element->id)
+                ->first();
+            if ($center) {
+                $course = Course::orWhere('delivery_center_id', $center['id'])
+                    ->orWhere('formation_center_id', $center['id'])->first();
+                if ($course){
+                    $center['used'] = true;
+                } else {
+                    $center['used'] = false;
+                }
+            }
+            return response()->json([
+                'status' => 200,
+                'center' => $center
+            ]);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Editar
+     * @param $id
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function edit($id, Request $request){
+        try {
+            $data = $request->all();
+            $center = Center::find($id);
+            $element = $this->centerService->update($center, $data);
+            $center = Center::getCenters()
+                ->where('id', $element->id)
+                ->first();
+            if ($center) {
+                $course = Course::orWhere('delivery_center_id', $center['id'])
+                    ->orWhere('formation_center_id', $center['id'])->first();
+                if ($course){
+                    $center['used'] = true;
+                } else {
+                    $center['used'] = false;
+                }
+            }
+            return response()->json([
+                'status' => 200,
+                'center' => $center
+            ]);
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Eliminar
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse|void
+     */
     public function destroy($id){
         if ($id) {
             try {
@@ -78,9 +151,5 @@ class CenterController extends BaseController
                 ]);
             }
         }
-    }
-
-    public function count(){
-        return Center::count();
     }
 }

@@ -142,12 +142,6 @@ class Company extends Model
         return $companies->active;
     }
 
-    public static function getAdvisorsCompanies($id){
-        $companies = Company::where('advisor_id', $id)->get();
-
-        return $companies;
-    }
-
     public static function findNif($nif, $id = null){
         $company = Company::where('nif', $nif);
         if ($id){

@@ -6,6 +6,7 @@ use App\Models\Chore;
 use App\Models\Company;
 use App\Models\Course;
 use App\Models\CourseType;
+use App\Models\Registration;
 use App\Models\Student;
 use App\Services\BillService;
 use Carbon\Carbon;
@@ -86,9 +87,20 @@ class BillController extends BaseController
             $data = $request->all();
             $element = $this->billService->update($bill, $data);
 
-            Chore::billingDateChore($id, $request['billing_date'], $bill['invoiced']);
+            $registrations = Registration::billingRegistration($id)
+                ->get();
+            foreach ($registrations as $registration){
+                $chore = Chore::find($registration->chore_id);
+                $chore->update([
+                    'bonus_sent_status' => $bill['invoiced'],
+                    'bonus_sent_date' => $request['billing_date'] ? \Illuminate\Support\Carbon::createFromFormat('d-m-Y', $request['billing_date'])->format('Y-m-d') : null,
+                    'invoiced_status' => $bill['invoiced'],
+                    'invoiced_date' => $request['billing_date'] ? Carbon::createFromFormat('d-m-Y', $request['billing_date'])->format('Y-m-d') : null
+                ]);
+            }
+
             $bill = Bill::bill()
-                ->where('billings.id', $id)
+                ->where('billings.id', $element->id)
                 ->first();
             if ($bill) {
                 $course = Course::where('id', $bill->course_id)->first();

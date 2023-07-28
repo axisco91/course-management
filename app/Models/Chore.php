@@ -105,18 +105,4 @@ class Chore extends Model
 
         return $chores;
     }
-
-    public static function billingDateChore($id, $date, $status){
-        $registrations = Registration::billingRegistration($id);
-        foreach ($registrations as $registration){
-            $chore = Chore::find($registration->chore_id);
-            $chore->update([
-                'bonus_sent_status' => $status,
-                'bonus_sent_date' => $date ? Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') : null,
-                'invoiced_status' => $status,
-                'invoiced_date' => $date ? Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') : null
-                ]);
-        }
-        return true;
-    }
 }
