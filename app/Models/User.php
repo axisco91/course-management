@@ -71,19 +71,9 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
-    public static function getUsers(){
-        $users = User::select('*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
-            'users.id as value')
-            ->get();
-        return $users;
-    }
-
-    public static function getUser($id){
-        $user = User::select('*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
-            'users.id as value')
-            ->where('users.id', $id)
-            ->first();
-        return $user;
+    public function scopeGetUser($query) {
+        return $query->select('*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
+            'users.id as value');
     }
 
     public static function createUser($data){
@@ -98,7 +88,7 @@ class User extends Authenticatable
             'active' => $data['active']
         ]);
         $roles = [$data['roles']];
-        $user->syncRoles($roles[0]);
+        $user->syncRoles($roles);
         return $user;
     }
 
@@ -115,26 +105,6 @@ class User extends Authenticatable
         ]);
         $roles = [$data['roles']];
         $user->syncRoles($roles[0]);
-        return $user;
-    }
-
-    public static function findDni($dni, $id = null){
-        $user = User::where('dni', $dni);
-        if ($id){
-            $user = $user->where('id', '!=', $id);
-        }
-        $user = $user->first();
-
-        return $user;
-    }
-
-    public static function findUser($user, $id = null){
-        $user = User::where('username', $user);
-        if ($id){
-            $user = $user->where('id', '!=', $id);
-        }
-        $user = $user->first();
-
         return $user;
     }
 }

@@ -80,7 +80,8 @@ class Chore extends Model
             'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group',
             DB::raw("CONCAT(students.name,' ', students.surname) as student"),
             'courses.beginning as beginning',
-            'courses.end as end')
+            'courses.end as end',
+            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name, ' - ', students.name, ' ', students.surname) as name"))
             ->leftjoin('courses', 'courses.id', '=', 'chores.course_id')
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
             ->leftjoin('companies', 'companies.id', '=', 'chores.company_id')

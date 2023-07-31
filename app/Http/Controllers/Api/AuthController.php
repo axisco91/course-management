@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\API\BaseController as BaseController;
+use App\Http\Controllers\Api\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
 use Spatie\Permission\Models\Role;
@@ -20,16 +20,14 @@ class AuthController extends BaseController
             $authUser = Auth::user();
             $roles = Auth::user()->getRoleNames();
             $permissions = $authUser->getAllPermissions()->pluck('name');
+            $success['roles'] = $roles;
+            $success['permissions'] = $permissions;
             $success['ability'] = [];
-            if ($permissions) {
-                foreach ($permissions as $permission) {
-                    $ability = explode('.', $permission);
-                    $success['ability'][] = ['action' => $ability[0], 'subject' => $ability[1]];
-                }
-            } else {
-                $success['ability'][] = ['action' => 'manage', 'subject' => 'all'];
+            foreach ($permissions as $permission) {
+                $ability = explode('.', $permission);
+                $success['ability'][] = ['action' => $ability[0], 'subject' => $ability[1]];
             }
-            $success['ability'][] = ['action' => 'manage', 'subject' => 'all'];
+        //    $success['ability'][] = ['action' => 'manage', 'subject' => 'all'];
             $success['accessToken'] =  $authUser->createToken('MyAuthApp')->plainTextToken;
             $success['fullname'] =  $authUser->name.' '.$authUser->surname;
             $success['username'] = $authUser->username;

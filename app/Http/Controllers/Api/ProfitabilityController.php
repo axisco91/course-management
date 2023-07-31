@@ -55,13 +55,10 @@ class ProfitabilityController extends BaseController
             if ($course) {
                 $beginning = Carbon::parse($course->beginning)->format('d/m/Y');
                 $end = Carbon::parse($course->end)->format('d/m/Y');
-
+                $profitability['name'] = $course->group.'/'. $course->name .' '.$beginning.' - '.$end;
                 return response()->json([
                     'status' => 200,
-                    'profitability' => [
-                        'id' => $profitability->id,
-                        'name' => $course->group.'/'. $course->name .' '.$beginning.' - '.$end
-                    ]
+                    'profitability' => $profitability
                 ]);
             }
         }

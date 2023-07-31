@@ -9,14 +9,53 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends BaseController
 {
+    /**
+     * Obtenemos usuarios
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getUsers() {
         try {
-            return User::getUsers();
+            $users = User::getUser()
+                ->get();
+            foreach ($users as $user) {
+                $roles = $user->roles;
+                foreach ($roles as $role) {
+                    $user['role'] = $role->name;
+                    $user['role_id'] = $role->id;
+                }
+            }
+            return $users;
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Obtenemos usuario
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUser($id){
+        $user = User::getUser()
+            ->where('users.id', $id)
+            ->first();
+        if ($user) {
+            $roles = $user->roles;
+            foreach ($roles as $role) {
+                $user['role'] = $role->name;
+                $user['role_id'] = $role->id;
+            }
+            return response()->json([
+                'status' => 200,
+                'user' => $user
+            ]);
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Usuario no existe'
+        ]);
     }
 
     public function create(Request $request){
@@ -63,20 +102,6 @@ class UserController extends BaseController
         ]);
     }
 
-    public function getUser($id){
-        $user = User::getUser($id);
-        if ($user) {
-            return response()->json([
-                'status' => 200,
-                'user' => $user
-            ]);
-        }
-        return response()->json([
-            'status' => 400,
-            'message' => 'Usuario no existe'
-        ]);
-    }
-
     public function destroy($id){
         if ($id) {
             try {
@@ -91,10 +116,6 @@ class UserController extends BaseController
                 ]);
             }
         }
-    }
-
-    public function count(){
-        return User::count();
     }
 
     public function uploadImage(Request $request, $id) {
