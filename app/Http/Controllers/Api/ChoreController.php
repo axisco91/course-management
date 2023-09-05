@@ -7,6 +7,7 @@ use App\Models\Student;
 use App\Services\ChoreService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -30,8 +31,16 @@ class ChoreController extends BaseController
             if ($start->dayOfWeek >= 3)
                 $number_days = 5;
             $start = $start->addDays($number_days);
-            $chores = Chore::chore()
-                ->orderBy('chores.id', 'desc')
+
+            $chores = Chore::chore();
+
+            if (Auth::user()->hasRole('Docente')) {
+                $chores = $chores->leftjoin('registrations', 'registrations.chore_id', '=', 'chores.id')
+                    ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
+                    ->where('courses.teacher_id', Auth::user()->teacher_id);
+            }
+
+            $chores = $chores->orderBy('chores.id', 'desc')
                 ->get();
 
             foreach ($chores as $chore){

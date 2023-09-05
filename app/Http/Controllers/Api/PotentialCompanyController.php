@@ -5,6 +5,7 @@ use App\Models\Company;
 use App\Models\PotentialCompany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class PotentialCompanyController extends BaseController
@@ -102,6 +103,30 @@ class PotentialCompanyController extends BaseController
         return response()->json([
             'status' => 200,
             'company' => $potential_company
+        ]);
+    }
+
+    public function sendEmail(Request $request){
+        if ($request['email']){
+            try {
+                Mail::getSwiftMailer()
+                    ->getTransport()
+                    ->setUsername('zona@avzformacion.com')
+                    ->setPassword('Avz.2021');
+                Mail::to($request['email'])->send(new \App\Mail\PotentialCompany());
+                return response()->json([
+                    'status' => 200
+                ]);
+            } catch(\Exception $e) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => $e->getMessage()
+                ]);
+            }
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Error al enviar correo'
         ]);
     }
 }

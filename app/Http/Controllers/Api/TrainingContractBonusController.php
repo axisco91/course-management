@@ -49,19 +49,11 @@ class TrainingContractBonusController extends BaseController
             $fixed_month = $formation_hours/$total_months;
             $fixed_month = (int) $fixed_month;
             $rest_month = $formation_hours - ($fixed_month * $total_months);
-            $actual_date = Carbon::now();
-            $actual_last_month = $last_month;
-            if ($actual_date->format('m') <= $last_month) {
-                $actual_last_month = $actual_date->format('m');
-            }
-            if ($actual_date->format('Y') <= $last_year) {
-                $last_year = $actual_date->format('Y');
-            }
             $cont = $first_year;
             $i = $first_month;
             for($cont;$cont <= $last_year; $cont++) {
                 if ($cont == $last_year) {
-                    $k = $actual_date->format('m');
+                    $k = $last_month->format('m');
                 } else {
                     $k = 12;
                 }
@@ -123,19 +115,11 @@ class TrainingContractBonusController extends BaseController
             $fixed_month = $formation_hours/$total_months;
             $fixed_month = (int) $fixed_month;
             $rest_month = $formation_hours - ($fixed_month * $total_months);
-            $actual_date = Carbon::now();
-            $actual_last_month = $last_month;
-            if ($actual_date->format('m') <= $last_month) {
-                $actual_last_month = $actual_date->format('m');
-            }
-            if ($actual_date->format('Y') <= $last_year) {
-                $last_year = $actual_date->format('Y');
-            }
             $cont = $first_year;
             $i = $first_month;
             for($cont;$cont <= $last_year; $cont++) {
                 if ($cont == $last_year) {
-                    $k = $actual_last_month;
+                    $k = $last_month;
                 } else {
                     $k = 12;
                 }
@@ -159,7 +143,7 @@ class TrainingContractBonusController extends BaseController
                         ->where('month', $i)
                         ->where('year', $cont)
                         ->first();
-                    if (!$training_contract_bonuses) {
+                    if (!$training_contract_bonus) {
                         TrainingContractBonus::createBonus([
                             'training_contract_id' => $id,
                             'month' => $i,

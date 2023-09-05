@@ -88,6 +88,9 @@ class TrainingContract extends Model
             $number_cfa = $id;
         }
 
+        $bonusYearOne =  $data['formative_hours_first_year'] ? $data['formative_hours_first_year'] : 0;
+        $bonusYearTwo = $data['formative_hours_second_year'] ? $data['formative_hours_second_year'] : 0;
+
         $training_contract = TrainingContract::create([
             'number_cfa' => $number_cfa,
             'company_id' => $data['company_id'],
@@ -102,7 +105,7 @@ class TrainingContract extends Model
             'beginning_formation' => $data['beginning_formation'] ? Carbon::createFromFormat('d-m-Y', $data['beginning_formation'])->format('Y-m-d') : null,
             'end_formation' => $data['end_formation'] ? Carbon::createFromFormat('d-m-Y', $data['end_formation'])->format('Y-m-d') : null,
             'annually_day_hours' => $data['annually_day_hours'],
-            'bonus_hours_first_year' => $data['bonus_hours_first_year'] ? $data['bonus_hours_first_year'] : 0,
+            'bonus_hours_first_year' =>  $data['bonus_hours_first_year'] ? $data['bonus_hours_first_year'] : 0,
             'bonus_hours_second_year' => $data['bonus_hours_second_year'] ? $data['bonus_hours_second_year'] : 0,
             'training_schedule' => $data['training_schedule'],
             'working_hours' => $data['working_hours'],
@@ -114,8 +117,8 @@ class TrainingContract extends Model
             'collaborator_id' => $data['collaborator_id'],
             'percentage_first_year' => $data['percentage_first_year'],
             'percentage_second_year' => $data['percentage_second_year'],
-            'formative_hours_first_year' => $data['formative_hours_first_year'] ? $data['formative_hours_first_year'] : 0,
-            'formative_hours_second_year' => $data['formative_hours_second_year'] ? $data['formative_hours_second_year'] : 0,
+            'formative_hours_first_year' => $bonusYearOne,
+            'formative_hours_second_year' => $bonusYearTwo,
             'provider_id' => $data['provider_id'],
             'disabled' => $data['disabled'],
             'youth_guarantee' => $data['youth_guarantee'],
@@ -129,7 +132,8 @@ class TrainingContract extends Model
             'friday' => $data['friday'],
             'saturday' => $data['saturday'],
             'sunday' => $data['sunday'],
-            'total_hours' => $data['total_hours'],
+            'total_hours' => $bonusYearOne + $bonusYearTwo,
+            'observations' => $data['observations']
         ]);
         $training_contract->excludedDays()->sync($data['excluded_day_id']);
         return $training_contract;
@@ -142,6 +146,10 @@ class TrainingContract extends Model
      * @return mixed
      */
     public static function updateTrainingContract($id, $data){
+
+        $bonusYearOne =  $data['formative_hours_first_year'] ? $data['formative_hours_first_year'] : 0;
+        $bonusYearTwo = $data['formative_hours_second_year'] ? $data['formative_hours_second_year'] : 0;
+
         $training_contract = TrainingContract::find($id);
         $training_contract->update([
             'company_id' => $data['company_id'],
@@ -169,8 +177,8 @@ class TrainingContract extends Model
             'collaborator_id' => $data['collaborator_id'],
             'percentage_first_year' => $data['percentage_first_year'],
             'percentage_second_year' => $data['percentage_second_year'],
-            'formative_hours_first_year' => $data['formative_hours_first_year'] ? $data['formative_hours_first_year'] : 0,
-            'formative_hours_second_year' => $data['formative_hours_second_year'] ? $data['formative_hours_second_year'] : 0,
+            'formative_hours_first_year' => $bonusYearOne,
+            'formative_hours_second_year' => $bonusYearTwo,
             'provider_id' => $data['provider_id'],
             'disabled' => $data['disabled'],
             'youth_guarantee' => $data['youth_guarantee'],
@@ -184,7 +192,8 @@ class TrainingContract extends Model
             'friday' => $data['friday'],
             'saturday' => $data['saturday'],
             'sunday' => $data['sunday'],
-            'total_hours' => $data['total_hours'],
+            'total_hours' => $bonusYearOne + $bonusYearTwo,
+            'observations' => $data['observations']
         ]);
         return $training_contract;
     }

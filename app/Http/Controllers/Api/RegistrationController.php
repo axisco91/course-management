@@ -2,12 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 use App\Models\Advisor;
+use App\Models\AdvisorCommission;
 use App\Models\Bill;
+use App\Models\CommissionType;
 use App\Models\Company;
+use App\Models\Course;
+use App\Models\CourseOrigin;
+use App\Models\CourseType;
 use App\Models\Profitability;
 use App\Models\Registration;
 use App\Models\Student;
+use App\Models\TrainingAction;
 use App\Models\User;
+use App\Services\AdvisorCommissionService;
 use App\Services\BillService;
 use App\Services\ProfitabilityService;
 use App\Services\RegistrationService;
@@ -18,12 +25,14 @@ class RegistrationController extends BaseController
     private $registrationService;
     private $billService;
     private $profitabilityService;
+    private $advisorCommissionService;
 
-    public function __construct(RegistrationService $registrationService, BillService $billService, ProfitabilityService $profitabilityService)
+    public function __construct(RegistrationService $registrationService, BillService $billService, ProfitabilityService $profitabilityService, AdvisorCommissionService  $advisorCommissionService)
     {
         $this->registrationService = $registrationService;
         $this->billService = $billService;
         $this->profitabilityService = $profitabilityService;
+        $this->advisorCommissionService = $advisorCommissionService;
     }
 
     /**
@@ -102,6 +111,53 @@ class RegistrationController extends BaseController
             } else {
                 $bill = $this->billService->createBillingRegistrations($billData);
             }
+
+            // Para crear las comisiones primero tenemos que asegurar que tiene una asesoría
+            if ($advisor_id) {
+                $advisorCommission = AdvisorCommission::where('commissionable_id', $bill->id)
+                    ->where('commissionable_type', 'App\Models\Bill')
+                    ->where('advisor_id', $advisor_id)
+                    ->first();
+
+                // Buscamos el curso de que pertenece esta matriculación
+                $course = Course::where('id' , $request['course_id'])
+                    ->first();
+                if ($course) {
+                    $commissionType = null;
+                    // Obtenemos la acción formativa para ver que origen tiene
+                    $trainingAction = TrainingAction::find($course->training_action_id);
+                    if ($trainingAction->course_origin_id) {
+                        // Vemos si existe un tipo de comisión con el nombre de origen
+                        $courseOrigin = CourseOrigin::find($trainingAction->course_origin_id);
+                        $commissionType = CommissionType::where('name', $courseOrigin->name)
+                            ->first();
+                    }
+                    // Si no existe ya miramos el tipo de curso para crear la comisión
+                    if (!$commissionType) {
+                        $courseType = CourseType::find($course->course_type_id);
+                        $commissionType = CommissionType::where('name', $courseType->name)
+                            ->first();
+                    }
+                    if ($commissionType) {
+                        $commissionData = [
+                            'advisor_id' => $advisor_id,
+                            'course_id' => $request['course_id'],
+                            'commissionable_id' => $bill->id,
+                            'commissionable_type' => 'App\Models\Bill',
+                            'commission_type_id' => $commissionType->id,
+                            'percentage' => $commissionType->percentage,
+                            'amount' => ($commissionType->percentage / 100) * $bill->billing,
+                            'bill_amount' => $bill->billing
+                        ];
+                        if ($advisorCommission) {
+                            $this->advisorCommissionService->update($advisorCommission, $commissionData);
+                        } else {
+                            $this->advisorCommissionService->create($commissionData);
+                        }
+                    }
+                }
+            }
+
             // Vemos si existe la rentabilidad sino creamos otra
             $profitabilityData =[
                 'course_id' =>$request['course_id'],

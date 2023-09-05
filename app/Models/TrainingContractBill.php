@@ -23,7 +23,6 @@ class TrainingContractBill extends Model
         'month',
         'year',
         'amount',
-        'modality',
         'hours',
         'price_hours',
         'charged',

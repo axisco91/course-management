@@ -86,12 +86,19 @@ class PotentialStudentController extends BaseController
     public function sendEmail(Request $request){
         if ($request['email']){
             try {
+                Mail::getSwiftMailer()
+                    ->getTransport()
+                    ->setUsername('zona@avzformacion.com')
+                    ->setPassword('Avz.2021');
                 Mail::to($request['email'])->send(new PotentialPrivateEmail());
                 return response()->json([
                     'status' => 200
                 ]);
             } catch(Exception $e) {
-
+                return response()->json([
+                    'status' => 400,
+                    'message' => $e->getMessage()
+                ]);
             }
         }
         return response()->json([
@@ -103,12 +110,19 @@ class PotentialStudentController extends BaseController
     public function sendBonusEmail(Request $request){
         if ($request['email']){
             try {
+                Mail::getSwiftMailer()
+                    ->getTransport()
+                    ->setUsername('zona@avzformacion.com')
+                    ->setPassword('Avz.2021');
                 Mail::to($request['email'])->send(new PotentialEmail());
                 return response()->json([
                     'status' => 200
                 ]);
             } catch(Exception $e) {
-
+                return response()->json([
+                    'status' => 400,
+                    'message' => $e->getMessage()
+                ]);
             }
         }
         return response()->json([

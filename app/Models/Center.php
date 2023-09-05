@@ -16,18 +16,4 @@ class Center extends Model
     public function scopeGetCenter($query) {
         return $query->select('centers.*', 'id as value', 'name as label');
     }
-
-    public static function getCenters(){
-        $centers = Center::select('centers.*', 'id as value', 'name as label')->get();
-        foreach ($centers as $center) {
-            $course = Course::orWhere('delivery_center_id', $center['id'])
-                ->orWhere('formation_center_id', $center['id'])->first();
-            if ($course){
-                $center['used'] = true;
-            } else {
-                $center['used'] = false;
-            }
-        }
-        return $centers;
-    }
 }

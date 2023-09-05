@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\AdvisorCommission;
+
+class AdvisorCommissionService
+{
+    /**
+     * Función para crear una comisión de una asesoría
+     * @param array $data
+     * @return mixed
+     */
+    public function create(array $data)
+    {
+        return AdvisorCommission::create([
+            'advisor_id' => $data['advisor_id'],
+            'training_contract_id' => isset($data['training_contract_id']) ? $data['training_contract_id'] : null,
+            'course_id' => isset($data['course_id']) ? $data['course_id'] : null,
+            'commissionable_id' => $data['commissionable_id'],
+            'commissionable_type' => $data['commissionable_type'],
+            'commission_type_id' => $data['commission_type_id'],
+            'percentage' => isset($data['percentage']) ? $data['percentage'] : null,
+            'amount' => isset($data['amount']) ? $data['amount'] : null,
+            'bill_amount' => isset($data['bill_amount']) ? $data['bill_amount'] : null,
+        ]);
+    }
+
+    /**
+     * Función para editar una comisión de una asesoría
+     */
+    public function update(AdvisorCommission $advisorCommission, array $data) {
+        $advisorCommission->update([
+            'commission_type_id' => $data['commission_type_id'],
+            'percentage' => isset($data['percentage']) ? $data['percentage'] : null,
+            'amount' => isset($data['amount']) ? $data['amount'] : null,
+            'bill_amount' => isset($data['bill_amount']) ? $data['bill_amount'] : null,
+        ]);
+        return $advisorCommission;
+    }
+}

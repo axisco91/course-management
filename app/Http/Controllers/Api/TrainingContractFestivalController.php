@@ -12,7 +12,7 @@ class TrainingContractFestivalController extends BaseController
     public function getTrainingContractFestivals(Request $request) {
         if ($request->has('id')) {
             try {
-                return TrainingContractFestival::festivals()->where('training_contract_id', $request->id)->get();
+                return TrainingContractFestival::festivals()->where('training_contract_id', $request->id)->orderBy('day')->get();
             } catch (\Exception $e) {
                 return response()->json([
                     'message' => $e->getMessage()

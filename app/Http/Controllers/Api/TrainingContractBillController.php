@@ -1,18 +1,22 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-use App\Models\Company;
-use App\Models\Student;
+use App\Models\AdvisorCommission;
+use App\Models\CommissionType;
 use App\Models\TrainingContractBill;
 use App\Models\TrainingContractBonus;
-use Carbon\Carbon;
+use App\Services\AdvisorCommissionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class TrainingContractBillController extends BaseController
 {
-    public function getBills() {
+    private $advisorCommissionService;
+    public function __construct(AdvisorCommissionService  $advisorCommissionService)
+    {
+        $this->advisorCommissionService = $advisorCommissionService;
+    }
+
+    public function index() {
         try {
             return TrainingContractBill::getTrainingContractBills();
         } catch (\Exception $e) {
@@ -26,7 +30,34 @@ class TrainingContractBillController extends BaseController
         $bonuses = TrainingContractBonus::bonusesWithNoBills();
         $cont = 0;
         foreach($bonuses as $bonus) {
-            TrainingContractBill::createBill($bonus);
+            $bill = TrainingContractBill::createBill($bonus);
+            if ($bonus->advisor_id) {
+                $advisorCommission = AdvisorCommission::where('commissionable_id', $bill->id)
+                    ->where('commissionable_type', 'App\Models\TrainingContractBill')
+                    ->where('advisor_id', $bill->advisor_id)
+                    ->first();
+
+                // Buscamos el tipo de los bonificados
+                $commissionType = CommissionType::where('name', 'CFA')
+                    ->first();
+                if ($commissionType) {
+                    $commissionData = [
+                        'advisor_id' => $bonus->advisor_id,
+                        'training_contract_id' => $bill['training_contract_id'],
+                        'commissionable_id' => $bill->id,
+                        'commissionable_type' => 'App\Models\TrainingContractBill',
+                        'commission_type_id' => $commissionType->id,
+                        'percentage' => $commissionType->percentage,
+                        'amount' => ($commissionType->percentage / 100) * $bill->amount,
+                        'bill_amount' => $bill->amount
+                    ];
+                    if ($advisorCommission) {
+                        $this->advisorCommissionService->update($advisorCommission, $commissionData);
+                    } else {
+                        $this->advisorCommissionService->create($commissionData);
+                    }
+                }
+            }
             $cont++;
         }
 
@@ -36,10 +67,36 @@ class TrainingContractBillController extends BaseController
         ]);
     }
 
-    public function edit($id, Request $request){
+    public function update($id, Request $request){
         try {
             $bill = TrainingContractBill::updateBill($id, $request);
+            if ($bill->advisor_id) {
+                $advisorCommission = AdvisorCommission::where('commissionable_id', $bill->id)
+                    ->where('commissionable_type', 'App\Models\TrainingContractBill')
+                    ->where('advisor_id', $bill->advisor_id)
+                    ->first();
 
+                // Buscamos el tipo de los bonificados
+                $commissionType = CommissionType::where('name', 'Bonificado')
+                    ->first();
+                if ($commissionType) {
+                    $commissionData = [
+                        'advisor_id' => $bill->advisor_id,
+                        'training_contract_id' => $bill['training_contract_id'],
+                        'commissionable_id' => $bill->id,
+                        'commissionable_type' => 'App\Models\TrainingContractBill',
+                        'commission_type_id' => $commissionType->id,
+                        'percentage' => $commissionType->percentage,
+                        'amount' => ($commissionType->percentage / 100) * $bill->billing,
+                        'bill_amount' => $bill->billing
+                    ];
+                    if ($advisorCommission) {
+                        $this->advisorCommissionService->update($advisorCommission, $commissionData);
+                    } else {
+                        $this->advisorCommissionService->create($commissionData);
+                    }
+                }
+            }
             return response()->json([
                 'status' => 200,
                 'training_contract_bill' => TrainingContractBill::getTrainingContractBill($id)
@@ -52,7 +109,7 @@ class TrainingContractBillController extends BaseController
         }
     }
 
-    public function getBill($id){
+    public function show($id){
         $bill = TrainingContractBill::getTrainingContractBill($id);
         if ($bill) {
             $bill['name'] = $bill['number'].' - '.$bill['student'];

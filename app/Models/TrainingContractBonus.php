@@ -147,10 +147,13 @@ class TrainingContractBonus extends Model
     }
 
     public static function bonusesWithNoBills() {
+        $endOfMonth = Carbon::now()->endOfMonth();
         $bonuses = TrainingContractBonus::whereNotIn('id', function ($query) {
             $query->select('training_contract_bonus_id')
                 ->from('training_contract_bills');
-        })->get();
+        })
+            ->where('start', '<=', $endOfMonth->toDateString())
+            ->get();
         return $bonuses;
     }
 

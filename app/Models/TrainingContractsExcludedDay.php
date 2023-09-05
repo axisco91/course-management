@@ -102,7 +102,15 @@ class TrainingContractsExcludedDay extends Model
     }
 
     public function scopeSameGroup($query, $trainingContractId) {
-        return $query->select('group', DB::raw("CONCAT(excluded_day_types.name, ' ', DATE_FORMAT(MIN(training_contracts_excluded_days.day), '%e/%c/%Y'), ' - ', DATE_FORMAT(MAX(training_contracts_excluded_days.day), '%e/%c/%Y'), ' Número de dias: ', COUNT(*)) as name"))
+        return $query->select('group', DB::raw("CONCAT(
+                excluded_day_types.name, ' ',
+                DATE_FORMAT(MIN(training_contracts_excluded_days.day), '%e/%c/%Y'), ' - ',
+                DATE_FORMAT(MAX(training_contracts_excluded_days.day), '%e/%c/%Y'),
+                ' Número de dias: ',
+                COUNT(*),
+                ' / ',
+                DATEDIFF(MAX(training_contracts_excluded_days.day), MIN(training_contracts_excluded_days.day)) + 1
+            ) as name"))
             ->join('excluded_day_types', 'excluded_day_types.id', '=', 'training_contracts_excluded_days.excluded_day_type_id')
             ->where('training_contract_id', $trainingContractId)
             ->groupBy('group');

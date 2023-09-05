@@ -70,6 +70,8 @@ use App\Http\Controllers\Api\PopulationFestivalController;
 use App\Http\Controllers\Api\PopulationController;
 use App\Http\Controllers\Api\TrainingContractFestivalController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\AdvisorCommissionController;
+use App\Http\Controllers\Api\CommissionTypeController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -514,6 +516,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('teachers')->group(function() {
         Route::controller(TeacherController::class)->group(function(){
             Route::get('', 'getTeachers');
+            Route::get('active', 'activeTeachers');
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
@@ -768,7 +771,7 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::controller(PotentialStudentController::class)->group(function(){
             Route::get('', 'getPotentialStudents');
             Route::post('send-email', 'sendEmail');
-            Route::post('send-bonus-email', 'sendBonusEmail');
+            Route::get('send-bonus-email', 'sendBonusEmail');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getPotentialStudent');
@@ -795,10 +798,10 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('bills')->group(function() {
         Route::controller(BillController::class)->group(function(){
-            Route::get('', 'getBills');
-            Route::post('edit/{id}', 'edit');
+            Route::get('', 'index');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getBill');
+            Route::get('get/{id}', 'show');
             Route::get('students/{id}', 'getBillStudents');
             Route::get('csv', 'billsCSV');
         });
@@ -939,10 +942,10 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('training-contract-bills')->group(function() {
         Route::controller(TrainingContractBillController::class)->group(function(){
-            Route::get('', 'getBills');
-            Route::get('get/{id}', 'getBill');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
+            Route::get('', 'index');
+            Route::get('get/{id}', 'show');
+            Route::get('create', 'create');
+            Route::post('edit/{id}', 'update');
             Route::get('years', 'years');
             Route::get('csv', 'billsCSV');
         });
@@ -961,12 +964,36 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('cfa-number', 'getCFANumber');
             Route::get('specialties/{id}', 'getSpecialties');
             Route::get('certifications/{id}', 'getCertifications');
-            Route::post('calculate-hours/{id}', 'calculateHours');
+            Route::get('calculate-hours/{id}', 'calculateHours');
             Route::get('csv', 'trainingContractCSV');
             Route::post('register/{id}', 'register');
         });
     });
 
+    /**
+     * Comisiones asesorías
+     */
+    Route::prefix('advisor-commissions')->group(function() {
+        Route::controller(AdvisorCommissionController::class)->group(function(){
+            Route::get('get/{id}', 'show');
+            Route::post('edit/{id}', 'update');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('{id}', 'index');
+        });
+    });
+
+    /**
+     * Tipo comisiones
+     */
+    Route::prefix('commission-types')->group(function() {
+        Route::controller(CommissionTypeController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('get/{id}', 'show');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'update');
+            Route::get('destroy/{id}', 'destroy');
+        });
+    });
 });
 
 /**

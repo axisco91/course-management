@@ -219,6 +219,7 @@ class TrainingContractController extends BaseController
         $end_date = Carbon::parse($record->end_formation);
         $hours_days = 0;
         $total_hours = 0;
+        $total = 0;
         do {
             $excluded = TrainingContractsExcludedDay::nonWorkingDay($id, $date);
             if ($excluded != true){
@@ -263,6 +264,7 @@ class TrainingContractController extends BaseController
                     }
                 }
             }
+            $total++;
             $date->addDay();
         } while($end_date->gt($date));
         if ($cont_days != 0){
@@ -280,17 +282,17 @@ class TrainingContractController extends BaseController
                 $beginning = Carbon::parse($record->beginning_formation);
             }
             $training_element->update([
-                'beginning' => $beginning
+                'beginning' => $beginning->toDateString()
             ]);
 
               if ($training_element->training_action_id){
                 $training_action = TrainingAction::find($training_element->training_action_id);
                 $total_hours = $total_hours + $training_action->total_hours;
-                $total_days = $training_action->total_hours / $hours_days;
+                $total_days = ($training_action->total_hours != 0 && $hours_days != 0) ? ($training_action->total_hours / $hours_days) : 0;
             } else if($training_element->certification_id) {
                 $certification = Certification::find($training_element->certification_id);
                 $total_hours = $total_hours + $certification->total_hours;
-                $total_days = $training_action->total_hours / $hours_days;
+                $total_days = ($training_action->total_hours != 0 && $hours_days != 0) ? ($training_action->total_hours / $hours_days) : 0;
             } else {
                 break;
             }
@@ -345,7 +347,7 @@ class TrainingContractController extends BaseController
                 $beginning = $beginning->addDay();
             } while($total_days > 0);
             $training_element->update([
-                'end' => $beginning
+                'end' => $beginning->toDateString()
             ]);
             $beginning = $beginning->addDay();
         }

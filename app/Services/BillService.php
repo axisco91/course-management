@@ -85,15 +85,12 @@ class BillService
                 $this->updateCloseCommunicationDate($bill->id, $communicationData);
             }
         }
-        if (isset($data['bonus'])) {
-            $totalTrainingActivity = CalculationHelpers::totalTrainingActivity($data['bonus']);
-        }
 
         $bill->update([
             'number_students' => $data['number_students'],
             'billing' => $data['billing'] ? GeneralHelpers::convertComa($data['billing']) : 0,
             'bonus' => $data['bonus'] ? GeneralHelpers::convertComa($data['bonus']) : 0,
-            'total_training_activity' => GeneralHelpers::convertComa($totalTrainingActivity),
+            'total_training_activity' => $data['bonus'] ? GeneralHelpers::convertComa($data['total_training_activity']) : 0,
             'expenses' => $data['expenses'] ? GeneralHelpers::convertComa($data['expenses']) : 0,
             'salary_costs' => $data['salary_costs'] ? GeneralHelpers::convertComa($data['salary_costs']) : 0,
             'payment_id' => $data['payment_id'] ? $data['payment_id'] : null,

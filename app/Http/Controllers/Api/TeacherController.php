@@ -45,6 +45,24 @@ class TeacherController extends BaseController
         }
     }
 
+    /**
+     * Obtener docentes activos
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function activeTeachers() {
+        try {
+            $teachers = Teacher::teacher()
+                ->where('active', 1)
+                ->orderBy('teachers.name','asc')
+                ->get();
+            return $teachers;
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
     // Obtain student
     public function getTeacher($id){
         $teacher = Teacher::teacher()

@@ -23,7 +23,7 @@ class CenterController extends BaseController
      */
     public function getCenters() {
         try {
-            $centers = Center::getCenters()->get();
+            $centers = Center::getCenter()->get();
             foreach ($centers as $center) {
                  $course = Course::orWhere('delivery_center_id', $center['id'])
                      ->orWhere('formation_center_id', $center['id'])->first();
@@ -42,7 +42,7 @@ class CenterController extends BaseController
     }
 
     public function getCenter($id){
-        $center = Center::getCenters()
+        $center = Center::getCenter()
             ->where('id', $id)
             ->first();
         if ($center) {
@@ -73,7 +73,7 @@ class CenterController extends BaseController
         try {
             $data = $request->all();
             $element = $this->centerService->create($data);
-            $center = Center::getCenters()
+            $center = Center::getCenter()
                 ->where('id', $element->id)
                 ->first();
             if ($center) {
@@ -108,7 +108,7 @@ class CenterController extends BaseController
             $data = $request->all();
             $center = Center::find($id);
             $element = $this->centerService->update($center, $data);
-            $center = Center::getCenters()
+            $center = Center::getCenter()
                 ->where('id', $element->id)
                 ->first();
             if ($center) {

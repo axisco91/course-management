@@ -7,6 +7,7 @@ use App\Models\Tracing;
 use App\Services\TracingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TracingController extends BaseController
 {
@@ -29,8 +30,15 @@ class TracingController extends BaseController
             if ($start->dayOfWeek >= 2)
                 $number_days = 7;
             $start = $start->addDays($number_days);
-            $tracings = Tracing::tracing()
-                ->orderBy('tracings.id', 'desc')
+            $tracings = Tracing::tracing();
+
+             if (Auth::user()->hasRole('Docente')) {
+                 $tracings = $tracings->leftjoin('registrations', 'registrations.tracing_id', '=', 'tracings.id')
+                     ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
+                     ->where('courses.teacher_id', Auth::user()->teacher_id);
+             }
+
+            $tracings = $tracings->orderBy('tracings.id', 'desc')
                 ->get();
             foreach ($tracings as $tracing){
                 if ($tracing->final_test === 0) {

@@ -38,7 +38,8 @@ class User extends Authenticatable
         'has_commission',
         'commission',
         'profile_photo_path',
-        'active'
+        'active',
+        'teacher_id'
     ];
 
     /**
@@ -85,7 +86,8 @@ class User extends Authenticatable
             'password' => Hash::make($data['password']),
             'has_commission' => $data['has_commission'],
             'commission' => $data['commission'] ? $data['commission'] : 0.0,
-            'active' => $data['active']
+            'active' => $data['active'],
+            'teacher_id' => $data['commission'] ? $data['commission'] : null,
         ]);
         $roles = [$data['roles']];
         $user->syncRoles($roles);
@@ -101,7 +103,8 @@ class User extends Authenticatable
             'email' => $data['email'],
             'has_commission' => $data['has_commission'],
             'commission' => $data['commission'] ? $data['commission'] : 0.0,
-            'active' => $data['active']
+            'active' => $data['active'],
+            'teacher_id' => $data['commission'] ? $data['commission'] : null,
         ]);
         $roles = [$data['roles']];
         $user->syncRoles($roles[0]);
