@@ -192,8 +192,7 @@ class TrainingContractElement extends Model
             'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
-            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
-            ->orderBy('order', 'asc');
+            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id');
     }
 
     public function scopeTrainingContracts($query, $trainingContractId){

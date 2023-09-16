@@ -136,8 +136,8 @@ class TrainingContractBonus extends Model
             'collaborator_id' => $training_contract->collaborator_id,
             'month' => $data['month'],
             'year' => $data['year'],
-            'start' => $data['start'],
-            'end' => $data['end'],
+            'start' => Carbon::parse($data['start'])->toDateString(),
+            'end' => Carbon::parse($data['end'])->toDateString(),
             'amount' => $data['amount'],
             'invoiced' => $data['invoiced'],
             'hours' => $data['hours']

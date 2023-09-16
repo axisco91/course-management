@@ -7,6 +7,7 @@ use App\Models\Chore;
 use App\Models\Company;
 use App\Models\Course;
 use App\Models\CourseType;
+use App\Models\ExamTutorial;
 use App\Models\Registration;
 use App\Models\Tracing;
 use App\Models\TrainingAction;
@@ -56,7 +57,44 @@ class TrainingContractController extends BaseController
                     TrainingContractElement::create([
                         'training_contract_id' => $contract->id,
                         'certification_id' => $trainingContractElement->certification_id,
-                        'training_action_id' => $trainingContractElement->training_action_id
+                        'training_action_id' => $trainingContractElement->training_action_id,
+                        'total_days' => $trainingContractElement->total_days,
+                        'beginning' => $trainingContractElement->beginning,
+                        'end' => $trainingContractElement->end,
+                        'order' => $trainingContractElement->order,
+                        'course_id' => $trainingContractElement->course_id
+                    ]);
+                }
+                $exams_tutorials = ExamTutorial::where('training_contract_id', $request->clone_id)
+                    ->get();
+                foreach($exams_tutorials as $exams_tutorial) {
+                    $dataExam = [
+                        'training_contract_id' => $contract->id,
+                        'center_id' => $exams_tutorial->center_id,
+                        'type' => $exams_tutorial->type,
+                        'date' => $exams_tutorial->date,
+                        'beginning' => $exams_tutorial->beginning,
+                        'end' => $exams_tutorial->end
+                    ];
+                    ExamTutorial::createExamsTutorial($dataExam);
+                }
+                $festivals = TrainingContractFestival::where('training_contract_id', $request->clone_id)->Get();
+                foreach($festivals as $festival) {
+                    TrainingContractFestival::create([
+                        'training_contract_id' => $contract->id,
+                        'nacional_festival_id' => $festival->nacional_festival_id,
+                        'province_festival_id' => $festival->province_festival_id,
+                        'population_festival_id' => $festival->population_festival_id
+                    ]);
+                }
+                $excluded_days = TrainingContractsExcludedDay::where('training_contract_id', $request->clone_id)->Get();
+                foreach($excluded_days as $excluded_day) {
+                    TrainingContractsExcludedDay::create([
+                        'training_contract_id' => $contract->id,
+                        'excluded_day_type_id' => $excluded_day->excluded_day_type_id,
+                        'day' => $excluded_day->day,
+                        'description' => $excluded_day->description,
+                        'group' => $excluded_day->group
                     ]);
                 }
             }
@@ -78,7 +116,7 @@ class TrainingContractController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_contract' => TrainingAction::getTrainingAction($contract->id),
+            'training_contract' => TrainingContract::getTrainingContract($contract->id),
             'training_contract_elements' =>$elements
         ]);
     }
@@ -269,7 +307,7 @@ class TrainingContractController extends BaseController
         } while($end_date->gt($date));
         if ($cont_days != 0){
             $hours_days = $record->total_hours / $cont_days;
-            $hours_days = floor($hours_days * 100) / 100;
+            $hours_days = round($hours_days, 1);
             $record->update([
                 'total_days' => $cont_days,
                 'daily_hours' => $hours_days

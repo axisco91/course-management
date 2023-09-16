@@ -25,7 +25,7 @@ class TrainingContractBonusController extends BaseController
         $training_contract_bonuses = TrainingContractBonus::where('training_contract_id', $training_contract->id)->get();
 
         if (count($training_contract_bonuses) === 0) {
-            $formation_hours = $training_contract->formation_hours;
+            $formation_hours = $training_contract->total_hours;
             $total_months = 0;
             $beginning_date = Carbon::parse($training_contract->beginning_formation);
             $end_date = Carbon::parse($training_contract->end_formation);

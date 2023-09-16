@@ -13,11 +13,11 @@ class TrainingContractsExcludedDay extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['training_contract_id','excluded_day_type_id', 'day', 'description', 'group'];
+    protected $fillable = ['training_contract_id','excluded_day_type_id', 'day', 'description', 'group', 'valid'];
 
     public static function createExcludedDay($data){
         $training_contract = TrainingContract::where('id', $data['training_contract_id'])->first();
-        // vemos otros grupos para obtener el numero de grupo mas alto
+        // vemos otros grupos para obtener el número de grupo más alto
         $other_groups = TrainingContractsExcludedDay::where('training_contract_id', $training_contract->id)
             ->orderBy('group', 'desc')
             ->first();
@@ -27,6 +27,7 @@ class TrainingContractsExcludedDay extends Model
         if ($other_groups) {
             $group = $other_groups->group + 1;
         }
+        $count = 0;
         while ($start <= $end) {
             $festival = TrainingContractFestival::existDay($start, $training_contract->id)->first();
             if (!$festival) {
@@ -82,10 +83,20 @@ class TrainingContractsExcludedDay extends Model
                         'day' => $start->toDateString(),
                         'training_contract_id' => $training_contract->id,
                         'excluded_day_type_id' => $data['excluded_day_type_id'],
-                        'group' => $group
+                        'group' => $group,
+                        'valid' => 1
                     ]);
                 }
+            } else if ($start->toDateString() === Carbon::parse($data['beginning'])->toDateString() || $start->toDateString() === $end->toDateString()) {
+                TrainingContractsExcludedDay::create([
+                    'day' => $start->toDateString(),
+                    'training_contract_id' => $training_contract->id,
+                    'excluded_day_type_id' => $data['excluded_day_type_id'],
+                    'group' => $group,
+                    'valid' => 0
+                ]);
             }
+            $count++;
             $start->addDay();
         }
 
@@ -107,7 +118,7 @@ class TrainingContractsExcludedDay extends Model
                 DATE_FORMAT(MIN(training_contracts_excluded_days.day), '%e/%c/%Y'), ' - ',
                 DATE_FORMAT(MAX(training_contracts_excluded_days.day), '%e/%c/%Y'),
                 ' Número de dias: ',
-                COUNT(*),
+                SUM(CASE WHEN training_contracts_excluded_days.valid = 1 THEN 1 ELSE 0 END),
                 ' / ',
                 DATEDIFF(MAX(training_contracts_excluded_days.day), MIN(training_contracts_excluded_days.day)) + 1
             ) as name"))
