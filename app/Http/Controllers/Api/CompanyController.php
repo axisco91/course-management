@@ -7,10 +7,12 @@ use App\Models\Company;
 use App\Models\Course;
 use App\Models\Provider;
 use App\Models\Student;
+use App\Models\User;
 use App\Services\AdvisorService;
 use App\Services\CompanyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class CompanyController extends BaseController
 {
@@ -29,7 +31,15 @@ class CompanyController extends BaseController
      */
     public function companies() {
         try {
-            $companies = Company::company()
+            $companies = Company::company();
+            $user = User::find(Auth::id());
+            if ($user->teacher_id) {
+                $companies->leftjoin('registrations', 'registrations.company_id', '=', 'companies.id')
+                    ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
+                    ->where('courses.teacher_id', $user->teacher_id);
+            }
+            $companies = $companies
+                ->groupBy('companies.id', 'companies.name')
                 ->orderBy('companies.name', 'asc')
                 ->get();
             foreach ($companies as $company) {

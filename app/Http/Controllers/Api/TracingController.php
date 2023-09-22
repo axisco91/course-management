@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Course;
 use App\Models\Student;
 use App\Models\Tracing;
+use App\Models\User;
 use App\Services\TracingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -32,11 +33,10 @@ class TracingController extends BaseController
             $start = $start->addDays($number_days);
             $tracings = Tracing::tracing();
 
-             if (Auth::user()->hasRole('Docente')) {
-                 $tracings = $tracings->leftjoin('registrations', 'registrations.tracing_id', '=', 'tracings.id')
-                     ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
-                     ->where('courses.teacher_id', Auth::user()->teacher_id);
-             }
+            $user = User::find(Auth::id());
+            if ($user->teacher_id) {
+                 $tracings = $tracings->where('courses.teacher_id', $user->teacher_id);
+            }
 
             $tracings = $tracings->orderBy('tracings.id', 'desc')
                 ->get();

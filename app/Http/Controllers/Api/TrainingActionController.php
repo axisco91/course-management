@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Requests\TrainingActionRequests;
 use App\Models\Course;
 use App\Models\TrainingAction;
+use App\Models\User;
 use App\Services\TrainingActionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class TrainingActionController extends BaseController
 {
@@ -23,7 +25,13 @@ class TrainingActionController extends BaseController
      */
     public function getTrainingActions() {
         try {
-            $trainingActions = TrainingAction::trainingAction()
+            $trainingActions = TrainingAction::trainingAction();
+            $user = User::find(Auth::id());
+            if ($user->teacher_id) {
+                $trainingActions = $trainingActions->leftjoin('courses', 'courses.training_action_id', '=', 'training_actions.id')
+                    ->where('courses.teacher_id', $user->teacher_id);
+            }
+            $trainingActions = $trainingActions->groupBy('training_actions.id', 'training_actions.name')
                 ->orderby('id', 'asc')
                 ->get();
             if (count($trainingActions) > 0) {
@@ -189,8 +197,12 @@ class TrainingActionController extends BaseController
      * @return mixed
      */
     public function getCourses($id) {
-        $courses =  Course::trainingActionCourses($id)
-            ->get();
+        $courses =  Course::trainingActionCourses($id);
+        $user = User::find(Auth::id());
+        if ($user->teacher_id) {
+            $courses = $courses->where('courses.teacher_id', $user->teacher_id);
+        }
+        $courses =  $courses->get();
         if (count($courses) > 0) {
             foreach ($courses as $course){
                 $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');

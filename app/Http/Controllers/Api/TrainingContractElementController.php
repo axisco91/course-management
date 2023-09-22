@@ -5,8 +5,10 @@ use App\Models\Certification;
 use App\Models\TrainingAction;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractElement;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class TrainingContractElementController extends BaseController
 {
@@ -14,7 +16,13 @@ class TrainingContractElementController extends BaseController
     public function getTrainingContractElements($id) {
         if ($id) {
             try {
-                $elements = TrainingContractElement::info()->trainingContracts($id)->get();
+                $elements = TrainingContractElement::info()->trainingContracts($id);
+                $user = User::find(Auth::id());
+                if ($user->teacher_id) {
+                    $elements = $elements->leftjoin('courses', 'courses.id', '=', 'training_contract_elements.course_id')
+                        ->where('courses.teacher_id', $user->teacher_id);
+                }
+                $elements = $elements->get();
                 $planned = 0;
                 foreach ($elements as $element) {
                     if ($element->certification_total_hours) {
@@ -89,13 +97,14 @@ class TrainingContractElementController extends BaseController
                     $training_action = TrainingAction::select('training_actions.*', 'training_actions.id as value', 'training_actions.name as label')
                         ->where('id', $element->training_action_id)->first();
                 }
+
                 TrainingContractElement::deleteTrainingContractElement($id);
                 TrainingContractElement::destroy($id);
                 return response()->json([
                     'status' => 200,
                     'certification' => $certification,
                     'training_action' => $training_action,
-                    'formation_hours' => $formation_hours
+                    'formation_hours' => $formation_hours,
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
@@ -108,7 +117,14 @@ class TrainingContractElementController extends BaseController
 
     public function getElements(){
         try {
-            return TrainingContractElement::getElements();
+            $trainingContractElement = TrainingContractElement::getElements();
+            $user = User::find(Auth::id());
+            if ($user->teacher_id) {
+                $trainingContractElement = $trainingContractElement->leftjoin('courses', 'courses.id', '=', 'training_contract_elements.course_id')
+                    ->where('courses.teacher_id', $user->teacher_id);
+            }
+            $trainingContractElement = $trainingContractElement->orderBy('order', 'asc')->get();
+            return $trainingContractElement;
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()

@@ -104,7 +104,7 @@ class User extends Authenticatable
             'has_commission' => $data['has_commission'],
             'commission' => $data['commission'] ? $data['commission'] : 0.0,
             'active' => $data['active'],
-            'teacher_id' => $data['commission'] ? $data['commission'] : null,
+            'teacher_id' => $data['teacher_id'] ? $data['teacher_id'] : null,
         ]);
         $roles = [$data['roles']];
         $user->syncRoles($roles[0]);

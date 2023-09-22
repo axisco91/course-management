@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Requests\StudentRequests;
 use App\Models\Registration;
 use App\Models\Student;
+use App\Models\User;
 use App\Services\StudentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StudentController extends BaseController
 {
@@ -23,8 +25,17 @@ class StudentController extends BaseController
      */
     public function getStudents() {
         try {
-            $students = Student::student()
-                ->orderBy('students.name','asc')
+
+            $students = Student::student();
+            $user = User::find(Auth::id());
+            if ($user->teacher_id) {
+                $students = $students->leftjoin('registrations', 'registrations.student_id', '=', 'students.id')
+                    ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
+                    ->where('courses.teacher_id', $user->teacher_id);
+            }
+
+            $students = $students->orderBy('students.name','asc')
+                ->groupBy('students.id', 'students.name')
                 ->get();
             if (count($students) > 0) {
                 foreach($students as $student) {
@@ -161,8 +172,14 @@ class StudentController extends BaseController
      * @return mixed
      */
     public function getStudentsCourses($id) {
-        $registations = Registration::studentCourses($id)
-            ->get();
+        $registations = Registration::studentCourses($id);
+
+        $user = User::find(Auth::id());
+        if ($user->teacher_id) {
+            $registations = $registations->where('courses.teacher_id', $user->teacher_id);
+        }
+        $registations = $registations->get();
+
         if (count($registations) > 0) {
             foreach ($registations as $registation){
                 $beginning = Carbon::parse($registation['beginning'])->format('d/m/Y');

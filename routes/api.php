@@ -674,8 +674,24 @@ Route::middleware('auth:sanctum')->group( function () {
         });
     });
 
-
-
+    /**
+     * CFA
+     */
+    Route::prefix('training-contracts')->group(function() {
+        Route::controller(TrainingContractController::class)->group(function(){
+            Route::get('', 'index');
+            Route::post('create', 'create');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'show');
+            Route::get('cfa-number', 'getCFANumber');
+            Route::get('specialties/{id}', 'getSpecialties');
+            Route::get('certifications/{id}', 'getCertifications');
+            Route::get('calculate-hours/{id}', 'calculateHours');
+            Route::get('csv', 'trainingContractCSV');
+            Route::post('register/{id}', 'register');
+        });
+    });
 
     /**
      * Profitabilities
@@ -948,25 +964,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'update');
             Route::get('years', 'years');
             Route::get('csv', 'billsCSV');
-        });
-    });
-
-    /**
-     * CFA
-     */
-    Route::prefix('training-contracts')->group(function() {
-        Route::controller(TrainingContractController::class)->group(function(){
-            Route::get('', 'getTrainingContracts');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getTrainingContract');
-            Route::get('cfa-number', 'getCFANumber');
-            Route::get('specialties/{id}', 'getSpecialties');
-            Route::get('certifications/{id}', 'getCertifications');
-            Route::get('calculate-hours/{id}', 'calculateHours');
-            Route::get('csv', 'trainingContractCSV');
-            Route::post('register/{id}', 'register');
         });
     });
 

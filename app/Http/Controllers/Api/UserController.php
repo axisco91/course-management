@@ -70,7 +70,8 @@ class UserController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'user' => User::getUser($user->id)
+            'user' => User::getUser()->where('users.id', $user->id)
+                ->first()
         ]);
     }
 
@@ -98,7 +99,8 @@ class UserController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'user' => User::getUser($user->id)
+            'user' => User::getUser()->where('users.id', $id)
+                ->first()
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Chore;
 use App\Models\Course;
 use App\Models\Student;
+use App\Models\User;
 use App\Services\ChoreService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -33,11 +34,9 @@ class ChoreController extends BaseController
             $start = $start->addDays($number_days);
 
             $chores = Chore::chore();
-
-            if (Auth::user()->hasRole('Docente')) {
-                $chores = $chores->leftjoin('registrations', 'registrations.chore_id', '=', 'chores.id')
-                    ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
-                    ->where('courses.teacher_id', Auth::user()->teacher_id);
+            $user = User::find(Auth::id());
+            if ($user->teacher_id) {
+                $chores = $chores->where('courses.teacher_id', $user->teacher_id);
             }
 
             $chores = $chores->orderBy('chores.id', 'desc')

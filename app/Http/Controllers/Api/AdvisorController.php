@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api;
 use App\Models\Advisor;
 use App\Models\Company;
 use App\Models\Course;
+use App\Models\User;
 use App\Services\AdvisorService;
 use App\Services\CompanyService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -27,8 +29,16 @@ class AdvisorController extends BaseController
      */
     public function advisors(Request $request) {
         try {
-            $advisors = Advisor::getAdvisor()
-            ->get();
+            $advisors = Advisor::getAdvisor();
+            $user = User::find(Auth::id());
+            if ($user->teacher_id) {
+                $advisors = $advisors->leftjoin('billings', 'billings.advisor_id', '=', 'advisors.id')
+                    ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
+                    ->where('courses.teacher_id', $user->teacher_id);
+            }
+            $advisors = $advisors
+                ->groupBy('advisors.id', 'advisors.name')
+                ->get();
             foreach ($advisors as $advisor) {
                 $company = Company::where('advisor_id', $advisor->id)->first();
                 if ($company) {
@@ -202,11 +212,18 @@ class AdvisorController extends BaseController
      * @return mixed
      */
     public function getAdvisorCourses($id) {
-        return Course::select('courses.*')
+        $courses = Course::select('courses.*')
             ->leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
             ->leftjoin('billings', 'billings.id', '=', 'registrations.billing_id')
-            ->where('billings.advisor_id', $id)
-            ->groupBy('courses.id')->get();
+            ->where('billings.advisor_id', $id);
+
+        $user = User::find(Auth::id());
+        if ($user->teacher_id) {
+            $courses = $courses->where('courses.teacher_id', $user->teacher_id);
+        }
+
+        return $courses
+            ->groupBy('courses.id', 'courses.name')->get();
     }
 
     /**
@@ -215,7 +232,19 @@ class AdvisorController extends BaseController
      * @return mixed
      */
     public function getAdvisorCompanies($id) {
-        return Company::where('advisor_id', $id)->get();
+
+        $companies = Company::select('companies.*')->where('advisor_id', $id);
+
+        $user = User::find(Auth::id());
+        if ($user->teacher_id) {
+            $companies = $companies->leftjoin('registrations', 'registrations.company_id', '=', 'companies.id')
+                ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
+                ->where('courses.teacher_id', $user->teacher_id);
+        }
+
+        return $companies
+            ->groupBy('companies.id', 'companies.name')
+            ->get();
     }
 
     /**

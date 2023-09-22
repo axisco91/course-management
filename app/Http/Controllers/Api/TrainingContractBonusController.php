@@ -214,9 +214,23 @@ class TrainingContractBonusController extends BaseController
     public function destroy($id){
         if ($id) {
             try {
+                $trainingContractBonus = TrainingContractBonus::find($id);
+                $id = $trainingContractBonus->training_contract_id;
+
                 TrainingContractBonus::destroy($id);
+
+                $contract = TrainingContract::select('training_contracts.*')
+                    ->selectSub(function ($query) {
+                        $query->from('training_contract_bonuses')
+                            ->selectRaw('SUM(amount)')
+                            ->whereColumn('training_contract_bonuses.training_contract_id', 'training_contracts.id');
+                    }, 'total_amount')
+                    ->leftJoin('training_contract_bonuses', 'training_contract_bonuses.training_contract_id', '=', 'training_contracts.id')
+                    ->where('training_contracts.id', $id)
+                    ->first();
                 return response()->json([
-                    'status' => 200
+                    'status' => 200,
+                    'total_amount' => $contract->total_amount
                 ]);
             } catch (\Exception $e) {
                 return response()->json([

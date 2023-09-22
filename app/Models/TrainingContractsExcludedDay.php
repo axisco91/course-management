@@ -105,7 +105,8 @@ class TrainingContractsExcludedDay extends Model
 
     public static function nonWorkingDay($training_contract_id, $date){
         $training_contract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $training_contract_id)->where('day', $date)
-        ->first();
+            ->where('valid', 1)
+            ->first();
         if ($training_contract_excluded){
             return true;
         }

@@ -45,7 +45,7 @@ class RegistrationService
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
             'student_id' => $data['student_id'],
-            'billing_id' => $data['billing_id'],
+            'billing_id' => isset($data['billing_id']) ? $data['billing_id'] : null,
             'tracing_id' => $tracing->id,
             'chore_id' => $chore->id,
             'price' => $data['price'],

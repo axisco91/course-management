@@ -19,6 +19,8 @@ use App\Models\User;
 use App\Services\RegistrationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TrainingContractController extends BaseController
 {
@@ -33,9 +35,19 @@ class TrainingContractController extends BaseController
      * Obtenemos todos los CFA
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getTrainingContracts() {
+    public function index() {
         try {
-            return TrainingContract::getTrainingContracts();
+            $trainingContract = TrainingContract::getTrainingContracts();
+            $user = User::find(Auth::id());
+            if ($user->teacher_id) {
+                $trainingContract= $trainingContract->leftjoin('training_contract_elements', 'training_contract_elements.training_contract_id', '=', 'training_contracts.id')
+                    ->leftjoin('courses', 'courses.id', '=', 'training_contract_elements.course_id')
+                    ->where('courses.teacher_id', $user->teacher_id);
+            }
+
+            $trainingContract = $trainingContract->groupBy('training_contracts.id', 'training_contracts.number_cfa')->orderby('training_contracts.beginning', 'desc')->get();
+
+            return $trainingContract;
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -116,7 +128,9 @@ class TrainingContractController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_contract' => TrainingContract::getTrainingContract($contract->id),
+            'training_contract' => TrainingContract::getTrainingContracts()
+                ->where('training_contracts.id', $contract->id)
+                ->first(),
             'training_contract_elements' =>$elements
         ]);
     }
@@ -129,7 +143,7 @@ class TrainingContractController extends BaseController
      */
     public function edit($id, Request $request){
         try {
-            $contract = TrainingContract::updateTrainingContract($id, $request);
+            TrainingContract::updateTrainingContract($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -139,7 +153,9 @@ class TrainingContractController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_contract' => TrainingContract::getTrainingContract($contract->id)
+            'training_contract' => TrainingContract::getTrainingContracts()
+                ->where('training_contracts.id', $id)
+                ->first()
         ]);
     }
 
@@ -148,8 +164,16 @@ class TrainingContractController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getTrainingContract($id){
-        $contract = TrainingContract::getTrainingContract($id);
+    public function show($id){
+        $contract = TrainingContract::getTrainingContracts()
+            ->selectSub(function ($query) {
+                $query->from('training_contract_bonuses')
+                    ->selectRaw('SUM(amount)')
+                    ->whereColumn('training_contract_bonuses.training_contract_id', 'training_contracts.id');
+            }, 'total_amount')
+            ->leftJoin('training_contract_bonuses', 'training_contract_bonuses.training_contract_id', '=', 'training_contracts.id')
+            ->where('training_contracts.id', $id)
+            ->first();
         if ($contract) {
             return response()->json([
                 'status' => 200,
@@ -258,6 +282,9 @@ class TrainingContractController extends BaseController
         $hours_days = 0;
         $total_hours = 0;
         $total = 0;
+        $vacations = 0;
+        $banckholiday= 0;
+        $fin_semana = 0;
         do {
             $excluded = TrainingContractsExcludedDay::nonWorkingDay($id, $date);
             if ($excluded != true){
@@ -265,49 +292,53 @@ class TrainingContractController extends BaseController
                 if (!$excluded){
                     switch($date->dayOfWeek){
                         case 0:
-                            if ($record->sunday == 1){
-                                $cont_days++;
+                            if ($record->sunday === 0){
+                                $fin_semana++;
                             }
                             break;
                         case 1:
-                            if ($record->monday == 1){
+                            if ($record->monday === 1){
                                 $cont_days++;
                             }
                             break;
                         case 2:
-                            if ($record->tuesday == 1){
+                            if ($record->tuesday === 1){
                                 $cont_days++;
                             }
                             break;
                         case 3:
-                            if ($record->wednesday == 1){
+                            if ($record->wednesday === 1){
                                 $cont_days++;
                             }
                             break;
                         case 4:
-                            if ($record->thursday == 1){
+                            if ($record->thursday === 1){
                                 $cont_days++;
                             }
                             break;
                         case 5:
-                            if ($record->friday == 1){
+                            if ($record->friday === 1){
                                 $cont_days++;
                             }
                             break;
                         case 6:
-                            if ($record->saturday == 1){
-                                $cont_days++;
+                            if ($record->saturday === 0){
+                                $fin_semana++;
                             }
                             break;
                     }
+                } else {
+                    $banckholiday++;
                 }
+            } else {
+                $vacations++;
             }
             $total++;
             $date->addDay();
-        } while($end_date->gt($date));
+        } while($end_date->gte($date));
         if ($cont_days != 0){
-            $hours_days = $record->total_hours / $cont_days;
-            $hours_days = round($hours_days, 1);
+            $hours_days = $record->formation_hours / $cont_days;
+            $hours_days = round($hours_days, 2);
             $record->update([
                 'total_days' => $cont_days,
                 'daily_hours' => $hours_days
@@ -334,11 +365,13 @@ class TrainingContractController extends BaseController
             } else {
                 break;
             }
+       //     $total_days = round($total_days, 2);
             $total_days = round($total_days);
             $training_element->update([
                 'total_days' => $total_days
             ]);
-            do {
+            $cont = 0;
+            while ($cont < $total_days) {
                 $excluded = TrainingContractsExcludedDay::nonWorkingDay($id, $beginning);
                 if ($excluded != true){
                     $excluded = TrainingContractFestival::existDay($beginning, $record->id)->first();
@@ -346,44 +379,46 @@ class TrainingContractController extends BaseController
                         switch ($beginning->dayOfWeek) {
                             case 0:
                                 if ($record->sunday == 1) {
-                                    $total_days--;
+                                    $cont++;
                                 }
                                 break;
                             case 1:
                                 if ($record->monday == 1) {
-                                    $total_days--;
+                                    $cont++;
                                 }
                                 break;
                             case 2:
                                 if ($record->tuesday == 1) {
-                                    $total_days--;
+                                    $cont++;
                                 }
                                 break;
                             case 3:
                                 if ($record->wednesday == 1) {
-                                    $total_days--;
+                                    $cont++;
                                 }
                                 break;
                             case 4:
                                 if ($record->thursday == 1) {
-                                    $total_days--;
+                                    $cont++;
                                 }
                                 break;
                             case 5:
                                 if ($record->friday == 1) {
-                                    $total_days--;
+                                    $cont++;
                                 }
                                 break;
                             case 6:
                                 if ($record->saturday == 1) {
-                                    $total_days--;
+                                    $cont++;
                                 }
                                 break;
                         }
                     }
                 }
-                $beginning = $beginning->addDay();
-            } while($total_days > 0);
+                if ($cont < $total_days) {
+                    $beginning = $beginning->addDay();
+                }
+            }
             $training_element->update([
                 'end' => $beginning->toDateString()
             ]);
@@ -533,9 +568,15 @@ class TrainingContractController extends BaseController
             ]);
         }
 
+        $element = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
+            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
+            ->where('training_contract_elements.id', $id)->first();
+
         return response()->json([
             'status' => 200,
-            'element' => TrainingContractElement::find($id)
+            'element' => $element
         ]);
     }
 

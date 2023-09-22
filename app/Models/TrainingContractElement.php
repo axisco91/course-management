@@ -86,8 +86,8 @@ class TrainingContractElement extends Model
         }
     }
 
-    public static function getElements(){
-        $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+    public function scopeGetElements($query){
+        return $query->select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
             DB::raw("IFNULL(certifications.name, training_actions.name) AS course"), 'training_contracts.number_cfa as cfa',
             'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
             DB::raw("CONCAT(students.name,' ',students.surname) as student"), 'companies.name as company', 'students.dni as dni',
@@ -99,8 +99,7 @@ class TrainingContractElement extends Model
             ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
             ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')
             ->whereDate('training_contract_elements.beginning', '<=', Carbon::now())
-            ->whereDate('training_contract_elements.end', '>=', Carbon::now())->orderBy('order', 'asc')->get();
-        return $training_contract_elements;
+            ->whereDate('training_contract_elements.end', '>=', Carbon::now());
     }
 
     public static function getElementsCSV($student = null, $company = null, $beginning = null, $end = null){

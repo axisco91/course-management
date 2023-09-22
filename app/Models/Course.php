@@ -96,42 +96,25 @@ class Course extends Model
         return $this->hasOne('App\Models\TrainingAction', 'id', 'training_action_id');
     }
 
-    public static function getCourses(){
-
-        $courses = Course::select('courses.*',
-            'course_types.name as course_type',
-            DB::raw("CONCAT(teachers.name,' ', teachers.surname) as teacher"),
-            'fc.name as formation_center',
-            'dc.name as delivery_center',
-            'course_statuses.name as course_status',
-            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
-            DB::raw("CONCAT(training_actions.formative_action,' - ',training_actions.name) as training_action"),
-            'training_actions.formative_action as formative_action')
+    public function scopeWithCourseData($query)
+    {
+        return $query
+            ->select('courses.*',
+                'course_types.name as course_type',
+                DB::raw("CONCAT(teachers.name,' ', teachers.surname) as teacher"),
+                'fc.name as formation_center',
+                'dc.name as delivery_center',
+                'course_statuses.name as course_status',
+                DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
+                DB::raw("CONCAT(training_actions.formative_action,' - ',training_actions.name) as training_action"),
+                'training_actions.formative_action as formative_action')
             ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
             ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
             ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
             ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
-            ->orderBy('courses.beginning', 'desc')
-            ->get();
-
-        foreach ($courses as $course){
-            $registrations = Registration::select('registrations.*', 'companies.name')
-                ->leftjoin('companies', 'companies.id', '=', 'registrations.company_id')
-                ->where('course_id', $course->id)->get();
-            $course['registrations'] = $registrations;
-            $registration = Registration::where('course_id', $course->id)->first();
-            if ($registration) {
-                $course['used'] = true;
-            } else {
-                $course['used'] = false;
-            }
-
-            $course['number_registrations'] = $course->registrations->count();
-        }
-
-        return $courses;
+            ->orderBy('courses.beginning', 'desc');
     }
 
     public static function getCourse($id){

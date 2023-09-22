@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 use App\Models\Course;
 use App\Models\Registration;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -12,7 +14,14 @@ class CourseController extends BaseController
 {
     public function getCourses() {
         try {
-            return Course::getCourses();
+            $courses = Course::withCourseData();
+
+            $user = User::find(Auth::id());
+            if ($user->teacher_id) {
+                $courses->where('teacher_id', $user->teacher_id);
+            }
+
+            return $courses->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -53,7 +62,9 @@ class CourseController extends BaseController
     }
 
     public function getCourse($id){
-        $course = Course::getCourse($id);
+        $course = Course::withCourseData()
+            ->where('courses.id', $id)->first();
+
         if ($course) {
             return response()->json([
                 'status' => 200,
