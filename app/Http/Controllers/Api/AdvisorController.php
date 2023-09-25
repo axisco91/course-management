@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Advisor;
 use App\Models\Company;
 use App\Models\Course;
+use App\Models\TrainingContract;
 use App\Models\User;
 use App\Services\AdvisorService;
 use App\Services\CompanyService;
@@ -224,6 +225,27 @@ class AdvisorController extends BaseController
 
         return $courses
             ->groupBy('courses.id', 'courses.name')->get();
+    }
+
+    /**
+     * Obtenemos los CFA de la asesoría
+     * @param $id
+     * @return mixed
+     */
+    public function getAdvisorTrainingContracts($id) {
+        $trainingActions = TrainingContract::select('training_contracts.*', 'companies.name as company_name', 'students.name as student_name', 'students.surname as student_surname')
+            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')
+            ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
+            ->where('training_contracts.advisor_id', $id);
+
+        $user = User::find(Auth::id());
+        if ($user->teacher_id) {
+            $trainingActions->leftjoin('training_contract_elements', 'training_contract_elements.training_contract_id'. '='. 'training_contracts.id')
+                ->leftjoin('courses', 'courses.id', '=', 'training_contract_elements.course_id')
+                ->where('courses.teacher_id', $user->teacher_id);
+        }
+
+        return $trainingActions->groupBy('training_contracts.id', 'training_contracts.number_cfa')->get();
     }
 
     /**

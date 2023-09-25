@@ -1,16 +1,14 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-use App\Models\Population;
+use App\Models\Community;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
-class PopulationController extends BaseController
+class CommunityController extends BaseController
 {
-    public function populations() {
+    public function index() {
         try {
-            return Population::select('populations.*', 'populations.id as value', 'populations.name as label')->get();
+            return Community::select('communities.*', 'communities.id as value', 'communities.name as label')->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -18,9 +16,9 @@ class PopulationController extends BaseController
         }
     }
 
-    public function create(Request $request){
+    public function store(Request $request){
         try {
-            $population = Population::create([
+            $community = Community::create([
                 'name' => $request->name
             ]);
         } catch (\Exception $e){
@@ -32,14 +30,18 @@ class PopulationController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'population' => Population::select('populations.*', 'populations.id as value', 'populations.name as label')->where('id', $population->id)->first()
+            'community' => Community::select('communities.*', 'communities.id as value', 'communities.name as label')->where('id', $community->id)->first()
         ]);
     }
 
-    public function edit($id, Request $request){
+    public function update($id, Request $request){
         try {
-            $population = Population::find($id);
-            $population->name = $request->name;
+            $community = Community::find($id);
+            if ($community) {
+                $community->update([
+                    'name' => $request->name
+                ]);
+            }
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -49,28 +51,28 @@ class PopulationController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'population' => Population::select('populations.*', 'populations.id as value', 'populations.name as label')->where('id', $population->id)->first()
+            'community' => Community::select('communities.*', 'communities.id as value', 'communities.name as label')->where('id', $id)->first()
         ]);
     }
 
-    public function getPopulation($id){
-        $population = Population::find($id);
-        if ($population) {
+    public function show($id){
+        $community = Community::find($id);
+        if ($community) {
             return response()->json([
                 'status' => 200,
-                'population' => $population
+                'community' => $community
             ]);
         }
         return response()->json([
             'status' => 400,
-            'message' => 'Plataforma no existe'
+            'message' => 'Comunidad no existe'
         ]);
     }
 
     public function destroy($id){
         if ($id) {
             try {
-                Population::destroy($id);
+                Community::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -83,12 +85,11 @@ class PopulationController extends BaseController
         }
     }
 
-    public function populationsWithFestivals(Request $request) {
+    public function communitiesWithFestivals(Request $request) {
         try {
             if ($request){
-                return Population::populationsWithFestivals($request->beginning, $request->end)->get();
+                return Community::communitiesWithFestivals($request->beginning, $request->end)->get();
             }
-            return Population::getPopulationsWithFestivals()->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()

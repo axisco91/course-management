@@ -72,6 +72,9 @@ use App\Http\Controllers\Api\TrainingContractFestivalController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\AdvisorCommissionController;
 use App\Http\Controllers\Api\CommissionTypeController;
+use App\Http\Controllers\Api\AdvisorObservationController;
+use App\Http\Controllers\Api\CommunityController;
+use App\Http\Controllers\Api\CommunityFestivalController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -174,6 +177,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('active', 'getActiveAdvisors');
             Route::get('courses/{id}', 'getAdvisorCourses');
             Route::get('companies/{id}', 'getAdvisorCompanies');
+            Route::get('training-contracts/{id}', 'getAdvisorTrainingContracts');
             Route::get('csv', 'advisorsCSV');
         });
     });
@@ -481,6 +485,19 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCompanyIncidence');
             Route::get('{id}', 'companyObservations');
+        });
+    });
+
+    /**
+     * Observaciones de asesoría
+     */
+    Route::prefix('advisor-observations')->group(function() {
+        Route::controller(AdvisorObservationController::class)->group(function(){
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'show');
+            Route::get('{id}', 'index');
         });
     });
 
@@ -851,6 +868,20 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
+     * Comunidades
+     */
+    Route::prefix('communities')->group(function() {
+        Route::controller(CommunityController::class)->group(function(){
+            Route::get('', 'index');
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'show');
+            Route::get('communities-with-festivals', 'communitiesWithFestivals');
+        });
+    });
+
+    /**
      * Origen cursos
      */
     Route::prefix('course-origins')->group(function() {
@@ -928,6 +959,18 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('', 'getPopulationFestivals');
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
+        });
+    });
+
+    /**
+     * Festivos comunidades
+     */
+    Route::prefix('community-festivals')->group(function() {
+        Route::controller(CommunityFestivalController::class)->group(function(){
+            Route::get('', 'index');
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
         });
     });

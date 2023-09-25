@@ -11,7 +11,7 @@ class TrainingContractFestival extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['training_contract_id', 'nacional_festival_id', 'province_festival_id', 'population_festival_id'];
+    protected $fillable = ['training_contract_id', 'nacional_festival_id', 'province_festival_id', 'population_festival_id', 'community_festival_id'];
 
     /**
      * Scope para obtener los festivales
@@ -23,17 +23,20 @@ class TrainingContractFestival extends Model
             ->leftjoin('nacional_festivals', 'nacional_festivals.id', '=', 'training_contract_festivals.nacional_festival_id')
             ->leftjoin('province_festivals', 'province_festivals.id', '=', 'training_contract_festivals.province_festival_id')
             ->leftjoin('population_festivals', 'population_festivals.id', '=', 'training_contract_festivals.population_festival_id')
+            ->leftjoin('community_festivals', 'community_festivals.id', '=', 'training_contract_festivals.community_festival_id')
             ->selectRaw('
                 training_contract_festivals.*,
                 CASE
                     WHEN nacional_festivals.id IS NOT NULL THEN CONCAT(nacional_festivals.name, " (nacional)")
-                    WHEN province_festivals.id IS NOT NULL THEN CONCAT(province_festivals.name, " (province)")
-                    WHEN population_festivals.id IS NOT NULL THEN CONCAT(population_festivals.name, " (population)")
+                    WHEN province_festivals.id IS NOT NULL THEN CONCAT(province_festivals.name, " (provincía)")
+                    WHEN population_festivals.id IS NOT NULL THEN CONCAT(population_festivals.name, " (población)")
+                  WHEN community_festivals.id IS NOT NULL THEN CONCAT(community_festivals.name, " (comunidad)")
                 END AS name,
                 CASE
                     WHEN nacional_festivals.id IS NOT NULL THEN nacional_festivals.day
                     WHEN province_festivals.id IS NOT NULL THEN province_festivals.day
                     WHEN population_festivals.id IS NOT NULL THEN population_festivals.day
+                    WHEN community_festivals.id IS NOT NULL THEN community_festivals.day
                 END AS day
             ');
     }
@@ -54,6 +57,8 @@ class TrainingContractFestival extends Model
             $festivals = PopulationFestival::where('population_id', $id);
         } else if ($type == 'nacional') {
             $festivals = NacionalFestival::select('nacional_festivals.*');
+        } else if ($type == 'community') {
+            $festivals = CommunityFestival::where('community_id', $id);
         }
 
         if ($start && $end) {
@@ -76,6 +81,9 @@ class TrainingContractFestival extends Model
                 } else if ($type == 'nacional') {
                     $training_contract_festival = TrainingContractFestival::where('nacional_festival_id', $festival->id)
                         ->where('training_contract_id', $training_contract)->first();
+                } else if ($type == 'community') {
+                    $training_contract_festival = TrainingContractFestival::where('community_festival_id', $festival->id)
+                        ->where('training_contract_id', $training_contract)->first();
                 }
 
                 if (!$training_contract_festival){
@@ -94,6 +102,11 @@ class TrainingContractFestival extends Model
                             'training_contract_id' => $training_contract,
                             'nacional_festival_id' => $festival->id
                         ]);
+                    } else if ($type == 'community') {
+                        TrainingContractFestival::create([
+                            'training_contract_id' => $training_contract,
+                            'community_festival_id' => $festival->id
+                        ]);
                     }
                 }
             }
@@ -106,6 +119,7 @@ class TrainingContractFestival extends Model
             ->leftJoin('nacional_festivals', 'nacional_festivals.id', '=', 'training_contract_festivals.nacional_festival_id')
             ->leftJoin('province_festivals', 'province_festivals.id', '=', 'training_contract_festivals.province_festival_id')
             ->leftJoin('population_festivals', 'population_festivals.id', '=', 'training_contract_festivals.population_festival_id')
+            ->leftJoin('community_festivals', 'community_festivals.id', '=', 'training_contract_festivals.community_festival_id')
             ->where(function ($query) use ($day) {
                 $query->where(function ($query) use ($day) {
                     $query->whereNotNull('nacional_festivals.id')
@@ -118,6 +132,10 @@ class TrainingContractFestival extends Model
                     ->orWhere(function ($query) use ($day) {
                         $query->whereNotNull('population_festivals.id')
                             ->where('population_festivals.day', '=', $day);
+                    })
+                    ->orWhere(function ($query) use ($day) {
+                        $query->whereNotNull('community_festivals.id')
+                            ->where('community_festivals.day', '=', $day);
                     });
             })->where('training_contract_festivals.training_contract_id', $training_contract_id);
     }
