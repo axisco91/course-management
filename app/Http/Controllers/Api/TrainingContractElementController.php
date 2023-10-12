@@ -44,7 +44,7 @@ class TrainingContractElementController extends BaseController
         }
     }
 
-    public function create($id, Request $request){
+    public function store($id, Request $request){
         try {
             $element = TrainingContractElement::createTrainingContractElement($id, $request['id'], $request['type']);
         } catch (\Exception $e){
@@ -115,29 +115,30 @@ class TrainingContractElementController extends BaseController
         }
     }
 
-    public function getElements(){
+    public function index(Request $request){
         try {
-            $trainingContractElement = TrainingContractElement::getElements();
+            $trainingContractElements = TrainingContractElement::getElements();
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
-                $trainingContractElement = $trainingContractElement->leftjoin('courses', 'courses.id', '=', 'training_contract_elements.course_id')
+                $trainingContractElements = $trainingContractElements->leftjoin('courses', 'courses.id', '=', 'training_contract_elements.course_id')
                     ->where('courses.teacher_id', $user->teacher_id);
             }
-            $trainingContractElement = $trainingContractElement->orderBy('order', 'asc')->get();
-            return $trainingContractElement;
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
-        }
-    }
 
-    public function trainingContractElementsCSV(Request $request){
-        try {
-            if ($request) {
-                return TrainingContractElement::getElementsCSV($request['student'], $request['company'], $request['beginning'], $request['end']);
+            if ($request->student) {
+                $trainingContractElements = $trainingContractElements->where('students.id', 'LIKE', $request->student);
             }
-            return TrainingContractElement::getElementsCSV();
+            if ($request->company) {
+                $trainingContractElements = $trainingContractElements->where('companies.id', $request->company);
+            }
+            if ($request->beginning) {
+                $trainingContractElements = $trainingContractElements->where('training_contract_elements.beginning', '>=', $request->beginning);
+            }
+            if ($request->end) {
+                $trainingContractElements = $trainingContractElements->where('training_contract_elements.beginning', '<=', $request->end);
+            }
+
+            $trainingContractElements = $trainingContractElements->orderBy('order', 'asc')->get();
+            return $trainingContractElements;
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -160,7 +161,7 @@ class TrainingContractElementController extends BaseController
         }
     }
 
-    public function getElement($id) {
+    public function show($id) {
         try {
             $element = TrainingContractElement::find($id);
             return response()->json([

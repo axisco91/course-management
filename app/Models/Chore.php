@@ -13,7 +13,8 @@ class Chore extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['course_id',
+    protected $fillable = [
+        'course_id',
         'company_id',
         'student_id',
         'membership_tab_status',
@@ -40,7 +41,12 @@ class Chore extends Model
         'half_date_sent',
         'three_quarters_date_sent',
         'final_date_sent',
-        'training_contract_element_id'];
+        'training_contract_element_id',
+        'send_doc_status',
+        'send_doc_date',
+        'tutor_guide_status',
+        'tutor_guide_date'
+    ];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -81,9 +87,11 @@ class Chore extends Model
             DB::raw("CONCAT(students.name,' ', students.surname) as student"),
             'courses.beginning as beginning',
             'courses.end as end',
+            'course_types.name as course_type',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name, ' - ', students.name, ' ', students.surname) as name"))
             ->leftjoin('courses', 'courses.id', '=', 'chores.course_id')
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
             ->leftjoin('companies', 'companies.id', '=', 'chores.company_id')
             ->leftjoin('students', 'students.id', '=', 'chores.student_id')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');

@@ -23,7 +23,7 @@ class StudentController extends BaseController
      * Obtener alumnos
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getStudents() {
+    public function index(Request $request) {
         try {
 
             $students = Student::student();
@@ -32,6 +32,28 @@ class StudentController extends BaseController
                 $students = $students->leftjoin('registrations', 'registrations.student_id', '=', 'students.id')
                     ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
                     ->where('courses.teacher_id', $user->teacher_id);
+            }
+
+            if ($request->inactive == 'false') {
+                $students = $students->where('students.active', 1);
+            }
+            if ($request->name) {
+                $students = $students->where('students.name', 'like', '%'.$request->name.'%');
+            }
+            if ($request->surname) {
+                $students = $students->where('students.surname', 'like', '%'.$request->surname.'&');
+            }
+            if ($request->dni) {
+                $students = $students->where('students.dni', 'like', '%'.$request->dni.'%');
+            }
+            if ($request->telephone) {
+                $students = $students->where('students.telephone', 'like', '%'.$request->dni.'%');
+            }
+            if ($request->email) {
+                $students = $students->where('students.email', 'like', '%'.$request->email.'%');
+            }
+            if ($request->company) {
+                $students = $students->where('companies.name', 'like', '%'.$request->company.'%');
             }
 
             $students = $students->orderBy('students.name','asc')
@@ -60,7 +82,7 @@ class StudentController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getStudent($id){
+    public function show($id){
         $student = Student::student()
             ->where('students.id', $id)
             ->first();
@@ -87,7 +109,7 @@ class StudentController extends BaseController
      * @param StudentRequests $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function create(StudentRequests $request){
+    public function store(StudentRequests $request){
         try {
             $data = $request->all();
             $element = $this->studentService->create($data);
@@ -118,7 +140,7 @@ class StudentController extends BaseController
      * @param StudentRequests $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function edit($id, StudentRequests $request){
+    public function update($id, StudentRequests $request){
         try {
             $data = $request->all();
             $student = Student::find($id);

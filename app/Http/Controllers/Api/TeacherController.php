@@ -21,11 +21,31 @@ class TeacherController extends BaseController
      * Obtener docentes
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getTeachers() {
+    public function index(Request $request) {
         try {
-            $teachers = Teacher::teacher()
-                ->orderBy('teachers.name','asc')
+            $teachers = Teacher::teacher();
+
+            if ($request->name) {
+                $teachers = $teachers->where('teachers.name', 'like', '%'.$request->name.'%');
+            }
+            if ($request->surname) {
+                $teachers = $teachers->where('teachers.surname', 'like', '%'.$request->surname.'&');
+            }
+            if ($request->dni) {
+                $teachers = $teachers->where('teachers.dni', 'like', '%'.$request->dni.'%');
+            }
+            if ($request->telephone) {
+                $teachers = $teachers->where('teachers.telephone', 'like', '%'.$request->telephone.'%');
+            }
+            if ($request->email) {
+                $teachers = $teachers->where('teachers.email', 'like', '%'.$request->email.'%');
+            }
+            if ($request->inactive == 'false') {
+                $teachers = $teachers->where('teachers.active', 1);
+            }
+            $teachers = $teachers->orderBy('teachers.name','asc')
                 ->get();
+
             if (count($teachers) > 0){
                 foreach ($teachers as $teacher) {
                     $course = Course::where('teacher_id', $teacher->id)->first();
@@ -64,7 +84,7 @@ class TeacherController extends BaseController
     }
 
     // Obtain student
-    public function getTeacher($id){
+    public function show($id){
         $teacher = Teacher::teacher()
             ->where('teachers.id', $id)
             ->first();
@@ -93,7 +113,7 @@ class TeacherController extends BaseController
      * @param TeacherRequests $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function create(TeacherRequests $request){
+    public function store(TeacherRequests $request){
         try {
             $data = $request->all();
             $element = $this->teacherService->create($data);
@@ -126,7 +146,7 @@ class TeacherController extends BaseController
      * @param TeacherRequests $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function edit($id, TeacherRequests $request){
+    public function update($id, TeacherRequests $request){
         try {
             $data = $request->all();
             $teacher = Teacher::find($id);
@@ -213,87 +233,6 @@ class TeacherController extends BaseController
                     'message' => $e->getMessage()
                 ]);
             }
-        }
-    }
-
-    /**
-     * Obtenemos el CSV de los docentes
-     * @param Request $request
-     * @return array|\Illuminate\Http\JsonResponse
-     */
-    public function teachersCSV(Request $request){
-        try {
-            $teachers = Teacher::teacher();
-
-            if ($request->name) {
-                $teachers = $teachers->where('teachers.name', 'like', '%'.$request->name.'%');
-            }
-            if ($request->surname) {
-                $teachers = $teachers->where('teachers.surname', 'like', '%'.$request->surname.'&');
-            }
-            if ($request->dni) {
-                $teachers = $teachers->where('teachers.dni', 'like', '%'.$request->dni.'%');
-            }
-            if ($request->telephone) {
-                $teachers = $teachers->where('teachers.telephone', 'like', '%'.$request->telephone.'%');
-            }
-            if ($request->email) {
-                $teachers = $teachers->where('teachers.email', 'like', '%'.$request->email.'%');
-            }
-            if ($request->inactive == 'false') {
-                $teachers = $teachers->where('teachers.active', 1);
-            }
-
-            $teachers = $teachers
-                ->orderBy('teachers.name','asc')
-                ->get();
-
-            $data = [];
-            if (count($teachers) > 0) {
-                foreach ($teachers as $teacher) {
-                    $status = $teacher['active'] === 1 ? 'Activo' : 'Inactivo';
-                    $element = [
-                        'Nombre' => $teacher['name'],
-                        'Apellidos' => $teacher['surname'],
-                        'DNI' => $teacher['dni'],
-                        'Correo' => $teacher['email'],
-                        'Teléfono' => $teacher['telephone'],
-                        'Usuario' => $teacher['user'],
-                        'Password' => $teacher['password'],
-                        'Observaciones' => $teacher['observations'],
-                        'Iban' => $teacher['iban'],
-                        'Dirección' => $teacher['address'],
-                        'Código Postal' => $teacher['post_code'],
-                        'Provincia' => $teacher['province'],
-                        'Población' => $teacher['population'],
-                        'Estado' => $status
-                    ];
-                    $data[] = $element;
-                }
-            } else {
-                $element = [
-                    'Nombre' => '',
-                    'Apellidos' => '',
-                    'DNI' => '',
-                    'Correo' => '',
-                    'Teléfono' => '',
-                    'Usuario' => '',
-                    'Password' => '',
-                    'Observaciones' => '',
-                    'Iban' => '',
-                    'Dirección' => '',
-                    'Código Postal' => '',
-                    'Provincia' => '',
-                    'Población' => '',
-                    'Estado' => ''
-                ];
-                $data[] = $element;
-            }
-            return $data;
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
         }
     }
 }

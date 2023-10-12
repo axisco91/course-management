@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 
 class CourseController extends BaseController
 {
-    public function getCourses() {
+    public function index(Request $request) {
         try {
             $courses = Course::withCourseData();
 
@@ -21,7 +21,39 @@ class CourseController extends BaseController
                 $courses->where('teacher_id', $user->teacher_id);
             }
 
-            return $courses->get();
+            if ($request->formative_action) {
+                $courses = $courses->where('courses.name', 'like', '%'.$request->formative_action.'%');
+            }
+            if ($request->name) {
+                $courses = $courses->where('courses.name', 'like', '%'.$request->name.'&');
+            }
+            if ($request->group) {
+                $courses = $courses->where('courses.group', 'like', '%'.$request->group.'%');
+            }
+            if ($request->type) {
+                $courses = $courses->where('course_types.name', $request->type);
+            }
+            if ($request->status) {
+                $courses = $courses->where('course_statuses.name', $request->status);
+            }
+            if ($request->company) {
+                $registrations = Registration::where('company_id', $request->company)->groupBy('course_id')->pluck('course_id')->toArray();
+                $courses = $courses->where(function ($query) use ($registrations){
+                    $query->WhereIn('courses.id', $registrations);
+                });
+            }
+
+            foreach($courses as $course) {
+                $registration = Registration::where('course_id', $course->id)->first();
+                if ($registration) {
+                    $course['used'] = true;
+                } else {
+                    $course['used'] = false;
+                }
+                $course['number_registrations'] = $course->registrations->count();
+            }
+
+            return $courses->orderBy('courses.beginning', 'desc')->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -29,7 +61,7 @@ class CourseController extends BaseController
         }
     }
 
-    public function create(Request $request){
+    public function store(Request $request){
         try {
             $course = Course::createCourse($request);
         } catch (\Exception $e){
@@ -41,11 +73,11 @@ class CourseController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'course' => Course::getCourse($course->id)
+            'course' => Course::withCourseData($course->id)->Where('courses.id', $course->id)->first()
         ]);
     }
 
-    public function edit($id, Request $request){
+    public function update($id, Request $request){
         try {
             $course = Course::updateCourse($id, $request);
         } catch (\Exception $e){
@@ -57,11 +89,11 @@ class CourseController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'course' => Course::getCourse($course->id)
+            'course' => Course::withCourseData($course->id)->Where('courses.id', $course->id)->first()
         ]);
     }
 
-    public function getCourse($id){
+    public function show($id){
         $course = Course::withCourseData()
             ->where('courses.id', $id)->first();
 

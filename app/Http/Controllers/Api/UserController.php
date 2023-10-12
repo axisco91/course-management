@@ -143,4 +143,17 @@ class UserController extends BaseController
         }
         return 'Pringado';
     }
+    public function changePassword($id, Request $request) {
+        try {
+            $user = User::find($id);
+            $user->update([
+                'password' => Hash::make($request->password)
+            ]);
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+        return response()->json([
+            'status' => 200
+        ]);
+    }
 }

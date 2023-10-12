@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\AdvisorCommission;
-use App\Services\AdvisorCommissionService;
+use App\Models\UserCommission;
+use App\Services\UserCommissionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class AdvisorCommissionController extends BaseController
+class UserCommissionController extends BaseController
 {
-    private $advisorCommissionService;
+    private $userCommissionService;
 
-    public function __construct(AdvisorCommissionService $advisorCommissionService)
+    public function __construct(UserCommissionService $userCommissionService)
     {
-        $this->advisorCommissionService = $advisorCommissionService;
+        $this->userCommissionService = $userCommissionService;
     }
 
     /**
@@ -22,8 +22,8 @@ class AdvisorCommissionController extends BaseController
      */
     public function index($id) {
         try {
-            $commissions = AdvisorCommission::commissions()
-                ->where('advisor_commissions.advisor_id', $id)
+            $commissions = UserCommission::commissions()
+                ->where('user_commissions.user_id', $id)
                 ->get();
 
             return $commissions;
@@ -43,16 +43,16 @@ class AdvisorCommissionController extends BaseController
     public function update($id, Request $request){
         try {
             $data = $request->all();
-            $advisorCommission = AdvisorCommission::find($id);
-            $this->advisorCommissionService->update($advisorCommission, $data);
+            $userCommission = UserCommission::find($id);
+            $this->userCommissionService->update($userCommission, $data);
 
-            $commission = AdvisorCommission::commissions()
-                ->where('advisor_commissions.id', $id)
+            $commission = UserCommission::commissions()
+                ->where('user_commissions.id', $id)
                 ->first();
 
             return response()->json([
                 'status' => 200,
-                'advisor_commission' => $commission
+                'user_commission' => $commission
             ]);
         } catch (\Exception $e){
             return response()->json([
@@ -68,13 +68,13 @@ class AdvisorCommissionController extends BaseController
      * @return mixed
      */
     public function show($id){
-        $advisorCommission = AdvisorCommission::commissions()
-            ->where('advisor_commissions.id', $id)
+        $userCommission = UserCommission::commissions()
+            ->where('user_commissions.id', $id)
             ->first();
-        if ($advisorCommission) {
+        if ($userCommission) {
             return response()->json([
                 'status' => 200,
-                'advisor_commission' => $advisorCommission
+                'user_commission' => $userCommission
             ]);
         }
         return response()->json([
@@ -91,7 +91,7 @@ class AdvisorCommissionController extends BaseController
     public function destroy($id){
         if ($id) {
             try {
-                AdvisorCommission::destroy($id);
+                UserCommission::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);

@@ -29,19 +29,54 @@ class CompanyController extends BaseController
      * Obtenemos empresas
      * @return \Illuminate\Http\JsonResponse
      */
-    public function companies() {
+    public function index(Request $request) {
         try {
             $companies = Company::company();
+
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
                 $companies->leftjoin('registrations', 'registrations.company_id', '=', 'companies.id')
                     ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
                     ->where('courses.teacher_id', $user->teacher_id);
             }
+
+            if ($request->name) {
+                $companies = $companies->where('companies.name', 'like', '%'.$request->name.'%');
+            }
+            if ($request->nif) {
+                $companies = $companies->where('companies.nif', 'like', '%'.$request->nif.'&');
+            }
+            if ($request->type) {
+                $companies = $companies->where('company_types.name', 'like', '%'.$request->type.'%');
+            }
+            if ($request->activity) {
+                $companies = $companies->where('company_activities.name', 'like', '%'.$request->activity.'%');
+            }
+            if ($request->advisor) {
+                $companies = $companies->where('advisor.name', 'like', '%'.$request->advisor.'%');
+            }
+            if ($request->province) {
+                $companies = $companies->where('provinces.name', 'like', '%'.$request->province.'%');
+            }
+            if ($request->status) {
+                if ($request->status == 'Potential') {
+                    $companies = $companies->where('companies.potential', 1);
+                }else if ($request->status == 'Inactivo'){
+                    $companies = $companies->where('companies.active', 0)->where('companies.potential', 0);
+                } else if ($request->status == 'Activo'){
+                    $companies = $companies->where('companies.active', 1)->where('companies.potential', 0);
+                }
+            }
+            if ($request->collaborator) {
+                //$companies = $companies->where('users.name', 'like', '%'.$province.'%');
+            }
+
             $companies = $companies
-                ->groupBy('companies.id', 'companies.name')
-                ->orderBy('companies.name', 'asc')
-                ->get();
+        //        ->included()
+        //        ->filter()
+        //        ->sort()
+                ->groupBy('companies.id', 'companies.name');
+/*
             foreach ($companies as $company) {
                 $company['used'] = false;
                 $student = Student::where('company_id', $company['id'])->first();
@@ -69,8 +104,24 @@ class CompanyController extends BaseController
                 } else {
                     $company['status'] = 'Activo';
                 }
+            }*/
+            if ($request->perPage) {
+                return [
+                    'companies' => $companies->paginate(intval(request('perPage'))),
+                    'links' => $companies->links(),
+                    'meta' => [
+                        'current_page' => $companies->currentPage(),
+                        'from' => $companies->firstItem(),
+                        'last_page' => $companies->lastPage(),
+                        'links' => $companies->getUrlRange(1, $companies->lastPage()),
+                        'path' => $companies->resolveCurrentPath(),
+                        'per_page' => $companies->perPage(),
+                        'to' => $companies->lastItem(),
+                        'total' => $companies->total(),
+                    ]
+                ];
             }
-            return $companies;
+            return $companies->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -88,7 +139,7 @@ class CompanyController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getCompany($id){
+    public function show($id){
         $company = Company::company()
             ->where('companies.id', $id)
             ->first();
@@ -144,7 +195,7 @@ class CompanyController extends BaseController
      * @param CompanyRequests $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function create(CompanyRequests $request){
+    public function store(CompanyRequests $request){
         try {
             $data = $request->all();
             $element = $this->companyService->create($data);
@@ -204,7 +255,7 @@ class CompanyController extends BaseController
      * @param CompanyRequests $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function edit($id, CompanyRequests $request){
+    public function update($id, CompanyRequests $request){
         try {
             $data = $request->all();
             $company = Company::find($id);
@@ -386,104 +437,5 @@ class CompanyController extends BaseController
 
     public function getCompanyStudents($id) {
         return Student::companyStudents($id)->get();
-    }
-
-    public function companiesCSV(Request $request){
-        try {
-            $companies = Company::company();
-            if ($request->name) {
-                $companies = $companies->where('companies.name', 'like', '%'.$request->name.'%');
-            }
-            if ($request->nif) {
-                $companies = $companies->where('companies.nif', 'like', '%'.$request->nif.'&');
-            }
-            if ($request->type) {
-                $companies = $companies->where('company_types.name', 'like', '%'.$request->type.'%');
-            }
-            if ($request->activity) {
-                $companies = $companies->where('company_activities.name', 'like', '%'.$request->activity.'%');
-            }
-            if ($request->advisor) {
-                $companies = $companies->where('advisor.name', 'like', '%'.$request->advisor.'%');
-            }
-            if ($request->province) {
-                $companies = $companies->where('provinces.name', 'like', '%'.$request->province.'%');
-            }
-            if ($request->status) {
-                if ($request->status == 'Potential') {
-                    $companies = $companies->where('companies.potential', 1);
-                }else if ($request->status == 'Inactivo'){
-                    $companies = $companies->where('companies.active', 0)->where('companies.potential', 0);
-                } else if ($request->status == 'Activo'){
-                    $companies = $companies->where('companies.active', 1)->where('companies.potential', 0);
-                }
-            }
-            if ($request->collaborator) {
-                //$companies = $companies->where('users.name', 'like', '%'.$province.'%');
-            }
-
-            $companies = $companies->orderBy('companies.name', 'asc')->get();
-
-            $data = [];
-            if (count($companies) > 0) {
-                foreach ($companies as $company) {
-                    $status = $company['potential'] == 1 ? 'Potential' : ($company['active'] == 0 ? 'Inactivo' : 'Active');
-                    $element = [
-                        'Nombre' => $company['name'],
-                        'CIF' => $company['nif'],
-                        'Tipo empresa' => $company['type'],
-                        'Actividad empresa' => $company['activity'],
-                        'Correo' => $company['email'],
-                        'Teléfono' => $company['telephone'],
-                        'Representante legal' => $company['legal_representative'],
-                        'Dni representante legal' => $company['dni_legal_representative'],
-                        'C. cotización' => $company['quote'],
-                        'Colaborador' => $company['collaborator'],
-                        'CNAE' => $company['cnae'],
-                        'Plantilla media' => $company['average_template'],
-                        'Iban' => $company['iban'],
-                        'Sepa' => $company['sepa'],
-                        'B2B' => $company['b2b'],
-                        'Dirección' => $company['address'],
-                        'Código postal' => $company['post_code'],
-                        'Provincia' => $company['province'],
-                        'Población' => $company['population'],
-                        'Asesoría' => $company['advisor'],
-                        'Estado' => $status
-                    ];
-                    $data[] = $element;
-                }
-            } else {
-                $element = [
-                    'Nombre' => '',
-                    'CIF' => '',
-                    'Tipo empresa' => '',
-                    'Actividad empresa' => '',
-                    'Correo' => '',
-                    'Teléfono' => '',
-                    'Representante legal' => '',
-                    'Dni representante legal' => '',
-                    'C. cotización' => '',
-                    'Colaborador' => '',
-                    'CNAE' => '',
-                    'Plantilla media' => '',
-                    'Iban' => '',
-                    'Sepa' => '',
-                    'B2B' => '',
-                    'Dirección' => '',
-                    'Código postal' => '',
-                    'Provincia' => '',
-                    'Población' => '',
-                    'Asesoría' => '',
-                    'Estado' => ''
-                ];
-                $data[] = $element;
-            }
-            return $data;
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
-        }
     }
 }

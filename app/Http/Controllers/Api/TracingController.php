@@ -24,7 +24,7 @@ class TracingController extends BaseController
      * Obtener los seguimientos
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getTracings() {
+    public function index(Request $request) {
         try {
             $start = \Illuminate\Support\Carbon::now();
             $number_days = 5;
@@ -36,6 +36,30 @@ class TracingController extends BaseController
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
                  $tracings = $tracings->where('courses.teacher_id', $user->teacher_id);
+            }
+
+            if ($request->course) {
+                $tracings = $tracings->where('courses.id', $request->course);
+            }
+            if ($request->company) {
+                $tracings = $tracings->where('companies.id', $request->company);
+            }
+            if ($request->student) {
+                $tracings = $tracings->where('students.id', 'LIKE', $request->student);
+            }
+            if ($request->status) {
+                $tracings = $tracings
+                    ->where('course_statuses.name', 'LIKE', $request->status);
+            }
+            if ($request->type) {
+                $tracings = $tracings
+                    ->where('course_types.name', 'LIKE', $request->type);
+            }
+            if ($request->beginning) {
+                $tracings = $tracings->where('courses.beginning', '>=', $request->beginning);
+            }
+            if ($request->end) {
+                $tracings = $tracings->where('courses.beginning', '<=', $request->end);
             }
 
             $tracings = $tracings->orderBy('tracings.id', 'desc')
@@ -64,7 +88,7 @@ class TracingController extends BaseController
         }
     }
 
-    public function getTracing($id){
+    public function show($id){
         $tracing = Tracing::tracing()
             ->where('tracings.id', $id)
             ->first();
@@ -102,7 +126,7 @@ class TracingController extends BaseController
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function create(Request $request){
+    public function store(Request $request){
         /*
         try {
             $data = $request->all();
@@ -148,7 +172,7 @@ class TracingController extends BaseController
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function edit($id, Request $request){
+    public function update($id, Request $request){
         try {
             $tracing = Tracing::find($id);
             $data = $request->all();

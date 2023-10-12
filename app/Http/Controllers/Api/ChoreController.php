@@ -25,7 +25,7 @@ class ChoreController extends BaseController
      * Obtenemos tareas
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getChores() {
+    public function index(Request $request) {
         try {
             $start = \Illuminate\Support\Carbon::now();
             $number_days = 3;
@@ -37,6 +37,30 @@ class ChoreController extends BaseController
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
                 $chores = $chores->where('courses.teacher_id', $user->teacher_id);
+            }
+
+            if ($request->course) {
+                $chores = $chores->where('courses.id', $request->course);
+            }
+            if ($request->company) {
+                $chores = $chores->where('companies.id', $request->company);
+            }
+            if ($request->student) {
+                $chores = $chores->where('students.id', 'LIKE', $request->student);
+            }
+            if ($request->status) {
+                $chores = $chores
+                    ->where('course_statuses.name', 'LIKE', $request->status);
+            }
+            if ($request->beginning) {
+                $chores = $chores->where('courses.beginning', '>=', \Illuminate\Support\Carbon::parse($request->beginning));
+            }
+            if ($request->end) {
+                $chores = $chores->where('courses.beginning', '<=', Carbon::parse($request->end));
+            }
+
+            if ($request->type) {
+                $chores = $chores->where('course_types.name', 'LIKE', $request->type);
             }
 
             $chores = $chores->orderBy('chores.id', 'desc')
@@ -120,6 +144,20 @@ class ChoreController extends BaseController
                 } else if ($chore->bonus_sent_status == 2) {
                     $chore['bonus_sent_status_name'] = 'No procede';
                 }
+
+                if ($chore->send_doc_status == 0) {
+                    $chore['send_doc_status_name'] = 'Pendiente';
+                } else if ($chore->send_doc_status == 1) {
+                    $chore['send_doc_status_name'] = 'Realizada';
+                } else if ($chore->send_doc_status == 2) {
+                    $chore['send_doc_status_name'] = 'No procede';
+                }
+
+                if ($chore->tutor_guide_status == 0) {
+                    $chore['tutor_guide_status_name'] = 'Pendiente';
+                } else if ($chore->tutor_guide_status == 1) {
+                    $chore['tutor_guide_status_name'] = 'Realizada';
+                }
             }
 
             return $chores;
@@ -135,7 +173,7 @@ class ChoreController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getChore($id){
+    public function show($id){
         $chore = Chore::chore()
             ->where('chores.id', $id)
             ->first();
@@ -217,6 +255,21 @@ class ChoreController extends BaseController
             } else if ($chore->bonus_sent_status == 2) {
                 $chore['bonus_sent_status_name'] = 'No procede';
             }
+
+            if ($chore->send_doc_status == 0) {
+                $chore['send_doc_status_name'] = 'Pendiente';
+            } else if ($chore->send_doc_status == 1) {
+                $chore['send_doc_status_name'] = 'Realizada';
+            } else if ($chore->send_doc_status == 2) {
+                $chore['send_doc_status_name'] = 'No procede';
+            }
+
+            if ($chore->tutor_guide_status == 0) {
+                $chore['tutor_guide_status_name'] = 'Pendiente';
+            } else if ($chore->tutor_guide_status == 1) {
+                $chore['tutor_guide_status_name'] = 'Realizada';
+            }
+
             return response()->json([
                 'status' => 200,
                 'chore' => $chore
@@ -228,17 +281,13 @@ class ChoreController extends BaseController
         ]);
     }
 
-    public function create(Request $request){
-
-    }
-
     /**
      * Editamos tarea
      * @param $id
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function edit($id, Request $request){
+    public function update($id, Request $request){
         try {
             $chore = Chore::find($id);
             $data = $request->all();
@@ -355,58 +404,6 @@ class ChoreController extends BaseController
                     'message' => $e->getMessage()
                 ]);
             }
-        }
-    }
-
-    public function choresCSV(Request $request){
-        try {
-            $chores = Chore::chore();
-            if ($request->course) {
-                $chores = $chores->where('courses.id', $request->course);
-            }
-            if ($request->company) {
-                $chores = $chores->where('companies.id', $request->company);
-            }
-            if ($request->student) {
-                $chores = $chores->where('students.id', 'LIKE', $request->student);
-            }
-            if ($request->status) {
-                $chores = $chores->where('courses.course_status_id', 'LIKE', $request->status);
-            }
-            if ($request->beginning) {
-                $chores = $chores->where('courses.beginning', '>=', \Illuminate\Support\Carbon::parse($request->beginning));
-            }
-            if ($request->end) {
-                $chores = $chores->where('courses.beginning', '<=', Carbon::parse($request->end));
-            }
-
-            $chores = $chores->orderBy('chores.id', 'desc')->get();
-
-            $data = [];
-            foreach ($chores as $chore) {
-                $element = [
-                    'Curso' => $chore['course'],
-                    'Empresa' => $chore['company'],
-                    'Alumno' => $chore['student'],
-                    'Estado' => $chore['status'],
-                    'Ficha Adhesión' => $chore['membership_tab_status'] == 0 ? 'Pendiente' : ($chore['membership_tab_status'] == 1 ? 'Enviado' : ($chore['membership_tab_status'] == 2 ? 'Recibido' : 'No procede')),
-                    'Propuesta Económica' => $chore['economic_proposal_status'] == 0 ? 'Pendiente' : ($chore['economic_proposal_status'] == 1 ? 'Enviado' : 'Recibido'),
-                    'Ficha Alumno' => $chore['student_tab_status'] == 0 ? 'Pendiente' : ($chore['student_tab_status'] == 1 ? 'Enviado' : 'Recibido'),
-                    'Guia Bienvenida' => $chore['welcome_guid_status'] == 0 ? 'Pendiente' : ($chore['welcome_guid_status'] == 1 ? 'Enviado' : 'Recibido'),
-                    'Matriculación' => $chore['registration_status'] == 0 ? 'Pendiente' : 'Realizada',
-                    'Diploma' => $chore['diploma_status'] == 0 ? 'Pendiente' : ($chore['diploma_status'] == 1 ? 'Enviada' : 'No procede'),
-                    'Comunicación Inicio' => $chore['start_communication_status'] == 0 ? 'Pendiente' : ($chore['start_communication_status'] == 1 ? 'Realizada' : 'No procede'),
-                    'Comunicación Cierre' => $chore['close_communication_status'] == 0 ? 'Pendiente' : ($chore['close_communication_status'] == 1 ? 'Realizada' : 'No procede'),
-                    'Facturado' => $chore['invoiced_status'] == 0 ? 'Pendiente' : ($chore['invoiced_status'] == 1 ? 'Realizada' : 'No procede'),
-                    'Bonificacion Enviada' => $chore['bonus_sent_status'] == 0 ? 'Pendiente' : ($chore['bonus_sent_status'] == 1 ? 'Realizada' : 'No procede')
-                ];
-                $data[] = $element;
-            }
-            return $data;
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
         }
     }
 }

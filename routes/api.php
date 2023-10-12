@@ -75,6 +75,9 @@ use App\Http\Controllers\Api\CommissionTypeController;
 use App\Http\Controllers\Api\AdvisorObservationController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\CommunityFestivalController;
+use App\Http\Controllers\Api\UserCommissionTypeController;
+use App\Http\Controllers\Api\AdvisorCommissionTypeController;
+use App\Http\Controllers\Api\UserCommissionController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -137,14 +140,13 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('students')->group(function() {
         Route::controller(StudentController::class)->group(function(){
-            Route::get('', 'getStudents');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
+            Route::get('', 'index');
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getStudent');
+            Route::get('get/{id}', 'show');
             Route::post('check_dni', 'checkDni');
             Route::get('courses/{id}', 'getStudentsCourses');
-            Route::get('csv', 'studentsCSV');
             Route::get('active', 'getActiveStudents');
         });
     });
@@ -167,18 +169,17 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('advisors')->group(function() {
         Route::controller(AdvisorController::class)->group(function(){
-            Route::get('', 'advisors');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
+            Route::get('', 'index');
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getAdvisor');
+            Route::get('get/{id}', 'show');
             Route::get('convert-advisor/{id}', 'convertAdvisor');
             Route::get('check-nif/{nif}', 'checkNif');
             Route::get('active', 'getActiveAdvisors');
             Route::get('courses/{id}', 'getAdvisorCourses');
             Route::get('companies/{id}', 'getAdvisorCompanies');
             Route::get('training-contracts/{id}', 'getAdvisorTrainingContracts');
-            Route::get('csv', 'advisorsCSV');
         });
     });
 
@@ -233,14 +234,13 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('courses')->group(function() {
         Route::controller(CourseController::class)->group(function(){
-            Route::get('', 'getCourses');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
+            Route::get('', 'index');
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getCourse');
+            Route::get('get/{id}', 'show');
             Route::get('set-data', 'setData');
             Route::get('students/{id}', 'getStudents');
-            Route::get('csv', 'coursesCSV');
         });
     });
 
@@ -532,15 +532,14 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('teachers')->group(function() {
         Route::controller(TeacherController::class)->group(function(){
-            Route::get('', 'getTeachers');
+            Route::get('', 'index');
             Route::get('active', 'activeTeachers');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getTeacher');
+            Route::get('get/{id}', 'show');
             Route::post('check_dni', 'checkDni');
             Route::get('courses/{id}', 'getTeachersCourses');
-            Route::get('csv', 'teachersCSV');
         });
     });
 
@@ -549,15 +548,14 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('training-actions')->group(function() {
         Route::controller(TrainingActionController::class)->group(function(){
-            Route::get('', 'getTrainingActions');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
+            Route::get('', 'index');
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getTrainingAction');
+            Route::get('get/{id}', 'show');
             Route::get('formative-action', 'getFormativeAction');
             Route::get('active', 'getActiveTrainingActions');
             Route::get('courses/{id}', 'getCourses');
-            Route::get('csv', 'trainingActionsCSV');
         });
     });
 
@@ -627,13 +625,12 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('training-contract-elements')->group(function() {
         Route::controller(TrainingContractElementController::class)->group(function(){
-            Route::get('', 'getElements');
-            Route::post('create/{id}', 'create');
+            Route::get('', 'index');
+            Route::post('create/{id}', 'store');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('csv', 'trainingContractElementsCSV');
             Route::post('order', 'orderTrainingContractElements');
             Route::get('{id}', 'getTrainingContractElements');
-            Route::get('get/{id}', 'getElement');
+            Route::get('get/{id}', 'show');
             Route::post('edit-date/{id}', 'editDate');
         });
     });
@@ -670,11 +667,10 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('chores')->group(function() {
         Route::controller(ChoreController::class)->group(function(){
-            Route::get('', 'getChores');
-            Route::post('edit/{id}', 'edit');
+            Route::get('', 'index');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getChore');
-            Route::get('csv', 'choresCSV');
+            Route::get('get/{id}', 'show');
         });
     });
 
@@ -683,11 +679,10 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('tracings')->group(function() {
         Route::controller(TracingController::class)->group(function(){
-            Route::get('', 'getTracings');
-            Route::post('edit/{id}', 'edit');
+            Route::get('', 'index');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getTracing');
-            Route::get('csv', 'tracingsCSV');
+            Route::get('get/{id}', 'show');
         });
     });
 
@@ -697,15 +692,14 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('training-contracts')->group(function() {
         Route::controller(TrainingContractController::class)->group(function(){
             Route::get('', 'index');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'show');
             Route::get('cfa-number', 'getCFANumber');
             Route::get('specialties/{id}', 'getSpecialties');
             Route::get('certifications/{id}', 'getCertifications');
             Route::get('calculate-hours/{id}', 'calculateHours');
-            Route::get('csv', 'trainingContractCSV');
             Route::post('register/{id}', 'register');
         });
     });
@@ -715,12 +709,11 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('profitabilities')->group(function() {
         Route::controller(ProfitabilityController::class)->group(function(){
-            Route::get('', 'getProfitabilities');
-            Route::post('edit/{id}', 'edit');
+            Route::get('', 'index');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getProfitability');
+            Route::get('get/{id}', 'show');
             Route::get('students/{id}', 'getStudents');
-            Route::get('csv', 'profitsCSV');
         });
     });
 
@@ -749,6 +742,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getUser');
             Route::post('upload-image/{id}', 'uploadImage');
+            Route::post('change-password/{id}', 'changePassword');
         });
     });
 
@@ -782,18 +776,17 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('companies')->group(function() {
         Route::controller(CompanyController::class)->group(function(){
-            Route::get('', 'companies');
+            Route::get('', 'index');
             Route::get('active', 'getActiveCompanies');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'getCompany');
+            Route::get('get/{id}', 'show');
             Route::get('courses/{id}', 'getCompanyCourses');
             Route::get('students/{id}', 'getCompanyStudents');
             Route::get('convert-client/{id}', 'convertClient');
             Route::get('convert-advisor/{id}', 'convertAdvisor');
             Route::get('convert-provider/{id}', 'convertProvider');
-            Route::get('csv', 'companiesCSV');
         });
     });
 
@@ -836,7 +829,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'show');
             Route::get('students/{id}', 'getBillStudents');
-            Route::get('csv', 'billsCSV');
         });
     });
 
@@ -1003,10 +995,9 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::controller(TrainingContractBillController::class)->group(function(){
             Route::get('', 'index');
             Route::get('get/{id}', 'show');
-            Route::get('create', 'create');
+            Route::get('create', 'store');
             Route::post('edit/{id}', 'update');
             Route::get('years', 'years');
-            Route::get('csv', 'billsCSV');
         });
     });
 
@@ -1015,6 +1006,18 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('advisor-commissions')->group(function() {
         Route::controller(AdvisorCommissionController::class)->group(function(){
+            Route::get('get/{id}', 'show');
+            Route::post('edit/{id}', 'update');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('{id}', 'index');
+        });
+    });
+
+    /**
+     * Comisiones usuarios
+     */
+    Route::prefix('user-commissions')->group(function() {
+        Route::controller(UserCommissionController::class)->group(function(){
             Route::get('get/{id}', 'show');
             Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
@@ -1032,6 +1035,26 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'update');
             Route::get('destroy/{id}', 'destroy');
+        });
+    });
+
+    /**
+     * Tipo comisiones de usuario
+     */
+    Route::prefix('user-commission-types')->group(function() {
+        Route::controller(UserCommissionTypeController::class)->group(function(){
+            Route::post('update', 'update');
+            Route::get('{id}', 'index');
+        });
+    });
+
+    /**
+     * Tipo comisiones de asesoria
+     */
+    Route::prefix('advisor-commission-types')->group(function() {
+        Route::controller(AdvisorCommissionTypeController::class)->group(function(){
+            Route::post('update', 'update');
+            Route::get('{id}', 'index');
         });
     });
 });

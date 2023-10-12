@@ -16,7 +16,7 @@ class CreateCommunityFestivalsTable extends Migration
         Schema::create('community_festivals', function (Blueprint $table) {
             $table->id();
             $table->date('day');
-            $table->string('nombre')->nullable();
+            $table->string('name')->nullable();
             $table->foreignId('community_id')->index()->nullable()->onUpdate('cascade')->onDelete('setNull');
         });
     }

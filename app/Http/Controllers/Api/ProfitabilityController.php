@@ -22,18 +22,28 @@ class ProfitabilityController extends BaseController
      * Obtener rentabilidad
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getProfitabilities() {
+    public function index(Request $request) {
         try {
-            $profitabilities = Profitability::profitability();
+            $profits = Profitability::profitability();
             $cfa = CourseType::where('name', 'CFA')->first();
             if ($cfa) {
-                $profitabilities = $profitabilities->where('course_type_id', '!=', $cfa->id);
+                $profits = $profits->where('course_type_id', '!=', $cfa->id);
             }
 
-            $profitabilities = $profitabilities
+            if ($request->course) {
+                $profits = $profits->where('courses.name', 'like', '%'.$request->course.'%');
+            }
+            if ($request->company) {
+                $profits = $profits->where('companies.name', 'like', '%'.$request->company.'&');
+            }
+            if ($request->status) {
+                $profits = $profits->where('course_statuses.name', 'like', '%'.$request->status.'%');
+            }
+
+            $profits = $profits
                 ->orderBy('courses.beginning', 'desc')
                 ->get();
-            return $profitabilities;
+            return $profits;
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -46,7 +56,7 @@ class ProfitabilityController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getProfitability($id){
+    public function show($id){
         $profitability = Profitability::profitability()
             ->where('profitabilities.id', $id)
             ->first();
@@ -73,7 +83,7 @@ class ProfitabilityController extends BaseController
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function create(Request $request){
+    public function store(Request $request){
         try {
             $data = $request->all();
             $profitability = $this->profitabilityService->create($data);
@@ -98,7 +108,7 @@ class ProfitabilityController extends BaseController
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function edit($id, Request $request){
+    public function update($id, Request $request){
         try {
             $data = $request->all();
             $profitability = Profitability::find($id);
@@ -151,77 +161,5 @@ class ProfitabilityController extends BaseController
             ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
             ->whereIn('students.id', $registrations)->get();
         return response()->json($students);
-    }
-
-    /**
-     * Obtener CSV de las rentabilidades
-     * @param Request $request
-     * @return array|\Illuminate\Http\JsonResponse
-     */
-    public function profitsCSV(Request $request){
-        try {
-            $profits = Profitability::profitability();
-            if ($request->course) {
-                $profits = $profits->where('courses.name', 'like', '%'.$request->course.'%');
-            }
-            if ($request->company) {
-                $profits = $profits->where('companies.name', 'like', '%'.$request->company.'&');
-            }
-            if ($request->status) {
-                $profits = $profits->where('course_statuses.name', 'like', '%'.$request->status.'%');
-            }
-            $profits = $profits->orderBy('courses.beginning', 'desc')->get();
-            $cfa = CourseType::where('name', 'CFA')->first();
-            if ($cfa) {
-                $profits = $profits->where('course_type_id', '!=', $cfa->id);
-            }
-            $data = [];
-            if (count($profits) > 0) {
-                foreach ($profits as $profit) {
-                    $element = [
-                        'Curso' => $profit['course'],
-                        'Año' => $profit['year'],
-                        'Empresa' => $profit['company_name'],
-                        'Alumnos' => $profit['student'],
-                        'Precio' => $profit['price'],
-                        'Licencia' => $profit['license'],
-                        'Docente' => $profit['teacher'],
-                        'Gestión' => $profit['management'],
-                        'Titulo Nebrija' => $profit['nebrija_title'],
-                        'Descuento' => $profit['discount'],
-                        'Comisión Colaborador' => $profit['collaborator_commission'],
-                        'Comisión Asesoría' => $profit['advisor_commission'],
-                        'Total' => $profit['total'],
-                        'Beneficio' => $profit['benefits'],
-                        'Rentabilidad' => $profit['rentabilidad']
-                    ];
-                    $data[] = $element;
-                }
-            } else {
-                $element = [
-                    'Curso' => '',
-                    'Año' => '',
-                    'Empresa' => '',
-                    'Alumnos' => '',
-                    'Precio' => '',
-                    'Licencia' => '',
-                    'Docente' => '',
-                    'Gestión' => '',
-                    'Titulo Nebrija' => '',
-                    'Descuento' => '',
-                    'Comisión Colaborador' => '',
-                    'Comisión Asesoría' => '',
-                    'Total' => '',
-                    'Beneficio' => '',
-                    'Rentabilidad' => ''
-                ];
-                $data[] = $element;
-            }
-            return $data;
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
-        }
     }
 }

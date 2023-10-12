@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class ChangeHoursToTrainingContractBillsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->tinyInteger('has_commission')->default(0);
+        Schema::table('training_contract_bills', function (Blueprint $table) {
+            $table->decimal('hours', 10, 2)->change();
         });
     }
 
@@ -25,8 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('has_commission');
+        Schema::table('training_contract_bills', function (Blueprint $table) {
+            //
         });
     }
-};
+}

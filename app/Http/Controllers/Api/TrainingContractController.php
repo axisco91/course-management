@@ -35,19 +35,29 @@ class TrainingContractController extends BaseController
      * Obtenemos todos los CFA
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index() {
+    public function index(Request $request) {
         try {
-            $trainingContract = TrainingContract::getTrainingContracts();
+            $trainingContracts = TrainingContract::getTrainingContracts();
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
-                $trainingContract= $trainingContract->leftjoin('training_contract_elements', 'training_contract_elements.training_contract_id', '=', 'training_contracts.id')
+                $trainingContracts = $trainingContracts->leftjoin('training_contract_elements', 'training_contract_elements.training_contract_id', '=', 'training_contracts.id')
                     ->leftjoin('courses', 'courses.id', '=', 'training_contract_elements.course_id')
                     ->where('courses.teacher_id', $user->teacher_id);
             }
 
-            $trainingContract = $trainingContract->groupBy('training_contracts.id', 'training_contracts.number_cfa')->orderby('training_contracts.beginning', 'desc')->get();
+            if ($request->company) {
+                $trainingContracts = $trainingContracts->where('companies.name', $request->company);
+            }
+            if ($request->student_id) {
+                $trainingContracts = $trainingContracts->where('training_contracts.student_id', $request->student_id);
+            }
+            if ($request->status) {
+                $trainingContracts = $trainingContracts->where('training_contract_statuses.name', $request->status);
+            }
 
-            return $trainingContract;
+            $trainingContracts = $trainingContracts->groupBy('training_contracts.id', 'training_contracts.number_cfa')->orderby('training_contracts.beginning', 'desc')->get();
+
+            return $trainingContracts;
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -60,7 +70,7 @@ class TrainingContractController extends BaseController
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function create(Request $request){
+    public function store(Request $request){
         try {
             $contract = TrainingContract::createTrainingContract($request);
             if ($request->has('clone_id')) {
@@ -141,7 +151,7 @@ class TrainingContractController extends BaseController
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function edit($id, Request $request){
+    public function update($id, Request $request){
         try {
             TrainingContract::updateTrainingContract($id, $request);
         } catch (\Exception $e){
@@ -578,18 +588,5 @@ class TrainingContractController extends BaseController
             'status' => 200,
             'element' => $element
         ]);
-    }
-
-    public function trainingContractCSV(Request $request){
-        try {
-            if ($request) {
-                return TrainingContract::getTrainingContractsCSV($request['company'], $request['student_id'], $request['status']);
-            }
-            return TrainingContract::getTrainingContractsCSV();
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
-        }
     }
 }

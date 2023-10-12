@@ -24,6 +24,7 @@ class User extends Authenticatable
     use TwoFactorAuthenticatable;
     use HasRoles;
 
+
     /**
      * The attributes that are mass assignable.
      *
@@ -70,6 +71,30 @@ class User extends Authenticatable
      */
     protected $appends = [
         'profile_photo_url',
+    ];
+
+    /**
+     * Variable que recoge los campos por los que filtrar
+     * @var string[]
+     */
+    protected $allowIncluded = [
+
+    ];
+
+    /**
+     * Variable que recoge los campos por los que vamos a ordenar
+     * @var string[]
+     */
+    protected $allowSort = [
+        'id',
+        'name',
+        'username'
+    ];
+
+    protected $allowFilter = [
+        'id',
+        'name',
+        'surname',
     ];
 
     public function scopeGetUser($query) {

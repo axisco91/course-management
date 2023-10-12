@@ -46,7 +46,11 @@ class ChoreService
             'invoiced_status' => $data['invoiced_status'],
             'invoiced_date' => $data['invoiced_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['invoiced_date'])->format('Y-m-d') : null,
             'bonus_sent_status' => $data['bonus_sent_status'],
-            'bonus_sent_date' => $data['bonus_sent_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['bonus_sent_date'])->format('Y-m-d') : null
+            'bonus_sent_date' => $data['bonus_sent_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['bonus_sent_date'])->format('Y-m-d') : null,
+            'send_doc_status' => $data['send_doc_status'],
+            'send_doc_date' => $data['send_doc_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['send_doc_date'])->format('Y-m-d') : null,
+            'tutor_guide_status' => $data['tutor_guide_status'],
+            'tutor_guide_date' => $data['tutor_guide_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['tutor_guide_date'])->format('Y-m-d') : null
         ]);
         return $chore;
     }
