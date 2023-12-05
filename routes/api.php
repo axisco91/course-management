@@ -78,6 +78,9 @@ use App\Http\Controllers\Api\CommunityFestivalController;
 use App\Http\Controllers\Api\UserCommissionTypeController;
 use App\Http\Controllers\Api\AdvisorCommissionTypeController;
 use App\Http\Controllers\Api\UserCommissionController;
+use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\DocumentStudentController;
+use App\Http\Controllers\Api\DocumentTypeController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -150,6 +153,22 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('active', 'getActiveStudents');
         });
     });
+
+    /**
+     * Documentos
+     */
+    Route::prefix('documents')->group(function() {
+        Route::controller(DocumentController::class)->group(function(){
+            Route::get('', 'index');
+            Route::post('create', 'store');
+            Route::post('edit/{id}', 'update');
+            Route::get('destroy/{id}', 'destroy');
+            Route::get('get/{id}', 'show');
+            Route::get('get_student_documents', 'getStudentDocuments');
+        });
+    });
+
+
 
     /**
      * Tipos Acciones
@@ -1057,6 +1076,15 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('{id}', 'index');
         });
     });
+
+    /**
+     * Document Type
+     */
+    Route::prefix('document-types')->group(function() {
+        Route::controller(DocumentTypeController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
 });
 
 /**
@@ -1132,5 +1160,21 @@ Route::prefix('company-activities')->group(function() {
 Route::prefix('cnaes')->group(function() {
     Route::controller(CnaeController::class)->group(function(){
         Route::get('', 'cnaes');
+    });
+});
+
+/**
+ * Documentos
+ */
+Route::prefix('document-students')->group(function() {
+    Route::controller(DocumentStudentController::class)->group(function(){
+        Route::get('', 'index');
+        Route::post('create', 'store');
+        Route::post('edit/{id}', 'update');
+        Route::get('destroy/{id}', 'destroy');
+        Route::get('get/{id}', 'show');
+        Route::get('send', 'send');
+        Route::get('student-view-pdf/{key}', 'studentViewPdf');
+        Route::post('sign-pdf', 'signPDF');
     });
 });
