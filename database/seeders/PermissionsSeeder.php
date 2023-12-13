@@ -3,55 +3,557 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
+use Illuminate\Support\Facades\DB;
 
 class PermissionsSeeder extends Seeder
 {
     /**
-     * Create the initial roles and permissions.
+     * Seed the application's database.
      *
      * @return void
      */
     public function run()
     {
-        // Reset cached roles and permissions
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        $permissions = [
+            [
+                'id' => 1,
+                'name' => 'create.users',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:02',
+                'updated_at' => '2022-04-25 20:07:02',
+                'description' => 'crear usuarios',
+            ],
+            [
+                'id' => 2,
+                'name' => 'edit.users',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:03',
+                'updated_at' => '2022-04-25 20:07:03',
+                'description' => 'editar usuarios',
+            ],
+            [
+                'id' => 3,
+                'name' => 'eliminate.users',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:03',
+                'updated_at' => '2022-04-25 20:07:03',
+                'description' => 'eliminar usuarios',
+            ],
+            [
+                'id' => 4,
+                'name' => 'read.users',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:03',
+                'updated_at' => '2022-04-25 20:07:03',
+                'description' => 'ver usuarios',
+            ],
+            [
+                'id' => 5,
+                'name' => 'create.students',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:03',
+                'updated_at' => '2022-04-25 20:07:03',
+                'description' => 'crear alumnos',
+            ],
+            [
+                'id' => 6,
+                'name' => 'edit.students',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:03',
+                'updated_at' => '2022-04-25 20:07:03',
+                'description' => 'editar alumnos',
+            ],
+            [
+                'id' => 7,
+                'name' => 'eliminate.students',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:03',
+                'updated_at' => '2022-04-25 20:07:03',
+                'description' => 'eliminar alumnos',
+            ],
+            [
+                'id' => 8,
+                'name' => 'read.students',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:03',
+                'updated_at' => '2022-04-25 20:07:03',
+                'description' => 'ver alumnos',
+            ],
+            [
+                'id' => 9,
+                'name' => 'create.teachers',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:04',
+                'updated_at' => '2022-04-25 20:07:04',
+                'description' => 'crear docentes',
+            ],
+            [
+                'id' => 10,
+                'name' => 'edit.teachers',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:04',
+                'updated_at' => '2022-04-25 20:07:04',
+                'description' => 'editar docentes',
+            ],
+            [
+                'id' => 11,
+                'name' => 'eliminate.teachers',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:04',
+                'updated_at' => '2022-04-25 20:07:04',
+                'description' => 'eliminar docentes',
+            ],
+            [
+                'id' => 12,
+                'name' => 'read.teachers',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:04',
+                'updated_at' => '2022-04-25 20:07:04',
+                'description' => 'ver docentes',
+            ],
+            [
+                'id' => 13,
+                'name' => 'create.companies',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:04',
+                'updated_at' => '2022-04-25 20:07:04',
+                'description' => 'crear empresas',
+            ],
+            [
+                'id' => 14,
+                'name' => 'edit.companies',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:04',
+                'updated_at' => '2022-04-25 20:07:04',
+                'description' => 'editar empresas',
+            ],
+            [
+                'id' => 15,
+                'name' => 'eliminate.companies',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:04',
+                'updated_at' => '2022-04-25 20:07:04',
+                'description' => 'eliminar empresas',
+            ],
+            [
+                'id' => 16,
+                'name' => 'read.companies',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:04',
+                'updated_at' => '2022-04-25 20:07:04',
+                'description' => 'ver empresas',
+            ],
+            [
+                'id' => 17,
+                'name' => 'create.training_actions',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:05',
+                'updated_at' => '2022-04-25 20:07:05',
+                'description' => 'crear acciones formativas',
+            ],
+            [
+                'id' => 18,
+                'name' => 'edit.training_actions',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:05',
+                'updated_at' => '2022-04-25 20:07:05',
+                'description' => 'editar acciones formativas',
+            ],
+            [
+                'id' => 19,
+                'name' => 'eliminate.training_actions',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:05',
+                'updated_at' => '2022-04-25 20:07:05',
+                'description' => 'eliminar acciones formativas',
+            ],
+            [
+                'id' => 20,
+                'name' => 'read.training_actions',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:05',
+                'updated_at' => '2022-04-25 20:07:05',
+                'description' => 'ver acciones formativas',
+            ],
+            [
+                'id' => 21,
+                'name' => 'create.courses',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:06',
+                'updated_at' => '2022-04-25 20:07:06',
+                'description' => 'crear cursos',
+            ],
+            [
+                'id' => 22,
+                'name' => 'edit.courses',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:07',
+                'updated_at' => '2022-04-25 20:07:07',
+                'description' => 'editar cursos',
+            ],
+            [
+                'id' => 23,
+                'name' => 'eliminate.courses',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:07',
+                'updated_at' => '2022-04-25 20:07:07',
+                'description' => 'eliminar cursos',
+            ],
+            [
+                'id' => 24,
+                'name' => 'read.courses',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:07',
+                'updated_at' => '2022-04-25 20:07:07',
+                'description' => 'ver cursos',
+            ],
+            [
+                'id' => 25,
+                'name' => 'create.advisors',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:07',
+                'updated_at' => '2022-04-25 20:07:07',
+                'description' => 'crear asesorias',
+            ],
+            [
+                'id' => 26,
+                'name' => 'edit.advisors',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:07',
+                'updated_at' => '2022-04-25 20:07:07',
+                'description' => 'editar asesorias',
+            ],
+            [
+                'id' => 27,
+                'name' => 'eliminate.advisors',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:08',
+                'updated_at' => '2022-04-25 20:07:08',
+                'description' => 'eliminar asesorias',
+            ],
+            [
+                'id' => 28,
+                'name' => 'read.advisors',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:08',
+                'updated_at' => '2022-04-25 20:07:08',
+                'description' => 'ver asesorias',
+            ],
+            [
+                'id' => 29,
+                'name' => 'create.certifications',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:08',
+                'updated_at' => '2022-04-25 20:07:08',
+                'description' => 'crear certificaciones',
+            ],
+            [
+                'id' => 30,
+                'name' => 'edit.certifications',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:08',
+                'updated_at' => '2022-04-25 20:07:08',
+                'description' => 'editar certificaciones',
+            ],
+            [
+                'id' => 31,
+                'name' => 'eliminate.certifications',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:08',
+                'updated_at' => '2022-04-25 20:07:08',
+                'description' => 'eliminar certificaciones',
+            ],
+            [
+                'id' => 32,
+                'name' => 'read.certifications',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:08',
+                'updated_at' => '2022-04-25 20:07:08',
+                'description' => 'ver certificaciones',
+            ],
+            [
+                'id' => 33,
+                'name' => 'create.roles',
+                'guard_name' => 'web',
+                'created_at' => '2022-04-25 20:07:08',
+                'updated_at' => '2022-04-25 20:07:08',
+                'description' => 'crear roles',
+            ],
+            [
+                'id' => 34,
+                'name' => 'edit.roles',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'editar roles',
+            ],
+            [
+                'id' => 35,
+                'name' => 'eliminate.roles',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'eliminar roles',
+            ],
+            [
+                'id' => 36,
+                'name' => 'read.roles',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'ver roles',
+            ],
+            [
+                'id' => 37,
+                'name' => 'edit.chores',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'editar tareas',
+            ],
+            [
+                'id' => 38,
+                'name' => 'eliminate.chores',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'eliminar tareas',
+            ],
+            [
+                'id' => 39,
+                'name' => 'read.chores',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'ver tareas',
+            ],
+            [
+                'id' => 40,
+                'name' => 'edit.tracings',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'editar seguimientos',
+            ],
+            [
+                'id' => 41,
+                'name' => 'eliminate.tracings',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'eliminar seguimientos',
+            ],
+            [
+                'id' => 42,
+                'name' => 'read.tracings',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'ver seguimientos',
+            ],
+            [
+                'id' => 43,
+                'name' => 'create.bills',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'crear facturas',
+            ],
+            [
+                'id' => 44,
+                'name' => 'edit.bills',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'editar facturas',
+            ],
+            [
+                'id' => 45,
+                'name' => 'eliminate.bills',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'eliminar facturas',
+            ],
+            [
+                'id' => 46,
+                'name' => 'read.bills',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'ver facturas',
+            ],
+            [
+                'id' => 47,
+                'name' => 'create.profits',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'crear rentabilidades',
+            ],
+            [
+                'id' => 48,
+                'name' => 'edit.profits',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'editar rentabilidades',
+            ],
+            [
+                'id' => 49,
+                'name' => 'eliminate.profits',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'eliminar rentabilidades',
+            ],
+            [
+                'id' => 50,
+                'name' => 'read.profits',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'ver rentabilidades',
+            ],
+            [
+                'id' => 51,
+                'name' => 'create.potential_students',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'crear alumno potenciales',
+            ],
+            [
+                'id' => 52,
+                'name' => 'edit.potential_students',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'editar alumno potenciales',
+            ],
+            [
+                'id' => 53,
+                'name' => 'eliminate.potential_students',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'eliminar alumno potenciales',
+            ],
+            [
+                'id' => 54,
+                'name' => 'read.potential_students',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'ver alumno potenciales',
+            ],
+            [
+                'id' => 55,
+                'name' => 'create.potential_companies',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'crear empresas potemciales',
+            ],
+            [
+                'id' => 56,
+                'name' => 'edit.potential_companies',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'editar empresas potemciales',
+            ],
+            [
+                'id' => 57,
+                'name' => 'eliminate.potential_companies',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'eliminar empresas potemciales',
+            ],
+            [
+                'id' => 58,
+                'name' => 'read.potential_companies',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'ver empresas potemciales',
+            ],
+            [
+                'id' => 59,
+                'name' => 'create.training_contracts',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'crear cfa',
+            ],
+            [
+                'id' => 60,
+                'name' => 'edit.training_contracts',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'editar cfa',
+            ],
+            [
+                'id' => 61,
+                'name' => 'eliminate.training_contracts',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'eliminar cfa',
+            ],
+            [
+                'id' => 62,
+                'name' => 'read.training_contracts',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'ver cfa',
+            ],
+            [
+                'id' => 63,
+                'name' => 'create.management',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'crear datos de gestión',
+            ],
+            [
+                'id' => 64,
+                'name' => 'edit.management',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'editar datos de gestión',
+            ],
+            [
+                'id' => 65,
+                'name' => 'eliminate.management',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'eliminar datos de gestión',
+            ],
+            [
+                'id' => 66,
+                'name' => 'read.management',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'ver datos de gestión',
+            ],
+            [
+                'id' => 67,
+                'name' => 'read.home',
+                'guard_name' => 'web',
+                'created_at' => '2023-11-30 13:07:00',
+                'updated_at' => '2023-11-30 13:07:00',
+                'description' => 'ver pagina inicio',
+            ],
+        
+        ];
 
-        // create permissions
-        Permission::create(['name' => 'crear usuarios']);
-        Permission::create(['name' => 'editar usuarios']);
-        Permission::create(['name' => 'eliminar usuarios']);
-        Permission::create(['name' => 'ver ususarios']);
-        Permission::create(['name' => 'crear estudiantes']);
-        Permission::create(['name' => 'eliminar estudiantes']);
-        Permission::create(['name' => 'editar estudiantes']);
-        Permission::create(['name' => 'ver estudiantes']);
-        Permission::create(['name' => 'crear docentes']);
-        Permission::create(['name' => 'eliminar docentes']);
-        Permission::create(['name' => 'editar docentes']);
-        Permission::create(['name' => 'ver docentes']);
-        Permission::create(['name' => 'crear empresas']);
-        Permission::create(['name' => 'eliminar empresas']);
-        Permission::create(['name' => 'editar empresas']);
-        Permission::create(['name' => 'ver empresas']);
-        Permission::create(['name' => 'crear acciones formativas']);
-        Permission::create(['name' => 'eliminar acciones formativas']);
-        Permission::create(['name' => 'editar acciones formativas']);
-        Permission::create(['name' => 'ver acciones formativas']);
-        Permission::create(['name' => 'crear cursos']);
-        Permission::create(['name' => 'eliminar cursos']);
-        Permission::create(['name' => 'editar cursos']);
-        Permission::create(['name' => 'ver cursos']);
-        Permission::create(['name' => 'crear asesorias']);
-        Permission::create(['name' => 'eliminar asesorias']);
-        Permission::create(['name' => 'editar asesorias']);
-        Permission::create(['name' => 'ver proveedores']);
-        Permission::create(['name' => 'ver facturas']);
-        Permission::create(['name' => 'editar facturas']);
-        Permission::create(['name' => 'ver tareas']);
-        Permission::create(['name' => 'editar tareas']);
-        Permission::create(['name' => 'crear rol']);
+        DB::table('permissions')->insert($permissions);
     }
 }
