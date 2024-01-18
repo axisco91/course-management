@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Document;
 use App\Models\DocumentStudent;
+use Carbon\Carbon;
 
 class DocumentStudentService
 {
@@ -14,7 +15,8 @@ class DocumentStudentService
      */
     public function create(array $data)
     {
-        $key = '11111111';
+        $key = Carbon::now()->timestamp;
+        $key = substr($key, -10);
         return DocumentStudent::create([
             'document_id' => $data['document_id'],
             'name' => $data['name'],

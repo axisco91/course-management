@@ -1178,3 +1178,9 @@ Route::prefix('document-students')->group(function() {
         Route::post('sign-pdf', 'signPDF');
     });
 });
+
+Route::prefix('document-types')->group(function() {
+    Route::controller(DocumentTypeController::class)->group(function(){
+        Route::get('', 'index');
+    });
+});

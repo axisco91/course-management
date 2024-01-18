@@ -161,7 +161,7 @@ class DocumentStudentController extends BaseController
     public function send(Request $request) {
         $student = Student::where('id', $request->student_id)->first();
         if ($student) {
-            $documentStudent = DocumentStudent::where('id', $request->document_id)
+            $documentStudent = DocumentStudent::where('document_id', $request->document_id)
                 ->where('student_id', $request->student_id);
 
             if ($request->training_contract_id) {
@@ -180,7 +180,6 @@ class DocumentStudentController extends BaseController
                 ];
                 $documentStudent = $this->documentStudentService->create($data);
             }
-
             try {
                 Mail::getSwiftMailer()
                     ->getTransport()

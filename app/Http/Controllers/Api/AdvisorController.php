@@ -219,7 +219,7 @@ class AdvisorController extends BaseController
      */
     public function convertAdvisor($id){
         $advisor = Advisor::find($id);
-        $advisor = $this->advisorService->convertAdvisor($advisor, $id);
+        $advisor = $this->advisorService->convertAdvisor($id);
         if ($advisor){
             return 1;
         } else {
