@@ -75,8 +75,9 @@ class CompanyController extends BaseController
         //        ->included()
         //        ->filter()
         //        ->sort()
-                ->groupBy('companies.id', 'companies.name');
-/*
+                ->groupBy('companies.id', 'companies.name')
+            ->get();
+
             foreach ($companies as $company) {
                 $company['used'] = false;
                 $student = Student::where('company_id', $company['id'])->first();
@@ -104,7 +105,7 @@ class CompanyController extends BaseController
                 } else {
                     $company['status'] = 'Activo';
                 }
-            }*/
+            }
             if ($request->perPage) {
                 return [
                     'companies' => $companies->paginate(intval(request('perPage'))),
@@ -121,7 +122,7 @@ class CompanyController extends BaseController
                     ]
                 ];
             }
-            return $companies->get();
+            return $companies;
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -372,7 +373,7 @@ class CompanyController extends BaseController
     public function convertAdvisor($id){
         if ($id) {
             try {
-                Advisor::convertAdvisor($id);
+                $this->advisorService->convertAdvisor($id);
                 return response()->json([
                     'status' => 200
                 ]);

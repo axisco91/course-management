@@ -32,8 +32,8 @@ class SignDocument extends Mailable
      */
     public function build()
     {
-
         return $this->subject('Firmar document')
-            ->view('emails.potential_student');
+            ->view('emails.sign_document')
+            ->with(['name' => $this->name, 'key' => $this->key]);
     }
 }
