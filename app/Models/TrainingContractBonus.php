@@ -40,7 +40,7 @@ class TrainingContractBonus extends Model
                     $bonus['month_name'] = 'Abril';
                     break;
                 case 5:
-                    $bonus['month_name'] = 'Mayo';
+                    $bonus[''] = 'Mayo';
                     break;
                 case 6:
                     $bonus['month_name'] = 'Junio';
@@ -58,7 +58,7 @@ class TrainingContractBonus extends Model
                     $bonus['month_name'] = 'Octubre';
                     break;
                 case 11:
-                    $bonus['month_name'] = 'Nomviebre';
+                    $bonus['month_name'] = 'Noviembre';
                     break;
                 case 12:
                     $bonus['month_name'] = 'Diciembre';
@@ -102,7 +102,7 @@ class TrainingContractBonus extends Model
                 $bonus['month_name'] = 'Octubre';
                 break;
             case 11:
-                $bonus['month_name'] = 'Nomviebre';
+                $bonus['month_name'] = 'Noviembre';
                 break;
             case 12:
                 $bonus['month_name'] = 'Diciembre';

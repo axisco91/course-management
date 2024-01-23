@@ -191,4 +191,14 @@ class TrainingContractElementController extends BaseController
             ]);
         }
     }
+    public function getAllTrainingContractElements() {
+        try {
+            $elements = TrainingContractElement::getAllTrainingContractElements();
+            dd($elements); 
+            return response()->json(['status' => 200, 'elements' => $elements]);
+        } catch (\Exception $e) {
+            Log::error('Error fetching training contract elements:', ['error' => $e->getMessage()]);
+            return response()->json(['status' => 500, 'error' => 'Error fetching training contract elements']);
+        }
+    }
 }

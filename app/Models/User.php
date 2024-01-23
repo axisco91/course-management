@@ -37,7 +37,7 @@ class User extends Authenticatable
         'surname',
         'username',
         'has_commission',
-        'private_commission',
+        'commission',
         'profile_photo_path',
         'active',
         'teacher_id'
@@ -110,7 +110,7 @@ class User extends Authenticatable
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'has_commission' => $data['has_commission'],
-            'private_commission' => $data['commission'] ? $data['commission'] : 0.0,
+            'commission' => $data['commission'] ? $data['commission'] : 0.0,
             'active' => $data['active'],
             'teacher_id' => $data['commission'] ? $data['commission'] : null,
         ]);
@@ -127,7 +127,7 @@ class User extends Authenticatable
             'username' => $data['username'],
             'email' => $data['email'],
             'has_commission' => $data['has_commission'],
-            'private_commission' => $data['commission'] ? $data['commission'] : 0.0,
+            'commission' => $data['commission'] ? $data['commission'] : 0.0,
             'active' => $data['active'],
             'teacher_id' => $data['teacher_id'] ? $data['teacher_id'] : null,
         ]);
