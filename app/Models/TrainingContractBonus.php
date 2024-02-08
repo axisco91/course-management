@@ -40,7 +40,7 @@ class TrainingContractBonus extends Model
                     $bonus['month_name'] = 'Abril';
                     break;
                 case 5:
-                    $bonus[''] = 'Mayo';
+                    $bonus['month_name'] = 'Mayo';
                     break;
                 case 6:
                     $bonus['month_name'] = 'Junio';
