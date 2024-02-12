@@ -12,6 +12,7 @@ use App\Models\UserCommissionType;
 use App\Services\AdvisorCommissionService;
 use App\Services\UserCommissionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class TrainingContractBillController extends BaseController
 {

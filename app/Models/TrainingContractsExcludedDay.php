@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TrainingContractsExcludedDay extends Model
 {
@@ -107,10 +108,39 @@ class TrainingContractsExcludedDay extends Model
         $training_contract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $training_contract_id)->where('day', $date)
             ->where('valid', 1)
             ->first();
+        // Agregar registro de depuración
+        Log::info('Día excluido para la fecha ' . $date . ': ' . json_encode($training_contract_excluded));
         if ($training_contract_excluded){
+            Log::info('Día no laborable: ' . $date);
             return true;
         }
-        return false;
+    
+        $training_contract = TrainingContract::where('id', $training_contract_id)->first();
+    
+        // Agregar registros de depuración
+        Log::info('Días laborables del contrato de formación: ' . json_encode([
+            'sunday' => $training_contract->sunday,
+            'monday' => $training_contract->monday,
+            'tuesday' => $training_contract->tuesday,
+            'wednesday' => $training_contract->wednesday,
+            'thursday' => $training_contract->thursday,
+            'friday' => $training_contract->friday,
+            'saturday' => $training_contract->saturday,
+        ]));
+    
+        // Verificar si el día es un día laborable según el contrato de formación
+        $dayOfWeek = Carbon::parse($date)->dayOfWeek;
+        $workingDays = [
+            $training_contract->sunday, // 0: Sunday
+            $training_contract->monday, // 1: Monday
+            $training_contract->tuesday, // 2: Tuesday
+            $training_contract->wednesday, // 3: Wednesday
+            $training_contract->thursday, // 4: Thursday
+            $training_contract->friday, // 5: Friday
+            $training_contract->saturday, // 6: Saturday
+        ];
+    
+        return $workingDays[$dayOfWeek] == 0; // Devuelve true si el día no es un día laborable
     }
 
     public function scopeSameGroup($query, $trainingContractId) {

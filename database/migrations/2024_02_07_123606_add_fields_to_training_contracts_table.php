@@ -14,8 +14,8 @@ class AddFieldsToTrainingContractsTable extends Migration
     public function up()
     {
         Schema::table('training_contracts', function (Blueprint $table) {
-            $table->decimal('daily_hours_1')->nullable();
-            $table->decimal('daily_hours_2')->nullable();
+            $table->double('daily_hours_1')->nullable();
+            $table->double('daily_hours_2')->nullable();
         });
     }
 

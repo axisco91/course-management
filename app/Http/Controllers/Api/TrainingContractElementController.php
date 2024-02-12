@@ -9,9 +9,26 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+
 
 class TrainingContractElementController extends BaseController
 {
+
+    public function getAll(){
+        try {
+            $elements = TrainingContractElement::getAllTrainingContractElements();
+            return response()->json([
+                'status' => 200,
+                'elements' => $elements
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 
     public function getTrainingContractElements($id) {
         if ($id) {
@@ -34,7 +51,9 @@ class TrainingContractElementController extends BaseController
                 return response()->json([
                     'status' => 200,
                     'elements' => $elements,
-                    'planned' => $planned
+                    'planned' => $planned,
+                    'message' => ' element fetched successfully'
+
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
@@ -45,8 +64,10 @@ class TrainingContractElementController extends BaseController
     }
 
     public function store($id, Request $request){
+        Log::info('store method started');
+
         try {
-            $element = TrainingContractElement::createTrainingContractElement($id, $request['id'], $request['type']);
+            $element = TrainingContractElement::createTrainingContractElement($id, $request['id'], $request['type'], $request['beginning'], $request['end']);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -68,6 +89,7 @@ class TrainingContractElementController extends BaseController
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->where('training_contract_elements.id', $element->id)->first();
+         Log::info('store method finished');
         return response()->json([
             'status' => 200,
             'element' => $element,

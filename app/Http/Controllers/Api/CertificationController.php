@@ -6,6 +6,7 @@ use App\Models\CertificationElement;
 use App\Models\Module;
 use App\Models\TrainingUnit;
 use Illuminate\Http\Request;
+use App\Services\TrainingContractService;
 
 class CertificationController extends BaseController
 {

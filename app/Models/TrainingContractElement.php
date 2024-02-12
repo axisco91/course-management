@@ -4,8 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\TrainingContractExcludedDay;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Services\TrainingContractService;
+use Illuminate\Support\Facades\Log;
+
 
 class TrainingContractElement extends Model
 {
@@ -13,6 +17,11 @@ class TrainingContractElement extends Model
 
     protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days', 'order', 'course_id'];
 
+    public function training_contract()
+    {
+        return $this->belongsTo(TrainingContract::class);
+    }
+   
     public static function getTrainingContractElements($training_contract_id){
         $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
             'training_contracts.number_cfa as cfa',
@@ -27,56 +36,141 @@ class TrainingContractElement extends Model
     }
     
     public static function getAllTrainingContractElements(){
-        $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
-            'training_contracts.number_cfa as cfa',
-            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
-        'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
-        'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
+        \Log::info('getAllTrainingContractElements method started');
+
+        $training_contract_elements = TrainingContractElement::with('training_contract', 'training_contract.student')
+            ->select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+                'training_contracts.number_cfa as cfa',
+                'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
+            'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
+            'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
             ->orderBy('order', 'asc')->get();
+            \Log::info('Query executed');
+            \Log::info($training_contract_elements);
+
         return $training_contract_elements;
     }
 
-    public static function createTrainingContractElement($training_contract_id, $element_id, $type){
-        $hours = 0;
-        $training_contract_element = null;
-        $last_training_contract_element = TrainingContractElement::where('training_contract_id', $training_contract_id)
-        ->orderBy('order', 'desc')->first();
-        $order = $last_training_contract_element ? $last_training_contract_element->order + 1 : 1;
-        if ($type == 'certification_id'){
-            $training_contract_element = TrainingContractElement::where('certification_id', $element_id)
-                ->where('training_contract_id', $training_contract_id)->first();
-            if (!$training_contract_element){
-                $training_contract_element = TrainingContractElement::create([
-                    'training_contract_id' => $training_contract_id,
-                    'certification_id' => $element_id,
-                    'order' => $order
-                ]);
-                $certification = Certification::find($element_id);
-                $hours = $certification['total_hours'];
-            }
-        } else if ($type == 'training_action_id'){
-            $training_contract_element = TrainingContractElement::where('training_action_id', $element_id)
-                ->where('training_contract_id', $training_contract_id)->first();
-            if (!$training_contract_element){
-                $training_contract_element = TrainingContractElement::create([
-                    'training_contract_id' => $training_contract_id,
-                    'training_action_id' => $element_id,
-                    'order' => $order
-                ]);
-                $training_action = TrainingAction::find($element_id);
-                $hours = $training_action['total_hours'];
-            }
-        }
+public static function createTrainingContractElement($training_contract_id, $element_id, $type){
+    Log::info('createTrainingContractElement method started');
+    $hours = 0;
+    $training_contract_element = null;
+    $last_training_contract_element = TrainingContractElement::where('training_contract_id', $training_contract_id)
+    ->orderBy('order', 'desc')->first();
+    $order = $last_training_contract_element ? $last_training_contract_element->order + 1 : 1;
+    $training_contract = TrainingContract::find($training_contract_id);
+    Log::info('TrainingContract found');
+    $training_contract->calculateHours($training_contract_id); // Calcula las horas diarias
 
-        $training_contract = TrainingContract::find($training_contract_id);
-        $training_contract->update([
-            'formation_hours' => $training_contract['formation_hours'] + $hours
-        ]);
-        return $training_contract_element;
+    // Si existe un último elemento, el inicio es un día después del final del último elemento
+    // Si no existe, el inicio es el inicio de la formación del contrato de formación
+    $beginning = $last_training_contract_element ? Carbon::parse($last_training_contract_element->end)->addDay() : new Carbon($training_contract->begining_formation);
+    Log::info('Fecha de inicio: ' . $beginning);
+
+    $end = $beginning->copy();
+    if ($type == 'certification_id'){
+        $training_contract_element = TrainingContractElement::where('certification_id', $element_id)
+            ->where('training_contract_id', $training_contract_id)->first();
+        if (!$training_contract_element){
+            $certification = Certification::find($element_id);
+            $hours = $certification['total_hours'];
+            // Calcular la fecha de fin basándose en la duración y las horas diarias
+            if ($training_contract->daily_hours_1 != 0) {
+                $end->addDays(intval($hours / $training_contract->daily_hours_1)); // Suponiendo daily_hours_1 para el primer año
+                $remaining_hours = $hours % $training_contract->daily_hours_1;
+                 // Agregar registros de depuración
+                Log::info('Horas restantes después del primer año: ' . $remaining_hours);
+                Log::info('Fecha de fin después del primer año: ' . $end);
+            } else {
+                throw new Exception('Las horas diarias del primer año no pueden ser cero.');
+            }
+
+            if ($training_contract->daily_hours_2 != 0) {
+                $end->addDays(intval($remaining_hours / $training_contract->daily_hours_2)); // Suponiendo daily_hours_2 para el segundo año
+            } else {
+                throw new Exception('Las horas diarias del segundo año no pueden ser cero.');
+            }
+
+            $training_contract_element = TrainingContractElement::create([
+                'training_contract_id' => $training_contract_id,
+                'certification_id' => $element_id,
+                'order' => $order,
+                'beginning' => $beginning,
+                'end' => $end
+            ]);
+        }
+    } // Cierra el bloque if ($type == 'certification_id')
+
+    else if ($type == 'training_action_id'){
+        $training_contract_element = TrainingContractElement::where('training_action_id', $element_id)
+            ->where('training_contract_id', $training_contract_id)->first();
+        if (!$training_contract_element){
+            $training_action = TrainingAction::find($element_id);
+            $hours = $training_action['total_hours'];
+            // Calcular la fecha de fin basándose en la duración y las horas diarias
+            if ($training_contract->daily_hours_1 != 0) {
+                // Verificar si el día de inicio es un día laborable
+                while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $beginning->toDateString())) {
+                    $beginning->addDay();
+                }
+                Log::info('Fecha de inicio después de saltar días no laborables: ' . $beginning);
+                $end = $beginning->copy();
+            
+                $days_to_add = intval($hours / $training_contract->daily_hours_1); // Suponiendo daily_hours_1 para el primer año
+                $remaining_hours = $hours % $training_contract->daily_hours_1;
+                for ($i = 0; $i < $days_to_add; $i++) {
+                    while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $end->toDateString())) {
+                        $end->addDay();
+                    }
+                    if ($i < $days_to_add - 1) {
+                        $end->addDay();
+                    }
+                    // Agregar registro de depuración
+                    Log::info('Fecha de fin después de agregar un día: ' . $end);
+                }
+            } else {
+                throw new \Exception('Las horas diarias del primer año no pueden ser cero.');
+            }
+            
+            if ($training_contract->daily_hours_2 > 0) {
+                $days_to_add = intval($remaining_hours / $training_contract->daily_hours_2); // Suponiendo daily_hours_2 para el segundo año
+                for ($i = 0; $i < $days_to_add; $i++) {
+                    while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $end->toDateString())) {
+                        $end->addDay();
+                    }
+                    if ($i < $days_to_add - 1) {
+                        $end->addDay();
+                    }
+                }
+            } else {
+                throw new \Exception('Las horas diarias del segundo año no pueden ser cero.');
+            }
+
+            $training_contract_element = TrainingContractElement::create([
+                'training_contract_id' => $training_contract_id,
+                'training_action_id' => $element_id,
+                'order' => $order,
+                'beginning' => $beginning,
+                'end' => $end
+            ]);
+
+            $beginning = new \DateTime($training_contract_element->beginning);
+            $end = new \DateTime($training_contract_element->end);
+            $total_days = $beginning->diff($end)->days;
+        
+            $training_contract_element->total_days = $total_days;
+            $training_contract_element->save();
+        
+            $training_contract->update([
+                'formation_hours' => $training_contract['formation_hours'] + $hours
+            ]);
+            return $training_contract_element;
+        }
     }
+}
 
     public static function deleteTrainingContractElement($id){
         $training_contract_element = TrainingContractElement::find($id);
@@ -151,4 +245,5 @@ class TrainingContractElement extends Model
             ->orderBy('order', 'asc');
     }
 
+    
 }

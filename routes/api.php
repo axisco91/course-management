@@ -651,7 +651,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('{id}', 'getTrainingContractElements');
             Route::get('get/{id}', 'show');
             Route::post('edit-date/{id}', 'editDate');
-            Route::get('all', 'getAllTrainingContractElements');
+            Route::get('display/all', 'getAll');
         });
     });
 
@@ -1087,6 +1087,7 @@ Route::middleware('auth:sanctum')->group( function () {
         });
     });
 });
+
 
 /**
  * Categoria Profesional
