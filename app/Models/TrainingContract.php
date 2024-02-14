@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Models\Student;
-use App\Services\TrainingContractService;
+use App\Models\TrainingContractExcludedDay;
+use App\Models\TrainingContractElements;
 use Illuminate\Support\Facades\Log;
 
 class TrainingContract extends Model
@@ -25,6 +26,21 @@ class TrainingContract extends Model
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function trainingContractElements()
+    {
+        return $this->hasMany(TrainingContractElement::class);
+    }
+
+    public function trainingContractFestivals()
+    {
+        return $this->hasMany(TrainingContractFestival::class);
+    }
+
+    public function trainingContractExcludedDays()
+    {
+        return $this->hasMany(TrainingContractsExcludedDay::class);
     }
 
     public function scopeGetTrainingContracts($query){
@@ -179,12 +195,11 @@ class TrainingContract extends Model
         ]);
         return $training_contract;
     }
+
     public function calculateHours($training_contract_id)
     {
-        Log::info('calculateHours called with id: ' . $training_contract_id);
     
         $record = TrainingContract::findOrFail($training_contract_id);
-        Log::info('TrainingContract record: ', (array) $record);
     
         $formative_hours_first_year = $record->formative_hours_first_year;
         $formative_hours_second_year = $record->formative_hours_second_year;
@@ -291,10 +306,7 @@ class TrainingContract extends Model
             $date->addDay();
         } while($end_date->gte($date));
     
-        Log::info('formative_hours_first_year: ' . $formative_hours_first_year);
-        Log::info('cont_days_first_year: ' . $cont_days_first_year);
-        Log::info('formative_hours_second_year: ' . $formative_hours_second_year);
-        Log::info('cont_days_second_year: ' . $cont_days_second_year);
+        
     
         if ($cont_days_first_year != 0){
             $daily_hours_1 = $formative_hours_first_year / $cont_days_first_year;
@@ -312,7 +324,7 @@ class TrainingContract extends Model
                 'daily_hours_1' => $daily_hours_1,
                 'daily_hours_2' => $daily_hours_2,
             ]);
-            Log::info('Updated TrainingContract record: ', (array) $record);
+            $this->updateDates($training_contract_id);
         }
     
         // Devuelve una respuesta HTTP con los datos calculados
@@ -322,8 +334,70 @@ class TrainingContract extends Model
             'daily_hours_1' => $daily_hours_1,
             'daily_hours_2' => $daily_hours_2,
             'total_days' => $cont_days_first_year + $cont_days_second_year,
-            // ... (cualquier otro dato que tu front-end necesite) ...
         ]);
     }
+    public static function updateDates($training_contract_id){
+        $training_contract = TrainingContract::find($training_contract_id);
+        $training_contract_elements = TrainingContractElement::with('training_action')
+            ->where('training_contract_id', $training_contract_id)
+            ->orderBy('order', 'asc')
+            ->get();
 
+
+        $beginning = new Carbon($training_contract->beginning_formation);
+        foreach ($training_contract_elements as $element) {
+            $hours = 0;
+            if ($element->certification_id && $element->certification) {
+                $hours = $element->certification->total_hours;
+            } elseif ($element->training_action) {
+                $hours = $element->training_action->total_hours;
+            }
+            while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $beginning->toDateString())) {
+                $beginning->addDay();
+            }
+        
+            $end = $beginning->copy();
+            if ($training_contract->daily_hours_1 != 0) {
+                $days_to_add = intval($hours / $training_contract->daily_hours_1);
+                $remaining_hours = $hours % $training_contract->daily_hours_1;
+                for ($i = 0; $i < $days_to_add; $i++) {
+                    while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $end->toDateString())) {
+                        $end->addDay();
+                    }
+                    if ($i < $days_to_add - 1) {
+                        $end->addDay();
+                    }
+                }
+            } else {
+                throw new \Exception('Las horas diarias del primer año no pueden ser cero.');
+            }
+            
+            if ($training_contract->daily_hours_2 > 0 && $remaining_hours > 0) {
+                $days_to_add = intval($remaining_hours / $training_contract->daily_hours_2);
+                for ($i = 0; $i < $days_to_add; $i++) {
+                    while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $end->toDateString())) {
+                        $end->addDay();
+                    }
+                    if ($i < $days_to_add - 1) {
+                        $end->addDay();
+                    }
+                }
+            }
+
+
+            $element->update([
+                'beginning' => $beginning,
+                'end' => $end
+            ]);
+
+            
+    
+             $beginning = $end->copy()->addDay();
+        }
+
+        $last_element = $training_contract_elements->last();
+        $end_formation = Carbon::parse($training_contract->end_formation);
+        $last_element->end = $end_formation;
+        $last_element->save();
+    }
 }

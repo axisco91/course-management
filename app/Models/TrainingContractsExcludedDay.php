@@ -108,25 +108,19 @@ class TrainingContractsExcludedDay extends Model
         $training_contract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $training_contract_id)->where('day', $date)
             ->where('valid', 1)
             ->first();
-        // Agregar registro de depuración
-        Log::info('Día excluido para la fecha ' . $date . ': ' . json_encode($training_contract_excluded));
-        if ($training_contract_excluded){
-            Log::info('Día no laborable: ' . $date);
+    
+        // Usar el método existDay del modelo TrainingContractFestival
+        $training_contract_festival = TrainingContractFestival::existDay($date, $training_contract_id)->first();
+    
+        
+    
+        if ($training_contract_excluded || $training_contract_festival){
             return true;
         }
     
         $training_contract = TrainingContract::where('id', $training_contract_id)->first();
     
-        // Agregar registros de depuración
-        Log::info('Días laborables del contrato de formación: ' . json_encode([
-            'sunday' => $training_contract->sunday,
-            'monday' => $training_contract->monday,
-            'tuesday' => $training_contract->tuesday,
-            'wednesday' => $training_contract->wednesday,
-            'thursday' => $training_contract->thursday,
-            'friday' => $training_contract->friday,
-            'saturday' => $training_contract->saturday,
-        ]));
+       
     
         // Verificar si el día es un día laborable según el contrato de formación
         $dayOfWeek = Carbon::parse($date)->dayOfWeek;

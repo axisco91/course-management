@@ -64,7 +64,6 @@ class TrainingContractElementController extends BaseController
     }
 
     public function store($id, Request $request){
-        Log::info('store method started');
 
         try {
             $element = TrainingContractElement::createTrainingContractElement($id, $request['id'], $request['type'], $request['beginning'], $request['end']);
@@ -89,7 +88,6 @@ class TrainingContractElementController extends BaseController
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->where('training_contract_elements.id', $element->id)->first();
-         Log::info('store method finished');
         return response()->json([
             'status' => 200,
             'element' => $element,
@@ -219,7 +217,6 @@ class TrainingContractElementController extends BaseController
             dd($elements); 
             return response()->json(['status' => 200, 'elements' => $elements]);
         } catch (\Exception $e) {
-            Log::error('Error fetching training contract elements:', ['error' => $e->getMessage()]);
             return response()->json(['status' => 500, 'error' => 'Error fetching training contract elements']);
         }
     }

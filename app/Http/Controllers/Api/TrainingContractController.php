@@ -309,12 +309,8 @@ class TrainingContractController extends BaseController
      */
     public function register($id) {
         try {
-            // Llama a calculateHours y guarda la respuesta
-            $response = $this->calculateHours($id);
-            $data = $response->getData();
-
             $training_contract_element = TrainingContractElement::where('id', $id)
-            ->first();
+                ->first();
             if ($training_contract_element && $training_contract_element->course_id == null) {
                 $training_contract = TrainingContract::find($training_contract_element->training_contract_id);
                 if ($training_contract) {
@@ -435,6 +431,16 @@ class TrainingContractController extends BaseController
                 'message' => $e->getMessage()
             ]);
         }
+
+        $element = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
+            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
+            ->where('training_contract_elements.id', $id)->first();
+
+        return response()->json([
+            'status' => 200,
+            'element' => $element
+        ]);
     }
 }
-    
