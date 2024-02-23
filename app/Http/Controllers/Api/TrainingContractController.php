@@ -74,7 +74,7 @@ class TrainingContractController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request){ 
-        Log::info('store method was called');
+       ;
         try {
             $contract = TrainingContract::createTrainingContract($request);
             if ($request->has('clone_id')) {
@@ -299,7 +299,6 @@ class TrainingContractController extends BaseController
             'daily_hours_1' => $hoursData['daily_hours_1'],
             'daily_hours_2' => $hoursData['daily_hours_2'],
             'total_days' => $hoursData['total_days'],
-            // ... (cualquier otro dato que tu front-end necesite) ...
         ]);
     }
 

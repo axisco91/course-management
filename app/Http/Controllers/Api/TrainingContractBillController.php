@@ -163,6 +163,10 @@ class TrainingContractBillController extends BaseController
     public function update($id, Request $request){
         try {
             $bill = TrainingContractBill::updateBill($id, $request);
+            
+            if (!is_object($bill)) {
+                throw new \Exception('Error al actualizar la factura');
+            }
             if ($bill->advisor_id) {
                 $advisorCommission = AdvisorCommission::where('commissionable_id', $bill->id)
                     ->where('commissionable_type', 'App\Models\TrainingContractBill')
@@ -246,7 +250,7 @@ class TrainingContractBillController extends BaseController
     }
 
     public function show($id){
-        $bill = TrainingContractBill::getTrainingContractBill($id);
+        $bill = TrainingContractBill::find($id);
         if ($bill) {
             $bill['name'] = $bill['number'].' - '.$bill['student'];
             return response()->json([

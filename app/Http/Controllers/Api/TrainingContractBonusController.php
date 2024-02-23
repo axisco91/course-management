@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\API;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractBonus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class TrainingContractBonusController extends BaseController
 {
@@ -21,11 +22,17 @@ class TrainingContractBonusController extends BaseController
     }
 
     public function generate($id) {
+        Log::info('generate method called with id', ['id' => $id]);
         $training_contract = TrainingContract::find($id);
+        Log::info('Found training contract', ['training_contract' => $training_contract]);
         $training_contract_bonuses = TrainingContractBonus::where('training_contract_id', $training_contract->id)->get();
+        Log::info('Found training contract bonuses', ['training_contract_bonuses' => $training_contract_bonuses]);
 
         if (count($training_contract_bonuses) === 0) {
-            $formation_hours = $training_contract->total_hours;
+            Log::info('No training contract bonuses found');
+
+            $formation_hours = $training_contract->bonus_hours_first_year + $training_contract->bonus_hours_second_year;
+            Log::info('Formation hours', ['formation_hours' => $formation_hours]);
             $total_months = 0;
             $beginning_date = Carbon::parse($training_contract->beginning_formation);
             $end_date = Carbon::parse($training_contract->end_formation);
@@ -49,11 +56,19 @@ class TrainingContractBonusController extends BaseController
             $fixed_month = $formation_hours/$total_months;
             $fixed_month = (int) $fixed_month;
             $rest_month = $formation_hours - ($fixed_month * $total_months);
+            $actual_date = Carbon::now();
+            $actual_last_month = $last_month;
+            if ($actual_date->format('m') <= $last_month) {
+                $actual_last_month = $actual_date->format('m');
+            }
+            if ($actual_date->format('Y') <= $last_year) {
+                $last_year = $actual_date->format('Y');
+            }
             $cont = $first_year;
             $i = $first_month;
             for($cont;$cont <= $last_year; $cont++) {
                 if ($cont == $last_year) {
-                    $k = $last_month->format('m');
+                    $k = $last_month;
                 } else {
                     $k = 12;
                 }
@@ -83,26 +98,18 @@ class TrainingContractBonusController extends BaseController
                         'hours' => 0,
                         'invoiced' => 0
                     ]);
+                    Log::info('Created training contract bonus', ['month' => $i, 'year' => $cont]);
+
                 }
                 $i = 1;
             }
-
-            $contract = TrainingContract::select('training_contracts.*')
-                ->selectSub(function ($query) {
-                    $query->from('training_contract_bonuses')
-                        ->selectRaw('SUM(amount)')
-                        ->whereColumn('training_contract_bonuses.training_contract_id', 'training_contracts.id');
-                }, 'total_amount')
-                ->leftJoin('training_contract_bonuses', 'training_contract_bonuses.training_contract_id', '=', 'training_contracts.id')
-                ->where('training_contracts.id', $id)
-                ->first();
-
             return response()->json([
                 'status' => 200,
-                'bonuses' => TrainingContractBonus::getBonuses($id),
-                'total_amount'=> $contract->total_amount,
+                'bonuses' => TrainingContractBonus::getBonuses($id)
             ]);
         } else {
+            Log::info('Training contract bonuses found');
+
             $formation_hours = $training_contract->formation_hours;
             $total_months = 0;
             $beginning_date = Carbon::parse($training_contract->beginning_formation);
@@ -127,11 +134,19 @@ class TrainingContractBonusController extends BaseController
             $fixed_month = $formation_hours/$total_months;
             $fixed_month = (int) $fixed_month;
             $rest_month = $formation_hours - ($fixed_month * $total_months);
+            $actual_date = Carbon::now();
+            $actual_last_month = $last_month;
+            if ($actual_date->format('m') <= $last_month) {
+                $actual_last_month = $actual_date->format('m');
+            }
+            if ($actual_date->format('Y') <= $last_year) {
+                $last_year = $actual_date->format('Y');
+            }
             $cont = $first_year;
             $i = $first_month;
             for($cont;$cont <= $last_year; $cont++) {
                 if ($cont == $last_year) {
-                    $k = $last_month;
+                    $k = $actual_last_month;
                 } else {
                     $k = 12;
                 }
@@ -155,7 +170,9 @@ class TrainingContractBonusController extends BaseController
                         ->where('month', $i)
                         ->where('year', $cont)
                         ->first();
-                    if (!$training_contract_bonus) {
+                    Log::info('Found training contract bonus', ['training_contract_bonus' => $training_contract_bonus]);
+
+                    if (!$training_contract_bonuses) {
                         TrainingContractBonus::createBonus([
                             'training_contract_id' => $id,
                             'month' => $i,
@@ -166,25 +183,15 @@ class TrainingContractBonusController extends BaseController
                             'hours' => 0,
                             'invoiced' => 0
                         ]);
+                        Log::info('Created training contract bonus', ['month' => $i, 'year' => $cont]);
+
                     }
                 }
                 $i = 1;
             }
-
-            $contract = TrainingContract::select('training_contracts.*')
-                ->selectSub(function ($query) {
-                    $query->from('training_contract_bonuses')
-                        ->selectRaw('SUM(amount)')
-                        ->whereColumn('training_contract_bonuses.training_contract_id', 'training_contracts.id');
-                }, 'total_amount')
-                ->leftJoin('training_contract_bonuses', 'training_contract_bonuses.training_contract_id', '=', 'training_contracts.id')
-                ->where('training_contracts.id', $id)
-                ->first();
-
             return response()->json([
                 'status' => 200,
-                'bonuses' => TrainingContractBonus::getBonuses($id),
-                'total_amount'=> $contract->total_amount,
+                'bonuses' => TrainingContractBonus::getBonuses($id)
             ]);
         }
     }
@@ -236,24 +243,11 @@ class TrainingContractBonusController extends BaseController
     }
 
     public function destroy($id){
+        if ($id) {
             try {
-                $trainingContractBonus = TrainingContractBonus::find($id);
-                $trainingContractId = $trainingContractBonus->training_contract_id;
-
                 TrainingContractBonus::destroy($id);
-
-                $contract = TrainingContract::select('training_contracts.*')
-                    ->selectSub(function ($query) {
-                        $query->from('training_contract_bonuses')
-                            ->selectRaw('SUM(amount)')
-                            ->whereColumn('training_contract_bonuses.training_contract_id', 'training_contracts.id');
-                    }, 'total_amount')
-                    ->leftJoin('training_contract_bonuses', 'training_contract_bonuses.training_contract_id', '=', 'training_contracts.id')
-                    ->where('training_contracts.id', $trainingContractId)
-                    ->first();
                 return response()->json([
-                    'status' => 200,
-                    'total_amount' => $contract->total_amount
+                    'status' => 200
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
@@ -261,5 +255,6 @@ class TrainingContractBonusController extends BaseController
                     'message' => $e->getMessage()
                 ]);
             }
+        }
     }
 }

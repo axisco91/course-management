@@ -72,4 +72,5 @@ class Tracing extends Model
             ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
             ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id');
     }
+   
 }

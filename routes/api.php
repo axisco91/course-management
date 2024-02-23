@@ -81,6 +81,7 @@ use App\Http\Controllers\Api\UserCommissionController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\DocumentStudentController;
 use App\Http\Controllers\Api\DocumentTypeController;
+use App\Http\Controllers\Api\TrainingContractSeriesController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -252,15 +253,14 @@ Route::middleware('auth:sanctum')->group( function () {
      * Cursos
      */
     Route::prefix('courses')->group(function() {
-        Route::controller(CourseController::class)->group(function(){
-            Route::get('', 'index');
-            Route::post('create', 'store');
-            Route::post('edit/{id}', 'update');
-            Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'show');
-            Route::get('set-data', 'setData');
-            Route::get('students/{id}', 'getStudents');
-        });
+        Route::get('', [CourseController::class, 'index']);
+        Route::post('create', [CourseController::class, 'store']);
+        Route::post('edit/{id}', [CourseController::class, 'update']);
+        Route::get('destroy/{id}', [CourseController::class, 'destroy']);
+        Route::get('get/{id}', [CourseController::class, 'show']);
+        Route::get('set-data', [CourseController::class, 'setData']);
+        Route::get('students/{id}', [CourseController::class, 'getStudents']);
+        Route::post('reset-tracings/{id}', [CourseController::class, 'resetTracingsIfCancelled']);
     });
 
     /**
@@ -1019,6 +1019,18 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('edit/{id}', 'update');
             Route::get('years', 'years');
         });
+    });
+
+    /**
+     * Series Facturas CFA
+     */
+
+    Route::prefix('training-contract-series')->group(function() {
+        Route::get('/', [TrainingContractSeriesController::class, 'index']);
+        Route::post('create', [TrainingContractSeriesController::class, 'store']);
+        Route::get('show/{id}', [TrainingContractSeriesController::class, 'show']);
+        Route::post('update/{id}', [TrainingContractSeriesController::class, 'update']);
+        Route::delete('destroy/{id}', [TrainingContractSeriesController::class, 'destroy']);
     });
 
     /**

@@ -7,6 +7,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\Bill;
 
 class Course extends Model
 {
@@ -327,5 +329,45 @@ class Course extends Model
             $per_month[] = count($courses);
         }
         return $per_month;
+    }
+
+    /**
+     * Este método restablece las fechas de seguimiento futuras (tracings) y elimina las tareas (chores) y facturas (bills) asociadas al curso.
+     * 
+     * - Las fechas de seguimiento futuras se restablecen a null si son mayores o iguales a la fecha actual.
+     * - Las facturas asociadas al curso se eliminan si la fecha de inicio del curso es posterior a la fecha actual.
+     * - Todas las tareas asociadas al curso se eliminan, independientemente de la fecha.
+     * 
+     * Después de realizar estas operaciones, el curso se guarda en la base de datos con las nuevas fechas y sin las tareas y facturas asociadas.
+     * 
+     * @return void
+     */
+    public function resetChoresAndFutureTracings() {
+        $today = Carbon::today();
+        if ($this->beginning > $today) {
+            // Delete bills
+            Bill::where('course_id', $this->id)->delete();
+        }
+        if ($this->welcome_date >= $today) {
+            $this->welcome_date = null;
+        }
+        if ($this->quarter_date >= $today) {
+            $this->quarter_date = null;
+        }
+        if ($this->half_date >= $today) {
+            $this->half_date = null;
+        }
+        if ($this->three_quarters_date >= $today) {
+            $this->three_quarters_date = null;
+        }
+        if ($this->final_date >= $today) {
+            $this->final_date = null;
+        }
+        
+        // Delete chores
+        $this->chores()->delete();
+    
+        $this->save();
+        Log::info('Tracings reset successfully');
     }
 }

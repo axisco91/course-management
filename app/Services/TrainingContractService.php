@@ -5,10 +5,10 @@ class TrainingContractService
 {
     public function calculateHours($training_contract_id)
     {
-        Log::info('calculateHours called with id: ' . $id);
+        
     
         $record = TrainingContract::findOrFail($id);
-        Log::info('TrainingContract record: ', (array) $record);
+        
     
         $formative_hours_first_year = $record->formative_hours_first_year;
         $formative_hours_second_year = $record->formative_hours_second_year;
@@ -115,11 +115,7 @@ class TrainingContractService
             $date->addDay();
         } while($end_date->gte($date));
     
-        Log::info('formative_hours_first_year: ' . $formative_hours_first_year);
-        Log::info('cont_days_first_year: ' . $cont_days_first_year);
-        Log::info('formative_hours_second_year: ' . $formative_hours_second_year);
-        Log::info('cont_days_second_year: ' . $cont_days_second_year);
-    
+     
         if ($cont_days_first_year != 0){
             $daily_hours_1 = $formative_hours_first_year / $cont_days_first_year;
             $daily_hours_1 = round($daily_hours_1, 2);
@@ -136,7 +132,7 @@ class TrainingContractService
                 'daily_hours_1' => $daily_hours_1,
                 'daily_hours_2' => $daily_hours_2,
             ]);
-            Log::info('Updated TrainingContract record: ', (array) $record);
+           
         }
     
         // Devuelve una respuesta HTTP con los datos calculados

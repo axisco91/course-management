@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Helpers\GeneralHelpers;
+use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TrainingContractBill extends Model
 {
@@ -18,7 +20,6 @@ class TrainingContractBill extends Model
         'training_contract_id',
         'training_contract_bonus_id',
         'company_id',
-        'series',
         'collection_date',
         'month',
         'year',
@@ -26,7 +27,8 @@ class TrainingContractBill extends Model
         'hours',
         'price_hours',
         'charged',
-        'invoiced'
+        'invoiced',
+        'series_id',
     ];
 
     /**
@@ -51,6 +53,11 @@ class TrainingContractBill extends Model
     public function training_contract_bonus()
     {
         return $this->hasOne('App\Models\TrainingContractBonus', 'id', 'training_contract_bonus_id');
+    }
+
+    public function series()
+    {
+        return $this->belongsTo('App\Models\TrainingContractSeries', 'series_id', 'id');
     }
 
     public function scopeGetTrainingContractBills($query){
@@ -80,7 +87,7 @@ class TrainingContractBill extends Model
             'training_contract_bonus_id' => $bonus->id,
             'training_contract_id' => $training_contract['id'],
             'company_id' => $training_contract['company_id'],
-            'series' => 3,
+            'series_id' => $training_contract['series_id'],
             'modality' => 'TELEFORMACIÓN/PRESENCIAL',
             'collection_date' => null,
             'month' => $bonus->month,
@@ -95,14 +102,17 @@ class TrainingContractBill extends Model
         return $bill;
     }
 
+   
     public static function updateBill($id, $data) {
+       
         $bill = TrainingContractBill::find($id);
-        $bill = $bill->update([
-            $data['collection_date'] ? Carbon::createFromFormat('d-m-Y', $data['collection_date'])->format('Y-m-d') : null,
+        $bill->update([
+            'collection_date' => $data['collection_date'] ? Carbon::createFromFormat('d-m-Y', $data['collection_date'])->format('Y-m-d') : null,
             'charged' => $data['charged'],
-            'invoiced' => $data['invoiced']
+            'invoiced' => $data['invoiced'],
+            'series_id' => $data['series_id']
         ]);
-
-        return $bill;
+    
+        return $bill->fresh();
     }
 }

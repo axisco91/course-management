@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class CourseController extends BaseController
 {
@@ -147,6 +148,48 @@ class CourseController extends BaseController
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
+            ]);
+        }
+    }
+    
+    /**
+     * Este método restablece las fechas de seguimiento futuras (tracings), y elimina las tareas (chores) y facturas (bills) asociadas a un curso si el curso está cancelado.
+     * 
+     * Primero, busca el curso por su ID. Si el curso no se encuentra, devuelve una respuesta con un estado 404 y un mensaje indicando que el curso no se encontró.
+     * 
+     * Si el curso se encuentra, verifica si el estado del curso es 'anulado' (course_status_id === 4). Si el curso no está anulado, devuelve una respuesta con un estado 400 y un mensaje indicando que el curso no está cancelado.
+     * 
+     * Si el curso está cancelado, llama al método resetChoresAndFutureTracings del curso para restablecer las fechas de seguimiento futuras y eliminar las tareas y facturas asociadas. Luego, devuelve una respuesta con un estado 200 y un mensaje indicando que los seguimientos futuros se restablecieron con éxito.
+     * 
+     * @param  int  $id  El ID del curso.
+     * @return \Illuminate\Http\JsonResponse Una respuesta JSON con el estado y el mensaje.
+     */
+    public function resetTracingsIfCancelled($id) {
+        Log::info('Resetting tracings for course: ' . $id);
+        $course = Course::find($id);
+        if ($course) {
+            Log::info('Course found: ' . $id);
+            Log::info('Course status id: ' . $course->course_status_id);
+            if ($course->course_status_id === 4) {
+                Log::info('Course status is cancelled. Resetting tracings...');
+                $course->resetChoresAndFutureTracings();
+                Log::info('Tracings reset successfully');
+                return response()->json([
+                    'status' => 200,
+                    'message' => 'Seguimientos futuros restablecidos con éxito'
+                ]);
+            } else {
+                Log::info('Course status is not cancelled');
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'El curso no está anulado'
+                ]);
+            }
+        } else {
+            Log::info('Course not found: ' . $id);
+            return response()->json([
+                'status' => 404,
+                'message' => 'Curso no encontrado'
             ]);
         }
     }
