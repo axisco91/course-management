@@ -31,7 +31,7 @@ class PotentialCompany extends Mailable
     public function build()
     {
 
-        return $this->subject('Correo recibir formación de AVZ')
+        return $this->subject('Correo recibir formación de VR Consultores')
         //    ->to($this->email)
             ->view('emails.potential_company');
     }

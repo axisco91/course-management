@@ -132,4 +132,9 @@ class UserController extends BaseController
             'status' => 200
         ]);
     }
+    
+    public function indexWithCommissions() {
+        $users = User::with('commissions')->get();
+        return response()->json($users);
+    }
 }

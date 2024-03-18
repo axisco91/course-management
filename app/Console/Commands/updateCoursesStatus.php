@@ -55,15 +55,8 @@ class updateCoursesStatus extends Command
             ]);
         }
 
-        Mail::getSwiftMailer()
-            ->getTransport()
-            ->setUsername('zona@avzformacion.com')
-            ->setPassword('Avz.2021');
-
-        Mail::raw('', function($message){
-            $message->to('franciscohoskins@gmail.com');
-            $message->subject('Cron passed course update');
-        });
+        
+        
         return 0;
     }
 }

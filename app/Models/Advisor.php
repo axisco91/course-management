@@ -30,6 +30,14 @@ class Advisor extends Model
         return $this->hasOne('App\Models\Company', 'id', 'company_id');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function commissions()
+    {
+        return $this->hasMany(AdvisorCommission::class);
+    }
+
     public function scopeGetAdvisor($query) {
         return $query->select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province', 'advisors.id as value', 'advisors.name as label', 'companies.quote as quote', 'companies.average_template as average_template', 'users.id as collaborator_id',

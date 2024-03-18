@@ -197,15 +197,15 @@ class TrainingContract extends Model
     }
 
     public function calculateFormationHours()
-{
-    $formation_hours = $this->formative_hours_first_year;
+    {
+        $formation_hours = $this->formative_hours_first_year;
 
-    if ($this->formative_hours_second_year) {
-        $formation_hours += $this->formative_hours_second_year;
+        if ($this->formative_hours_second_year) {
+            $formation_hours += $this->formative_hours_second_year;
+        }
+
+        return $formation_hours;
     }
-
-    return $formation_hours;
-}
 
     public function calculateHours($training_contract_id)
     {
@@ -428,4 +428,5 @@ public static function updateDates($training_contract_id){
         Log::error('No se encontró el último elemento del contrato de formación');
     }
 }
+
 }

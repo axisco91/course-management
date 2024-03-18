@@ -22,7 +22,9 @@ class Registration extends Model
         'price',
         'profitability_id',
         'is_bonus',
-        'billing_id'];
+        'billing_id',
+        'status',
+        'on_leave_date'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

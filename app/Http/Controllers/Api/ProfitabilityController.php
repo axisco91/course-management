@@ -24,7 +24,8 @@ class ProfitabilityController extends BaseController
      */
     public function index(Request $request) {
         try {
-            $profits = Profitability::profitability();
+            $profits = Profitability::with('registrations.student')
+            ->profitability();
             $cfa = CourseType::where('name', 'CFA')->first();
             if ($cfa) {
                 $profits = $profits->where('course_type_id', '!=', $cfa->id);

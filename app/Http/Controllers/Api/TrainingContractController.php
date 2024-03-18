@@ -442,4 +442,64 @@ class TrainingContractController extends BaseController
             'element' => $element
         ]);
     }
+    /**
+     * Calcula las fechas de finalización del contrato y de la formación
+     * @param $training_contract_id
+     * @param $daily_hours_1
+     * @param $daily_hours_2
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function calculateEndDates($training_contract_id, $daily_hours_1, $daily_hours_2)
+    {
+        $record = TrainingContract::findOrFail($training_contract_id);
+
+        Log::info("Calculating end dates for Training Contract ID: {$training_contract_id}");
+
+        $formative_hours_first_year = $record->formative_hours_first_year;
+        $formative_hours_second_year = $record->formative_hours_second_year;
+        $date = Carbon::parse($record->beginning_formation);
+        
+        Log::info('formative_hours_first_year: ' . $formative_hours_first_year);
+
+        $total_days_needed = 0;
+        $actual_days_counted = 0;
+
+        // Calculamos los días totales para el primer año
+        if ($daily_hours_1 > 0) {
+            $total_days_needed += ceil($formative_hours_first_year / $daily_hours_1);
+        }
+
+        // Calculamos los días totale spara el segundo año, si aplica
+        if ($formative_hours_second_year > 0 && $daily_hours_2 > 0) {
+            $total_days_needed += ceil($formative_hours_second_year / $daily_hours_2);
+        }
+        Log::info("Total days needed: {$total_days_needed}");
+
+        // Incrementamos día a día comprobando festivos y excluidos
+        while ($actual_days_counted < $total_days_needed) {
+            $date->addDay();
+
+            // Comprobación si el día actual está excluido y/o festivo
+            if (!$date->isWeekend() && !TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $date->toDateString()) && !TrainingContractFestival::existDay($date, $record->id)->first()) {
+                $actual_days_counted++;
+                Log::info("Counted day: {$date->toDateString()}, total counted days: {$actual_days_counted}");
+
+            }else{
+                Log::info("Skipped day: {$date->toDateString()}");
+
+            }
+        }
+
+        // actualizamos la fecha
+        $record->update(['end_formation' => $date]);
+
+        Log::info("Final End Formation Date: " . $date->toDateString());
+
+        // Return a HTTP response with the new end formation date
+        return response()->json([
+            'status' => 200,
+            'end_formation' => $date->toDateString(),
+        ]);
+    }
 }
+

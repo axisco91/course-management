@@ -82,6 +82,7 @@ use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\DocumentStudentController;
 use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\TrainingContractSeriesController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -200,6 +201,8 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('courses/{id}', 'getAdvisorCourses');
             Route::get('companies/{id}', 'getAdvisorCompanies');
             Route::get('training-contracts/{id}', 'getAdvisorTrainingContracts');
+            Route::get('commissions', 'indexWithCommissions');
+            
         });
     });
 
@@ -721,6 +724,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('certifications/{id}', 'getCertifications');
             Route::get('calculate-hours/{id}', 'calculateHours');
             Route::post('register/{id}', 'register');
+            Route::post('calculate-end-dates/{id}/{daily_hours_1}/{daily_hours_2}', 'calculateEndDates');
         });
     });
 
@@ -748,6 +752,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get/{id}', 'getRegistration');
             Route::get('get-registered/{id}', 'getRegistrations');
             Route::get('get-not-registered/{id}', 'getNotRegistered');
+            Route::get('get-all', 'getAllRegistrations');
         });
     });
 
@@ -763,6 +768,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get/{id}', 'getUser');
             Route::post('upload-image/{id}', 'uploadImage');
             Route::post('change-password/{id}', 'changePassword');
+            Route::get('commissions', 'indexWithCommissions');
         });
     });
 

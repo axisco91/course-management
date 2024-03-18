@@ -255,4 +255,23 @@ class RegistrationController extends BaseController
             }
         }
     }
+    /**
+     * Obtiene todos los registros (registrations).
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAllRegistrations() {
+        try {
+            $registrations = Registration::all();
+            return response()->json([
+                'status' => 200,
+                'registrations' => $registrations
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

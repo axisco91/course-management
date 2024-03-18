@@ -102,6 +102,11 @@ class User extends Authenticatable
             'users.id as value');
     }
 
+    public function commissions()
+    {
+        return $this->hasMany(UserCommission::class);
+    }
+
     public static function createUser($data){
         $user = User::create([
             'name' => $data['name'],

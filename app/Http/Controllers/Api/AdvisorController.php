@@ -288,4 +288,13 @@ class AdvisorController extends BaseController
             ->groupBy('companies.id', 'companies.name')
             ->get();
     }
+    /**
+     * Obtenemos las comisiones de la asesoría con la asesoria para los graphs
+     * @param $id
+     * @return mixed
+     */
+    public function indexWithCommissions() {
+        $advisors = Advisor::with('commissions')->get();
+        return response()->json($advisors);
+    }
 }
