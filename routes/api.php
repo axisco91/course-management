@@ -1023,6 +1023,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get/{id}', 'show');
             Route::get('create', 'store');
             Route::post('edit/{id}', 'update');
+            Route::delete('delete/{id}', 'delete');
             Route::get('years', 'years');
         });
     });

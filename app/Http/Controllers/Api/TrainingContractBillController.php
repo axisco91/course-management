@@ -285,4 +285,30 @@ class TrainingContractBillController extends BaseController
 
         return $years;
     }
+
+    public function delete($id)
+    {
+        try {
+            $bill = TrainingContractBill::find($id);
+
+            if (!$bill) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Factura no encontrada'
+                ]);
+            }
+
+            $bill->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Factura eliminada con éxito'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }
