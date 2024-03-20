@@ -1,0 +1,44 @@
+.fixed-height-img-logo {
+    height: 100px;
+}
+
+.fixed-height-img-eurocert{
+    height: 90px;
+}
+.letra-color{
+   color: #4a8d76;
+   font-weight: bold;
+}
+
+h1 {
+    font-size: 18px;
+    font-family: "Open Sans";
+}
+
+.table-container {
+    margin: auto; 
+    width: 85%;
+}
+
+.pie-fondo {
+    background-color: #4a8d76;
+    margin-left: 0;
+    color:white;
+}
+
+p,ul,ol {
+    font-size: 14px;
+    font-family: "Open Sans";
+}
+
+th, td {
+    font-size: 14px;
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+    font-family: "Open Sans";
+}
+
+.sin-margin-bottom {
+    margin-bottom: 0;
+}
