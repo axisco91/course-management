@@ -58,20 +58,44 @@ public function generate($id) {
         // Calcula el amount del primer y último mes
         $first_month_amount = ($active_days_in_first_month / $days_in_first_month) * ($total_bonus / $total_months);
         $last_month_amount = ($active_days_in_last_month / $days_in_last_month) * ($total_bonus / $total_months);
-        $total_days = $beginning_date->diffInDays($end_date) + 1;
-        $full_month_amount -= ($first_month_amount + $last_month_amount); // Resta los montos ajustados del total
-        $amount_per_bonus = $full_month_amount / ($total_months - 2); // Divide el monto restante entre los meses restantes
+        $total_days_in_contract = $beginning_date->diffInDays($end_date) + 1;
+        $amount_per_day = $total_bonus / $total_days_in_contract;
 
-        $period = CarbonPeriod::create($beginning_date, '1 month', $end_date->addMonth());
-        foreach ($period as $date) {
-            $active_days_in_month = $date->daysInMonth;
-            $amount = ($active_days_in_month / $total_days) * $total_bonus;
-        
-            $start = $date->copy()->startOfMonth();
-            $end = $date->copy()->endOfMonth();
+        $period = CarbonPeriod::create($beginning_date, '1 month', $end_date);
+
+        $amounts = [];
+        foreach ($period as $key => $date) {
+            // Si es el primer mes, usa la fecha de inicio del contrato
+            if ($date->month == $beginning_date->month && $date->year == $beginning_date->year) {
+                $start = $beginning_date;
+                $end = $date->copy()->endOfMonth();
+                $active_days_in_month = $start->diffInDays($end) + 1;
+            } 
+            // Si es el último mes, usa la fecha de fin del contrato
+            else if ($date->month == $end_date->month && $date->year == $end_date->year) {
+                $start = $date->copy()->startOfMonth();
+                $end = $end_date;
+                $active_days_in_month = $start->diffInDays($end) + 1;
+            } 
+            // Para todos los otros meses, usa todo el mes
+            else {
+                $start = $date->copy()->startOfMonth();
+                $end = $date->copy()->endOfMonth();
+                $active_days_in_month = $end->daysInMonth;
+            }
+
+            // Calcula el amount para este mes
+            $amount = $amount_per_day * $active_days_in_month;
 
             // Redondea el amount cuando se crea el bono
-            $amount = round($amount, 2);
+            $amount = round($amount);
+
+            // Si es el último mes, ajusta el amount para que la suma total sea exactamente igual al total_bonus
+            if ($key == count($period) - 1) {
+                $amount = $total_bonus - array_sum($amounts);
+            }
+
+            $amounts[] = $amount;
 
             TrainingContractBonus::createBonus([
                 'training_contract_id' => $id,
@@ -86,7 +110,6 @@ public function generate($id) {
 
             Log::info('Created training contract bonus', ['month' => $date->month, 'year' => $date->year]);
         }
-
         Log::info('Total amount of bonuses distributed');
 
         return response()->json([
