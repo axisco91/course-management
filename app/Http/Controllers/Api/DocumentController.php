@@ -136,7 +136,7 @@ class DocumentController extends BaseController
     public function destroy($id){
         if ($id) {
             try {
-                TrainingAction::destroy($id);
+                Document::destroy($id);
                 return response()->json([
                     'status' => 200
                 ]);
