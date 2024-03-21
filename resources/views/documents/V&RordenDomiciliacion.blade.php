@@ -76,11 +76,11 @@
                     <p>Nombre del deudor/es:</p>
                     <p class="text-sm font-normal">(titular/es de la cuenta de cargo)</p>
                 </div>
-                <p class="col-span-10 p-2 my-auto">(Nombre del deudor)</p>
+                <p class="col-span-10 p-2 my-auto">{{$trainingContract->company_name}}</p>
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold col-span p-2">Dirección del deudor:</p>
-                <p class="col-span-10 p-2">(Dirección)</p>
+                <p class="col-span-10 p-2">{{$trainingContract->center_of_work}}</p>
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold col-span p-2">Código Postal:</p>
@@ -88,7 +88,7 @@
                 <p class="border-r-2 border-l-2 border-black font-semibold col-span p-2">Población:</p>
                 <p class="col-span-10 p-2">(Población)</p>
                 <p class="border-r-2 border-l-2 border-black font-semibold col-span p-2">Provincia:</p>
-                <p class="col-span-10 p-2">(Provincia)</p>
+                <p class="col-span-10 p-2">{{$trainingContract->province_name}}</p>
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold p-2">País:</p>
