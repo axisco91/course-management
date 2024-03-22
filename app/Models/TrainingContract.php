@@ -207,7 +207,7 @@ class TrainingContract extends Model
         return $formation_hours;
     }
 
-    public function calculateHours($training_contract_id)//REFACTORIZAR CON LA NUEVA FUNCION PRIVADA
+    public function calculateHours($training_contract_id)
     {
     
         $record = TrainingContract::findOrFail($training_contract_id);
@@ -409,8 +409,8 @@ class TrainingContract extends Model
         return false;
     }
 
-    public static function updateDates($training_contract_id){
 
+    public static function updateDates($training_contract_id){
         $training_contract = TrainingContract::find($training_contract_id);
         $training_contract_elements = TrainingContractElement::with('training_action')
             ->where('training_contract_id', $training_contract_id)
@@ -489,5 +489,4 @@ class TrainingContract extends Model
             Log::error('No se encontró el último elemento del contrato de formación');
         }
     }
-
 }

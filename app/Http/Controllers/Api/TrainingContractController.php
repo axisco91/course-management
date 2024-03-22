@@ -506,5 +506,7 @@ class TrainingContractController extends BaseController
         $trainingContract = new TrainingContract();
         return $trainingContract->calculateMonthlyFormationHours($id);
     }
+
+    
 }
 
