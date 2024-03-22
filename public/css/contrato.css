@@ -47,6 +47,7 @@ p,ul,ol,li {
     height: 20px;
     margin-bottom: 3px;
 }
+
 .no-bullets {
     list-style-type: none; 
     padding-left: 0;

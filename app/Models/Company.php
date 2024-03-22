@@ -21,6 +21,7 @@ class Company extends Model
         'telephone',
         'legal_representative',
         'dni_legal_representative',
+        'regimen',
         'quote',
         'cnae_id',
         'average_template',

@@ -77,21 +77,29 @@
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DE LA EMPRESA:</h1>
             <p>
-                Razón social _________________________ CIF/NIF/NIE _________________________
+                Razón social ___ {{$companies->name}}__________ CIF/NIF/NIE ___ {{$companies->nif}} ________________
             </p>
             <p>
-                D./Dña. _________________________ en concepto de _________________________ NIF/NIE _________________________
+                D./Dña. ___ {{$companies->legal_representative}} ______________ en concepto de 
+                <?php
+                if($companies->company_type_id=="Autónomo"){
+                    echo "TITULAR";
+                }else{
+                    echo "ADMINISTRADOR/A";
+                }
+            ?>
+            ______________ NIF/NIE ___ {{$companies->dni_legal_representative}} ______________________
             </p>
             <p>
-                Correo electrónico de la empresa _________________________ Tfno. Empresa _________________________
+                Correo electrónico de la empresa ___ {{$companies->email}} __________________ Tfno. Empresa ___ {{$companies->telephone}} __________________
             </p>
             <p>
-                Tutor/a de la empresa – D./Dña. _________________________ Horas mensuales _________ NIF/NIE ___________
+                Tutor/a de la empresa – D./Dña. ____ {{$trainingContract->company_tutor}} _________________________ Horas mensuales _________ NIF/NIE ___ {{$trainingContract->company_tutor_dni}}________
             </p>
             <p>
                 Cualificación y/o experiencia profesional adecuada adecuada
                 <label for="opcion1">
-                    <input type="checkbox" id="opcion1" name="opcion1" onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion1" name="opcion1" {{ $companies->company_type_id == 1 ? 'checked' : '' }} onchange="toggleOption(this)">
                 </label>
                  Empresa con menos de 5 trabajadores
                  <label for="opcion2">
@@ -105,23 +113,23 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1> DATOS DEL TRABAJADOR:</h1>
-            <p>D./Dña. ________________________________ NIF/NIE ______________ Fecha de nac. ______________ </p>
+            <p>D./Dña. ____ {{$student->name}} ______________________ NIF/NIE ____ {{$student->dni}} ___________ Fecha de nac. ____ {{$student->date_of_birth}} ___________ </p>
             <p>Reúne requisitos de acceso a la Formación de este contrato</p>
             <p>Inscrito/a en el sistema Nacional de Garantía Juvenil
                 <label for="opcion3">
-                    <input type="checkbox" id="opcion3" name="opcion3" onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion3" name="opcion3" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }} onchange="toggleOption(this)">
                  </label>
             </p>
             <p>
                 Trabajador/a con discapacidad
                 <label for="opcion4">
-                    <input type="checkbox" id="opcion4" name="opcion4" onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion4" name="opcion4" {{ $trainingContract->disabled == 1 ? 'checked' : '' }} onchange="toggleOption(this)">
                  </label>
             </p>
             <p>
                 Trabajador/a en situación de exclusión social en empresas de inserción
                 <label for="opcion5">
-                    <input type="checkbox" id="opcion5" name="opcion5" onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion5" name="opcion5" {{ $trainingContract->social_exclusion == 1 ? 'checked' : '' }} onchange="toggleOption(this)">
                  </label>
             </p>
         </div>

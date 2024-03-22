@@ -39,7 +39,10 @@ class Student extends Model
         'population',
         'observation',
         'iban',
-        'active'
+        'active',
+        'nationality',
+        'legal_guardian_name',
+        'legal_guardian_dni'
     ];
 
     /**
