@@ -215,6 +215,8 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
+            Route::get('advisor/{advisor_id}', 'getIncidencesForAdvisor');
+
         });
     });
 
@@ -725,6 +727,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('calculate-hours/{id}', 'calculateHours');
             Route::post('register/{id}', 'register');
             Route::post('calculate-end-dates/{id}/{daily_hours_1}/{daily_hours_2}', 'calculateEndDates');
+            Route::get('monthly-formation-hours/{id}', 'getMonthlyFormationHours'); 
         });
     });
 

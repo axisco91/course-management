@@ -15,7 +15,16 @@ class AdvisorIncidenceController extends BaseController
     public function getAdvisorIncidences(Request $request) {
         return AdvisorIncidence::getAdvisorIncidences($request->advisor_id);
     }
+    /**
+     * Get all incidences for a specific advisor
+     * @param $advisor_id
+     * @return \Illuminate\Http\Response
+     */
+    public function getIncidencesForAdvisor($advisor_id) {
+        $incidences = AdvisorIncidence::where('advisor_id', $advisor_id)->get();
 
+        return response()->json($incidences);
+    }
     /**
      * Create Advisor Incidences
      * @param Request $request

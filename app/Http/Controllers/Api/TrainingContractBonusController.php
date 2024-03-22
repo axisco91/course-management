@@ -21,7 +21,6 @@ class TrainingContractBonusController extends BaseController
             ]);
         }
     }
-
 public function generate($id) {
     Log::info('generate method called with id', ['id' => $id]);
     $training_contract = TrainingContract::find($id);
@@ -33,82 +32,62 @@ public function generate($id) {
     if (count($training_contract_bonuses) === 0) {
         Log::info('No training contract bonuses found');
 
-        $formation_hours = $training_contract->bonus_hours_first_year + $training_contract->bonus_hours_second_year;
-        Log::info('Formation hours', ['formation_hours' => $formation_hours]);
-
         $beginning_date = Carbon::parse($training_contract->beginning_formation);
         log::info('Beginning date', ['beginning_date' => $beginning_date]);
         $end_date = Carbon::parse($training_contract->end_formation);
         log::info('End date', ['end_date' => $end_date]);
 
-        $total_bonus = $formation_hours * 5;
+        // Calcula el total de bonos para el primer y segundo año
+        $total_bonus_first_year = $training_contract->bonus_hours_first_year * 5;
+        $total_bonus_second_year = $training_contract->bonus_hours_second_year * 5;
 
-        // Calcula el total de meses
-        $total_months = $beginning_date->diffInMonths($end_date) + 1;
-
-        // Calcula el amount para los meses completos, sin incluir el primer y último mes
-        $full_month_amount = $total_bonus;
-        $active_days_in_first_month = $beginning_date->diffInDays($beginning_date->copy()->endOfMonth()) + 1;
-        $active_days_in_last_month = $end_date->day;
-
-        // Calcula el número de días en el primer y último mes
-        $days_in_first_month = $beginning_date->daysInMonth;
-        $days_in_last_month = $end_date->daysInMonth;
-        
-        // Calcula el amount del primer y último mes
-        $first_month_amount = ($active_days_in_first_month / $days_in_first_month) * ($total_bonus / $total_months);
-        $last_month_amount = ($active_days_in_last_month / $days_in_last_month) * ($total_bonus / $total_months);
-        $total_days_in_contract = $beginning_date->diffInDays($end_date) + 1;
-        $amount_per_day = $total_bonus / $total_days_in_contract;
+        // Calcula el amount por mes para el primer y segundo año
+        $amount_per_month_first_year = $total_bonus_first_year / 12; // Prorratea para 12 meses
+        $amount_per_month_second_year = $total_bonus_second_year / 12; // Prorratea para 12 meses
 
         $period = CarbonPeriod::create($beginning_date, '1 month', $end_date);
 
         $amounts = [];
         foreach ($period as $key => $date) {
-            // Si es el primer mes, usa la fecha de inicio del contrato
-            if ($date->month == $beginning_date->month && $date->year == $beginning_date->year) {
-                $start = $beginning_date;
-                $end = $date->copy()->endOfMonth();
-                $active_days_in_month = $start->diffInDays($end) + 1;
-            } 
-            // Si es el último mes, usa la fecha de fin del contrato
-            else if ($date->month == $end_date->month && $date->year == $end_date->year) {
-                $start = $date->copy()->startOfMonth();
-                $end = $end_date;
-                $active_days_in_month = $start->diffInDays($end) + 1;
-            } 
-            // Para todos los otros meses, usa todo el mes
-            else {
-                $start = $date->copy()->startOfMonth();
-                $end = $date->copy()->endOfMonth();
-                $active_days_in_month = $end->daysInMonth;
+            // Usa el amount por mes del primer año para los meses en el primer año, y el amount por mes del segundo año para los meses en el segundo año
+            if ($date->lt($beginning_date->copy()->addYear())) {
+                $amount = $amount_per_month_first_year;
+            } else {
+                $amount = $amount_per_month_second_year;
             }
 
-            // Calcula el amount para este mes
-            $amount = $amount_per_day * $active_days_in_month;
+          // Si es el último mes del primer año, ajusta el amount para que la suma total sea exactamente igual al total_bonus del primer año
+        if ($date->month == $beginning_date->copy()->addYear()->month && $date->year == $beginning_date->copy()->addYear()->year) {
+            $amount = $total_bonus_first_year - array_sum($amounts);
+            $amounts = []; // Resetea los amounts para el segundo año
+        }
 
-            // Redondea el amount cuando se crea el bono
-            $amount = round($amount);
+        // Si es el último mes del segundo año, ajusta el amount para que la suma total sea exactamente igual al total_bonus del segundo año
+        if ($key == count($period) - 1) {
+            $amount = $total_bonus_second_year - array_sum($amounts);
+        }
 
-            // Si es el último mes, ajusta el amount para que la suma total sea exactamente igual al total_bonus
-            if ($key == count($period) - 1) {
-                $amount = $total_bonus - array_sum($amounts);
-            }
+        if ($amount < 0) {
+            $amount = 0;
+        }
 
-            $amounts[] = $amount;
+        // Redondea el amount después de ajustarlo
+        $amount = round($amount);
+
+        $amounts[] = $amount;;
 
             TrainingContractBonus::createBonus([
                 'training_contract_id' => $id,
                 'month' => $date->month,
                 'year' => $date->year,
-                'start' => $start,
-                'end' => $end,
+                'start' => $date->copy()->startOfMonth(),
+                'end' => $date->copy()->endOfMonth(),
                 'amount' => $amount,
                 'hours' => 0,
                 'invoiced' => 0
             ]);
 
-            Log::info('Created training contract bonus', ['month' => $date->month, 'year' => $date->year]);
+            Log::info('Created training contract bonus', ['month' => $date->month, 'year' => $date->year, 'amount' => $amount ]);
         }
         Log::info('Total amount of bonuses distributed');
 
@@ -124,6 +103,7 @@ public function generate($id) {
         ]);
     }
 }
+
     
     public function create(Request $request){
         try {
