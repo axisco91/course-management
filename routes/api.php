@@ -725,6 +725,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('calculate-hours/{id}', 'calculateHours');
             Route::post('register/{id}', 'register');
             Route::post('calculate-end-dates/{id}/{daily_hours_1}/{daily_hours_2}', 'calculateEndDates');
+            Route::get('monthly-formation-hours/{id}', 'getMonthlyFormationHours');
         });
     });
 

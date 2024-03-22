@@ -50,21 +50,21 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($elements as $e)
-                    <tr class="border-b-2 border-green-600 text-center">
-                        <td>{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</td>
-                        <td class="border-l-2 border-r-2 border-green-600">{{$trainingContract->student->dni}}</td>
-                        <td class="border-l-2 border-r-2 border-green-600">{{$e->beginning}}</td>
-                        <td class="border-l-2 border-r-2 border-green-600">{{$e->end}}</td>
-                        <td class="border-l-2 border-r-2 border-green-600">
-                            @foreach($monthlyFormationHours as $month => $hours)
-                                {{$month}}
-                                {{$hours}}
-                            @endforeach    
-                        </td>
-                        <td >(importe)</td>
-                    </tr>
-                @endforeach
+            @foreach($bonus as $e)
+                @php
+                    $monthKey = \Carbon\Carbon::parse($e->start)->format('Y-m');
+                @endphp
+                <tr class="border-b-2 border-green-600 text-center">
+                    <td>{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</td>
+                    <td class="border-l-2 border-r-2 border-green-600">{{$trainingContract->student->dni}}</td>
+                    <td class="border-l-2 border-r-2 border-green-600">{{$e->start}}</td>
+                    <td class="border-l-2 border-r-2 border-green-600">{{$e->end}}</td>
+                    <td class="border-l-2 border-r-2 border-green-600">
+                        {{ $monthlyFormationHours->{$monthKey} ?? 'N/A' }}
+                    </td>
+                    <td >(importe)</td>
+                </tr>
+            @endforeach
             </tbody>
         </table>
 

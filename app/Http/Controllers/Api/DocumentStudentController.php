@@ -26,6 +26,7 @@ use App\Models\TrainingContract;
 use App\Models\Occupation; 
 use App\Models\Company; 
 use App\Models\TrainingContractElement; 
+use App\Models\TrainingContractBonus;
 use Illuminate\Support\Facades\Date;
 
 class DocumentStudentController extends BaseController
@@ -307,11 +308,12 @@ public function studentViewPdf($key, $viewName) {
 
     public function testPdf($viewName) {
         // Cargamos la vista Blade
-        $trainingContract = TrainingContract::first(); 
+        $trainingContract = TrainingContract::find(33); 
         $occupation = Occupation::find($trainingContract->occupation_id); 
         $company = Company::find($trainingContract->company_id); 
         $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);  
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
+        $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
 
         $daysWeek = 0; 
         if($trainingContract->monday == 1) $daysWeek++; 
@@ -330,7 +332,8 @@ public function studentViewPdf($key, $viewName) {
         'elements' => $trainingElements, 
         'daysWeek' => $daysWeek, 
         'fechaActual' => $fechaActual,
-        'monthlyFormationHours' => $monthlyFormationHours]);
+        'monthlyFormationHours' => $monthlyFormationHours,
+        'bonus' => $bonus]);
         
         // Devolvemos el PDF como una respuesta de descarga
         return $pdf->download('test.pdf');
