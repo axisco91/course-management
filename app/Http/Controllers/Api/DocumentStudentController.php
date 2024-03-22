@@ -333,7 +333,8 @@ public function studentViewPdf($key, $viewName) {
         'daysWeek' => $daysWeek, 
         'fechaActual' => $fechaActual,
         'monthlyFormationHours' => $monthlyFormationHours,
-        'bonus' => $bonus]);
+        'bonus' => $bonus, 
+        'sumaHoras' => 0]);
         
         // Devolvemos el PDF como una respuesta de descarga
         return $pdf->download('test.pdf');
