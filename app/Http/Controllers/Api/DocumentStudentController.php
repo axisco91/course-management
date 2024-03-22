@@ -22,6 +22,11 @@ use Mockery\Exception;
 use Barryvdh\DomPDF\Facade\Pdf;
 use setasign\Fpdi\Fpdi;
 use Illuminate\Support\Facades\Log;
+use App\Models\TrainingContract; 
+use App\Models\Occupation; 
+use App\Models\Company; 
+use App\Models\TrainingContractElement; 
+use Illuminate\Support\Facades\Date;
 
 class DocumentStudentController extends BaseController
 {
@@ -302,12 +307,29 @@ public function studentViewPdf($key, $viewName) {
 
     public function testPdf($viewName) {
         // Cargamos la vista Blade
-        $student = Student::first();
+        $trainingContract = TrainingContract::first(); 
+        $occupation = Occupation::find($trainingContract->occupation_id); 
+        $company = Company::find($trainingContract->company_id); 
+        $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);  
+
+        $daysWeek = 0; 
+        if($trainingContract->monday == 1) $daysWeek++; 
+        if($trainingContract->tuesday == 1) $daysWeek++; 
+        if($trainingContract->wednesday == 1) $daysWeek++; 
+        if($trainingContract->thursday == 1) $daysWeek++; 
+        if($trainingContract->friday == 1) $daysWeek++; 
+        if($trainingContract->saturday == 1) $daysWeek++; 
+        if($trainingContract->sunday == 1) $daysWeek++; 
+        $fechaActual = Date::now()->format('d/m/Y');
+                
+        $pdf = PDF::loadView($viewName, ['occupation'=>$occupation, 
+        'trainingContract' => $trainingContract, 
+        'company'=>$company, 
+        'elements' => $trainingElements, 
+        'daysWeek' => $daysWeek, 
+        'fechaActual' => $fechaActual]);
         
-        $pdf = PDF::loadView($viewName, ['student' => $student]);
-        
-    
         // Devolvemos el PDF como una respuesta de descarga
         return $pdf->download('test.pdf');
-    }
+    }   
 }

@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contrato Formación - V&R</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style type="text/css">
+        img{
+            width: 25%; 
+        }
 
         .bg-green-100{
             background-color: rgb(184, 206, 198) !important; 
@@ -21,16 +25,23 @@
         .text-green-900{
             color: rgb(24, 57, 46) !important; 
         }
+
+        .titulo{
+            border-radius: 20%; 
+            width: 50%; 
+        }   
     </style>
 </head>
 <body class="p-5">
 
-    <div class="grid grid-cols-2 grid-flow-col gap-2">
-        <div class="col-span-11 flex justify-end">
-            <p class="p-1 m-2 rounded-full bg-green-900 text-white flex items-center">CONTRATO DE FORMACIÓN EN ALTERNANCIA</p>
-        </div>
-        <div class="col-span">
-            <img class="w-44" src="/V&R/logo.png" alt="">
+    <div class="container">
+        <div class="row">
+            <div>
+                <p class="p-2 m-2 titulo bg-green-900 text-white text-center">CONTRATO DE FORMACIÓN EN ALTERNANCIA</p>
+            </div>
+            <div>
+                <img src="./V&R/logo.png" alt="">
+            </div>
         </div>
     </div>
 
@@ -39,28 +50,26 @@
         <hr>
         <section class="w-11/12 mx-auto mt-3">
             <div class="flex flex-row justify-center">
-                <p class="text-green-900 font-bold text-xs ml-2">OCUPACIÓN: <span class="text-xs text-green-900 font-normal">(texto sustitutivo)</span></p>
-                <p class="text-green-900 font-bold text-xs ml-2">ALUMNO/A: <span class="text-xs text-green-900 font-normal">(texto sustitutivo)</span></p>
-                <p class="text-green-900 font-bold text-xs ml-2">DNI: <span class="text-xs text-green-900 font-normal">(texto sustitutivo)</span></p>
+                <p class="text-green-900 font-bold text-xs ml-2">OCUPACIÓN: <span class="text-xs text-green-900 font-normal">{{$occupation->name}}</span></p>
+                <p class="text-green-900 font-bold text-xs ml-2">ALUMNO/A: <span class="text-xs text-green-900 font-normal">{{$trainingContract->student->name}}</span></p>
+                <p class="text-green-900 font-bold text-xs ml-2">DNI: <span class="text-xs text-green-900 font-normal">{{$trainingContract->student->dni}}</span></p>
             </div>
             <div class="flex flex-row justify-center">
-                <p class="text-green-900 font-bold text-xs ml-2">Fecha inicio del contrato: <span class="text-xs text-green-900 font-normal">(texto sustitutivo)</span></p>
-                <p class="text-green-900 font-bold text-xs ml-2">Fecha de fin de contrato: <span class="text-xs text-green-900 font-normal">(texto sustitutivo)</span></p>
-                <p class="text-green-900 font-bold text-xs ml-2">Fecha de inicio actividad formativa: <span class="text-xs text-green-900 font-normal">(texto sustitutivo)</span></p>
-                <p class="text-green-900 font-bold text-xs ml-2">Fecha de fin actividad formativa: <span class="text-xs text-green-900 font-normal">(texto sustitutivo)</span></p>
+                <p class="text-green-900 font-bold text-xs ml-2">Fecha inicio del contrato: <span class="text-xs text-green-900 font-normal">{{$trainingContract->beginning}}</span></p>
+                <p class="text-green-900 font-bold text-xs ml-2">Fecha de fin de contrato: <span class="text-xs text-green-900 font-normal">{{$trainingContract->end}}</span></p>
+                <p class="text-green-900 font-bold text-xs ml-2">Fecha de inicio actividad formativa: <span class="text-xs text-green-900 font-normal">{{$trainingContract->beginning_formation}}</span></p>
+                <p class="text-green-900 font-bold text-xs ml-2">Fecha de fin actividad formativa: <span class="text-xs text-green-900 font-normal">{{$trainingContract->end_formation}}</span></p>
             </div>
 
-            <table class="mt-5 w-full border-solid border-2 border-green-900">
-                <thead class="text-left">
+            <table class="mt-5 table table-bordered">
+                <tbody class="text-center">
                     <tr>
-                        <th colspan="2" class="px-6 py-3 text-xs text-green-900 font-bold">
-                            ESPECIALIDAD FORMATIVA <span class="font-normal">(horas)</span>
+                        <th colspan="7" class="px-6 py-3 text-xs border-2 border-dark text-green-900 font-bold">
+                            ESPECIALIDAD FORMATIVA <span class="font-normal">{{$trainingContract->formation_hours}}h</span>
                         </th>
                     </tr>
-                </thead>
-                <tbody class="text-center">
-                    <tr class="bg-green-900">
-                        <td colspan="2" class="px-6 py-3 text-xs text-green-100 font-bold">
+                    <tr class="bg-green-900 border-2 border-dark">
+                        <td colspan="2" class="px-6 py-3 text-xs text-green-100 border-2 border-right border-light font-bold">
                             ESPECIALIDADES FORMATIVAS
                         </td>
                         <td colspan="5" class="px-6 py-3 text-xs text-green-100 font-bold">
@@ -76,19 +85,30 @@
                         <td class="border-r-2 border-green-900">Días Semana</td>
                         <td>Horario</td>
                     </tr>
+                    @foreach($elements as $e)
+                    <tr class="text-green-900 font-bold">
+                        <td>{{$e->training_action->codigo}}</td>
+                        <td class="border-r-2 border-l-2 border-green-900">{{$e->training_action->name}}</td>
+                        <td class="border-r-2 border-green-900">{{$e->training_contract->center_of_work}}</td>
+                        <td class="border-r-2 border-green-900">{{$e->training_contract->beginning_formation}} / {{$e->training_contract->beginning_formation}}</td>
+                        <td class="border-r-2 border-green-900">Horas Semana</td>
+                        <td class="border-r-2 border-green-900">{{$daysWeek}}</td>
+                        <td>{{$e->training_contract->working_hours}}</td>
+                    </tr>
+                    @endforeach
                 </tbody>
             </table>
-            <p class="text-xs" >Durante las vacaciones legalmente establecidas no se organizará ninguna actividad formativa. Días con derecho a su disfrute para el periodo contractual vigente: 6</p>
+            <p class="text-xs">Durante las vacaciones legalmente establecidas no se organizará ninguna actividad formativa. Días con derecho a su disfrute para el periodo contractual vigente: 6</p>
         </section>
-        <div class="flex justify-end p-5 m-5">
-            <img src="/V&R/firma.PNG" alt="">
+        <div class="pl-5 ">
+            <img src="./V&R/firma.PNG" alt="">
         </div>
         <div class="flex justify-center">
-            <p class="underline text-green-100 font-bold ml-2">EMPRESA: <span class="text-green-900 underline">(nombre)</span></p>
-            <p class="underline text-green-100 font-bold ml-2">TRABAJADOR/A: <span class="text-green-900 underline">(nombre)</span></p>
-            <p class="underline text-green-100 font-bold ml-2">CENTRO DE FORMACIÓN: <span class="text-green-900 underline">(nombre)</span></p>
+            <p class="underline text-green-100 font-bold ml-2">EMPRESA: <span class="text-green-900 underline">{{$company->name}}</span></p>
+            <p class="underline text-green-100 font-bold ml-2">TRABAJADOR/A: <span class="text-green-900 underline">{{$trainingContract->company_tutor}}</span></p>
+            <p class="underline text-green-100 font-bold ml-2">CENTRO DE FORMACIÓN: <span class="text-green-900 underline">{{$trainingContract->center_of_work}}</span></p>
         </div>
     </div>
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>

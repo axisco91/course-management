@@ -17,12 +17,10 @@ class TrainingContractElement extends Model
 
     protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days', 'order', 'course_id'];
 
-    public function training_contract()
-    {
+    public function training_contract(){
         return $this->belongsTo(TrainingContract::class);
     }
-        public function training_action()
-    {
+    public function training_action(){
         return $this->belongsTo(TrainingAction::class);
     }
     

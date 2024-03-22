@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orden de Domiciliación - V&R</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style type="text/css">
         .bg-green-100{
             background-color: rgb(184, 206, 198) !important; 
@@ -25,7 +26,7 @@
 <body class="p-5">
     <!-- LOGO -->
     <div class="flex justify-end mb-5">
-        <img class="w-44" src="/V&R/logo.png" alt="">
+        <img width="150" src="./V&R/logo.png" alt="">
     </div>
 
     <section>
@@ -36,27 +37,27 @@
             <p class="p-2 bg-green-100 text-green-900 font-bold">A cumplimentar por el acreedor</p>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold p-2">Identificador del acreedor:</p>
-                <p class="col-span-10 p-2">(Identificador del acreedor)</p>
+                <p class="col-span-10 p-2">{{$company->nif}}</p>
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold p-2">Nombre del acreedor:</p>
-                <p class="col-span-10 p-2">(Nombre del acreedor)</p>
+                <p class="col-span-10 p-2">{{$company->name}}</p>
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold col-span p-2">Dirección:</p>
-                <p class="col-span-10 p-2">(Dirección)</p>
+                <p class="col-span-10 p-2">{{$company->address}}</p>
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold col-span p-2">Código Postal:</p>
-                <p class=" p-2">(Código Postal)</p>
+                <p class=" p-2">{{$company->post_code}}</p>
                 <p class="border-r-2 border-l-2 border-black font-semibold col-span p-2">Población:</p>
-                <p class="col-span-10 p-2">(Población)</p>
+                <p class="col-span-10 p-2">{{$company->population}}</p>
                 <p class="border-r-2 border-l-2 border-black font-semibold col-span p-2">Provincia:</p>
-                <p class="col-span-10 p-2">(Provincia)</p>
+                <p class="col-span-10 p-2">{{$company->province->name}}</p>
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold col-span p-2">País:</p>
-                <p class="col-span-10 p-2">(País)</p>
+                <p class="col-span-10 p-2">ESPAÑA</p>
             </div>
         </article>
 
@@ -68,15 +69,14 @@
             Puede obtener información adicional sobre sus derechos en su entidad financiera
         </article>
 
-        <!-- INFORMACIÓN DEL ACREEDOR -->
+        <!-- INFORMACIÓN DEL DEUDOR -->
         <article class="border border-1 border-black mt-5">
             <p class="p-2 bg-green-100 text-green-900 font-bold">A cumplimentar por el deudor</p>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <div class="border-r-2 border-black font-semibold p-2">
                     <p>Nombre del deudor/es:</p>
-                    <p class="text-sm font-normal">(titular/es de la cuenta de cargo)</p>
+                    <p class="text-sm font-normal">{{$company->name}}</p>
                 </div>
-                <p class="col-span-10 p-2 my-auto">{{$trainingContract->company_name}}</p>
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold col-span p-2">Dirección del deudor:</p>
@@ -84,23 +84,23 @@
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold col-span p-2">Código Postal:</p>
-                <p class=" p-2">(Código Postal)</p>
+                <p class=" p-2">{{$company->post_code}}</p>
                 <p class="border-r-2 border-l-2 border-black font-semibold col-span p-2">Población:</p>
-                <p class="col-span-10 p-2">(Población)</p>
+                <p class="col-span-10 p-2">{{$company->population}}</p>
                 <p class="border-r-2 border-l-2 border-black font-semibold col-span p-2">Provincia:</p>
-                <p class="col-span-10 p-2">{{$trainingContract->province_name}}</p>
+                <p class="col-span-10 p-2">{{$company->province->name}}</p>
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold p-2">País:</p>
-                <p class=" p-2">(País)</p>
+                <p class=" p-2">ESPAÑA</p>
                 <p class="border-r-2 border-l-2 border-black font-semibold p-2"><strong>CIF/NIF</strong> del deudor:</p>
-                <p class=" p-2">(NIF/CIF)</p>
+                <p class=" p-2">{{$company->nif}}</p>
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold col-span p-2"><strong>Swift BIC</strong> (puede contener 8 u 11 posiciones):</p>
                 <p class="col-span-10 p-2">(Swift BIC)</p>
             </div>
-            <p class="p-2 border-t-2 border-black font-semibold"><strong>Número de cuenta – IBAN</strong>: (nº cuenta)</p>
+            <p class="p-2 border-t-2 border-black font-semibold"><strong>Número de cuenta – IBAN</strong>: {{$company->iban}}</p>
         </article>
 
         <!-- TIPO DE PAGO A REALIZAR -->
@@ -120,16 +120,16 @@
             <div class="grid grid-cols grid-flow-col border-t-2 border-black">
                 <div class="col-span grid grid-cols grid-flow-col ">
                     <p class="text-green-900 font-bold border-r-2 border-black p-2">Fecha:</p>
-                    <p class="p-2 border-black border-r-2">(dia/mes/año)</p>
+                    <p class="p-2 border-black border-r-2">{{$fechaActual}}</p>
                 </div>
                 <div class="col-span-10 grid grid-cols grid-flow-col ">
                     <p class="text-green-900 font-bold border-r-2 border-black p-2">Localidad:</p>
-                    <p class="p-2">(Localidad)</p>
+                    <p class="p-2">SANLUCAR DE BARRAMEDA</p>
                 </div>
             </div>
             <div class="grid grid-cols grid-flow-col border-t-2 border-black">
-                <p class="text-green-900 font-bold border-r-2 border-black pl-2 py-7">Firma:</p>
-                <p class="col-span-5 pl-2 py-7">(Firma)</p>
+                <p class="text-green-900 font-bold border-r-2 border-black pl-2 py-7">Firma del deudor:</p>
+                <p class="col-span-5 pl-2 py-7">(Firma del deudor)</p>
             </div>
         </article>
 
