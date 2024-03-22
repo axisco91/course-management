@@ -56,7 +56,12 @@
                         <td class="border-l-2 border-r-2 border-green-600">{{$trainingContract->student->dni}}</td>
                         <td class="border-l-2 border-r-2 border-green-600">{{$e->beginning}}</td>
                         <td class="border-l-2 border-r-2 border-green-600">{{$e->end}}</td>
-                        <td class="border-l-2 border-r-2 border-green-600">{{}}</td>
+                        <td class="border-l-2 border-r-2 border-green-600">
+                            @foreach($monthlyFormationHours as $month => $hours)
+                                {{$month}}
+                                {{$hours}}
+                            @endforeach    
+                        </td>
                         <td >(importe)</td>
                     </tr>
                 @endforeach

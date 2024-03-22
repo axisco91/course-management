@@ -311,6 +311,7 @@ public function studentViewPdf($key, $viewName) {
         $occupation = Occupation::find($trainingContract->occupation_id); 
         $company = Company::find($trainingContract->company_id); 
         $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);  
+        $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
 
         $daysWeek = 0; 
         if($trainingContract->monday == 1) $daysWeek++; 
@@ -321,13 +322,15 @@ public function studentViewPdf($key, $viewName) {
         if($trainingContract->saturday == 1) $daysWeek++; 
         if($trainingContract->sunday == 1) $daysWeek++; 
         $fechaActual = Date::now()->format('d/m/Y');
+
                 
         $pdf = PDF::loadView($viewName, ['occupation'=>$occupation, 
         'trainingContract' => $trainingContract, 
         'company'=>$company, 
         'elements' => $trainingElements, 
         'daysWeek' => $daysWeek, 
-        'fechaActual' => $fechaActual]);
+        'fechaActual' => $fechaActual,
+        'monthlyFormationHours' => $monthlyFormationHours]);
         
         // Devolvemos el PDF como una respuesta de descarga
         return $pdf->download('test.pdf');
