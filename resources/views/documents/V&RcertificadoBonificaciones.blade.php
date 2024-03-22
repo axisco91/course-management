@@ -11,6 +11,10 @@
             font-size: 2.0rem;
         }
 
+        h2{
+            page-break-before: always;
+        }
+
         .icono img{
             position: fixed;
             right: 5%;
