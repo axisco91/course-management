@@ -25,7 +25,7 @@
 </head>
 <body class="p-5">
     <!-- LOGO -->
-    <div class="flex justify-end mb-5">
+    <div class="d-flex justify-end mb-5">
         <img width="150" src="./V&R/logo.png" alt="">
     </div>
 
@@ -84,9 +84,9 @@
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold col-span p-2">Código Postal:</p>
-                <p class=" p-2">{{$company->post_code}}</p>
+                <p class="p-2">{{$company->post_code}}</p>
                 <p class="border-r-2 border-l-2 border-black font-semibold col-span p-2">Población:</p>
-                <p class="col-span-10 p-2">{{$company->population}}</p>
+                <p class="col-10 p-2">{{$company->population}}</p>
                 <p class="border-r-2 border-l-2 border-black font-semibold col-span p-2">Provincia:</p>
                 <p class="col-span-10 p-2">{{$company->province->name}}</p>
             </div>
@@ -98,7 +98,7 @@
             </div>
             <div class="border-t-2 border-black grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black font-semibold col-span p-2"><strong>Swift BIC</strong> (puede contener 8 u 11 posiciones):</p>
-                <p class="col-span-10 p-2">(Swift BIC)</p>
+                <p class="col-span-10 p-2"></p>
             </div>
             <p class="p-2 border-t-2 border-black font-semibold"><strong>Número de cuenta – IBAN</strong>: {{$company->iban}}</p>
         </article>
@@ -108,21 +108,21 @@
             <div class="grid grid-cols grid-flow-col">
                 <p class="border-r-2 border-black bg-green-100 text-green-900 p-2 font-bold">Tipo de pago: </p>
                 <p class="my-auto border-black border-r-2 p-2 italic text-green-900 font-bold">Pago recurrente</p>
-                <p class="my-auto p-2"></p>
+                <p class="my-auto p-2">X</p>
                 <p class="my-auto border-black border-r-2 border-l-2 p-2 italic text-green-900 font-bold">Pago único</p>
                 <p class="my-auto p-2"></p>
             </div>
         </article>  
 
         <!-- FIRMA -->
-        <article class="border border-1 border-black mt-5">
+        <article class="container border border-1 border-black mt-5">
             <p class="bg-green-100 text-green-900 font-bold p-2">Firma:</p>
-            <div class="grid grid-cols grid-flow-col border-t-2 border-black">
-                <div class="col-span grid grid-cols grid-flow-col ">
+            <div class="row border-t-2 border-black">
+                <div class="col-span d-flex">
                     <p class="text-green-900 font-bold border-r-2 border-black p-2">Fecha:</p>
                     <p class="p-2 border-black border-r-2">{{$fechaActual}}</p>
                 </div>
-                <div class="col-span-10 grid grid-cols grid-flow-col ">
+                <div class="col-10 d-flex">
                     <p class="text-green-900 font-bold border-r-2 border-black p-2">Localidad:</p>
                     <p class="p-2">SANLUCAR DE BARRAMEDA</p>
                 </div>
