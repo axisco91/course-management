@@ -21,6 +21,12 @@ use Illuminate\Support\Facades\Storage;
 use Mockery\Exception;
 use Barryvdh\DomPDF\Facade\Pdf;
 use setasign\Fpdi\Fpdi;
+use Illuminate\Support\Facades\Log;
+use App\Models\TrainingContract;
+use App\Models\Occupation;
+use App\Models\Company;
+use App\Models\CompanyActivity;
+use App\Models\LevelStudy;
 
 class DocumentStudentController extends BaseController
 {
@@ -157,85 +163,70 @@ class DocumentStudentController extends BaseController
             }
         }
     }
-
     public function send(Request $request) {
+        Log::info('send method called with request: ', $request->all());
+    
         $student = Student::where('id', $request->student_id)->first();
         if ($student) {
+            Log::info('Student found with id: ' . $request->student_id);
+    
             $documentStudent = DocumentStudent::where('document_id', $request->document_id)
                 ->where('student_id', $request->student_id);
-
+    
             if ($request->training_contract_id) {
                 $documentStudent = $documentStudent->where('training_contract_id', $request->training_contract_id);
             }
-
+    
             $documentStudent = $documentStudent->first();
-            if (!$documentStudent) {
+            if ($documentStudent) {
+                Log::info('DocumentStudent found with id: ' . $documentStudent->id);
+            } else {
+                Log::info('No DocumentStudent found, creating new one');
+    
                 $document = Document::where('id', $request->document_id)->first();
-                $data = [
-                    'document_id' => $document->id,
-                    'student_id' => $request->student_id,
-                    'training_contract_id' => isset($request->training_contract_id) ? $request->training_contract_id : null,
-                    'name' => $document->name.'_'.$student->name.'_'.$student->surname,
-                    'document_name' => 'pdf/'.$document->name.'_'.$student->name.'_'.$student->surname.'.pdf'
-                ];
-                $documentStudent = $this->documentStudentService->create($data);
-            }
-            try {
-                Mail::getSwiftMailer()
-                    ->getTransport()
-                    ->setUsername('zona@avzformacion.com')
-                    ->setPassword('Avz.2021');
-                Mail::to($student->email)->send(new SignDocument($documentStudent->name, $documentStudent->key));
-                return response()->json([
-                    'status' => 200
-                ]);
-            } catch(Exception $e) {
-                return response()->json([
-                    'status' => 400,
-                    'message' => $e->getMessage()
-                ]);
-            }
+                if ($document) {
+                    Log::info('Document found with id: ' . $request->document_id);
+                } else {
+                    Log::error('No Document found with id: ' . $request->document_id);
+                    return response()->json([
+                        'status' => 400,
+                        'message' => 'No Document found with id: ' . $request->document_id
+                    ]);
+                }
+
+            $data = [
+                'document_id' => $document->id,
+                'student_id' => $request->student_id,
+                'training_contract_id' => isset($request->training_contract_id) ? $request->training_contract_id : null,
+                'name' => $document->name.'_'.$student->name.'_'.$student->surname,
+                'document_name' => 'pdf/'.$document->name.'_'.$student->name.'_'.$student->surname.'.pdf'
+            ];
+            $documentStudent = $this->documentStudentService->create($data);
         }
-        return response()->json([
-            'status' => 400,
-            'message' => 'Error al enviar correo'
-        ]);
-    }
-
-    public function studentViewPdf($key) {
-
-        // Obtenemos el documento del alumno
-        $documentStudent = DocumentStudent::where('key', $key)->first();
-        if ($documentStudent) {
-
-            if ($documentStudent->date_signed) {
-                return response()->json([
-                    'status' => 200,
-                    'pdfUrl' => url('storage/' . $documentStudent->document_name),
-                    'signed' => true
-                ]);
-            }
-
-            $document = Document::find($documentStudent->document_id);
-            if ($document->blade) {
-                $pdf = PDF::loadView($document->blade);
-
-                Storage::disk('public')->put($documentStudent->document_name, $pdf->output());
-
-                // Return the URL to access the saved PDF
-                return response()->json([
-                    'status' => 200,
-                    'pdfUrl' => url('storage/' . $documentStudent->document_name),
-                ]);
-            }
-
-        } else {
+        try {
+            Mail::getSwiftMailer()
+                ->getTransport()
+                ->setUsername('zona@avzformacion.com')
+                ->setPassword('Avz.2021');
+            Mail::to($student->email)->send(new SignDocument($documentStudent->name, $documentStudent->key));
+            Log::info('Mail sent to: ' . $student->email);
             return response()->json([
-                'status' => 404,
-                'message' => 'No existe documento'
+                'status' => 200
+            ]);
+        } catch(Exception $e) {
+            Log::error('Error sending mail: ', $e->getMessage());
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
             ]);
         }
     }
+    Log::error('No Student found with id: ' . $request->student_id);
+    return response()->json([
+        'status' => 400,
+        'message' => 'Error al enviar correo'
+    ]);
+}
 
     public function signPdf(Request $request)
     {
@@ -264,6 +255,70 @@ class DocumentStudentController extends BaseController
                 'signed' => true
             ]);
         } else {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No existe documento'
+            ]);
+        }
+    }
+
+    // public function testPdf($viewName){
+    //     //cargamos la vista blade
+    //     $mepresa = Student::first();
+        
+    //     $pdf = PDF::loadView($viewName, ['student' => $student]);
+    //     //devolvemos el pdf como una respuesta de descarga
+    //     return $pdf->download('test.pdf');
+    // }
+
+    public function testPdf($viewName) {
+        // Cargamos la vista Blade
+        $trainingContract = TrainingContract::first();
+        $occupation = Occupation::find($trainingContract->occupation_id);
+        $companies = Company::find($trainingContract->company_id);
+        $student = Student::find($trainingContract->student_id);
+        $student->levelStudy = LevelStudy::find($student->level_study_id);
+        $companies->companyActivity = CompanyActivity::find($companies->company_activity_id);
+        $pdf = PDF::loadView($viewName,
+        ['occupation'=>$occupation,
+            'trainingContract' => $trainingContract,
+            'companies' => $companies,
+            'student' => $student,
+            'ocupation' => $occupation]);
+        // Devolvemos el PDF como una respuesta de descarga
+        return $pdf->download('test.pdf');
+    }
+
+    public function studentViewPdf($key, $viewName) {
+        Log::info('studentViewPdf method called with key: ' . $key);
+        // Obtenemos el documento del alumno
+        $documentStudent = DocumentStudent::where('key', $key)->first();
+        if ($documentStudent) {
+            Log::info('DocumentStudent found with key: ' . $key);
+            if ($documentStudent->date_signed) {
+                Log::info('DocumentStudent already signed');
+                return response()->json([
+                    'status' => 200,
+                    'pdfUrl' => url('storage/' . $documentStudent->document_name),
+                    'signed' => true
+                ]);
+            }
+            // Obtenemos el estudiante
+            $student = Student::find($documentStudent->student_id);
+            Log::info('Student found with id: ' . $documentStudent->student_id);
+            // Cargamos la vista Blade con los datos del estudiante
+            $pdf = PDF::loadView($viewName, ['student' => $student]);
+            Log::info('PDF generated from view');
+            // Guardamos el PDF en el sistema de archivos
+            Storage::disk('public')->put($documentStudent->document_name, $pdf->output());
+            Log::info('PDF saved to storage');
+            // Devolvemos la URL para acceder al PDF guardado
+            return response()->json([
+                'status' => 200,
+                'pdfUrl' => url('storage/' . $documentStudent->document_name),
+            ]);
+        } else {
+            Log::info('No DocumentStudent found with key: ' . $key);
             return response()->json([
                 'status' => 404,
                 'message' => 'No existe documento'

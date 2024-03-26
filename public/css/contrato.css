@@ -1,0 +1,135 @@
+h1 {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 15px;
+}
+
+h3{
+    font-size: 12px;
+    font-weight: bold;
+}
+
+p,ul,ol,li {
+    font-size: 11px;
+}
+.small-text li {
+    font-size: 8.5px;
+}
+
+.no-line-break {
+    display: inline;
+}
+
+.no-margin-bottom {
+    margin-bottom: 0px;
+}
+
+.radio-group {
+    display: inline-block; /* Hace que el grupo de radio sea en línea */
+    vertical-align: middle; /* Alinea verticalmente con el texto */
+}
+
+.radio-label {
+    display: inline-block; /* Hace que la etiqueta del radio sea en línea */
+    vertical-align: middle; /* Alinea verticalmente con el radio button */
+    margin-left: 5px; /* Agrega un pequeño espacio entre el radio button y el texto */
+}
+
+.radio-text {
+    margin-bottom: 0; /* Elimina el margen inferior del texto */
+}
+
+.empty-paragraph {
+    background-color: #f1f4ff;
+    height: 20px;
+    margin-bottom: 3px;
+}
+
+.no-bullets {
+    list-style-type: none; 
+    padding-left: 0;
+}
+hr {
+    border-color: black;
+}
+
+.fixed-height-img-mtes {
+    height: 100px;
+}
+.fixed-height-img-mtes2 {
+    height: 80px;
+}
+.fixed-height-img-mtes3 {
+    height: 50px;
+}
+
+.fixed-height-img-sepe {
+    height: 50px;
+}
+
+.fixed-height-img-sepe2 {
+    height: 40px;
+}
+
+.fixed-height-img-ue {
+    height: 100px;
+}
+
+.fixed-height-img-ue2 {
+    height: 80px;
+}
+
+.dots {
+    background-color: #f1f4ff;
+}
+
+.borde-redondeado {
+    border-radius: 10px;
+    border: 1px solid black;
+    padding: 10px;
+}
+
+.border-div {
+    border: 1px solid black;
+}
+
+.radio-label {
+    margin-right: 10px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+td{
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+    font-size: 14px;
+}
+.tabla-estrecha {
+    width: 80%;
+    border-collapse: collapse;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+.row{
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+
