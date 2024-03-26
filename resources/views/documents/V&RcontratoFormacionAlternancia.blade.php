@@ -11,78 +11,70 @@
 <body>
     <!-- PRIMERA PÁGINA -->
     <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-8">
-                <img src="img-contrato/mtes.png" alt="mtes" class="img-fluid fixed-height-img-mtes">
-            </div>
+    <div class="row">
+        <div class="col-8">
+            <img src="img-contrato/mtes.png" alt="mtes" class="img-fluid fixed-height-img-mtes">
+        </div>
 
-            <div class="col-md-4">
-                <div class="row">
-                    <div class="col-md-12">
-                        <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe">
-                    </div>
-                    <div class="col-md-12">
-                        <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue">
-                    </div>
+        <div class="col-4">
+            <div class="row">
+                <div class="col-12">
+                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe">
+                </div>
+                <div class="col-12">
+                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue">
                 </div>
             </div>
         </div>
+    </div>
         <h1>CONTRATO DE TRABAJO DE FORMACIÓN EN ALTERNACIA</h1>
 
         <h1 class="mt-4">DATOS DE LA EMPRESA</h1>
         <div class="row">
             <div class="col-md-2 border-div">
                 <p class="no-margin-bottom"> CIF/NIF/NIE</p>
-                <p class="empty-paragraph">{{$companies->nif}}</p>
+                <p class="empty-paragraph"></p>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-5 border-div">
                 <p class="no-margin-bottom"> D./DÑA.</p>
-                <p class="empty-paragraph">{{$companies->legal_representative}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-2 border-div">
                 <p class="no-margin-bottom"> NIF/NIE</p>
-                <p class="empty-paragraph">{{$companies->dni_legal_representative}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-5 border-div">
                 <p class="no-margin-bottom"> EN CONCEPTO (1)</p>
-                <p class="empty-paragraph">
-                    <?php
-                        if($companies->company_type_id=="Autónomo"){
-                            echo "TITULAR";
-                        }else{
-                            echo "ADMINISTRADOR/A";
-                        }
-                    ?>
-                </p>
+                <p class="empty-paragraph"></p>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-6 border-div">
                 <p class="no-margin-bottom"> NOMBRE O RAZÓN SOCIAL DE LA EMPRESA</p>
-                <p class="empty-paragraph">{{$companies->name}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-6 border-div">
                 <p class="no-margin-bottom"> DOMICILIO SOCIAL</p>
-                <p class="empty-paragraph">{{$companies->address}}</p>
+                <p class="empty-paragraph"></p>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-4 border-div">
                 <p class="no-margin-bottom"> PAIS</p>
-                <p class="empty-paragraph">ESPAÑA</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-6 border-div">
                 <p class="no-margin-bottom"> MUNICIPIO</p>
-                <p class="empty-paragraph">{{$companies->population}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-2 border-div">
                 <p class="no-margin-bottom"> C.POSTAL</p>
-                <p class="empty-paragraph">{{$companies->post_code}}</p>
+                <p class="empty-paragraph"></p>
             </div>
         </div>
 
@@ -91,15 +83,15 @@
         <div class="row">
             <div class="col-md-2 border-div">
                 <p class="no-margin-bottom"> RÉGIMEN</p>
-                <p class="empty-paragraph">{{$companies->regimen}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-4 border-div">
                 <p class="no-margin-bottom"> CÓDIGO CUENTA COTIZACIÓN</p>
-                <p class="empty-paragraph">{{$companies->quote}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-6 border-div">
                 <p class="no-margin-bottom"> ACTIVIDAD ECONÓMICA</p>
-                <p class="empty-paragraph">{{$companies->companyActivity->name}}</p>
+                <p class="empty-paragraph"></p>
             </div>
         </div>
 
@@ -107,11 +99,11 @@
         <div class="row">
             <div class="col-md-5 border-div">
                 <p class="no-margin-bottom"> PAÍS</p>
-                <p class="empty-paragraph">ESPAÑA</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-7 border-div">
                 <p class="no-margin-bottom"> MUNICIPIO</p>
-                <p class="empty-paragraph">{{$trainingContract->center_of_work}}</p>
+                <p class="empty-paragraph"></p>
             </div>
         </div>
 
@@ -119,51 +111,51 @@
         <div class="row">
             <div class="col-md-3 border-div">
                 <p class="no-margin-bottom"> D./DÑA.</p>
-                <p class="empty-paragraph">{{$student->name}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-2 border-div">
                 <p class="no-margin-bottom"> NIF/NIE</p>
-                <p class="empty-paragraph">{{$student->dni}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-3 border-div">
                 <p class="no-margin-bottom"> FECHA NACIMIENTO</p>
-                <p class="empty-paragraph">{{$student->date_of_birth}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-4 border-div">
                 <p class="no-margin-bottom"> Nº AFILIACIÓN SEGURIDAD SOCIAL</p>
-                <p class="empty-paragraph">{{$student->social_security_number}}</p>
+                <p class="empty-paragraph"></p>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-7 border-div">
                 <p class="no-margin-bottom"> NIVEL FORMATIVO</p>
-                <p class="empty-paragraph">{{$student->levelStudy->name}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-5 border-div">
                 <p class="no-margin-bottom"> NACIONALIDAD</p>
-                <p class="empty-paragraph">{{$student->nationality}}</p>
+                <p class="empty-paragraph"></p>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-7 border-div">
                 <p class="no-margin-bottom"> MUNICIPIO DEL DOMICILIO</p>
-                <p class="empty-paragraph">{{$student->population}}</p>
+                <p class="empty-paragraph"></p>
             </div>
             <div class="col-md-5 border-div">
                 <p class="no-margin-bottom"> PAÍS DOMICILIO</p>
-                <p class="empty-paragraph">ESPAÑA</p>
+                <p class="empty-paragraph"></p>
             </div>
         </div>
 
         <p class="mt-2">
             con la asistencia legal, en su caso, de D./Dña.
-            <span class="dots">{{$student->legal_guardian_dni}}........................................................................................................................................
+            <span class="dots">.....................................................................................................................................................................
             </span> con NIF/NIE
-            <span class="dots">{{$student->legal_guardian_name}}...............................................
+            <span class="dots">...............................................
             </span>, en calidad de (2)
-            <span class="dots">Padre, madre, tutor/a o persona o institución que le tenga a su cargo..................................................................................
+            <span class="dots">.................................................................................
             </span>
         </p>
 
@@ -180,14 +172,14 @@
 
         <div class="row">
             <div class="radio-group">
-                <input type="radio" id="opcion1" name="trabajador" value="mayor_16_30" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
+                <input type="radio" id="opcion1" name="trabajador" value="mayor_16_30">
             </div>
             <label for="opcion1" class="radio-label"><p>Mayor de 16 hasta 30 años inclusive.</p></label>
         </div>
 
         <div class="row">
             <div class="radio-group">
-                <input type="radio" id="opcion2" name="trabajador2" value="estudios_universitarios" {{$trainingContract->professional_certificate == 1 ? 'checked' : ''}}>
+                <input type="radio" id="opcion2" name="trabajador" value="estudios_universitarios">
             </div>
             <label for="opcion2" class="radio-label"><p>Trabajador/a contratado/a en el marco de estudios universitarios, formación profesional o certificados de profesionalidad nivel 3. (3)</p></label>
         </div>
@@ -195,29 +187,28 @@
 
         <div class="row">
             <div class="radio-group">
-                <input type="radio" id="opcion3" name="trabajador3" value="discapacidad" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
+                <input type="radio" id="opcion3" name="trabajador" value="discapacidad">
             </div>
-            <label for="opcion3" class="radio-label"><p>Trabajador/a con discapacidad(3) (4).</p></label>
+                <label for="opcion3" class="radio-label"><p>Trabajador/a con discapacidad(3) (4).</p></label>
         </div>
-        
 
         <div class="row">
             <div class="radio-group">
-                <input type="radio" id="opcion4" name="trabajador4" value="alumnos" {{$trainingContract->specialty == 1 ? 'checked' : ''}}>
+                <input type="radio" id="opcion4" name="trabajador" value="discapacidad">
             </div>
             <label for="opcion4" class="radio-label"><p>Alumnos/as participantes en un programa público de empleo y formación al amparo de lo previsto en el artículo 13.3.b) de la Ley 3/2023, de 28 de febrero (3).</p></label>
         </div>
 
         <div class="row">
             <div class="radio-group">
-                <input type="radio" id="opcion5" name="trabajador5" value="exclusion_social" {{$trainingContract->social_exclusion == 1 ? 'checked' : ''}}>
+                <input type="radio" id="opcion5" name="trabajador" value="exclusion_social">
             </div>
             <label for="opcion5" class="radio-label"><p>Trabajador/a en situación de exclusión social, y el contrato se realiza en una empresa de inserción (3).</p></label>
         </div>
 
         <div class="row">
             <div class="radio-group">
-                <input type="radio" id="opcion6" name="trabajador6" value="capacidad_limite">
+                <input type="radio" id="opcion6" name="trabajador" value="capacidad_limite">
             </div>
             <label for="opcion6" class="radio-label"><p>Trabajador/a con capacidad intelectual límite (5).</p></label>
         </div>
@@ -263,9 +254,8 @@
         <br>
 
         <ul class="no-bullets">
-            <li>a) Actividad laboral (6) <span class="dots">{{$occupation->name}} </span>
-                	CNO: <span class="dots">{{(substr($occupation->cno, 0, 4))}} </span> incluido en el grupo profesional (7) <span class="dots">....................................................................................................</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$companies->address}} ({{$companies->post_code}} {{$companies->population}}).......................................................................................................... </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots"> {{$student->legal_guardian_name}}......</span> , cuya cualificación profesional es (9) <span class="dots">........................................................................................................................................................................................</span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} .........................................</span></li>
-            <li>b) La actividad formativa vinculada al contrato es <span class="dots">{{$occupation->name}}	</span>, de acuerdo con el convenio de colaboración suscrito por la empresa con el centro o entidad formativa y que se incorpora como anexo en este contrato (10).</li>
+            <li>a) Actividad laboral (6) <span class="dots">.............................................................................................. </span>	CNO: <span class="dots">............. </span> incluido en el grupo profesional (7) <span class="dots">....................................................................................................</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots">................................................................................................................................................................................... </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). , cuya cualificación profesional es (9) <span class="dots">........................................................................................................................................................................................</span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">.....................................................................................................................................................................</span></li>
+            <li>b) La actividad formativa vinculada al contrato es <span class="dots">.........................................................................................	</span>, de acuerdo con el convenio de colaboración suscrito por la empresa con el centro o entidad formativa y que se incorpora como anexo en este contrato (10).</li>
         </ul>
 
         <h3 class="no-line-break">SEGUNDA: </h3>
@@ -916,7 +906,7 @@
 
         <p>Y para que conste, se extiende este contrato por triplicado ejemplar en el lugar y fecha a continuación indicados, firmando las partes interesadas.</p>
 
-        <p>En <span class="dots">{{$companies->population}} .......................................................</span> <span class="dots">a .................................... </span> de <span class="dots">.......................................................</span> de <span class="dots">........................</span></p>
+        <p>En <span class="dots">..................................................................................</span> <span class="dots">a .................................... </span> de <span class="dots">.......................................................</span> de <span class="dots">........................</span></p>
    
         <div class="row mx-5" style="height:250px">
             <div class="col-md-4">
