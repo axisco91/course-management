@@ -332,13 +332,13 @@
             </div>
             <div>
                 <p class="text-green-900 font-bold p-3">Firma del deudor:</p>
-                <p class="firma p-4">(Firma del deudor)</p>
+                <p class="firma p-4">           </p>
             </div>
         </article>
 
         <div class="mt-5">
             <p class="text-green-900">Todos los campos han de ser cumplimentados obligatoriamente.</p>
-            <p class="text-green-900">Una vez firmada eta orden de domiciliación debe ser enviada al acreedor para su custodia.</p>
+            <p class="text-green-900">Una vez firmada esta orden de domiciliación debe ser enviada al acreedor para su custodia.</p>
         </div>
     </section>
 </body>

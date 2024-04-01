@@ -27,7 +27,8 @@
             position: fixed; 
             top: 0%; 
             right: 5%;
-            width: 25%; 
+            width: 25%;
+            margin-bottom: 2%;
         }
 
         .bg-green-100{
@@ -123,30 +124,31 @@
         }
     </style>
 </head>
-<body class="p-5">
+<body class="p-2">
 
-    <div class="container1 mb-5">
-        <p class="p-2 titulo bg-green-900 text-white text-center">CONTRATO DE FORMACIÓN EN ALTERNANCIA</p>
-        <img src="./V&R/logo.png" alt="">
+    <div class="container1 mb-3">
+        <p class="p-1 titulo bg-green-900 text-white text-center">CONTRATO DE FORMACIÓN EN ALTERNANCIA</p>
+        <img src="./V&R/logo.png" alt="" style="width: 16%;">
     </div>
 
-    <div>
-        <h1 class="text-center text-green-800 m-2">PLANIFICACIÓN DE LA ACTIVIDAD FORMATIVA</h1>
+    <div style="margin-top:10px">
+        <h1 class="text-left text-green-800 m-2" style="font-size: 16px;">PLANIFICACIÓN DE LA ACTIVIDAD FORMATIVA</h1>
         <hr>
         <section class="mt-3">
-            <div class="first">
-                <p class="text-green-900 ml-2">OCUPACIÓN: <span class="text-xs text-green-900 font-normal">{{$occupation->name}}</span></p>
-                <p class="text-green-900 ml-2">ALUMNO/A: <span class="text-xs text-green-900 font-normal">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</span></p>
-                <p class="dni text-green-900 ml-2">DNI: <span class="text-xs text-green-900 font-normal">{{$trainingContract->student->dni}}</span></p>
-            </div>
-            <div class="second">
-                <p class="text-green-900 ml-2">Fecha inicio del contrato: <span class="text-xs text-green-900 font-normal">{{$trainingContract->beginning}}</span></p>
-                <p class="text-green-900 final_contract ml-2">Fecha de fin de contrato: <span class="text-xs text-green-900 font-normal">{{$trainingContract->end}}</span></p>
-                <p class="text-green-900 ml-2">Fecha de inicio actividad formativa: <span class="text-xs text-green-900 font-normal">{{$trainingContract->beginning_formation}}</span></p>
-                <p class="text-green-900 final_formative_activity ml-2">Fecha de fin actividad formativa: <span class="text-xs text-green-900 font-normal">{{$trainingContract->end_formation}}</span></p>
-            </div>
-
-            <table class="mt-5 table table-bordered border-green-900 border border-2">
+        <div class="first col-12" style="display: flex; justify-content: space-between; font-size: 8px;">
+            <p class="text-green-900 ml-1">OCUPACIÓN: <span class="text-green-900 font-normal">{{$occupation->name}}</span></p>
+            <p class="text-green-900 ml-1">ALUMNO/A: <span class="text-green-900 font-normal">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</span></p>
+            <p class="dni text-green-900 ml-1">DNI: <span class="text-green-900 font-normal">{{$trainingContract->student->dni}}</span></p>
+        </div>
+        <div class="second col-12" style="display: flex; justify-content: space-between; font-size: 8px;">
+            <p class="text-green-900 ml-1">Fecha inicio del contrato: <span class="text-green-900 font-normal">{{$trainingContract->beginning}}</span></p>
+            <p class="text-green-900 final_contract ml-1">Fecha de fin de contrato: <span class="text-green-900 font-normal">{{$trainingContract->end}}</span></p>
+            <p class="text-green-900 ml-1">Fecha de inicio actividad formativa: <span class="text-green-900 font-normal">{{$trainingContract->beginning_formation}}</span></p>
+            <p class="text-green-900 final_formative_activity ml-1">Fecha de fin actividad formativa: <span class="text-green-900 font-normal">{{$trainingContract->end_formation}}</span></p>
+        </div>
+    </section>
+        <section class="mt-3">
+            <table class="mt-3 table table-sm table-bordered border-green-900 border border-2">
                 <tbody class="text-center">
                     <tr>
                         <th colspan="7" class="px-6 py-3 text-xs border-2 border-dark text-green-900 font-bold">
@@ -174,7 +176,7 @@
                     <tr class="text-green-900 border-bottom border-2 border-green-100 font-bold">
                         <td class="border-r-2 border-green-100">{{$e->training_action->codigo}}</td>
                         <td class="border-r-2 border-green-100">{{$e->training_action->name}}</td>
-                        <td class="border-r-2 border-green-100">{{$e->training_contract->center_of_work}}</td>
+                        <td class="border-r-2 border-green-100">{{$e->training_contract->provider->name}}</td>
                         <td class="border-r-2 border-green-100">{{$e->training_contract->beginning_formation}} / {{$e->training_contract->beginning_formation}}</td>
                         <td class="border-r-2 border-green-100">{{$company->weekly_hours}}</td>
                         <td class="border-r-2 border-green-100">{{$daysWeek}}</td>

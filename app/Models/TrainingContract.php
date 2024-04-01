@@ -42,7 +42,10 @@ class TrainingContract extends Model
     {
         return $this->hasMany(TrainingContractsExcludedDay::class);
     }
-
+    public function provider()
+    {
+        return $this->belongsTo(Provider::class);
+    }
     public function scopeGetTrainingContracts($query){
         return $query->select('training_contracts.*',
             'companies.name as company_name',

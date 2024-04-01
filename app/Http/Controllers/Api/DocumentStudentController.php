@@ -229,7 +229,7 @@ class DocumentStudentController extends BaseController
     ]);
 }
 
-public function studentViewPdf($key, $viewName) {
+public function studentViewPdf($key, $viewName, TrainingContract $trainingContract) {
     Log::info('studentViewPdf method called with key: ' . $key);
 
     // Obtenemos el documento del alumno
@@ -251,7 +251,32 @@ public function studentViewPdf($key, $viewName) {
         Log::info('Student found with id: ' . $documentStudent->student_id);
 
         // Cargamos la vista Blade con los datos del estudiante
-        $pdf = PDF::loadView($viewName, ['student' => $student]);
+        $occupation = Occupation::find($trainingContract->occupation_id); 
+        $company = Company::find($trainingContract->company_id); 
+        $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);  
+        $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
+        $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
+
+        $daysWeek = 0; 
+        if($trainingContract->monday == 1) $daysWeek++; 
+        if($trainingContract->tuesday == 1) $daysWeek++; 
+        if($trainingContract->wednesday == 1) $daysWeek++; 
+        if($trainingContract->thursday == 1) $daysWeek++; 
+        if($trainingContract->friday == 1) $daysWeek++; 
+        if($trainingContract->saturday == 1) $daysWeek++; 
+        if($trainingContract->sunday == 1) $daysWeek++; 
+        $fechaActual = Date::now()->format('d/m/Y');
+
+        $pdf = PDF::loadView($viewName, ['student' => $student, 'occupation'=>$occupation, 
+        'trainingContract' => $trainingContract, 
+        'company'=>$company, 
+        'elements' => $trainingElements, 
+        'daysWeek' => $daysWeek, 
+        'fechaActual' => $fechaActual,
+        'monthlyFormationHours' => $monthlyFormationHours,
+        'bonus' => $bonus, 
+        'sumaHoras' => 0]);
+
         Log::info('PDF generated from view');
 
         // Guardamos el PDF en el sistema de archivos
@@ -306,17 +331,14 @@ public function studentViewPdf($key, $viewName) {
         }
     }
 
-    public function testPdf($viewName) {
-        // Cargamos la vista Blade
-        $trainingContract = TrainingContract::first(); 
-        // para el contrato de formación
-        // $trainingContract = TrainingContract::find(33); 
+    public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait') {
+        $trainingContract->load('provider');
         $occupation = Occupation::find($trainingContract->occupation_id); 
         $company = Company::find($trainingContract->company_id); 
         $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);  
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
         $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
-
+    
         $daysWeek = 0; 
         if($trainingContract->monday == 1) $daysWeek++; 
         if($trainingContract->tuesday == 1) $daysWeek++; 
@@ -326,8 +348,7 @@ public function studentViewPdf($key, $viewName) {
         if($trainingContract->saturday == 1) $daysWeek++; 
         if($trainingContract->sunday == 1) $daysWeek++; 
         $fechaActual = Date::now()->format('d/m/Y');
-
-                
+    
         $pdf = PDF::loadView($viewName, ['occupation'=>$occupation, 
         'trainingContract' => $trainingContract, 
         'company'=>$company, 
@@ -337,8 +358,10 @@ public function studentViewPdf($key, $viewName) {
         'monthlyFormationHours' => $monthlyFormationHours,
         'bonus' => $bonus, 
         'sumaHoras' => 0]);
+
+        $pdf->setPaper('a4', $orientation);
         
         // Devolvemos el PDF como una respuesta de descarga
         return $pdf->download('test.pdf');
-    }   
+    }
 }
