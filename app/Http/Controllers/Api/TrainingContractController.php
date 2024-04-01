@@ -502,6 +502,11 @@ class TrainingContractController extends BaseController
         ]);
     }
     
+    /**
+     * Obtiene las horas de formación mensuales
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getMonthlyFormationHours($id) {
         $trainingContract = new TrainingContract();
         return $trainingContract->calculateMonthlyFormationHours($id);
