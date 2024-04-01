@@ -97,13 +97,13 @@
                 Tutor/a de la empresa – D./Dña. ____ {{$trainingContract->company_tutor}} _________________________ Horas mensuales _________ NIF/NIE ___ {{$trainingContract->company_tutor_dni}}________
             </p>
             <p>
-                Cualificación y/o experiencia profesional adecuada adecuada
+                Cualificación y/o experiencia profesional adecuada
                 <label for="opcion1">
-                    <input type="checkbox" id="opcion1" name="opcion1" {{ $companies->company_type_id == 1 ? 'checked' : '' }} onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion1" name="opcion1">
                 </label>
                  Empresa con menos de 5 trabajadores
                  <label for="opcion2">
-                    <input type="checkbox" id="opcion2" name="opcion2" onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion2" name="opcion2" {{ $companies->company_type_id == 1 ? 'checked' : '' }}>
                  </label>
             </p>
         </div>
@@ -117,19 +117,19 @@
             <p>Reúne requisitos de acceso a la Formación de este contrato</p>
             <p>Inscrito/a en el sistema Nacional de Garantía Juvenil
                 <label for="opcion3">
-                    <input type="checkbox" id="opcion3" name="opcion3" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }} onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion3" name="opcion3" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
                  </label>
             </p>
             <p>
                 Trabajador/a con discapacidad
                 <label for="opcion4">
-                    <input type="checkbox" id="opcion4" name="opcion4" {{ $trainingContract->disabled == 1 ? 'checked' : '' }} onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion4" name="opcion4" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
                  </label>
             </p>
             <p>
                 Trabajador/a en situación de exclusión social en empresas de inserción
                 <label for="opcion5">
-                    <input type="checkbox" id="opcion5" name="opcion5" {{ $trainingContract->social_exclusion == 1 ? 'checked' : '' }} onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion5" name="opcion5" {{ $trainingContract->social_exclusion == 1 ? 'checked' : '' }}>
                  </label>
             </p>
         </div>
@@ -139,10 +139,10 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA:</h1>
-            <p> Identificador contrato n.º _______________________ (a consignar una vez comunicada la formalización del contrato)</p>
-            <p>Fecha de inicio: ____________</p>
-            <p>Puesto de trabajo u ocupación: ______________________________ Cód. CNO _______________</p>
-            <p>Provincia del centro de trabajo: _____________________________ Horas de contrato, según convenio: ______________ </p>
+            <p> Identificador contrato n.º {{$trainingContract->number_cfa}} ____________________ (a consignar una vez comunicada la formalización del contrato)</p>
+            <p>Fecha de inicio: {{$trainingContract->beginning}}____________</p>
+            <p>Puesto de trabajo u ocupación: {{$occupation->name}} ______________________________ Cód. CNO {{$occupation->cno}} ______________</p>
+            <p>Provincia del centro de trabajo: {{$province->name}} ____________________________ Horas de contrato, según convenio: {{$trainingContract->formation_hours}} ______________ </p>
             <p>Convenio aplicable _____________________________________________________________________________________________</p>
         </div>
     </div>
@@ -154,10 +154,10 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DEL CENTRO DE FORMACIÓN:</h1>
-            <p>Razón social _______________________ CIF/NIF/NIE ________________________</p>
-            <p>Dirección ____________________ CP _________ Municipio ___________________</p>
-            <p>Provincia ______________________________ Teléfono _______________ Correo electrónico ________________</p>
-            <p>D./Dña. _____________________________ En concepto de  ___________  NIF/NIE __________</p>
+            <p>Razón social {{$companies->name}} _______________________ CIF/NIF/NIE {{$companies->nif}} ______________________</p>
+            <p>Dirección {{$companies->address}} ____________________ CP {{$companies->post_code}} _________ Municipio {{$companies->population}} ___________________</p>
+            <p>Provincia {{$province->name}} ______________________________ Teléfono {{$companies->telephone}} _______________ Correo electrónico {{$companies->email}} _______________</p>
+            <p>D./Dña. {{$companies->legal_representative}} _____________________________ En concepto de (representante) ___________  NIF/NIE {{$companies->dni_legal_representative}} __________</p>
         </div>
     </div>
 </div>
@@ -228,7 +228,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tbody id="bodyTablaEspecialidades">
+                    <?php
+                    $i = 1;
+                    foreach ($trainingActions as $trainingAction) {
+                        echo '<tr>';
+    
+                        echo '<td>' . $i++ . '</td>';
+    
+                        echo '<td>' . $trainingAction->code . '</td>';
+    
+                        echo '<td>' . $trainingAction->name . '</td>';
+
+                        echo '<td>' . $trainingAction->total_hours . '</td>';
+
+                        echo '<td>' . 'TELEFORMACIÓN' . '</td>';
+
+                        echo '<td>' . $trainingAction->webPlatformCode . '</td>';
+
+                        echo '</tr>';
+                    }
+                    ?>
                 </tbody>
             </table>
         </div>
@@ -258,14 +277,14 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Dato 1</td>
-                        <td>Dato 2</td>
-                        <td>Dato 3</td>
+                        <td>1º</td>
+                        <td>{{$trainingContract->percentage_first_year}}%</td>
+                        <td>{{$trainingContract->formative_hours_first_year}}</td>
                     </tr>
                     <tr>
-                        <td>Dato 1</td>
-                        <td>Dato 2</td>
-                        <td>Dato 3</td>
+                        <td>2º</td>
+                        <td>{{$trainingContract->percentage_second_year}}%</td>
+                        <td>{{$trainingContract->formative_hours_second_year}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -285,12 +304,12 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Dato 1</td>
+                        <td>1º</td>
                         <td>Dato 2</td>
                         <td>Dato 3</td>
                     </tr>
                     <tr>
-                        <td>Dato 1</td>
+                        <td>2º</td>
                         <td>Dato 2</td>
                         <td>Dato 3</td>
                     </tr>
@@ -332,54 +351,58 @@
     <h3>
         4.1. DATOS CENTROS Y ACTIVIDAD FORMATIVA
     </h3>
-    <!-- LO IMPLEMENTO CON JS
-    <h3>
-        DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA
-    </h3>
-
     <div class="row">
+        <div class="row">
+            <?php
+            
+            $contenedor = '';
+        
+            foreach ($trainingActions as $trainingAction) {
+                $titulo_representante = ($companies->company_type_id == "Autónomo") ? "TITULAR" : "ADMINISTRADOR/A";
+                $bloqueHTML = '
+                    <div class="col-md-12 mx-2 my-2">
+                        <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
+                        <p>
+                            Formación a impartir: Código ' . $trainingAction->code .' _________________ Denominación: '. $trainingAction->name .' ______________________
+                        </p>
+                        <p>
+                            Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación ' .  $trainingAction->webPlatformCode   .'_____________
+                        </p>
+                        <p>
+                            Nombre Centro: '. $companies->name . ' ________________________ CIF/NIF/NIE '. $companies->nif. ' ___________________
+                        </p>
+                        <p>
+                            URL ____________________________________________________________________
+                        </p>
+                        <p>
+                            Dirección: '.$companies->address.'_______________________ CP: '.$companies->post_code.'_______ Municipio:'.$companies->population.' ____________________
+                        </p>
+                        <p>
+                            Provincia: '.$province->name.' _________ Teléfono: '.$companies->telephone.'  ______________ Correo electrónico: '.$companies->email.' _____________
+                        </p>
+                        <p>
+                            D./Dña.: '.$companies->legal_representative. '________________ en concepto de '. $titulo_representante.'  _____________ NIF/NIE: '.$companies->dni_legal_representative.' ________________
+                        </p>
+                    </div>
+                ';
+                $contenedor .= $bloqueHTML;
+            }
+            echo $contenedor;
+            ?>
+        </div>
+           
+        <div class="col-md-12 d-flex justify-content-center">
+            <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
+        </div>
         <div class="col-md-12 mx-2 my-2">
             <p>
-                Formación a impartir: Código _________________ Denominación: ______________________
-            </p>
-            <p>
-                Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación _____________
-            </p>
-            <p>
-                Nombre Centro: ________________________ CIF/NIF/NIE ___________________
-            </p>
-            <p>
-                URL ____________________________________________________________________
-            </p>
-            <p>
-                Dirección: _______________________ CP: _______ Municipio: ____________________
-            </p>
-            <p>
-                Provincia: _________ Teléfono: _______________ Correo electrónico: _____________
-            </p>
-            <p>
-                D./Dña.: ________________ en concepto de _____________ NIF/NIE: ________________
+                Se medirán aquellos objetivos observables que se correspondan con las diferentes tareas que componen la actividad
+                laboral, de acuerdo con las realizaciones profesionales y según los criterios de realización estandarizados de la empresa.
+                Asociado a la consecución de cada objetivo, se medirán las realizaciones profesionales de las actividades más significativas
+                del puesto de trabajo a desempeñar.
             </p>
         </div>
     </div>
--->
-        <div class="row">
-            <div id="centrosImpartidores">
-            <!-- Aqui llamo al metodo de js -->
-            </div>
-
-            <div class="col-md-12 d-flex justify-content-center">
-                <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
-            </div>
-            <div class="col-md-12 mx-2 my-2">
-                <p>
-                    Se medirán aquellos objetivos observables que se correspondan con las diferentes tareas que componen la actividad
-                    laboral, de acuerdo con las realizaciones profesionales y según los criterios de realización estandarizados de la empresa.
-                    Asociado a la consecución de cada objetivo, se medirán las realizaciones profesionales de las actividades más significativas
-                    del puesto de trabajo a desempeñar.
-                </p>
-            </div>
-        </div>
         <h3>
             4.2. MECANISMOS DE COORDINACIÓN
         </h3>
@@ -458,7 +481,7 @@
     </h3>
     <div class="col-md-12 mx-2 my-2">
         <ul>
-            <li>El centro de trabajo se encuentra en: _______________________________</li>
+            <li>El centro de trabajo se encuentra en: {{$trainingContract->center_of_work}} _______________________________</li>
             <li>Son ciertos los datos que se consignan en el presente acuerdo, asumiendo en caso contrario las responsabilidades que pudieran derivarse de su inexactitud.</li>
             <li>Conozco lo establecido en el artículo 11.2 del Estatuto de los Trabajadores y el Real Decreto 1.529/2012, de 8 de noviembre y demás normativas de desarrollo, así como la normativa que afecta a la actividad formativa objeto de esta solicitud.</li>
             <li>Que autorizo/a al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a que acceda a las bases de datos de la Administración General del Estado y de las Administraciones de las Comunidades Autónomas, con garantía de confidencialidad y a los exclusivos efectos de facilitar la verificación de los datos consignados en esta solicitud, manifestando que quedo enterado de la obligación de informar a los Servicios Públicos de Empleo de cualquier variación de los mismos que pudiera producirse.</li>
@@ -467,19 +490,19 @@
         <ul style="list-style-type: none;">
             <li>
                 <label for="opcion6">
-                <input type="checkbox" id="opcion6" name="opcion6" onchange="toggleOption(this)">
+                <input type="checkbox" id="opcion6" name="opcion6" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
                 </label>
                 Personas con discapacidad
             </li>
             <li>
                 <label for="opcion7">
-                    <input type="checkbox" id="opcion7" name="opcion7" onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion7" name="opcion7" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
                 </label>
                     Inscrito en el Sistema Nacional de Garantía
             </li>
             <li>
                 <label for="opcion7">
-                    <input type="checkbox" id="opcion7" name="opcion7" onchange="toggleOption(this)">
+                    <input type="checkbox" id="opcion7" name="opcion7" {{$trainingContract->social_exclusion == 1 ? 'checked' : ''}}>
                 </label>
                 Colectivos en situación de exclusión social y que la empresa contratante es una empresa de inserción
             </li>
@@ -505,9 +528,32 @@
             Y para que conste, se extiende el presente acuerdo para la actividad formativa en el lugar y fecha a
             continuación indicados, firmando las partes.
         </p>
+        <?php
+            $meses = [
+                'January' => 'Enero',
+                'February' => 'Febrero',
+                'March' => 'Marzo',
+                'April' => 'Abril',
+                'May' => 'Mayo',
+                'June' => 'Junio',
+                'July' => 'Julio',
+                'August' => 'Agosto',
+                'September' => 'Septiembre',
+                'October' => 'Octubre',
+                'November' => 'Noviembre',
+                'December' => 'Diciembre'
+            ];
+
+            $nombre_mes = $meses[date('F')];
+            
+            // Obtener el día actual
+            $dia = date('d');
+        ?>
+        
         <p>
-            En ________________________ a ________ de ______________ de 2024
+            En LUCENA ________________________ a <?php echo $dia; ?>____ de <?php echo $nombre_mes; ?> _______ de 2024
         </p>
+        
         <div class="row">
             <div class=col-md-3>
                 <p>
@@ -533,22 +579,22 @@
         <div class="row">
             <div class=col-md-3>
                 <p>
-                    _________________________
+                    {{$student->name}} {{$student->surname}}_________________________
                 </p>
             </div>
             <div class=col-md-3>
                 <p>
-                    _________________________
+                    {{$student->legal_guardian_name}}_________________________
                 </p>
             </div>
             <div class=col-md-3>
                 <p>
-                    _________________________
+                    {{$companies->legal_representative}} _________________________
                 </p>
             </div>
             <div class=col-md-3>
                 <p>
-                    _________________________
+                    {{$trainingContract->company_tutor}}_________________________
                 </p>
             </div>
         </div>
@@ -581,77 +627,6 @@
     </div>
 </div>
 
-
-
-<script>
-    //CHECKBOX
-    function toggleOption(checkbox) {
-        if (checkbox.checked) {
-            console.log('Opción seleccionada:', checkbox.name);
-        } else {
-            console.log('Opción deseleccionada:', checkbox.name);
-        }
-    }
-
-
-    // MULTIPLES TABLAS
-    var tbody = document.getElementById("bodyTablaEspecialidades");
-    var numeroFilas = 5;
-
-    for (var i = 0; i < numeroFilas; i++) {
-        var fila = document.createElement("tr");
-
-        var primerCelda = document.createElement("td");
-        primerCelda.textContent = i + 1;
-        fila.appendChild(primerCelda);
-
-        for (var j = 1; j < 6; j++) {
-            var celda = document.createElement("td");
-            // Rellenar todas las celdas excepto la primera con guiones
-            if (j > 0) {
-                celda.textContent = "_______";
-            }
-            fila.appendChild(celda);
-        }
-
-    // Agregar la fila al tbody
-    tbody.appendChild(fila);
-
-
-    // MULTIPLES PARRAFOS
-    var contenedor = document.getElementById("centrosImpartidores");
-
-    for (var i = 0; i < numeroFilas; i++) {
-        var bloqueHTML = `
-            <div class="col-md-12 mx-2 my-2">
-                <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
-                <p>
-                    Formación a impartir: Código _________________ Denominación: ______________________
-                </p>
-                <p>
-                    Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación _____________
-                </p>
-                <p>
-                    Nombre Centro: ________________________ CIF/NIF/NIE ___________________
-                </p>
-                <p>
-                    URL ____________________________________________________________________
-                </p>
-                <p>
-                    Dirección: _______________________ CP: _______ Municipio: ____________________
-                </p>
-                <p>
-                    Provincia: _________ Teléfono: _______________ Correo electrónico: _____________
-                </p>
-                <p>
-                    D./Dña.: ________________ en concepto de _____________ NIF/NIE: ________________
-                </p>
-            </div>
-        `;
-        contenedor.innerHTML += bloqueHTML;
-    }
-}
-</script>
 
 </body>
 </html>

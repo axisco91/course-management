@@ -11,7 +11,7 @@ class WebPlatform extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','url'];
+    protected $fillable = ['name','url','code'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

@@ -27,6 +27,9 @@ use App\Models\Occupation;
 use App\Models\Company;
 use App\Models\CompanyActivity;
 use App\Models\LevelStudy;
+use App\Models\Province;
+use App\Models\TrainingContractElement;
+use App\Models\WebPlatform;
 
 class DocumentStudentController extends BaseController
 {
@@ -279,12 +282,34 @@ class DocumentStudentController extends BaseController
         $student = Student::find($trainingContract->student_id);
         $student->levelStudy = LevelStudy::find($student->level_study_id);
         $companies->companyActivity = CompanyActivity::find($companies->company_activity_id);
+        $province = Province::find($trainingContract->province_id);
+        $trainingContractElements = TrainingContractElement::where('training_contract_id', $trainingContract->id)->get();
+        $trainingActions = [];
+
+        foreach ($trainingContractElements as $element) {
+            // Obtener el TrainingAction asociado a este elemento del contrato de entrenamiento
+            $trainingAction = TrainingAction::find($element->training_action_id);
+            // Obtener el ID de la plataforma web asociada al TrainingAction
+            $webPlatformId = $trainingAction->web_platform_id;
+
+            // Obtener la plataforma web utilizando el ID
+            $webPlatform = WebPlatform::find($webPlatformId);
+            $webPlatformCode = $webPlatform->code;
+            $trainingAction->webPlatformCode = $webPlatformCode;
+             
+            // Agregar el TrainingAction al array de TrainingActions
+            $trainingActions[] = $trainingAction;
+        }
+
         $pdf = PDF::loadView($viewName,
         ['occupation'=>$occupation,
             'trainingContract' => $trainingContract,
             'companies' => $companies,
             'student' => $student,
-            'ocupation' => $occupation]);
+            'ocupation' => $occupation,
+            'province' => $province,
+            'trainingActions' => $trainingActions,
+            'trainingContractElements' => $trainingContractElements]);
         // Devolvemos el PDF como una respuesta de descarga
         return $pdf->download('test.pdf');
     }

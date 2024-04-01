@@ -102,6 +102,7 @@
                 <p class="empty-paragraph">{{$companies->companyActivity->name}}</p>
             </div>
         </div>
+        <div style="page-break-after: always;"></div>
 
         <h1 class="mt-4">DATOS DEL CENTRO DE TRABAJO</h1>
         <div class="row">
@@ -173,6 +174,8 @@
         <p class="no-line-break">: este contrato tiene por objeto compatibilizar la actividad laboral retribuida con los correspondientes procesos formativos en el ámbito de la formación profesional, los estudios universitarios o el Catálogo de Especialidades Formativas del Sistema Nacional de Empleo.</p>
 
         <br>
+        <!-- SALTO DE PÁGINA-->
+        <div style="page-break-after: always;"></div>
 
         <h3 class="no-line-break">SEGUNDA: </h3>
         <p class="no-line-break">que el/la trabajador/a es: </p>
@@ -263,8 +266,8 @@
         <br>
 
         <ul class="no-bullets">
-            <li>a) Actividad laboral (6) <span class="dots">{{$occupation->name}} </span>
-                	CNO: <span class="dots">{{(substr($occupation->cno, 0, 4))}} </span> incluido en el grupo profesional (7) <span class="dots">....................................................................................................</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$companies->address}} ({{$companies->post_code}} {{$companies->population}}).......................................................................................................... </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots"> {{$student->legal_guardian_name}}......</span> , cuya cualificación profesional es (9) <span class="dots">........................................................................................................................................................................................</span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} .........................................</span></li>
+            <li>a) Actividad laboral (6) <span class="dots">{{$occupation->name}}  .........</span>
+                	CNO: <span class="dots">{{(substr($occupation->cno, 0, 4))}} ... </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices....................................................................................</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$companies->address}} ({{$companies->post_code}} {{$companies->population}})........................................................... </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots"> {{$trainingContract->company_tutor}}......</span> , cuya cualificación profesional es (9) <span class="dots"> {{$occupation->name}} ........................................................................................................................................................................................</span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} .........................................</span></li>
             <li>b) La actividad formativa vinculada al contrato es <span class="dots">{{$occupation->name}}	</span>, de acuerdo con el convenio de colaboración suscrito por la empresa con el centro o entidad formativa y que se incorpora como anexo en este contrato (10).</li>
         </ul>
 
@@ -287,22 +290,22 @@
 
         <p> 
             <label for="opcion1">
-                    <input type="checkbox" id="opcion1" name="opcion1" onchange="toggleOption(this)">
+                <input type="checkbox" id="opcion1" name="opcion1" checked>
             </label>
             TRABAJO A DISTANCIA, siempre que se garantice como mínimo un 50 % de prestación de servicio presencial (13).
         </p>
         
 
         <h3 class="no-line-break">TERCERA: </h3>
-        <p class="no-line-break"> la duración del presente contrato será de (14) <span class="dots">................................................</span> y se extenderá desde <span class="dots">.................................</span> hasta <span class="dots">.....................................</span> </p>
+        <p class="no-line-break"> la duración del presente contrato será de (14) <span class="dots"> {{$trainingContract->formation_hours}} ............................</span> y se extenderá desde <span class="dots"> {{$trainingContract->beginning_formation}} ...........</span> hasta <span class="dots">{{$trainingContract->end_formation}} .............</span> </p>
         <br>
 
         <h3 class="no-line-break">CUARTA: </h3>
-        <p class="no-line-break"> el/la trabajador/a percibirá por la prestación de sus servicios una retribución de (15) <span class="dots">............................. </span>euros brutos (16) <span class="dots">..................................</span> 
+        <p class="no-line-break"> el/la trabajador/a percibirá por la prestación de sus servicios una retribución de (15) <span class="dots"> s/convenio ................ </span>euros brutos (16) <span class="dots"> s/convenio ........................</span> 
         <br>
 
         <h3 class="no-line-break">QUINTA: </h3>
-        <p class="no-line-break"> la duración de las vacaciones anuales será (17) <span class="dots">......................................................................................................................................................</span></p>
+        <p class="no-line-break"> la duración de las vacaciones anuales será (17) <span class="dots"> s/convenio .............................................................................................................</span></p>
         <br>
 
         <h3 class="no-line-break">SEXTA: </h3>
