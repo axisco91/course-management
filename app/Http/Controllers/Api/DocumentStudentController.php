@@ -217,7 +217,8 @@ class DocumentStudentController extends BaseController
         ]);
     }
 
-    public function studentViewPdf($key) {
+public function studentViewPdf($key, $viewName) {
+    Log::info('studentViewPdf method called with key: ' . $key);
 
         // Obtenemos el documento del alumno
         $documentStudent = DocumentStudent::where('key', $key)->first();
@@ -231,11 +232,42 @@ class DocumentStudentController extends BaseController
                 ]);
             }
 
-            $document = Document::find($documentStudent->document_id);
-            if ($document->blade) {
-                $pdf = PDF::loadView($document->blade);
+        // Obtenemos el estudiante
+        $student = Student::find($documentStudent->student_id);
+        Log::info('Student found with id: ' . $documentStudent->student_id);
 
-                Storage::disk('public')->put($documentStudent->document_name, $pdf->output());
+        // Cargamos la vista Blade con los datos del estudiante
+        $occupation = Occupation::find($trainingContract->occupation_id); 
+        $company = Company::find($trainingContract->company_id); 
+        $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);  
+        $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
+        $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
+
+        $daysWeek = 0; 
+        if($trainingContract->monday == 1) $daysWeek++; 
+        if($trainingContract->tuesday == 1) $daysWeek++; 
+        if($trainingContract->wednesday == 1) $daysWeek++; 
+        if($trainingContract->thursday == 1) $daysWeek++; 
+        if($trainingContract->friday == 1) $daysWeek++; 
+        if($trainingContract->saturday == 1) $daysWeek++; 
+        if($trainingContract->sunday == 1) $daysWeek++; 
+        $fechaActual = Date::now()->format('d/m/Y');
+
+        $pdf = PDF::loadView($viewName, ['student' => $student, 'occupation'=>$occupation, 
+        'trainingContract' => $trainingContract, 
+        'company'=>$company, 
+        'elements' => $trainingElements, 
+        'daysWeek' => $daysWeek, 
+        'fechaActual' => $fechaActual,
+        'monthlyFormationHours' => $monthlyFormationHours,
+        'bonus' => $bonus, 
+        'sumaHoras' => 0]);
+
+        Log::info('PDF generated from view');
+
+        // Guardamos el PDF en el sistema de archivos
+        Storage::disk('public')->put($documentStudent->document_name, $pdf->output());
+        Log::info('PDF saved to storage');
 
                 // Return the URL to access the saved PDF
                 return response()->json([
@@ -285,4 +317,38 @@ class DocumentStudentController extends BaseController
             ]);
         }
     }
+
+    public function testPdf($viewName) {
+        // Cargamos la vista Blade
+        $trainingContract = TrainingContract::find(33); 
+        $occupation = Occupation::find($trainingContract->occupation_id); 
+        $company = Company::find($trainingContract->company_id); 
+        $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);  
+        $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
+        $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
+
+        $daysWeek = 0; 
+        if($trainingContract->monday == 1) $daysWeek++; 
+        if($trainingContract->tuesday == 1) $daysWeek++; 
+        if($trainingContract->wednesday == 1) $daysWeek++; 
+        if($trainingContract->thursday == 1) $daysWeek++; 
+        if($trainingContract->friday == 1) $daysWeek++; 
+        if($trainingContract->saturday == 1) $daysWeek++; 
+        if($trainingContract->sunday == 1) $daysWeek++; 
+        $fechaActual = Date::now()->format('d/m/Y');
+
+                
+        $pdf = PDF::loadView($viewName, ['occupation'=>$occupation, 
+        'trainingContract' => $trainingContract, 
+        'company'=>$company, 
+        'elements' => $trainingElements, 
+        'daysWeek' => $daysWeek, 
+        'fechaActual' => $fechaActual,
+        'monthlyFormationHours' => $monthlyFormationHours,
+        'bonus' => $bonus, 
+        'sumaHoras' => 0]);
+        
+        // Devolvemos el PDF como una respuesta de descarga
+        return $pdf->download('test.pdf');
+    }   
 }
