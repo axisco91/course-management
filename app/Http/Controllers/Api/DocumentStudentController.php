@@ -308,7 +308,9 @@ public function studentViewPdf($key, $viewName) {
 
     public function testPdf($viewName) {
         // Cargamos la vista Blade
-        $trainingContract = TrainingContract::find(33); 
+        $trainingContract = TrainingContract::first(); 
+        // para el contrato de formación
+        // $trainingContract = TrainingContract::find(33); 
         $occupation = Occupation::find($trainingContract->occupation_id); 
         $company = Company::find($trainingContract->company_id); 
         $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);  

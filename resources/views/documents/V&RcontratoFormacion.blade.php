@@ -11,6 +11,18 @@
             color: rgb(225, 234, 231) !important; 
         }
 
+        .border-green-900{
+            border-color: rgb(24, 57, 46) !important; 
+        }
+
+        .border-green-100{
+            border-color: rgb(184, 206, 198) !important; 
+        }
+
+        .font-bold{
+            font-weight: bold; 
+        }
+
         .container1 img{
             position: fixed; 
             top: 0%; 
@@ -45,13 +57,69 @@
         .dni{
             position: fixed; 
             top: 24.8%; 
-            right: 26%; 
+            right: 30%; 
         }
 
         .final_contract{
             position: fixed; 
             top: 28.7%; 
-            right: 22%; 
+            right: 12.5%; 
+        }
+
+        .final_formative_activity{
+            position: fixed; 
+            top: 32.4%; 
+            right: 5%; 
+        }
+
+        .text-center{
+            text-align: center; 
+        }
+
+        .border-right{
+            border-left: none !important; 
+            border-top: none !important; 
+            border-bottom: none !important; 
+        }
+
+        .border-bottom{
+            border-left: none !important; 
+            border-top: none !important; 
+            border-right: none !important; 
+        }
+
+        .border-r-2{
+            border-right-style: solid !important;
+            border-right-width: 2px !important; 
+            border-left: none !important; 
+            border-top: none !important; 
+        }
+
+        .underline{
+            text-decoration: underline; 
+        }
+
+        .footer1, .footer2, .footer3{
+            font-size: 10px;
+            position: fixed; 
+            bottom: 0%; 
+        }
+
+        .footer1{
+            left: 0%; 
+            right: 0%; 
+        }
+
+        .footer2{
+            position: fixed; 
+            bottom: 0%; 
+            left: 32%; 
+        }
+
+        .footer3{
+            position: fixed; 
+            bottom: 0%;  
+            right: 0%; 
         }
     </style>
 </head>
@@ -75,10 +143,10 @@
                 <p class="text-green-900 ml-2">Fecha inicio del contrato: <span class="text-xs text-green-900 font-normal">{{$trainingContract->beginning}}</span></p>
                 <p class="text-green-900 final_contract ml-2">Fecha de fin de contrato: <span class="text-xs text-green-900 font-normal">{{$trainingContract->end}}</span></p>
                 <p class="text-green-900 ml-2">Fecha de inicio actividad formativa: <span class="text-xs text-green-900 font-normal">{{$trainingContract->beginning_formation}}</span></p>
-                <p class="text-green-900 ml-2">Fecha de fin actividad formativa: <span class="text-xs text-green-900 font-normal">{{$trainingContract->end_formation}}</span></p>
+                <p class="text-green-900 final_formative_activity ml-2">Fecha de fin actividad formativa: <span class="text-xs text-green-900 font-normal">{{$trainingContract->end_formation}}</span></p>
             </div>
 
-            <table class="mt-5 table table-bordered">
+            <table class="mt-5 table table-bordered border-green-900 border border-2">
                 <tbody class="text-center">
                     <tr>
                         <th colspan="7" class="px-6 py-3 text-xs border-2 border-dark text-green-900 font-bold">
@@ -86,16 +154,16 @@
                         </th>
                     </tr>
                     <tr class="bg-green-900 border-2 border-dark">
-                        <td colspan="2" class="px-6 py-3 text-xs text-green-100 border-2 border-right border-light font-bold">
+                        <td colspan="2" class="px-6 py-3 text-xs text-green-100 border-2 border-right border-green-100 font-bold">
                             ESPECIALIDADES FORMATIVAS
                         </td>
                         <td colspan="5" class="px-6 py-3 text-xs text-green-100 font-bold">
                             LUGAR Y FECHAS DE REALIZACIÓN DE LA ACCIÓN FORMATIVA
                         </td>
                     </tr>
-                    <tr class="bg-green-100 text-green-900 font-bold">
-                        <td>Código</td>
-                        <td class="border-r-2 border-l-2 border-green-900">Denominación</td>
+                    <tr class="bg-green-100 text-green-900 border-bottom border-2 border-green-900 font-bold">
+                        <td class="border-r-2 border-green-900">Código</td>
+                        <td class="border-r-2 border-green-900">Denominación</td>
                         <td class="border-r-2 border-green-900">Centro de formación</td>
                         <td class="border-r-2 border-green-900">Fecha Inicio / Fin</td>
                         <td class="border-r-2 border-green-900">Horas Semana</td>
@@ -103,13 +171,13 @@
                         <td>Horario</td>
                     </tr>
                     @foreach($elements as $e)
-                    <tr class="text-green-900 font-bold">
-                        <td>{{$e->training_action->codigo}}</td>
-                        <td class="border-r-2 border-l-2 border-green-900">{{$e->training_action->name}}</td>
-                        <td class="border-r-2 border-green-900">{{$e->training_contract->center_of_work}}</td>
-                        <td class="border-r-2 border-green-900">{{$e->training_contract->beginning_formation}} / {{$e->training_contract->beginning_formation}}</td>
-                        <td class="border-r-2 border-green-900">{{$company->weekly_hours}}</td>
-                        <td class="border-r-2 border-green-900">{{$daysWeek}}</td>
+                    <tr class="text-green-900 border-bottom border-2 border-green-100 font-bold">
+                        <td class="border-r-2 border-green-100">{{$e->training_action->codigo}}</td>
+                        <td class="border-r-2 border-green-100">{{$e->training_action->name}}</td>
+                        <td class="border-r-2 border-green-100">{{$e->training_contract->center_of_work}}</td>
+                        <td class="border-r-2 border-green-100">{{$e->training_contract->beginning_formation}} / {{$e->training_contract->beginning_formation}}</td>
+                        <td class="border-r-2 border-green-100">{{$company->weekly_hours}}</td>
+                        <td class="border-r-2 border-green-100">{{$daysWeek}}</td>
                         <td>{{$e->training_contract->working_hours}}</td>
                     </tr>
                     @endforeach
@@ -120,10 +188,10 @@
         <div class="pl-5 ">
             <img src="./V&R/firma.PNG" alt="">
         </div>
-        <div class="flex justify-center">
-            <p class="underline text-green-100 font-bold ml-2">EMPRESA: <span class="text-green-900 underline">{{$company->name}}</span></p>
-            <p class="underline text-green-100 font-bold ml-2">TRABAJADOR/A: <span class="text-green-900 underline">{{$trainingContract->company_tutor}}</span></p>
-            <p class="underline text-green-100 font-bold ml-2">CENTRO DE FORMACIÓN: <span class="text-green-900 underline">{{$trainingContract->center_of_work}}</span></p>
+        <div>
+            <p class="underline footer1 text-green-100 font-bold ml-2">EMPRESA: <span class="text-green-900 underline">{{$company->name}}</span></p>
+            <p class="underline footer2 text-green-100 font-bold ml-2">TRABAJADOR/A: <span class="text-green-900 underline">{{$trainingContract->company_tutor}}</span></p>
+            <p class="underline footer3 text-green-100 font-bold ml-2">CENTRO DE FORMACIÓN: <span class="text-green-900 underline">{{$trainingContract->center_of_work}}</span></p>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
