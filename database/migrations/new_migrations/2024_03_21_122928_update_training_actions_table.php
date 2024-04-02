@@ -14,7 +14,7 @@ class UpdateTrainingActionsTable extends Migration
     public function up()
     {
         Schema::table('training_actions', function (Blueprint $table) {
-            $table->string('codigo')->nullable();
+            $table->string('code')->nullable();
         });
     }
 
@@ -26,7 +26,7 @@ class UpdateTrainingActionsTable extends Migration
     public function down()
     {
         Schema::table('training_actions', function (Blueprint $table) {
-            $table->dropColumn('codigo');
+            $table->dropColumn('code');
         });
     }
 }
