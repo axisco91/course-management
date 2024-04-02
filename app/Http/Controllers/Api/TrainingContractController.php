@@ -501,5 +501,9 @@ class TrainingContractController extends BaseController
             'end_formation' => $date->toDateString(),
         ]);
     }
+    public function getMonthlyFormationHours($id) {
+        $trainingContract = new TrainingContract();
+        return $trainingContract->calculateMonthlyFormationHours($id);
+    }
 }
 

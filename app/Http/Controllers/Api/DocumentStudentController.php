@@ -231,6 +231,90 @@ class DocumentStudentController extends BaseController
     ]);
 }
 
+public function studentViewPdf($key, $viewName, TrainingContract $trainingContract) {
+    Log::info('studentViewPdf method called with key: ' . $key);
+
+    // Obtenemos el documento del alumno
+    $documentStudent = DocumentStudent::where('key', $key)->first();
+    if ($documentStudent) {
+        Log::info('DocumentStudent found with key: ' . $key);
+
+        if ($documentStudent->date_signed) {
+            Log::info('DocumentStudent already signed');
+            return response()->json([
+                'status' => 200,
+                'pdfUrl' => url('storage/' . $documentStudent->document_name),
+                'signed' => true
+            ]);
+        }
+
+        // Obtenemos el estudiante
+        $student = Student::find($documentStudent->student_id);
+        Log::info('Student found with id: ' . $documentStudent->student_id);
+
+        // Cargamos la vista Blade con los datos del estudiante
+        $trainingContract = TrainingContract::first();
+        $occupation = Occupation::find($trainingContract->occupation_id);
+        $companies = Company::find($trainingContract->company_id);
+        $student = Student::find($trainingContract->student_id);
+        $student->levelStudy = LevelStudy::find($student->level_study_id);
+        $companies->companyActivity = CompanyActivity::find($companies->company_activity_id);
+        $province = Province::find($trainingContract->province_id);
+        $trainingContractElements = TrainingContractElement::where('training_contract_id', $trainingContract->id)->get();
+        $trainingActions = [];
+
+        foreach ($trainingContractElements as $element) {
+            // Obtener el TrainingAction asociado a este elemento del contrato de entrenamiento
+            $trainingAction = TrainingAction::find($element->training_action_id);
+            // Obtener el ID de la plataforma web asociada al TrainingAction
+            $webPlatformId = $trainingAction->web_platform_id;
+
+            // Obtener la plataforma web utilizando el ID
+            $webPlatform = WebPlatform::find($webPlatformId);
+            $webPlatformCode = $webPlatform->code;
+
+            // Asignar el código de la plataforma web al TrainingAction
+            $trainingAction->webPlatformCode = $webPlatformCode;
+        
+            // Obtener la URL de la plataforma web
+            $webPlatformUrl = $webPlatform->url;
+        
+            // Asignar la URL de la plataforma web al TrainingAction
+            $trainingAction->webPlatformUrl = $webPlatformUrl;
+             
+            // Agregar el TrainingAction al array de TrainingActions
+            $trainingActions[] = $trainingAction;
+        }
+
+        $pdf = PDF::loadView($viewName,
+        ['occupation'=>$occupation,
+            'trainingContract' => $trainingContract,
+            'companies' => $companies,
+            'student' => $student,
+            'ocupation' => $occupation,
+            'province' => $province,
+            'trainingActions' => $trainingActions,
+            'trainingContractElements' => $trainingContractElements]);
+        Log::info('PDF generated from view');
+
+        // Guardamos el PDF en el sistema de archivos
+        Storage::disk('public')->put($documentStudent->document_name, $pdf->output());
+        Log::info('PDF saved to storage');
+
+        // Devolvemos la URL para acceder al PDF guardado
+        return response()->json([
+            'status' => 200,
+            'pdfUrl' => url('storage/' . $documentStudent->document_name),
+        ]);
+    } else {
+        Log::info('No DocumentStudent found with key: ' . $key);
+        return response()->json([
+            'status' => 404,
+            'message' => 'No existe documento'
+        ]);
+    }
+}
+
     public function signPdf(Request $request)
     {
         $documentStudent = DocumentStudent::where('key', $request->key)->first();
@@ -264,15 +348,6 @@ class DocumentStudentController extends BaseController
             ]);
         }
     }
-
-    // public function testPdf($viewName){
-    //     //cargamos la vista blade
-    //     $mepresa = Student::first();
-        
-    //     $pdf = PDF::loadView($viewName, ['student' => $student]);
-    //     //devolvemos el pdf como una respuesta de descarga
-    //     return $pdf->download('test.pdf');
-    // }
 
     public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait') {
         // Cargamos la vista Blade
@@ -324,40 +399,4 @@ class DocumentStudentController extends BaseController
         return $pdf->download('test.pdf');
     }
 
-    public function studentViewPdf($key, $viewName) {
-        Log::info('studentViewPdf method called with key: ' . $key);
-        // Obtenemos el documento del alumno
-        $documentStudent = DocumentStudent::where('key', $key)->first();
-        if ($documentStudent) {
-            Log::info('DocumentStudent found with key: ' . $key);
-            if ($documentStudent->date_signed) {
-                Log::info('DocumentStudent already signed');
-                return response()->json([
-                    'status' => 200,
-                    'pdfUrl' => url('storage/' . $documentStudent->document_name),
-                    'signed' => true
-                ]);
-            }
-            // Obtenemos el estudiante
-            $student = Student::find($documentStudent->student_id);
-            Log::info('Student found with id: ' . $documentStudent->student_id);
-            // Cargamos la vista Blade con los datos del estudiante
-            $pdf = PDF::loadView($viewName, ['student' => $student]);
-            Log::info('PDF generated from view');
-            // Guardamos el PDF en el sistema de archivos
-            Storage::disk('public')->put($documentStudent->document_name, $pdf->output());
-            Log::info('PDF saved to storage');
-            // Devolvemos la URL para acceder al PDF guardado
-            return response()->json([
-                'status' => 200,
-                'pdfUrl' => url('storage/' . $documentStudent->document_name),
-            ]);
-        } else {
-            Log::info('No DocumentStudent found with key: ' . $key);
-            return response()->json([
-                'status' => 404,
-                'message' => 'No existe documento'
-            ]);
-        }
-    }
 }

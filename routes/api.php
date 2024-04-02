@@ -725,6 +725,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('calculate-hours/{id}', 'calculateHours');
             Route::post('register/{id}', 'register');
             Route::post('calculate-end-dates/{id}/{daily_hours_1}/{daily_hours_2}', 'calculateEndDates');
+            Route::get('monthly-formation-hours/{id}', 'getMonthlyFormationHours');
         });
     });
 
@@ -1194,9 +1195,9 @@ Route::prefix('document-students')->group(function() {
         Route::get('destroy/{id}', 'destroy');
         Route::get('get/{id}', 'show');
         Route::get('send', 'send');
-        Route::get('student-view-pdf/{key}/{viewName}', 'studentViewPdf');
+        Route::get('/studentViewPdf/{key}/{viewName}/{trainingContract}', 'DocumentStudentController@studentViewPdf');
         Route::post('sign-pdf', 'signPDF');
-        Route::get('/test-pdf/{viewName}', 'testPDF');
+        Route::get('/test-pdf/{viewName}/{trainingContract}/{orientation?}', 'testPDF');
     });
 });
 
