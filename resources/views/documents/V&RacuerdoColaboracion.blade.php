@@ -307,12 +307,29 @@
                     <tr>
                         <td>1º</td>
                         <td>Dato 2</td>
-                        <td>Dato 3</td>
+                        <td>{{$trainingContract->annually_day_hours}}</td>
                     </tr>
                     <tr>
                         <td>2º</td>
                         <td>Dato 2</td>
-                        <td>Dato 3</td>
+                        <td>
+                            <?php
+                                use Carbon\Carbon;
+
+                                $fechaInicio = Carbon::parse($trainingContract->beginning);
+                                $fechaFin = Carbon::parse($trainingContract->end);
+                                $diferenciaMeses = $fechaInicio->diffInMonths($fechaFin);
+
+                                if ($diferenciaMeses > 12) {
+                                    $mesesRestantes = $diferenciaMeses - 11;
+                                    $proporcionAnioCompleto = $mesesRestantes / 12;
+                                    $horasSegundoAnio = $trainingContract->annually_day_hours * $proporcionAnioCompleto;
+                                    echo $horasSegundoAnio;
+                                } else {
+                                    echo '0';
+                                }
+                            ?>
+                        </td>
                     </tr>
                 </tbody>
             </table>
