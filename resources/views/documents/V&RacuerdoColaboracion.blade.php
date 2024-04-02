@@ -102,11 +102,11 @@
             <p>
                 Cualificación y/o experiencia profesional adecuada
                 <label for="opcion1">
-                    <input type="checkbox" id="opcion1" name="opcion1">
+                    <input type="checkbox" id="opcion1" name="opcion1" checked>
                 </label>
                  Empresa con menos de 5 trabajadores
                  <label for="opcion2">
-                    <input type="checkbox" id="opcion2" name="opcion2" {{ $companies->company_type_id == 1 ? 'checked' : '' }}>
+                    <input type="checkbox" id="opcion2" name="opcion2" {{ $companies->average_template <= 5 ? 'checked' : '' }}>
                  </label>
             </p>
         </div>
