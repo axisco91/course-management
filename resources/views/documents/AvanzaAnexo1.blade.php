@@ -213,6 +213,7 @@
                 </table>
             </article>
 
+            {{-- RELLENAR HORAS SEMANALES DE LA TABLA --}}
             <article>
                 <table class="m-5 w-11/12 mx-auto border border-2 border-black">
                     <thead>
