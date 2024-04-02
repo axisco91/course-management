@@ -255,7 +255,6 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         Log::info('Student found with id: ' . $documentStudent->student_id);
 
         // Cargamos la vista Blade con los datos del estudiante
-        $trainingContract = TrainingContract::first();
         $occupation = Occupation::find($trainingContract->occupation_id);
         $companies = Company::find($trainingContract->company_id);
         $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
@@ -359,7 +358,6 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
     public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait') {
         // Cargamos la vista Blade
         $trainingContract->load('provider');
-        $trainingContract = TrainingContract::first();
         $occupation = Occupation::find($trainingContract->occupation_id);
         $companies = Company::find($trainingContract->company_id);
         $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
