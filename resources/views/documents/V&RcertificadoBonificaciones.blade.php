@@ -112,9 +112,9 @@
                     <td class="borde">{{$e->start}}</td>
                     <td class="borde">{{$e->end}}</td>
                     <td class="borde">
-                        {{ $monthlyFormationHours->{$monthKey} ?? 'N/A' }}
+                    {{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey} : 'N/A' }}
                     </td>
-                    <td >{{ $monthlyFormationHours->{$monthKey}*5 ?? 'N/A' }}</td>
+                    <td >{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey}*5 : 'N/A' }}</td>
                 </tr>
             @endforeach
             </tbody>
