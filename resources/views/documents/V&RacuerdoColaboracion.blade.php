@@ -11,31 +11,30 @@
 <body>
 
     <!-- PRIMERA PÁGINA -->
-
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-4">
-                <img src="img-acuerdo/Logo V&R grande transparente.png" alt="Logo" class="img-fluid">
-            </div>
-            <div class="col-md-8">
-                <h1>ANEXO AL CONTRATO DE TRABAJO DE FORMACIÓN EN ALTERNANCIA</h1>
-                <h2>
+    <table width="100%">
+        <tr>
+            <td width="30%">
+                <img src="img-acuerdo/Logo V&R grande transparente.png" alt="Logo" style="max-width: 100%;">
+            </td>
+            <td width="70%">
+                <h1 style="font-size: 24px;">ANEXO AL CONTRATO DE TRABAJO DE FORMACIÓN EN ALTERNANCIA</h1>
+                <h2 style="font-size: 20px;">
                     CONVENIO DE COLABORACIÓN SUSCRITO ENTRE EL CENTRO DE FORMACIÓN,
                     LA EMPRESA Y LA PERSONA TRABAJADORA PARA EL DESARROLLO DEL PLAN
                     FORMATIVO INDIVIDUAL
                 </h2>
-            </div>
-        </div>
-    </div>
-    <div class="container mt-4">
+            </td>
+        </tr>
+    </table>
+    
+
         <p>
             Convenio de colaboración sujeto al art.11.2. e) del Real Decreto-ley 32/2021 de 28 de diciembre, de medidas urgentes para
             la reforma laboral y toda la normativa dictada con relación a la actividad formativa y actividad laboral.
         </p>
-    </div>
 
     <!-- Datos de Centro de Formación -->
-    <div class="container mt-4">
+
         <h3>
             Datos de Centro de Formación:
         </h3>
@@ -45,11 +44,11 @@
             79252530G, en condición de Administrador Único. Centro Acreditado en el Registro Estatal para la impartición de formación
             con el N.º de registro 8000000645, correo electrónico a efectos de notificaciones: info@vrconsultores.es
         </p>
-    </div>
+
 
     <!-- Datos Generales -->
 
-    <div class="container mt-4">
+
         <h1>
             1. DATOS GENERALES
         </h1>
@@ -160,11 +159,10 @@
             <p>D./Dña. {{$companies->legal_representative}} _____________________________ En concepto de (representante) ___________  NIF/NIE {{$companies->dni_legal_representative}} __________</p>
         </div>
     </div>
-</div>
+
 
 <!-- ACTIVIDAD FORMATIVA -->
 
-<div class="container mt-4">
     <h1>
         2. ACTIVIDAD FORMATIVA
     </h1>
@@ -253,7 +251,6 @@
         </div>
     </div>
 
-</div>
 
 <div class="container mt-4">
     <div class="col-md-12 d-flex justify-content-center">
@@ -337,11 +334,10 @@
             </p>
         </div>
     </div>
-</div>
+
 
 <!-- ITINERARIO FORMATIVO INDIVIDUAL -->
 
-<div class="container mt-4">
     <div class="col-md-12 d-flex justify-content-center">
         <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
     </div>
@@ -467,9 +463,7 @@
                     En el caso de que no proceda evaluar algún indicador de logro, se dejará en blanco.</p>
             </div>
         </div>
-</div>
 
-<div class="container mt-4">
     <div class="col-md-12 d-flex justify-content-center">
         <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
     </div>
@@ -606,10 +600,10 @@
             Todas las páginas de este acuerdo deberán ir firmadas en el margen izquierdo para mayor seguridad jurídica.
         </p>
     </div>
-</div>
+
 
 <!-- PROTECCIÓN DE DATOS -->
-<div class="container mt-4">
+
     <h1>
         6. PROTECCIÓN DE DATOS
     </h1>
@@ -625,7 +619,7 @@
             www.agpd.es.
         </p>
     </div>
-</div>
+
 
 
 </body>
