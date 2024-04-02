@@ -27,8 +27,7 @@
             position: fixed; 
             top: 0%; 
             right: 5%;
-            width: 25%;
-            margin-bottom: 2%;
+            width: 15%; 
         }
 
         .bg-green-100{
@@ -49,28 +48,33 @@
 
         .titulo{
             position: fixed;
-            top: 0%;
-            left: 15%; 
+            top: 1%;
+            right: 22%; 
             border-radius: 20%; 
-            width: 50%; 
+            width: 40%; 
         }   
 
         .dni{
             position: fixed; 
-            top: 24.8%; 
-            right: 30%; 
+            top: 23.9%; 
+            right: 22%; 
+        }
+
+        .start_contract_formative, .final_contract, .final_formative_activity{
+            position: fixed;
+            top: 29%; 
+        }
+
+        .start_contract_formative{
+            left: 46%; 
         }
 
         .final_contract{
-            position: fixed; 
-            top: 28.7%; 
-            right: 12.5%; 
+            left: 23%; 
         }
 
         .final_formative_activity{
-            position: fixed; 
-            top: 32.4%; 
-            right: 5%; 
+            right: 0%; 
         }
 
         .text-center{
@@ -135,27 +139,27 @@
 </head>
 <body class="p-2">
 
-    <div class="container1 mb-3">
-        <p class="p-1 titulo bg-green-900 text-white text-center">CONTRATO DE FORMACIÓN EN ALTERNANCIA</p>
-        <img src="./V&R/logo.png" alt="" style="width: 16%;">
+    <div class="container1">
+        <p class="p-3 titulo bg-green-900 text-white text-center">CONTRATO DE FORMACIÓN EN ALTERNANCIA</p>
+        <img src="./V&R/logo.png" alt="">
     </div>
 
-    <div style="margin-top:10px">
+    <div style="margin-top:60px">
         <h1 class="text-left text-green-800 m-2" style="font-size: 16px;">PLANIFICACIÓN DE LA ACTIVIDAD FORMATIVA</h1>
         <hr>
         <section class="mt-3">
-        <div class="first col-12" style="display: flex; justify-content: space-between; font-size: 8px;">
-            <p class="text-green-900 ml-1">OCUPACIÓN: <span class="text-green-900 font-normal">{{$occupation->name}}</span></p>
-            <p class="text-green-900 ml-1">ALUMNO/A: <span class="text-green-900 font-normal">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</span></p>
-            <p class="dni text-green-900 ml-1">DNI: <span class="text-green-900 font-normal">{{$trainingContract->student->dni}}</span></p>
-        </div>
-        <div class="second col-12" style="display: flex; justify-content: space-between; font-size: 8px;">
-            <p class="text-green-900 ml-1">Fecha inicio del contrato: <span class="text-green-900 font-normal">{{$trainingContract->beginning}}</span></p>
-            <p class="text-green-900 final_contract ml-1">Fecha de fin de contrato: <span class="text-green-900 font-normal">{{$trainingContract->end}}</span></p>
-            <p class="text-green-900 ml-1">Fecha de inicio actividad formativa: <span class="text-green-900 font-normal">{{$trainingContract->beginning_formation}}</span></p>
-            <p class="text-green-900 final_formative_activity ml-1">Fecha de fin actividad formativa: <span class="text-green-900 font-normal">{{$trainingContract->end_formation}}</span></p>
-        </div>
-    </section>
+            <div class="first" style=" font-size: 14px;">
+                <p class="text-green-900 ml-1" style="text-align:center; font-weight:bold;">OCUPACIÓN: <span class="text-green-900" style="font-weight:normal;">{{$occupation->name}}</span></p>
+                <p class="text-green-900" style="margin-left: 15%; font-weight:bold; ">ALUMNO/A: <span class="text-green-900" style="font-weight:normal;">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</span></p>
+                <p class="dni text-green-900 ml-1" style="font-weight:bold;">DNI: <span class="text-green-900" style="font-weight:normal;">{{$trainingContract->student->dni}}</span></p>
+            </div>
+            <div class="second" style=" font-size: 14.5px;">
+                <p class="text-green-900 ml-1">Fecha inicio del contrato: <span class="text-green-900 font-normal">{{$trainingContract->beginning}}</span></p>
+                <p class="text-green-900 final_contract ml-1">Fecha de fin de contrato: <span class="text-green-900 font-normal">{{$trainingContract->end}}</span></p>
+                <p class="text-green-900 start_contract_formative ml-1">Fecha de inicio actividad formativa: <span class="text-green-900 font-normal">{{$trainingContract->beginning_formation}}</span></p>
+                <p class="text-green-900 final_formative_activity ml-1">Fecha de fin actividad formativa: <span class="text-green-900 font-normal">{{$trainingContract->end_formation}}</span></p>
+            </div>
+        </section>
         <section class="mt-3">
             <table class="mt-3 table table-sm table-bordered border-green-900 border border-2">
                 <tbody class="text-center">
@@ -197,7 +201,7 @@
             <p class="text-xs">Durante las vacaciones legalmente establecidas no se organizará ninguna actividad formativa. Días con derecho a su disfrute para el periodo contractual vigente: 6</p>
         </section>
         <div class="pl-5 ">
-            <img src="./V&R/firma.PNG" alt="">
+            <img src="./V&R/firma.PNG" alt="" width="16%">
         </div>
         <div>
             <p class="underline footer1 text-green-100 font-bold ml-2">EMPRESA: <span class="text-green-900 underline">{{$company->name}}</span></p>
