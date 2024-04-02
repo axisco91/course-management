@@ -65,9 +65,10 @@ class TrainingContractSeriesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function delete($id)
     {
-        $series -> delete();
+        $series = TrainingContractSeries::findOrFail($id);
+        $series->delete();
         return response()->json([
             'status' => 200
         ]);

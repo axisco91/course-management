@@ -250,9 +250,12 @@ class TrainingContractBillController extends BaseController
     }
 
     public function show($id){
-        $bill = TrainingContractBill::find($id);
+        $bill = TrainingContractBill::with('company', 'training_contract.student')->find($id);
         if ($bill) {
-            $bill['name'] = $bill['number'].' - '.$bill['student'];
+            $bill['name'] = $bill['number'] . ' - '.$bill->company->name.' - ' . $bill->training_contract->student->name . ' ' . $bill->training_contract->student->surname;
+            $bill['company'] = $bill->company->name;
+            $bill['student'] = $bill->training_contract->student->name.' '.$bill->training_contract->student->surname;
+    
             return response()->json([
                 'status' => 200,
                 'training_contract_bill' => $bill

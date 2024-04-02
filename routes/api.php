@@ -1036,12 +1036,14 @@ Route::middleware('auth:sanctum')->group( function () {
      * Series Facturas CFA
      */
 
-    Route::prefix('training-contract-series')->group(function() {
-        Route::get('/', [TrainingContractSeriesController::class, 'index']);
-        Route::post('create', [TrainingContractSeriesController::class, 'store']);
-        Route::get('show/{id}', [TrainingContractSeriesController::class, 'show']);
-        Route::post('update/{id}', [TrainingContractSeriesController::class, 'update']);
-        Route::delete('destroy/{id}', [TrainingContractSeriesController::class, 'destroy']);
+     Route::prefix('training-contract-series')->group(function() {
+        Route::controller(TrainingContractSeriesController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('get/{id}', 'show');
+            Route::get('create', 'store');
+            Route::post('edit/{id}', 'update');
+            Route::delete('delete/{id}', 'delete');
+        });
     });
 
     /**
