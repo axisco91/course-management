@@ -34,10 +34,16 @@
             <article class="border border-1 border-black mt-4 p-3">
                 <div class="w-3/4 mx-auto">
                     <h2 class="text-xl font-bold">DATOS DE LA EMPRESA</h2>
-                    <p class="ml-5 mt-3">Razón social <input class="border-b-2 border-black w-1/2 ml-2 mr-2" type="text"> CIF/NIF/NIE <input class="border-b-2 border-black ml-2" type="text"></p>
-                    <p class="ml-5 mt-3">D./Dña.  <input class="border-b-2 border-black ml-2 mr-2" type="text"> en concepto de <input class="border-b-2 border-black ml-2 mr-2" type="text"> NIF/NIE: <input class="border-b-2 border-black ml-2" type="text"></p>
-                    <p class="ml-5 mt-3">Correo electrónico de la empresa <input class="border-b-2 border-black w-4/12 ml-2 mr-2" type="text"> Tfno. empresa <input class="border-b-2 border-black ml-2" type="text"></p>
-                    <p class="ml-5 mt-3">Tutor/a de la empresa - D./Dña. <input class="border-b-2 border-black ml-2 mr-2" type="text"> Horas mensuales <input class="border-b-2 border-black w-1/12 ml-2" type="text"> NIF/NIE <input class="border-b-2 border-black ml-2" type="text"></p>
+                    <p class="ml-5 mt-3">Razón social {{$company->name}} CIF/NIF/NIE {{$company->nif}}</p>
+                    <p class="ml-5 mt-3">D./Dña. {{$company->legal_representative}} en concepto de 
+                        @if($company->company_type_id == "Autónomo")
+                            TITULAR
+                        @else
+                            ADMINISTRADOR
+                        @endif
+                        NIF/NIE: {{$company->dni_legal_representative}}</p>
+                    <p class="ml-5 mt-3">Correo electrónico de la empresa {{$company->email}} Tfno. empresa {{$company->telephone}}</p>
+                    <p class="ml-5 mt-3">Tutor/a de la empresa - D./Dña. {{$trainingContract->company_tutor}} NIF/NIE {{$trainingContract->company_tutor_dni}}</p>
                     <p class="ml-5 mt-3"><input class="w-5 h-5" type="checkbox"> Empresa con menos de 5 trabajadores</p>
                 </div>                
             </article>
@@ -45,27 +51,39 @@
             <article class="border border-1 border-black mt-4 p-3">
                 <div class="w-3/4 mx-auto">
                     <h2 class="text-xl font-bold">DATOS DEL TRABAJADOR</h2>
-                    <p class="ml-5 mt-3">D./Dña.  <input class="border-b-2 border-black w-4/12 ml-1 mr-2" type="text"> NIF/NIE <input class="border-b-2 border-black w-1/6 ml-1 mr-2" type="text"> Fecha de nacimiento <input class="border-b-2 border-black w-2/12 ml-1" placeholder="dd/mm/yyyy" type="text"></p>
-                    <p class="ml-5 mt-3"><input class="w-5 h-5" type="checkbox"> Reúne requisitos de acceso a la Formación de este contrato.</p>
-                    <p class="ml-5 mt-3"><input class="w-5 h-5" type="checkbox"> Inscrito/a en el Sistema Nacional de Garantía Juvenil.</p>
-                    <p class="ml-5 mt-3"><input class="w-5 h-5" type="checkbox"> Trabajador/a con dispacidad.</p>
-                    <p class="ml-5 mt-3"><input class="w-5 h-5" type="checkbox"> Trabajador/a en situación de exclusión social en empresas de inserción.</p>
+                    <p class="ml-5 mt-3">D./Dña.  {{$trainingContract->student->name}} NIF/NIE {{$trainingContract->student->dni}} Fecha de nacimiento {{$trainingContract->student->date_of_birth}}</p>
+                    <p class="ml-5 mt-3">
+                        <input class="w-5 h-5" type="checkbox" > 
+                        Reúne requisitos de acceso a la Formación de este contrato.
+                    </p>
+                    <p class="ml-5 mt-3">
+                        <input class="w-5 h-5" type="checkbox" {{$trainingContract->youth_guarantee == 1 ? 'checked' : ''}}> 
+                        Inscrito/a en el Sistema Nacional de Garantía Juvenil.
+                    </p>
+                    <p class="ml-5 mt-3">
+                        <input class="w-5 h-5" type="checkbox" {{$trainingContract->disabled == 1 ? 'checked' : ''}}> 
+                        Trabajador/a con dispacidad.
+                    </p>
+                    <p class="ml-5 mt-3">
+                        <input class="w-5 h-5" type="checkbox" {{$trainingContract->social_exclusion == 1 ? 'checked' : ''}}> 
+                        Trabajador/a en situación de exclusión social en empresas de inserción.
+                    </p>
                 </div>                
             </article>
 
             <article class="border border-1 border-black mt-4 p-3">
                 <div class="w-3/4 mx-auto">
                     <h2 class="text-xl font-bold">DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA</h2>
-                    <p class="ml-5 mt-3">Identificador contrato n.º <input class="ml-1 mr-2 border-b-2 border-black" type="text"> (a consignar una vez comunicada la formalización del contrato)</p>
-                    <p class="ml-5 mt-3">Fecha de inicio <input class="ml-1 mr-2 border-b-2 border-black" type="text"> Fecha de fin <input class="ml-1 mr-2 border-b-2 border-black" type="text"></p>
-                    <p class="ml-5 mt-3">Puesto de trabajo u ocupación <input class="ml-1 mr-2 border-b-2 w-5/12 border-black" type="text"> Cód. CNO <input class="ml-1 mr-2 border-b-2 border-black" type="text"></p>
+                    <p class="ml-5 mt-3">Identificador contrato n.º {{$trainingContract->number_cfa}} (a consignar una vez comunicada la formalización del contrato)</p>
+                    <p class="ml-5 mt-3">Fecha de inicio {{$trainingContract->beginning}} Fecha de fin {{$trainingContract->end}}</p>
+                    <p class="ml-5 mt-3">Puesto de trabajo u ocupación {{$occupation->name}} Cód. CNO {{$occupation->cno}}</p>
                     <p class="ml-5 mt-3">
-                        Provincia del centro de trabajo <input class="ml-1 mr-2 border-b-2 border-black" type="text"> 
-                        Horas del contrato: Año 1.º <input class="ml-1 mr-2 border-b-2 w-12 border-black" type="text">
-                        Año 2.º <input class="ml-1 mr-2 border-b-2 w-12 border-black" type="text">
-                        Año 3.º <input class="ml-1 mr-2 border-b-2 w-12 border-black" type="text">
+                        Provincia del centro de trabajo {{$province->name}} 
+                        Horas del contrato: Año 1.º {{$trainingContract->formative_hours_first_year}}
+                        Año 2.º {{$trainingContract->formative_hours_second_year}}
+                        Año 3.º NO HAY ESTE CAMPO
                     </p>
-                    <p class="ml-5 mt-3">Convenio aplicable <input class="ml-1 mr-2 border-b-2 w-10/12 border-black" type="text"> </p>
+                    <p class="ml-5 mt-3">Convenio aplicable (convenio) </p>
                 </div>                
             </article>
         </section>
@@ -95,17 +113,17 @@
                             <td class="p-5 font-semibold border-r-2 border-black">Código de Centro educativo autorizado / Código del Centro acreditado en Registro Estatal</td>
                             <td class="p-5 font-semibold">Grado título/Nivel CP</td>
                         </tr>
-                        @for ($i = 1; $i < 9; $i++)
-                            <tr class="border-t-2 border-black text-center">
-                                <td class="border-r-2 border-black">{{$i}}</td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td><input type="text"></td>
-                            </tr>
-                        @endfor
+
+                        
+                        <tr class="border-t-2 border-black text-center">
+                            <td class="border-r-2 border-black">1</td>
+                            <td class="border-r-2 border-black">codigo</td>
+                            <td class="border-r-2 border-black">denominación</td>
+                            <td class="border-r-2 border-black">horas</td>
+                            <td class="border-r-2 border-black">Modalidad</td>
+                            <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
+                            <td><input type="text"></td>
+                        </tr>
                     </tbody>
                 </table>
             </article>
@@ -114,7 +132,7 @@
             <article>
                 <h2 class="text-xl ml-5">2. B. Especialidades Formativas</h2>
 
-                <table class="m-5 w-11/12 mx-auto border border-2 border-black">
+                <table class="m-5 mx-auto border border-2 border-black">
                     <thead>
                         <tr>
                             <th colspan="6" class="font-semibold">Especialidades formativas (completas)</th>
@@ -129,16 +147,22 @@
                             <td class="p-5 font-semibold border-r-2 border-black">Modalidad (Presencial, Teleformación, Distancia1)</td>
                             <td class="p-5 font-semibold">Código de Centro educativo autorizado / Código del Centro acreditado en Registro Estatal</td>
                         </tr>
-                        @for ($i = 1; $i < 13; $i++)
+                        @php
+                             $i = 0;    
+                        @endphp
+                        @foreach($elements as $e)
+                            @php
+                                $i++; 
+                            @endphp
                             <tr class="border-t-2 border-black text-center">
                                 <td class="border-r-2 border-black">{{$i}}</td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td><input type="text"></td>
+                                <td class="border-r-2 border-black">{{$e->training_action->codigo}}</td>
+                                <td class="border-r-2 border-black">{{$e->training_action->name}}</td>
+                                <td class="border-r-2 border-black">{{$e->training_action->total_hours}}</td>
+                                <td class="border-r-2 border-black">{{$e->training_action->modality->name}}</td>
+                                <td>{{$e->training_action->webPlatform->name ?? ''}}</td>
                             </tr>
-                        @endfor
+                        @endforeach
                     </tbody>
                 </table>
             </article>
@@ -172,16 +196,7 @@
                             <td class="font-semibold border-r-2 border-black"><input class="w-full" type="text"></td>
                             <td class="font-semibold border-r-2 border-black"><input class="w-full" type="text"></td>
                             <td class="font-semibold border-r-2 border-black"><input class="w-full" type="text"></td>
-                            <td class="font-semibold"><input class="w-full" type="text"></td>
-                        </tr>
-                        <tr class="border-t-2 border-black text-center">
-                            <td class="font-semibold border-r-2 border-black">2º</td>
-                            <td class="font-semibold border-r-2 border-black">15%</td>
-                            <td class="font-semibold border-r-2 border-black">25% <span class="font-normal text-xs">(Garantía Juvenil)</span></td>
-                            <td class="font-semibold border-r-2 border-black"><input class="w-full" type="text"></td>
-                            <td class="font-semibold border-r-2 border-black"><input class="w-full" type="text"></td>
-                            <td class="font-semibold border-r-2 border-black"><input class="w-full" type="text"></td>
-                            <td class="font-semibold"><input class="w-full" type="text"></td>
+                            <td class="font-semibold">{{}}</td>
                         </tr>
                         <tr class="border-t-2 border-black text-center">
                             <td class="font-semibold border-r-2 border-black">2º</td>

@@ -27,6 +27,7 @@ use App\Models\Occupation;
 use App\Models\Company; 
 use App\Models\TrainingContractElement; 
 use App\Models\TrainingContractBonus;
+use App\Models\Province;
 use Illuminate\Support\Facades\Date;
 
 class DocumentStudentController extends BaseController
@@ -338,6 +339,7 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);  
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
         $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
+        $province = Province::find($trainingContract->province_id);
     
         $daysWeek = 0; 
         if($trainingContract->monday == 1) $daysWeek++; 
@@ -357,7 +359,8 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         'fechaActual' => $fechaActual,
         'monthlyFormationHours' => $monthlyFormationHours,
         'bonus' => $bonus, 
-        'sumaHoras' => 0]);
+        'sumaHoras' => 0, 
+        'province' => $province]);
 
         $pdf->setPaper('a4', $orientation);
         
