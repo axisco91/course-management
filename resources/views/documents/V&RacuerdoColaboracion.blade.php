@@ -13,12 +13,12 @@
     <!-- PRIMERA PÁGINA -->
     <table width="100%">
         <tr>
-            <td width="30%">
+            <td width="30%"  style="border: none;">
                 <img src="img-acuerdo/Logo V&R grande transparente.png" alt="Logo" style="max-width: 100%;">
             </td>
-            <td width="70%">
-                <h1 style="font-size: 24px;">ANEXO AL CONTRATO DE TRABAJO DE FORMACIÓN EN ALTERNANCIA</h1>
-                <h2 style="font-size: 20px;">
+            <td width="70%"  style="border: none;">
+                <h1>ANEXO AL CONTRATO DE TRABAJO DE FORMACIÓN EN ALTERNANCIA</h1>
+                <h2>
                     CONVENIO DE COLABORACIÓN SUSCRITO ENTRE EL CENTRO DE FORMACIÓN,
                     LA EMPRESA Y LA PERSONA TRABAJADORA PARA EL DESARROLLO DEL PLAN
                     FORMATIVO INDIVIDUAL
@@ -63,10 +63,13 @@
                     Certificado de profesionalidad (denominación): _________________________
                 </p>
                 <p>
-                    Certificación académica _________________________ Acreditación parcial acumulable _________________________
+                    Certificación académica ______________________ Acreditación parcial acumulable _____________________
                 </p>
                 <p>
-                    X Itinerario del Catálogo de especialidades formativas del Sistema Nacional de Empleo: _________________________
+                    X Itinerario del Catálogo de especialidades formativas del Sistema Nacional de Empleo:
+                </p> 
+                <p>
+                <u>{{$occupation->name}} </u>
                 </p>
             </div>
         </div>
@@ -76,10 +79,10 @@
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DE LA EMPRESA:</h1>
             <p>
-                Razón social ___ {{$companies->name}}__________ CIF/NIF/NIE ___ {{$companies->nif}} ________________
+                Razón social  <u>{{$companies->name}}</u> CIF/NIF/NIE  <u>{{$companies->nif}}</u>
             </p>
             <p>
-                D./Dña. ___ {{$companies->legal_representative}} ______________ en concepto de 
+                D./Dña. <u>{{$companies->legal_representative}}</u> en concepto de <u>
                 <?php
                 if($companies->company_type_id=="Autónomo"){
                     echo "TITULAR";
@@ -87,13 +90,14 @@
                     echo "ADMINISTRADOR/A";
                 }
             ?>
-            ______________ NIF/NIE ___ {{$companies->dni_legal_representative}} ______________________
+            </u>
+            NIF/NIE  <u>{{$companies->dni_legal_representative}}</u> 
             </p>
             <p>
-                Correo electrónico de la empresa ___ {{$companies->email}} __________________ Tfno. Empresa ___ {{$companies->telephone}} __________________
+                Correo electrónico de la empresa <u>{{$companies->email}}</u>  Tfno. Empresa <u>{{$companies->telephone}} </u>
             </p>
             <p>
-                Tutor/a de la empresa – D./Dña. ____ {{$trainingContract->company_tutor}} _________________________ Horas mensuales _________ NIF/NIE ___ {{$trainingContract->company_tutor_dni}}________
+                Tutor/a de la empresa – D./Dña. <u> {{$trainingContract->company_tutor}} </u> Horas mensuales _________ NIF/NIE <u>{{$trainingContract->company_tutor_dni}}</u>
             </p>
             <p>
                 Cualificación y/o experiencia profesional adecuada
@@ -112,7 +116,7 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1> DATOS DEL TRABAJADOR:</h1>
-            <p>D./Dña. ____ {{$student->name}} ______________________ NIF/NIE ____ {{$student->dni}} ___________ Fecha de nac. ____ {{$student->date_of_birth}} ___________ </p>
+            <p>D./Dña. <u> {{$student->name}} </u> NIF/NIE <u> {{$student->dni}} </u> Fecha de nac. <u> {{$student->date_of_birth}} </u> </p>
             <p>Reúne requisitos de acceso a la Formación de este contrato</p>
             <p>Inscrito/a en el sistema Nacional de Garantía Juvenil
                 <label for="opcion3">
@@ -138,13 +142,14 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA:</h1>
-            <p> Identificador contrato n.º {{$trainingContract->number_cfa}} ____________________ (a consignar una vez comunicada la formalización del contrato)</p>
-            <p>Fecha de inicio: {{$trainingContract->beginning}}____________</p>
-            <p>Puesto de trabajo u ocupación: {{$occupation->name}} ______________________________ Cód. CNO {{$occupation->cno}} ______________</p>
-            <p>Provincia del centro de trabajo: {{$province->name}} ____________________________ Horas de contrato, según convenio: {{$trainingContract->formation_hours}} ______________ </p>
-            <p>Convenio aplicable _____________________________________________________________________________________________</p>
+            <p> Identificador contrato n.º <u>{{$trainingContract->number_cfa}} </u> (a consignar una vez comunicada la formalización del contrato)</p>
+            <p>Fecha de inicio: <u>{{$trainingContract->beginning}}</u></p>
+            <p>Puesto de trabajo u ocupación: <u>{{$occupation->name}} </u> Cód. CNO <u>{{$occupation->cno}} </u></p>
+            <p>Provincia del centro de trabajo: <u>{{$province->name}} </u> Horas de contrato, según convenio: <u>{{$trainingContract->formation_hours}} </u> </p>
+            <p>Convenio aplicable <u></u></p>
         </div>
     </div>
+    <div style="page-break-after: always;"></div>
 
     <!-- SEGUNDA PÁGINA-->
     <div class="col-md-12 d-flex justify-content-center">
@@ -153,10 +158,10 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DEL CENTRO DE FORMACIÓN:</h1>
-            <p>Razón social {{$companies->name}} _______________________ CIF/NIF/NIE {{$companies->nif}} ______________________</p>
-            <p>Dirección {{$companies->address}} ____________________ CP {{$companies->post_code}} _________ Municipio {{$companies->population}} ___________________</p>
-            <p>Provincia {{$province->name}} ______________________________ Teléfono {{$companies->telephone}} _______________ Correo electrónico {{$companies->email}} _______________</p>
-            <p>D./Dña. {{$companies->legal_representative}} _____________________________ En concepto de (representante) ___________  NIF/NIE {{$companies->dni_legal_representative}} __________</p>
+            <p>Razón social <u>{{$companies->name}}</u>  CIF/NIF/NIE <u>{{$companies->nif}}</u></p>
+            <p>Dirección <u>{{$companies->address}}</u> CP <u>{{$companies->post_code}}</u> Municipio <u>{{$companies->population}}</u></p>
+            <p>Provincia <u>{{$province->name}}</u> Teléfono <u>{{$companies->telephone}} </u>  Correo electrónico <u>{{$companies->email}}</u> </p>
+            <p>D./Dña. <u>{{$companies->legal_representative}}</u> En concepto de <u> (representante)</u>   NIF/NIE <u>{{$companies->dni_legal_representative}} </u></p>
         </div>
     </div>
 
@@ -252,7 +257,6 @@
     </div>
 
 
-<div class="container mt-4">
     <div class="col-md-12 d-flex justify-content-center">
         <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
     </div>
@@ -348,7 +352,6 @@
         4.1. DATOS CENTROS Y ACTIVIDAD FORMATIVA
     </h3>
     <div class="row">
-        <div class="row">
             <?php
             
             $contenedor = '';
@@ -359,25 +362,25 @@
                     <div class="col-md-12 mx-2 my-2">
                         <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
                         <p>
-                            Formación a impartir: Código ' . $trainingAction->code .' _________________ Denominación: '. $trainingAction->name .' ______________________
+                            Formación a impartir: Código <u>' . $trainingAction->code .'</u>  Denominación: <u> '. $trainingAction->name .' </u> 
                         </p>
                         <p>
-                            Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación ' .  $trainingAction->webPlatformCode   .'_____________
+                            Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>' .  $trainingAction->webPlatformCode   .'</u>
                         </p>
                         <p>
-                            Nombre Centro: '. $companies->name . ' ________________________ CIF/NIF/NIE '. $companies->nif. ' ___________________
+                            Nombre Centro: <u>'. $companies->name . '</u>  CIF/NIF/NIE <u>'. $companies->nif. '</u>
                         </p>
                         <p>
-                            URL '. $trainingAction->webPlatformUrl.'___________________________________________________________
+                            URL <u>'. $trainingAction->webPlatformUrl.'</u>
                         </p>
                         <p>
-                            Dirección: '.$companies->address.'_______________________ CP: '.$companies->post_code.'_______ Municipio:'.$companies->population.' ____________________
+                            Dirección: <u>'.$companies->address.'</u> CP: <u> '.$companies->post_code.'</u> Municipio: <u>'.$companies->population.' </u>
                         </p>
                         <p>
-                            Provincia: '.$province->name.' _________ Teléfono: '.$companies->telephone.'  ______________ Correo electrónico: '.$companies->email.' _____________
+                            Provincia: <u>'.$province->name.'</u> Teléfono: <u>'.$companies->telephone.'</u> Correo electrónico: <u>'.$companies->email.'</u>
                         </p>
                         <p>
-                            D./Dña.: '.$companies->legal_representative. '________________ en concepto de '. $titulo_representante.'  _____________ NIF/NIE: '.$companies->dni_legal_representative.' ________________
+                            D./Dña.: <u>'.$companies->legal_representative. '</u> en concepto de <u>'. $titulo_representante.'</u> NIF/NIE: <u>'.$companies->dni_legal_representative.' </u>
                         </p>
                     </div>
                 ';
@@ -385,20 +388,17 @@
             }
             echo $contenedor;
             ?>
-        </div>
+    </div>
            
         <div class="col-md-12 d-flex justify-content-center">
             <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
         </div>
-        <div class="col-md-12 mx-2 my-2">
-            <p>
-                Se medirán aquellos objetivos observables que se correspondan con las diferentes tareas que componen la actividad
-                laboral, de acuerdo con las realizaciones profesionales y según los criterios de realización estandarizados de la empresa.
-                Asociado a la consecución de cada objetivo, se medirán las realizaciones profesionales de las actividades más significativas
-                del puesto de trabajo a desempeñar.
-            </p>
-        </div>
-    </div>
+        <p>
+            Se medirán aquellos objetivos observables que se correspondan con las diferentes tareas que componen la actividad
+            laboral, de acuerdo con las realizaciones profesionales y según los criterios de realización estandarizados de la empresa.
+            Asociado a la consecución de cada objetivo, se medirán las realizaciones profesionales de las actividades más significativas
+            del puesto de trabajo a desempeñar.
+        </p>
         <h3>
             4.2. MECANISMOS DE COORDINACIÓN
         </h3>
@@ -475,7 +475,7 @@
     </h3>
     <div class="col-md-12 mx-2 my-2">
         <ul>
-            <li>El centro de trabajo se encuentra en: {{$companies->address}}  ({{$companies->post_code}} {{$companies->population}})_______________________________</li>
+            <li>El centro de trabajo se encuentra en: <u>{{$companies->address}}  ({{$companies->post_code}} {{$companies->population}})</u></li>
             <li>Son ciertos los datos que se consignan en el presente acuerdo, asumiendo en caso contrario las responsabilidades que pudieran derivarse de su inexactitud.</li>
             <li>Conozco lo establecido en el artículo 11.2 del Estatuto de los Trabajadores y el Real Decreto 1.529/2012, de 8 de noviembre y demás normativas de desarrollo, así como la normativa que afecta a la actividad formativa objeto de esta solicitud.</li>
             <li>Que autorizo/a al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a que acceda a las bases de datos de la Administración General del Estado y de las Administraciones de las Comunidades Autónomas, con garantía de confidencialidad y a los exclusivos efectos de facilitar la verificación de los datos consignados en esta solicitud, manifestando que quedo enterado de la obligación de informar a los Servicios Públicos de Empleo de cualquier variación de los mismos que pudiera producirse.</li>
@@ -545,53 +545,41 @@
         ?>
         
         <p>
-            En {{$companies->population}} ________________________ a <?php echo $dia; ?>____ de <?php echo $nombre_mes; ?> _______ de 2024
+            En <u>{{$companies->population}}</u>  a <u><?php echo $dia; ?></u> de <u><?php echo $nombre_mes; ?></u> de 2024
         </p>
+        <div style="margin: 20px;">
+            <table width="100%" style="margin=10px;">
+                <tr>
+                    <td width="25%" style="border: none;">
+                        El/la trabajador/a
+                    </td>
+                    <td width="25%" style="border: none;">
+                        El/la representante legal del/de la menor, si procede
+                    </td>
+                    <td width="25%" style="border: none;">
+                        El/la representante de la empresa
+                    </td>
+                    <td width="25%" style="border: none;">
+                        El/los representante/s de los centro/s de formación
+                    </td>
+                </tr>
+                <tr>
+                    <td width="25%" style="border: none; padding-top: 130px;">
+                        <u>{{$student->name}} {{$student->surname}}</u>
+                    </td>
+                    <td width="25%" style="border: none; padding-top: 130px;">
+                        <u>{{$student->legal_guardian_name}}</u>
+                    </td>
+                    <td width="25%" style="border: none; padding-top: 130px;">
+                        <u>{{$companies->legal_representative}}</u>
+                    </td>
+                    <td width="25%" style="border: none; padding-top: 130px;">
+                        <u>{{$trainingContract->company_tutor}}</u>
+                    </td>
+                </tr>
+            </table>
+        </div>
         
-        <div class="row">
-            <div class=col-md-3>
-                <p>
-                    El/la trabajador/a
-                </p>
-            </div>
-            <div class=col-md-3>
-                <p>
-                    El/la representante legal del/de la menor, si procede
-                </p>
-            </div>
-            <div class=col-md-3>
-                <p>
-                    El/la representante de la empresa
-                </p>
-            </div>
-            <div class=col-md-3>
-                <p>
-                    El/los represantante/s de los centro/s de formación
-                </p>
-            </div>
-        </div>
-        <div class="row">
-            <div class=col-md-3>
-                <p>
-                    {{$student->name}} {{$student->surname}}_________________________
-                </p>
-            </div>
-            <div class=col-md-3>
-                <p>
-                    {{$student->legal_guardian_name}}_________________________
-                </p>
-            </div>
-            <div class=col-md-3>
-                <p>
-                    {{$companies->legal_representative}} _________________________
-                </p>
-            </div>
-            <div class=col-md-3>
-                <p>
-                    {{$trainingContract->company_tutor}}_________________________
-                </p>
-            </div>
-        </div>
 
         <p class="no-margin-bottom">
             Si hay más de un centro de formación, cada uno deberá suscribir este acuerdo.
