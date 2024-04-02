@@ -295,7 +295,15 @@ class DocumentStudentController extends BaseController
             // Obtener la plataforma web utilizando el ID
             $webPlatform = WebPlatform::find($webPlatformId);
             $webPlatformCode = $webPlatform->code;
+
+            // Asignar el código de la plataforma web al TrainingAction
             $trainingAction->webPlatformCode = $webPlatformCode;
+        
+            // Obtener la URL de la plataforma web
+            $webPlatformUrl = $webPlatform->url;
+        
+            // Asignar la URL de la plataforma web al TrainingAction
+            $trainingAction->webPlatformUrl = $webPlatformUrl;
              
             // Agregar el TrainingAction al array de TrainingActions
             $trainingActions[] = $trainingAction;

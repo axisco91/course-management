@@ -372,7 +372,7 @@
                             Nombre Centro: '. $companies->name . ' ________________________ CIF/NIF/NIE '. $companies->nif. ' ___________________
                         </p>
                         <p>
-                            URL ____________________________________________________________________
+                            URL '. $trainingAction->webPlatformUrl.'___________________________________________________________
                         </p>
                         <p>
                             Dirección: '.$companies->address.'_______________________ CP: '.$companies->post_code.'_______ Municipio:'.$companies->population.' ____________________
@@ -481,7 +481,7 @@
     </h3>
     <div class="col-md-12 mx-2 my-2">
         <ul>
-            <li>El centro de trabajo se encuentra en: {{$trainingContract->center_of_work}} _______________________________</li>
+            <li>El centro de trabajo se encuentra en: {{$companies->address}}  ({{$companies->post_code}} {{$companies->population}})_______________________________</li>
             <li>Son ciertos los datos que se consignan en el presente acuerdo, asumiendo en caso contrario las responsabilidades que pudieran derivarse de su inexactitud.</li>
             <li>Conozco lo establecido en el artículo 11.2 del Estatuto de los Trabajadores y el Real Decreto 1.529/2012, de 8 de noviembre y demás normativas de desarrollo, así como la normativa que afecta a la actividad formativa objeto de esta solicitud.</li>
             <li>Que autorizo/a al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a que acceda a las bases de datos de la Administración General del Estado y de las Administraciones de las Comunidades Autónomas, con garantía de confidencialidad y a los exclusivos efectos de facilitar la verificación de los datos consignados en esta solicitud, manifestando que quedo enterado de la obligación de informar a los Servicios Públicos de Empleo de cualquier variación de los mismos que pudiera producirse.</li>
@@ -551,7 +551,7 @@
         ?>
         
         <p>
-            En LUCENA ________________________ a <?php echo $dia; ?>____ de <?php echo $nombre_mes; ?> _______ de 2024
+            En {{$companies->population}} ________________________ a <?php echo $dia; ?>____ de <?php echo $nombre_mes; ?> _______ de 2024
         </p>
         
         <div class="row">
