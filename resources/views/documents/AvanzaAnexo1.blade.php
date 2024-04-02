@@ -21,6 +21,7 @@
         <section class="mt-3">
             <h1 class="text-2xl">1. DATOS GENERALES</h1>
 
+            {{-- FALTAN LOS CHECKBOX --}}
             <article class="border border-1 border-black mt-4 p-3">
                 <div class="w-3/4 mx-auto">
                     <h2 class="text-xl"><strong>LA ACTIVIDAD FORMATIVA ESTARÁ DIRIGIDA A LA OBTENCIÓN DE</strong> (desglose en apartado 2)</h2>
@@ -83,7 +84,7 @@
                         Año 2.º {{$trainingContract->formative_hours_second_year}}
                         Año 3.º NO HAY ESTE CAMPO
                     </p>
-                    <p class="ml-5 mt-3">Convenio aplicable (convenio) </p>
+                    <p class="ml-5 mt-3">Convenio aplicable (convenio) {{$trainingContract->applicableAgreement->name ?? ''}} </p>
                 </div>                
             </article>
         </section>
@@ -122,7 +123,7 @@
                             <td class="border-r-2 border-black">horas</td>
                             <td class="border-r-2 border-black">Modalidad</td>
                             <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                            <td><input type="text"></td>
+                            <td><input type="text">grado</td>
                         </tr>
                     </tbody>
                 </table>
@@ -172,6 +173,7 @@
         <section class="mt-3">
             <h1 class="text-2xl">3. CALENDARIO Y DISTRIBUCIÓN</h1>
          
+            {{-- RELLENAR TABLA --}}
             <article>
                 <table class="m-5 w-11/12 mx-auto border border-2 border-black">
                     <thead>
@@ -196,7 +198,7 @@
                             <td class="font-semibold border-r-2 border-black"><input class="w-full" type="text"></td>
                             <td class="font-semibold border-r-2 border-black"><input class="w-full" type="text"></td>
                             <td class="font-semibold border-r-2 border-black"><input class="w-full" type="text"></td>
-                            <td class="font-semibold">{{}}</td>
+                            <td class="font-semibold"></td>
                         </tr>
                         <tr class="border-t-2 border-black text-center">
                             <td class="font-semibold border-r-2 border-black">2º</td>
@@ -236,51 +238,67 @@
                             <td class="border-r-2 border-black font-semibold">Días de la semana</td>
                             <td class="font-semibold">Horario</td>
                         </tr>
-                        @for($i = 0; $i < 4; $i++)
+                        @foreach($elements as $e)
                             <tr class="text-center border-t-2 border-black ">
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td class="border-r-2 border-black"><input class="w-full" type="text"></td>
-                                <td><input class="w-full" type="text"></td>
+                                <td class="border-r-2 border-black">{{$e->training_contract->beginning}}</td>
+                                <td class="border-r-2 border-black">{{$e->training_contract->end}}</td>
+                                <td class="border-r-2 border-black">{{$e->training_contract->daily_hours * $daysWeek}}</td>
+                                <td class="border-r-2 border-black">
+                                    @foreach($dias as $day)
+                                        {{$day}}
+                                    @endforeach
+                                </td>
+                                <td class="border-r-2 border-black">{{$e->training_contract->working_hours}}</td>
+                                <td class="border-r-2 border-black">{{$e->training_action->codigo}}</td>
+                                <td class="border-r-2 border-black">{{$e->training_contract->beginning_formation}}</td>
+                                <td class="border-r-2 border-black">{{$e->training_contract->end_formation}}</td>
+                                <td class="border-r-2 border-black">horas semanales formativas</td>
+                                <td class="border-r-2 border-black">
+                                    @foreach($dias as $day)
+                                        {{$day}}
+                                    @endforeach
+                                </td>
+                                <td>{{$e->training_contract->training_schedule}}</td>
                             </tr> 
-                        @endfor                                         
+                        @endforeach                                        
                     </tbody>
                 </table>
             </article>
         </section>
 
         <!-- CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA -->
-        @for($j = 0 ; $j < 3 ; $j++)
-            <section class="mt-3">
-                <h1 class="text-2xl">4. CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h1>
-            
-                @for($i = 0 ; $i < 4 ; $i++)
-                    <article class="w-11/12 mx-auto mt-5 border border-2 border-black pb-3">
-                        <h2 class="text-xl font-semibold ml-5 ">DATOS  DEL CENTRO DE FORMACIÓN</h2>
-                        <div class="w-11/12 mx-auto">
-                            <p class="ml-5 mt-1">Formación a impartir:  Código <input class="border-b-2 border-black mr-2" type="text"> Denominación <input class="border-b-2 w-1/2 border-black ml-1" type="text"></p>
-                            <p class="ml-2 mt-1"><input class="w-5 h-5 mr-1" type="checkbox"> Centro Sistema Educativo  <span class="ml-12 pl-12">Código de centro autorizado<input class="border-b-2 w-1/2 border-black ml-1" type="text"></span></p>
-                            <p class="ml-2 mt-1"><input class="w-5 h-5 mr-1" type="checkbox"> Centro Acreditado  <span class="ml-12">Código de centro en Registro Estatal de Centros de Formación</span></p>
-                            <p class="ml-2 mt-1"><input class="w-5 h-5 mr-1" type="checkbox"> Si la formación se imparte mediante teleformación, especificar código/s del/os Centros Presenciales vinculados:</p>
-                            <p class="ml-10"><input class="border-b-2 border-black mr-3" type="text"><input class="border-b-2 border-black mr-3" type="text"><input class="border-b-2 border-black mr-3" type="text"><input class="border-b-2 border-black" type="text"></p>
-                            <p class="mt-2">Nombre Centro <input class="border-b-2 w-1/2 border-black ml-1 mr-2" type="text"> CIF/NIF/NIE <input class="border-b-2 border-black w-1/6 ml-1 mr-2" type="text"></p>
-                            <p class="mt-2">URL (Entidades de teleformación) <input class="border-b-2 w-3/4 border-black ml-1 mr-2" type="text"></p>
-                            <p class="mt-2">Dirección  <input class="border-b-2 w-5/12 border-black ml-1 mr-2" type="text"> CP <input class="border-b-2 border-black w-1/6 ml-1 mr-2" type="text"> Municipio <input class="border-b-2 border-black w-1/6 ml-1 mr-2" type="text"></p>
-                            <p class="mt-2">Provincia  <input class="border-b-2 w-1/3 border-black ml-1 mr-2" type="text"> Teléfono <input class="border-b-2 border-black w-1/6 ml-1 mr-2" type="text"> Correo electrónico <input class="border-b-2 border-black w-1/6 ml-1 mr-2" type="text"></p>
-                            <p class="mt-2">D./Dña.  <input class="border-b-2 w-1/3 border-black ml-1 mr-2" type="text"> en concepto de <input class="border-b-2 border-black w-1/6 ml-1 mr-2" type="text"> NIF/NIE  <input class="border-b-2 border-black w-1/6 ml-1 mr-2" type="text"></p>
-                            <p class="mt-2">Tutor/a del centro - D./Dña. <input class="border-b-2 w-1/2 border-black ml-1 mr-2" type="text"> NIF/NIE <input class="border-b-2 border-black w-1/6 ml-1 mr-2" type="text"></p>
-                        </div>
-                    </article>
-                @endfor
-            </section>  
-        @endfor
+        <section class="mt-3">
+            <h1 class="text-2xl">4. CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h1>
+        
+            @foreach($elements as $e)
+                <article class="mx-auto mt-5 border border-2 border-black pb-3">
+                    <h2 class="text-xl font-semibold ml-5 ">DATOS  DEL CENTRO DE FORMACIÓN</h2>
+                    <div class="w-11/12 mx-auto">
+                        <p class="ml-5 mt-1">Formación a impartir:  Código {{$e->training_action->codigo}} Denominación {{$e->training_action->name}}</p>
+                        <p class="ml-2 mt-1"><input class="w-5 h-5 mr-1" type="checkbox" {{$e->training_action->webPlatform != null ? 'checked' : ''}}> Centro Sistema Educativo  <span class="ml-12 pl-12">Código de centro autorizado 
+                            @if($e->training_action->webPlatform != null)
+                                {{$e->training_action->webPlatform->codigo}}
+                            @endif
+                        </span></p>
+                        <p class="ml-2 mt-1"><input class="w-5 h-5 mr-1" type="checkbox"> Centro Acreditado  <span class="ml-12">Código de centro en Registro Estatal de Centros de Formación</span></p>
+                        <p class="ml-2 mt-1"><input class="w-5 h-5 mr-1" type="checkbox" {{$e->training_action->modality->name == 'Teleformación' ? 'checked' : ''}}> Si la formación se imparte mediante teleformación, especificar código/s del/os Centros Presenciales vinculados:</p>
+                        <p class="ml-10"><input class="border-b-2 border-black mr-3" type="text"><input class="border-b-2 border-black mr-3" type="text"><input class="border-b-2 border-black mr-3" type="text"><input class="border-b-2 border-black" type="text"></p>
+                        <p class="mt-2">Nombre Centro {{$company->name}} CIF/NIF/NIE {{$company->nif}}</p>
+                        <p class="mt-2">URL (Entidades de teleformación) {{$e->training_action->webPlatform->url ?? ''}}</p>
+                        <p class="mt-2">Dirección {{$company->address}} CP {{$company->post_code}} Municipio {{$company->population}}</p>
+                        <p class="mt-2">Provincia  {{$province->name}} Teléfono {{$company->telephone}} Correo electrónico {{$company->email}}</p>
+                        <p class="mt-2">D./Dña. {{$company->legal_representative}} en concepto de 
+                            @if($company->company_type_id == "Autónomo")
+                                TITULAR
+                            @else
+                                ADMINISTRADOR
+                            @endif
+                            NIF/NIE  {{$company->dni_legal_representative}}</p>
+                        <p class="mt-2">Tutor/a del centro - D./Dña. {{$e->training_contract->company_tutor}} NIF/NIE {{$e->training_contract->company_tutor_dni}}</p>
+                    </div>
+                </article>
+            @endforeach
+        </section>  
 
         <!-- DATOS DECLARATIVOS Y SOLICITUD -->
         <section class="mt-5">
@@ -288,7 +306,7 @@
 
             <article class="w-11/12 mx-auto mt-5">
                 <div>
-                    <p>Declaro que el centro de trabajo se encuentra en: <input class="border-b-2 w-2/3 border-gray-500" type="text"></p>
+                    <p>Declaro que el centro de trabajo se encuentra en: {{$company->address}}</p>
                     <p class="mt-4">Declaro bajo mi responsabilidad que son ciertos los datos que se consignan en el presente acuerdo, asumiento en caso 
                         contrario las responsabilidades que pudieran derivarse de su inexactitud.
                     </p>
@@ -308,9 +326,9 @@
                 </div>
 
                 <div class="mt-10">
-                    <p class="ml-4"><input class="w-5 h-5 mr-2" type="checkbox">Personas con discapacidad</p>
-                    <p class="ml-4"><input class="w-5 h-5 mr-2" type="checkbox">Inscrito en el Sistema Nacional de Garantía Juvenil</p>
-                    <p class="ml-4"><input class="w-5 h-5 mr-2" type="checkbox">Colectivos en situación de exclusión social y que la empresa contratante es una empresa de inserción</p>
+                    <p class="ml-4"><input class="w-5 h-5 mr-2" type="checkbox" {{$trainingContract->disabled == 1 ? 'checked' : ''}}>Personas con discapacidad</p>
+                    <p class="ml-4"><input class="w-5 h-5 mr-2" type="checkbox" {{$trainingContract->youth_guarantee == 1 ? 'checked' : ''}}>Inscrito en el Sistema Nacional de Garantía Juvenil</p>
+                    <p class="ml-4"><input class="w-5 h-5 mr-2" type="checkbox" {{$trainingContract->social_exclusion == 1 ? 'checked' : ''}}>Colectivos en situación de exclusión social y que la empresa contratante es una empresa de inserción</p>
                 </div>  
 
                 <div class="mt-10">
@@ -320,7 +338,7 @@
                 </div>
 
                 <div class="mt-10">
-                    <p class="ml-4"><input class="w-5 h-5 mr-2" type="checkbox">Acepto y doy mi conformidad con lo aquí declarado.</p>
+                    <p class="ml-4"><input class="w-5 h-5 mr-2" type="checkbox" checked>Acepto y doy mi conformidad con lo aquí declarado.</p>
                 </div>  
 
                 <div class="mt-10">
@@ -348,13 +366,13 @@
                 <div class="mt-10">
                     <p class="font-bold">Datos a efectos de notificación</p>
                     <p class="mt-1"> 
-                        Dirección <input class="w-2/3 border-b-2 border-black mr-2" type="text"> 
-                        CP <input class="border-b-2 border-black " type="text">
+                        Dirección {{$trainingContract->student->direction}} 
+                        CP {{$trainingContract->student->post_code}}
                     </p>
                     <p class="mt-1"> 
-                        Provincia <input class="w-1/4 border-b-2 border-black mr-2" type="text"> 
-                        Correo Electrónico <input class="w-1/6 border-b-2 border-black mr-2" type="text">
-                        Teléfono de contacto <input class="w-1/6 border-b-2 border-black" type="text">
+                        Provincia {{$trainingContract->student->province->name}}
+                        Correo Electrónico {{$trainingContract->student->email}}
+                        Teléfono de contacto {{$trainingContract->student->telephone}}
                     </p>
                 </div>
             </article>
