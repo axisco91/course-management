@@ -31,6 +31,7 @@ use App\Models\Province;
 use App\Models\TrainingContractElement;
 use App\Models\WebPlatform;
 use App\Models\ApplicableAgreement;
+use App\Models\AgreementType;
 
 class DocumentStudentController extends BaseController
 {
@@ -258,6 +259,7 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $occupation = Occupation::find($trainingContract->occupation_id);
         $companies = Company::find($trainingContract->company_id);
         $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
+        $agreementType = AgreementType::find($applicableAgreement->agreement_type_id);
         $student = Student::find($trainingContract->student_id);
         $student->levelStudy = LevelStudy::find($student->level_study_id);
         $companies->companyActivity = CompanyActivity::find($companies->company_activity_id);
@@ -296,7 +298,10 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
             'ocupation' => $occupation,
             'province' => $province,
             'trainingActions' => $trainingActions,
-            'trainingContractElements' => $trainingContractElements]);
+            'trainingContractElements' => $trainingContractElements,
+            'applicableAgreement' => $applicableAgreement,
+            'agreementType' => $agreementType
+]);
         Log::info('PDF generated from view');
 
         // Guardamos el PDF en el sistema de archivos
@@ -358,6 +363,7 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $occupation = Occupation::find($trainingContract->occupation_id);
         $companies = Company::find($trainingContract->company_id);
         $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
+        $agreementType = AgreementType::find($applicableAgreement->agreement_type_id);
         $student = Student::find($trainingContract->student_id);
         $student->levelStudy = LevelStudy::find($student->level_study_id);
         $companies->companyActivity = CompanyActivity::find($companies->company_activity_id);
@@ -397,7 +403,8 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
             'province' => $province,
             'trainingActions' => $trainingActions,
             'trainingContractElements' => $trainingContractElements,
-            'applicableAgreement' => $applicableAgreement]);
+            'applicableAgreement' => $applicableAgreement,
+            'agreementType' => $agreementType]);
         // Devolvemos el PDF como una respuesta de descarga
         $pdf->setPaper('a4', $orientation);
         return $pdf->download('test.pdf');
