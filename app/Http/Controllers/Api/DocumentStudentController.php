@@ -274,8 +274,9 @@ class DocumentStudentController extends BaseController
     //     return $pdf->download('test.pdf');
     // }
 
-    public function testPdf($viewName) {
+    public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait') {
         // Cargamos la vista Blade
+        $trainingContract->load('provider');
         $trainingContract = TrainingContract::first();
         $occupation = Occupation::find($trainingContract->occupation_id);
         $companies = Company::find($trainingContract->company_id);
@@ -319,6 +320,7 @@ class DocumentStudentController extends BaseController
             'trainingActions' => $trainingActions,
             'trainingContractElements' => $trainingContractElements]);
         // Devolvemos el PDF como una respuesta de descarga
+        $pdf->setPaper('a4', $orientation);
         return $pdf->download('test.pdf');
     }
 
