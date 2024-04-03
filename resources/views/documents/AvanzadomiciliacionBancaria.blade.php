@@ -4,65 +4,85 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Domiciliación Bancaria</title>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <style>
             .color{
                 color: rgb(0, 144, 212); 
+            }
+
+            .border-gray-400{
+                border-color: rgb(163, 163, 163) !important; 
+            }
+
+            .campos{
+                border-left: 2px solid rgb(163, 163, 163); 
+                padding-top: 16px;
+                padding-bottom: 26px;
+                padding-left:10px; 
+            }
+
+            .font-semibold{
+                font-weight: 600; 
+            }
+
+            .italic{
+                font-style: italic; 
+            }
+
+            .text-xs{
+                font-size: 0.75rem; 
+            }
+
+            .border-top-dotted{
+                border-top: 2px dotted rgb(0, 0, 0);
+                border-right: none;
+                border-left: none;
+                border-bottom: none;
+            }
+
+            .text-sm{
+                font-size: 0.875rem; 
             }
         </style>
     </head>
     <body>
         <!-- CABECERA -->
-        <div class="flex justify-end">
-            <img class="w-80 h-40" src="/Avanza/logo.png" alt="">
+        <div class="text-end">
+            <img src="./Avanza/logo.png" alt="" style="width: 30%">
         </div>
 
         <!-- INFORMACIÓN -->
-        <section class="w-11/12 mx-auto">
-            <h1 class="color text-2xl font-semibold text-start">AUTORIZACION DE PAGO</h1>
+        <section class="mx-auto">
+            <h1 class="color text-2xl font-semibold">AUTORIZACION DE PAGO</h1>
 
             <!-- DATOS DE LA EMPRESA -->
-            <h3 class="color text-lg font-semibold mt-4 text-start">DATOS EMPRESA</h3>
+            <h3 class="color text-lg font-semibold mt-4">DATOS EMPRESA</h3>
             <article class="border border-2 border-gray-400">
-                <div class="flex">
-                    <div class="w-8/12 border-r-2 border-gray-400 p-2"> 
-                        <p class="font-semibold">Razón Social: </p>
-                        <input class="bg-gray-200 rounded-sm w-full" type="text">
-                    </div>
-                    <div class="w-4/12 p-2"> 
-                        <p class="font-semibold">C.I.F. O N.I.F.: </p>
-                        <input class="bg-gray-200 rounded-sm w-full" type="text">
+                <div>
+                    <div aria-colspan="2" class="p-2" > 
+                        <p>
+                            <span><strong>Razón Social:</strong> {{$company->name}} </span>
+                            <span class="campos font-semibold" style="margin-left: 2.4"> C.I.F. O N.I.F.:<span style="font-weight: normal"> {{$company->nif}}</span> </span>
+                        </p>
                     </div>
                 </div>
-                <div class="w-full flex p-2 border-t-2 border-gray-400"> 
-                    <p class="font-semibold">Responsable: </p>
-                    <input class="bg-gray-200 rounded-sm w-full ml-2" type="text">
+                <div class="p-2 border-top border-2 border-gray-400"> 
+                    <p><strong>Responsable:</strong> {{$company->legal_representative}} </p>
                 </div>
-                <div class="flex border-t-2 border-gray-400">
-                    <div class="w-8/12 flex border-r-2 border-gray-400 p-2"> 
-                        <p class="font-semibold">Domicilio: </p>
-                        <input class="bg-gray-200 rounded-sm w-full ml-2" type="text">
-                    </div>
-                    <div class="w-4/12 flex p-2"> 
-                        <p class="font-semibold">Teléfono: </p>
-                        <input class="bg-gray-200 rounded-sm w-full ml-2" type="text">
+                <div class="border-top border-2 border-gray-400">
+                    <div aria-colspan="2" class="p-2"> 
+                        <p style="width: 100%">
+                            <span> <strong>Domicilio:</strong> {{$company->address}} </span>
+                            <span class="campos"> <strong>Teléfono:</strong> {{$company->telephone}}</span>
+                        </p>
                     </div>
                 </div>
-                <div class="flex border-t-2 border-gray-400">
-                    <div class="w-8/12 flex border-r-2 border-gray-400 p-2"> 
-                        <p class="font-semibold my-auto">Localidad: </p>
-                        <input class="bg-gray-200 rounded-sm w-full ml-2" type="text">
-                    </div>
-                    <div class="w-4/12 flex"> 
-                        <div class="border-r-2 p-2 border-gray-400">
-                            <p class="font-semibold">C.P: </p>
-                            <input class="bg-gray-200 rounded-sm w-full" type="text">
-                        </div>
-                        <div class="p-2 w-11/12">
-                            <p class="font-semibold">Provincia: </p>
-                            <input class="bg-gray-200 rounded-sm w-full" type="text">
-                        </div>
-                    </div>
+                <div aria-colspan="3" class="border-top border-2 border-gray-400">
+                    <p class="p-2">
+                        <span> <strong>Localidad:</strong> {{$company->population}} </span>
+                        <span class="campos"> <strong>C.P:</strong>{{$company->post_code}} </span> 
+                        <span class="campos"> <strong>Provincia:</strong> {{$company->province->name}}</span>
+                    </p>
                 </div>
             </article>
 
@@ -70,13 +90,11 @@
             <h3 class="color text-lg font-semibold mt-4 text-start">DATOS DEL TRABAJADOR</h3>
             <article class="border border-2 border-gray-400">
                 <div class="flex">
-                    <div class="w-10/12 flex border-r-2 border-gray-400 p-2"> 
-                        <p class="font-semibold my-auto">Nombre y Apellidos: </p>
-                        <input class="bg-gray-200 rounded-sm ml-2 w-9/12" type="text">
-                    </div>
-                    <div class="w-3/12 p-2"> 
-                        <p class="font-semibold">DNI: </p>
-                        <input class="bg-gray-200 rounded-sm w-full" type="text">
+                    <div aria-colspan="2" class="w-10/12 flex border-r-2 border-gray-400 p-2"> 
+                        <p>
+                            <span><strong>Nombre y Apellidos:</strong> {{$trainingContract->student->name}} {{$trainingContract->student->surname}} </span>
+                            <span class="campos" > <strong>DNI:</strong> {{$trainingContract->student->dni}} </span>
+                        </p>
                     </div>
                 </div>
             </article>
@@ -85,9 +103,9 @@
             <!-- DATOS BANCARIOS -->
             <h3 class="color text-lg font-semibold mt-4 text-start">DATOS BANCARIOS</h3>
             <article class="border border-2 border-gray-400">
-                <p class="text-center font-bold">IBAN</p>
-                <div class="border-t-2 border-gray-400 p-2 text-center">
-                    <input class="bg-gray-200 w-full" type="text">
+                <p class="text-center font-semibold">IBAN </p>
+                <div class="border-top border-2 border-gray-400 p-2 text-center">
+                    {{$company->iban}}
                 </div>
             </article>
 
@@ -95,22 +113,19 @@
             <h3 class="color text-lg font-semibold mt-4 text-start">DATOS DE LA FORMACION</h3>
             <article class="border border-2 border-gray-400">
                 <div class="flex p-2">
-                    <p class="font-semibold">Ocupación: </p>
-                    <input class="bg-gray-200 ml-2 rounded-md w-11/12" type="text">
+                    <p class="font-semibold">Ocupación: <span style="font-weight: normal">{{$occupation->name}}</span> </p>
                 </div>
-                <div class="border-t-2 border-gray-400 p-2 ">
+                <div class="border-top border-2 border-gray-400 p-2 ">
                     <p><span class="font-semibold">Centro: </span>  AVZ FORMACION S.L. (8000001711)</p>
                 </div>
             </article>
 
             <!-- FECHA Y FIRMA -->
+
+            {{-- EN LA FECHA FALTA QUE EL MES SE VEA EN ESPAÑOL --}}
             <article>
                 <div class="text-center mt-4">
-                    <p>En Lucena, a 
-                        <input class="border-b-2 border-black w-8" type="text"> 
-                        de <input class="border-b-2 border-black w-1/12" type="text"> 
-                        de 20 <input class="border-b-2 border-black w-8" type="text">
-                    </p>
+                    <p>En Lucena, a {{date('d')}} de {{strftime('%B')}} de {{date('Y')}}</p>
                 </div>
                 <div class="text-end mt-10 w-11/12 mb-12">
                     <p>(Firma y sello de la empresa)</p>
@@ -119,7 +134,7 @@
 
             <!-- CLAUSULAS -->
             <article class="mt-12">
-                <div class="border-dashed border-t-2 border-black mb-10">
+                <div class="border-top-dotted" style="margin-bottom: 60px">
                     <p class="text-sm mt-4 font-semibold">
                         como titular  de  la  cuenta  de  cargo ,  en  mi  condición  de  cliente  de  Avz  Formación  S.L.,  y haciendo  uso  de  la  facultad  conferida por els
                         artículo 23.1, en  relación  con  los  artículos  33 ,  34  y  37 ,  de  la  Ley  16 /2009 ,  de Servicios  de  pago ,  consiento  y autorizo a Avz 
