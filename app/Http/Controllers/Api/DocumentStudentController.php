@@ -32,6 +32,9 @@ use App\Models\TrainingContractElement;
 use App\Models\WebPlatform;
 use App\Models\ApplicableAgreement;
 use App\Models\AgreementType;
+use App\Models\TrainingContractBonus;
+use Illuminate\Support\Facades\Date;
+
 
 class DocumentStudentController extends BaseController
 {
@@ -256,12 +259,12 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
 
         // Cargamos la vista Blade con los datos del estudiante
         $occupation = Occupation::find($trainingContract->occupation_id);
-        $companies = Company::find($trainingContract->company_id);
+        $company = Company::find($trainingContract->company_id);
         $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
         $agreementType = AgreementType::find($applicableAgreement->agreement_type_id);
         $student = Student::find($trainingContract->student_id);
         $student->levelStudy = LevelStudy::find($student->level_study_id);
-        $companies->companyActivity = CompanyActivity::find($companies->company_activity_id);
+        $company->companyActivity = CompanyActivity::find($company->company_activity_id);
         $province = Province::find($trainingContract->province_id);
         $trainingContractElements = TrainingContractElement::where('training_contract_id', $trainingContract->id)->get();
         $trainingActions = [];
@@ -292,7 +295,7 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $pdf = PDF::loadView($viewName,
         ['occupation'=>$occupation,
             'trainingContract' => $trainingContract,
-            'companies' => $companies,
+            'company' => $company,
             'student' => $student,
             'ocupation' => $occupation,
             'province' => $province,
@@ -382,10 +385,12 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
 
         $trainingActions = [];
 
+        
+
         $pdf = PDF::loadView($viewName,
         ['occupation'=>$occupation,
             'trainingContract' => $trainingContract,
-            'companies' => $companies,
+            'company' => $company,
             'student' => $student,
             'ocupation' => $occupation,
             'province' => $province,
@@ -397,6 +402,7 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
             'bonus' => $bonus,
             'monthlyFormationHours' => $monthlyFormationHours,
             'sumaHoras'=>0]);
+
         // Devolvemos el PDF como una respuesta de descarga
         $pdf->setPaper('a4', $orientation);
         return $pdf->download('test.pdf');
