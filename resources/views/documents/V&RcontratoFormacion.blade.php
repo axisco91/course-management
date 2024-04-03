@@ -6,6 +6,10 @@
     <title>Contrato Formación - V&R</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style type="text/css">
+        *{
+            font-family:  'Calibri', sans-serif; 
+        }
+
         hr{
             border: 2px solid rgb(225, 234, 231) !important; 
             color: rgb(225, 234, 231) !important; 
@@ -189,9 +193,19 @@
                     <tr class="text-green-900 border-bottom border-2 border-green-100 font-bold">
                         <td class="border-r-2 border-green-100">{{$e->training_action->codigo}}</td>
                         <td class="border-r-2 border-green-100">{{$e->training_action->name}}</td>
-                        <td class="border-r-2 border-green-100">{{ $e->training_contract->provider->name ?? '' }}</td>
+                        <td class="border-r-2 border-green-100">{{$e->training_contract->provider->name ?? '' }}</td>
                         <td class="border-r-2 border-green-100">{{$e->training_contract->beginning_formation}} / {{$e->training_contract->beginning_formation}}</td>
-                        <td class="border-r-2 border-green-100">{{$company->weekly_hours}}</td>
+                        <td class="border-r-2 border-green-100">
+                            @php
+                                $fInicioMasAnyo = \Carbon\Carbon::parse($e->training_contract->beginning)->addMonths(12)->format('Y-m-d'); 
+                                if ($fInicioMasAnyo <= $e->training_contract->end) {
+                                    echo $e->training_contract->daily_hours_1 * $daysWeek;
+                                }
+                                else {
+                                    echo $e->training_contract->daily_hours_2 * $daysWeek;
+                                }
+                            @endphp
+                        </td>
                         <td class="border-r-2 border-green-100">{{$daysWeek}}</td>
                         <td>{{$e->training_contract->working_hours}}</td>
                     </tr>

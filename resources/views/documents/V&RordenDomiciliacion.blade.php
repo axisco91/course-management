@@ -40,60 +40,6 @@
             color: rgb(24, 57, 46) !important; 
         }
 
-        .nif1{
-            position: fixed;
-            top: 19%;
-            left: 40%;
-            border-left: 2px solid black;
-        }
-
-        .name1{
-            position: fixed;
-            top: 25%;
-            left: 40%;
-            border-left: 2px solid black;
-        }
-
-        .address1{
-            position: fixed;
-            top: 31.6%;
-            left: 23%;
-            border-left: 2px solid black;
-        }
-
-        .cp1, .population1, .population1-text, .province1, .province1-text{
-            position: fixed;
-            top: 37.4%;
-            border-left: 2px solid black;
-        }
-
-        .cp1{
-            left: 23%;
-        }
-
-        .population1-text{
-            left: 35%;
-        }
-
-        .population1{
-            right: 36%;
-        }
-
-        .province1-text{
-            right: 22%;
-        }
-
-        .province1{
-            right: 6%;
-        }
-
-        .country1{
-            position: fixed;
-            top: 42.9%;
-            left: 23%;
-            border-left: 2px solid black;
-        }
-
         .salto-pagina{
             page-break-after: always;
         }
@@ -103,120 +49,6 @@
             font-weight: normal; 
             position: fixed; 
             top: 14.8%;
-        }
-
-        .name2{
-            position: fixed;
-            top: 10.2%;
-            left: 50%;
-            border-left: 2px solid black;
-        }
-
-        .address2{
-            position: fixed;
-            top: 17.5%;
-            left: 32%;
-            border-left: 2px solid black;
-        }
-
-        .cp2, .population2, .population2-text, .province2, .province2-text{
-            position: fixed;
-            top: 23.1%;
-            border-left: 2px solid black;
-        }
-
-        .cp2{
-            left: 23%;
-        }
-
-        .population2-text{
-            left: 35%;
-        }
-
-        .population2{
-            right: 36%;
-        }
-
-        .province2-text{
-            right: 22%;
-        }
-
-        .province2{
-            right: 6%;
-        }
-
-        .nif2, .nif2-text, .country2{
-            position: fixed;
-            top: 28.6%;
-            border-left: 2px solid black;
-        }
-
-        .country2{
-            left: 23%;
-        }
-
-        .nif2-text{
-            left: 50%;
-        }
-
-        .nif2{
-            right: 10%;
-        }
-
-        .swift{
-            position: fixed;
-            top: 34.4%;
-            left: 55%;
-            border-left: 2px solid black;
-        }
-
-        .recurrente, .unico, .recurrente2, .unico2, .pago{
-            position: fixed;
-            bottom: 42.7%;
-            background-color: white; 
-            border: 2px solid black;
-        }
-
-        .recurrente{
-            left: 23%;
-            font-style: italic; 
-        }
-
-        .recurrente2{
-            left: 42.9%;
-        }
-
-        .unico{
-            left: 49.4%;
-            font-style: italic; 
-        }
-
-        .unico2{
-            width: 11px; 
-            height: 23.5px;
-            right: 28.4%;
-        }
-
-        .pagos{
-            margin-top: 100px
-        }
-
-        .fecha, .localidad-text, .localidad{
-            position: fixed;
-            bottom: 27.65%;
-            border-left: 2px solid black;
-        }
-
-        .fecha{
-            left: 23%;
-        }
-
-        .localidad-text{
-            left: 40%;
-        }
-
-        .localidad{
-            right: 5%;
         }
 
         .firma{
@@ -239,9 +71,11 @@
         <!-- INFORMACIÓN DEL ACREEDOR -->
         <article class="border border-1 border-dark mt-3">
             <p class="p-2 bg-green-100 border-bottom border-2 border-dark text-green-900 font-bold">A cumplimentar por el acreedor</p>
-            <div class="border-bottom border-2 border-dark">
-                <p class="font-semibold p-2">Identificador del acreedor:</p>
-                <p class="nif1 p-4">{{$company->nif}}</p>
+            <div aria-colspan="2" class="border-bottom border-2 border-dark">
+                <p class="p-2">
+                    <span>Identificador del acreedor:</span>
+                    <span class="border-start border-2 border-dark" style="">{{$company->nif}}</span>
+                </p>
             </div>
             <div class="border-bottom border-2 border-dark">
                 <p class="font-semibold p-2">Nombre del acreedor:</p>
