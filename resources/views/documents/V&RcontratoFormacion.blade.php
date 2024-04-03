@@ -179,28 +179,28 @@
                         <td>Horario</td>
                     </tr>
                     @foreach($elements as $e)
-                    <tr class="text-green-900 border-bottom border-2 border-green-100 font-bold">
-                        <td class="border-r-2 border-green-100">{{$e->training_action->codigo}}</td>
-                        <td class="border-r-2 border-green-100">{{$e->training_action->name}}</td>
-                        <td class="border-r-2 border-green-100">{{$e->training_contract->provider->name ?? '' }}</td>
-                        <td class="border-r-2 border-green-100">{{$e->training_contract->beginning_formation}} / {{$e->training_contract->beginning_formation}}</td>
-                        <td class="border-r-2 border-green-100">
+                        <tr class="text-green-900 border-bottom border-2 border-green-100 font-bold">
+                            <td class="border-r-2 border-green-100">{{$e->training_action->codigo}}</td>
+                            <td class="border-r-2 border-green-100">{{$e->training_action->name}}</td>
+                            <td class="border-r-2 border-green-100">{{$e->training_contract->provider->name ?? '' }}</td>
+                            <td class="border-r-2 border-green-100">{{$e->training_contract->beginning_formation}} / {{$e->training_contract->beginning_formation}}</td>
+                            <td class="border-r-2 border-green-100">
 
-                            {{-- NO SE SI SERIA ASI O HASTA EL PRIMER AÑO SE PONDRIA daily_hours_1 Y LUEGO SE LE SUMARIA EL daily_hours_2 --}}
-                            @php
-                                $fInicioMasAnyo = \Carbon\Carbon::parse($e->training_contract->beginning)->addMonths(12)->format('Y-m-d'); 
-                                
-                                if ($fInicioMasAnyo <= $e->training_contract->end) {
-                                    echo $e->training_contract->daily_hours_1 * $daysWeek;
-                                }
-                                else {
-                                    echo $e->training_contract->daily_hours_2 * $daysWeek;
-                                }
-                            @endphp
-                        </td>
-                        <td class="border-r-2 border-green-100">{{$daysWeek}}</td>
-                        <td>{{$e->training_contract->working_hours}}</td>
-                    </tr>
+                                {{-- NO SE SI SERIA ASI O HASTA EL PRIMER AÑO SE PONDRIA daily_hours_1 Y LUEGO SE LE SUMARIA EL daily_hours_2 --}}
+                                @php
+                                    $fInicioMasAnyo = \Carbon\Carbon::parse($e->training_contract->beginning)->addMonths(12)->format('Y-m-d'); 
+                                    
+                                    if ($fInicioMasAnyo <= $e->training_contract->end) {
+                                        echo $e->training_contract->daily_hours_1 * $daysWeek;
+                                    }
+                                    else {
+                                        echo $e->training_contract->daily_hours_2 * $daysWeek;
+                                    }
+                                @endphp
+                            </td>
+                            <td class="border-r-2 border-green-100">{{$daysWeek}}</td>
+                            <td>{{$e->training_contract->working_hours}}</td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
