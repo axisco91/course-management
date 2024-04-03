@@ -96,8 +96,9 @@
             <p>
                 Correo electrónico de la empresa <u>{{$company->email}}</u>  Tfno. Empresa <u>{{$company->telephone}} </u>
             </p>
+            
             <p>
-                Tutor/a de la empresa – D./Dña. <u> {{$trainingContract->company_tutor}} </u> Horas mensuales _________ NIF/NIE <u>{{$trainingContract->company_tutor_dni}}</u>
+                Tutor/a de la empresa – D./Dña. <u> {{$trainingContract->company_tutor}} </u> Horas mensuales <u>40</u> NIF/NIE <u>{{$trainingContract->company_tutor_dni}}</u>
             </p>
             <p>
                 Cualificación y/o experiencia profesional adecuada <input type="checkbox" id="opcion1" name="opcion1" checked>
@@ -128,10 +129,10 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA:</h1>
-            <p>Identificador contrato n.º <u>{{$trainingContract->number_cfa}} </u> (a consignar una vez comunicada la formalización del contrato)</p>
+            <p>Identificador contrato n.º ____________________ (a consignar una vez comunicada la formalización del contrato)</p>
             <p>Fecha de inicio: <u>{{$trainingContract->beginning}}</u></p>
             <p>Puesto de trabajo u ocupación: <u>{{$occupation->name}} </u> Cód. CNO <u>{{$occupation->cno}} </u></p>
-            <p>Provincia del centro de trabajo: <u>{{$province->name}} </u> Horas de contrato, según convenio: <u>{{$trainingContract->formation_hours}} </u> </p>
+            <p>Provincia del centro de trabajo: <u>{{$province->name}} </u> Horas de contrato, según convenio: <u>{{$trainingContract->annually_day_hours}} </u> </p>
             <p>Convenio aplicable <u> {{$applicableAgreement->name}} ({{$agreementType->type}}) </u></p>
         </div>
     </div>
@@ -184,12 +185,12 @@
                 <tbody>
                     <tr>
                         <td>1</td>
-                        <td>Dato 1</td>
-                        <td>Dato 2</td>
-                        <td>Dato 3</td>
-                        <td>Dato 4</td>
-                        <td>Dato 5</td>
-                        <td>Dato 6</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
