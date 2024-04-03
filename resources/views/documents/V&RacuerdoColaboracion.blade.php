@@ -111,7 +111,7 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1> DATOS DEL TRABAJADOR:</h1>
-            <p>D./Dña. <u> {{$student->name}} </u> NIF/NIE <u> {{$student->dni}} </u> Fecha de nac. <u> {{$student->date_of_birth}} </u> </p>
+            <p>D./Dña. <u> {{$student->name}} {{$student->surname}}</u> NIF/NIE <u> {{$student->dni}} </u> Fecha de nac. <u> {{$student->date_of_birth}} </u> </p>
             <p>Reúne requisitos de acceso a la Formación de este contrato</p>
             <p>
                 Inscrito/a en el sistema Nacional de Garantía Juvenil <input type="checkbox" id="opcion3" name="opcion3" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
