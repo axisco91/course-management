@@ -303,7 +303,7 @@
             </div>
             <div class="border-bottom border-2 border-dark ">
                 <p class="p-2"><strong>Swift BIC</strong> (puede contener 8 u 11 posiciones):</p>
-                <p class="swift p-3">(swift BIC)</p>
+                <p class="swift p-3"> </p>
             </div>
             <p class="p-2 border-t-2 border-black"><strong>Número de cuenta – IBAN</strong>: {{$company->iban}}</p>
         </article>

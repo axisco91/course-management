@@ -6,7 +6,10 @@
     <title>Certificado de Bonificaciones - V&R</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style>
-        h1{
+        body {
+        font-family: 'Calibri', sans-serif !important;
+        }
+            h1{
             font-weight: bold;
             font-size: 2.0rem;
         }
