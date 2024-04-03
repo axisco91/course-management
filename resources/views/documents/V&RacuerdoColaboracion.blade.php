@@ -100,14 +100,8 @@
                 Tutor/a de la empresa – D./Dña. <u> {{$trainingContract->company_tutor}} </u> Horas mensuales _________ NIF/NIE <u>{{$trainingContract->company_tutor_dni}}</u>
             </p>
             <p>
-                Cualificación y/o experiencia profesional adecuada
-                <label for="opcion1">
-                    <input type="checkbox" id="opcion1" name="opcion1" checked>
-                </label>
-                 Empresa con menos de 5 trabajadores
-                 <label for="opcion2">
-                    <input type="checkbox" id="opcion2" name="opcion2" {{ $company->average_template <= 5 ? 'checked' : '' }}>
-                 </label>
+                Cualificación y/o experiencia profesional adecuada <input type="checkbox" id="opcion1" name="opcion1" checked>
+                Empresa con menos de 5 trabajadores <input type="checkbox" id="opcion2" name="opcion2" {{ $company->average_template <= 5 ? 'checked' : '' }}>
             </p>
         </div>
     </div>
@@ -118,22 +112,14 @@
             <h1> DATOS DEL TRABAJADOR:</h1>
             <p>D./Dña. <u> {{$student->name}} </u> NIF/NIE <u> {{$student->dni}} </u> Fecha de nac. <u> {{$student->date_of_birth}} </u> </p>
             <p>Reúne requisitos de acceso a la Formación de este contrato</p>
-            <p>Inscrito/a en el sistema Nacional de Garantía Juvenil
-                <label for="opcion3">
-                    <input type="checkbox" id="opcion3" name="opcion3" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
-                 </label>
+            <p>
+                Inscrito/a en el sistema Nacional de Garantía Juvenil <input type="checkbox" id="opcion3" name="opcion3" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
             </p>
             <p>
-                Trabajador/a con discapacidad
-                <label for="opcion4">
-                    <input type="checkbox" id="opcion4" name="opcion4" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
-                 </label>
+                Trabajador/a con discapacidad <input type="checkbox" id="opcion4" name="opcion4" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
             </p>
             <p>
-                Trabajador/a en situación de exclusión social en empresas de inserción
-                <label for="opcion5">
-                    <input type="checkbox" id="opcion5" name="opcion5" {{ $trainingContract->social_exclusion == 1 ? 'checked' : '' }}>
-                 </label>
+                Trabajador/a en situación de exclusión social en empresas de inserción <input type="checkbox" id="opcion5" name="opcion5" {{ $trainingContract->social_exclusion == 1 ? 'checked' : '' }}>
             </p>
         </div>
     </div>
@@ -142,7 +128,7 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA:</h1>
-            <p> Identificador contrato n.º <u>{{$trainingContract->number_cfa}} </u> (a consignar una vez comunicada la formalización del contrato)</p>
+            <p>Identificador contrato n.º <u>{{$trainingContract->number_cfa}} </u> (a consignar una vez comunicada la formalización del contrato)</p>
             <p>Fecha de inicio: <u>{{$trainingContract->beginning}}</u></p>
             <p>Puesto de trabajo u ocupación: <u>{{$occupation->name}} </u> Cód. CNO <u>{{$occupation->cno}} </u></p>
             <p>Provincia del centro de trabajo: <u>{{$province->name}} </u> Horas de contrato, según convenio: <u>{{$trainingContract->formation_hours}} </u> </p>
@@ -306,30 +292,13 @@
                 <tbody>
                     <tr>
                         <td>1º</td>
-                        <td>Dato 2</td>
-                        <td>{{$trainingContract->annually_day_hours}}</td>
+                        <td>{{100-$trainingContract->percentage_first_year}}%</td>
+                        <td>{{$trainingContract->annually_day_hours-$trainingContract->formative_hours_first_year}}</td>
                     </tr>
                     <tr>
                         <td>2º</td>
-                        <td>Dato 2</td>
-                        <td>
-                            <?php
-                                use Carbon\Carbon;
-
-                                $fechaInicio = Carbon::parse($trainingContract->beginning);
-                                $fechaFin = Carbon::parse($trainingContract->end);
-                                $diferenciaMeses = $fechaInicio->diffInMonths($fechaFin);
-
-                                if ($diferenciaMeses > 12) {
-                                    $mesesRestantes = $diferenciaMeses - 11;
-                                    $proporcionAnioCompleto = $mesesRestantes / 12;
-                                    $horasSegundoAnio = $trainingContract->annually_day_hours * $proporcionAnioCompleto;
-                                    echo $horasSegundoAnio;
-                                } else {
-                                    echo '0';
-                                }
-                            ?>
-                        </td>
+                        <td>{{100-$trainingContract->percentage_second_year}}%</td>
+                        <td></td>
                     </tr>
                 </tbody>
             </table>
