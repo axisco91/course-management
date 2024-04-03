@@ -79,22 +79,22 @@
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DE LA EMPRESA:</h1>
             <p>
-                Razón social  <u>{{$companies->name}}</u> CIF/NIF/NIE  <u>{{$companies->nif}}</u>
+                Razón social  <u>{{$company->name}}</u> CIF/NIF/NIE  <u>{{$company->nif}}</u>
             </p>
             <p>
-                D./Dña. <u>{{$companies->legal_representative}}</u> en concepto de <u>
+                D./Dña. <u>{{$company->legal_representative}}</u> en concepto de <u>
                 <?php
-                if($companies->company_type_id=="Autónomo"){
+                if($company->company_type_id=="Autónomo"){
                     echo "TITULAR";
                 }else{
                     echo "ADMINISTRADOR/A";
                 }
             ?>
             </u>
-            NIF/NIE  <u>{{$companies->dni_legal_representative}}</u> 
+            NIF/NIE  <u>{{$company->dni_legal_representative}}</u> 
             </p>
             <p>
-                Correo electrónico de la empresa <u>{{$companies->email}}</u>  Tfno. Empresa <u>{{$companies->telephone}} </u>
+                Correo electrónico de la empresa <u>{{$company->email}}</u>  Tfno. Empresa <u>{{$company->telephone}} </u>
             </p>
             <p>
                 Tutor/a de la empresa – D./Dña. <u> {{$trainingContract->company_tutor}} </u> Horas mensuales _________ NIF/NIE <u>{{$trainingContract->company_tutor_dni}}</u>
@@ -106,7 +106,7 @@
                 </label>
                  Empresa con menos de 5 trabajadores
                  <label for="opcion2">
-                    <input type="checkbox" id="opcion2" name="opcion2" {{ $companies->average_template <= 5 ? 'checked' : '' }}>
+                    <input type="checkbox" id="opcion2" name="opcion2" {{ $company->average_template <= 5 ? 'checked' : '' }}>
                  </label>
             </p>
         </div>
@@ -158,10 +158,10 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DEL CENTRO DE FORMACIÓN:</h1>
-            <p>Razón social <u>{{$companies->name}}</u>  CIF/NIF/NIE <u>{{$companies->nif}}</u></p>
-            <p>Dirección <u>{{$companies->address}}</u> CP <u>{{$companies->post_code}}</u> Municipio <u>{{$companies->population}}</u></p>
-            <p>Provincia <u>{{$province->name}}</u> Teléfono <u>{{$companies->telephone}} </u>  Correo electrónico <u>{{$companies->email}}</u> </p>
-            <p>D./Dña. <u>{{$companies->legal_representative}}</u> En concepto de <u> (representante)</u>   NIF/NIE <u>{{$companies->dni_legal_representative}} </u></p>
+            <p>Razón social <u>{{$company->name}}</u>  CIF/NIF/NIE <u>{{$company->nif}}</u></p>
+            <p>Dirección <u>{{$company->address}}</u> CP <u>{{$company->post_code}}</u> Municipio <u>{{$company->population}}</u></p>
+            <p>Provincia <u>{{$province->name}}</u> Teléfono <u>{{$company->telephone}} </u>  Correo electrónico <u>{{$company->email}}</u> </p>
+            <p>D./Dña. <u>{{$company->legal_representative}}</u> En concepto de <u> (representante)</u>   NIF/NIE <u>{{$company->dni_legal_representative}} </u></p>
         </div>
     </div>
 
@@ -374,7 +374,7 @@
             $contenedor = '';
         
             foreach ($trainingActions as $trainingAction) {
-                $titulo_representante = ($companies->company_type_id == "Autónomo") ? "TITULAR" : "ADMINISTRADOR/A";
+                $titulo_representante = ($company->company_type_id == "Autónomo") ? "TITULAR" : "ADMINISTRADOR/A";
                 $bloqueHTML = '
                     <div class="col-md-12 mx-2 my-2">
                         <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
@@ -385,19 +385,19 @@
                             Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>' .  $trainingAction->webPlatformCode   .'</u>
                         </p>
                         <p>
-                            Nombre Centro: <u>'. $companies->name . '</u>  CIF/NIF/NIE <u>'. $companies->nif. '</u>
+                            Nombre Centro: <u>'. $company->name . '</u>  CIF/NIF/NIE <u>'. $company->nif. '</u>
                         </p>
                         <p>
                             URL <u>'. $trainingAction->webPlatformUrl.'</u>
                         </p>
                         <p>
-                            Dirección: <u>'.$companies->address.'</u> CP: <u> '.$companies->post_code.'</u> Municipio: <u>'.$companies->population.' </u>
+                            Dirección: <u>'.$company->address.'</u> CP: <u> '.$company->post_code.'</u> Municipio: <u>'.$company->population.' </u>
                         </p>
                         <p>
-                            Provincia: <u>'.$province->name.'</u> Teléfono: <u>'.$companies->telephone.'</u> Correo electrónico: <u>'.$companies->email.'</u>
+                            Provincia: <u>'.$province->name.'</u> Teléfono: <u>'.$company->telephone.'</u> Correo electrónico: <u>'.$company->email.'</u>
                         </p>
                         <p>
-                            D./Dña.: <u>'.$companies->legal_representative. '</u> en concepto de <u>'. $titulo_representante.'</u> NIF/NIE: <u>'.$companies->dni_legal_representative.' </u>
+                            D./Dña.: <u>'.$company->legal_representative. '</u> en concepto de <u>'. $titulo_representante.'</u> NIF/NIE: <u>'.$company->dni_legal_representative.' </u>
                         </p>
                     </div>
                 ';
@@ -492,7 +492,7 @@
     </h3>
     <div class="col-md-12 mx-2 my-2">
         <ul>
-            <li>El centro de trabajo se encuentra en: <u>{{$companies->address}}  ({{$companies->post_code}} {{$companies->population}})</u></li>
+            <li>El centro de trabajo se encuentra en: <u>{{$company->address}}  ({{$company->post_code}} {{$company->population}})</u></li>
             <li>Son ciertos los datos que se consignan en el presente acuerdo, asumiendo en caso contrario las responsabilidades que pudieran derivarse de su inexactitud.</li>
             <li>Conozco lo establecido en el artículo 11.2 del Estatuto de los Trabajadores y el Real Decreto 1.529/2012, de 8 de noviembre y demás normativas de desarrollo, así como la normativa que afecta a la actividad formativa objeto de esta solicitud.</li>
             <li>Que autorizo/a al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a que acceda a las bases de datos de la Administración General del Estado y de las Administraciones de las Comunidades Autónomas, con garantía de confidencialidad y a los exclusivos efectos de facilitar la verificación de los datos consignados en esta solicitud, manifestando que quedo enterado de la obligación de informar a los Servicios Públicos de Empleo de cualquier variación de los mismos que pudiera producirse.</li>
@@ -562,7 +562,7 @@
         ?>
         
         <p>
-            En <u>{{$companies->population}}</u>  a <u><?php echo $dia; ?></u> de <u><?php echo $nombre_mes; ?></u> de 2024
+            En <u>{{$company->population}}</u>  a <u><?php echo $dia; ?></u> de <u><?php echo $nombre_mes; ?></u> de 2024
         </p>
         <div style="margin: 20px;">
             <table width="100%" style="margin=10px;">
@@ -588,7 +588,7 @@
                         <u>{{$student->legal_guardian_name}}</u>
                     </td>
                     <td width="25%" style="border: none; padding-top: 130px;">
-                        <u>{{$companies->legal_representative}}</u>
+                        <u>{{$company->legal_representative}}</u>
                     </td>
                     <td width="25%" style="border: none; padding-top: 130px;">
                         <u>{{$trainingContract->company_tutor}}</u>
