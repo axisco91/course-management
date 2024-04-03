@@ -257,7 +257,8 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $student = Student::find($documentStudent->student_id);
         Log::info('Student found with id: ' . $documentStudent->student_id);
 
-        // Cargamos la vista Blade con los datos del estudiante
+        // Cargamos la vista Blade
+        $trainingContract->load('provider');
         $occupation = Occupation::find($trainingContract->occupation_id);
         $company = Company::find($trainingContract->company_id);
         $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
@@ -266,31 +267,22 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $student->levelStudy = LevelStudy::find($student->level_study_id);
         $company->companyActivity = CompanyActivity::find($company->company_activity_id);
         $province = Province::find($trainingContract->province_id);
-        $trainingContractElements = TrainingContractElement::where('training_contract_id', $trainingContract->id)->get();
-        $trainingActions = [];
+        $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
+        $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
+        $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
 
-        foreach ($trainingContractElements as $element) {
-            // Obtener el TrainingAction asociado a este elemento del contrato de entrenamiento
-            $trainingAction = TrainingAction::find($element->training_action_id);
-            // Obtener el ID de la plataforma web asociada al TrainingAction
-            $webPlatformId = $trainingAction->web_platform_id;
+        $daysWeek = 0; 
+        if($trainingContract->monday == 1) $daysWeek++; 
+        if($trainingContract->tuesday == 1) $daysWeek++; 
+        if($trainingContract->wednesday == 1) $daysWeek++; 
+        if($trainingContract->thursday == 1) $daysWeek++; 
+        if($trainingContract->friday == 1) $daysWeek++; 
+        if($trainingContract->saturday == 1) $daysWeek++; 
+        if($trainingContract->sunday == 1) $daysWeek++; 
+        $fechaActual = Date::now()->format('d/m/Y');
 
-            // Obtener la plataforma web utilizando el ID
-            $webPlatform = WebPlatform::find($webPlatformId);
-            $webPlatformCode = $webPlatform->code;
 
-            // Asignar el código de la plataforma web al TrainingAction
-            $trainingAction->webPlatformCode = $webPlatformCode;
         
-            // Obtener la URL de la plataforma web
-            $webPlatformUrl = $webPlatform->url;
-        
-            // Asignar la URL de la plataforma web al TrainingAction
-            $trainingAction->webPlatformUrl = $webPlatformUrl;
-             
-            // Agregar el TrainingAction al array de TrainingActions
-            $trainingActions[] = $trainingAction;
-        }
 
         $pdf = PDF::loadView($viewName,
         ['occupation'=>$occupation,
@@ -299,11 +291,14 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
             'student' => $student,
             'ocupation' => $occupation,
             'province' => $province,
-            'trainingActions' => $trainingActions,
-            'trainingContractElements' => $trainingContractElements,
+            'elements' => $trainingElements,
             'applicableAgreement' => $applicableAgreement,
-            'agreementType' => $agreementType
-]);
+            'agreementType' => $agreementType,
+            'fechaActual' => $fechaActual,
+            'bonus' => $bonus,
+            'monthlyFormationHours' => $monthlyFormationHours,
+            'sumaHoras'=>0
+         ]);
         Log::info('PDF generated from view');
 
         // Guardamos el PDF en el sistema de archivos
@@ -383,7 +378,6 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         if($trainingContract->sunday == 1) $daysWeek++; 
         $fechaActual = Date::now()->format('d/m/Y');
 
-        $trainingActions = [];
 
         
 
@@ -394,8 +388,7 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
             'student' => $student,
             'ocupation' => $occupation,
             'province' => $province,
-            'trainingActions' => $trainingActions,
-            'trainingElements' => $trainingElements,
+            'elements' => $trainingElements,
             'applicableAgreement' => $applicableAgreement,
             'agreementType' => $agreementType,
             'fechaActual' => $fechaActual,

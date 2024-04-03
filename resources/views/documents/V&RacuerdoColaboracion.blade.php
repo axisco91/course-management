@@ -233,20 +233,20 @@
                 <tbody>
                     <?php
                     $i = 1;
-                    foreach ($trainingActions as $trainingAction) {
+                    foreach ($elements as $e) {
                         echo '<tr>';
     
                         echo '<td>' . $i++ . '</td>';
     
-                        echo '<td>' . $trainingAction->code . '</td>';
+                        echo '<td>' . $e->training_action->code . '</td>';
     
-                        echo '<td>' . $trainingAction->name . '</td>';
+                        echo '<td>' . $e->training_action->name . '</td>';
 
-                        echo '<td>' . $trainingAction->total_hours . '</td>';
+                        echo '<td>' . $e->training_action->total_hours . '</td>';
 
                         echo '<td>' . 'TELEFORMACIÓN' . '</td>';
 
-                        echo '<td>' . $trainingAction->webPlatformCode . '</td>';
+                        echo '<td>' . $e->training_action->webPlatform->code . '</td>';
 
                         echo '</tr>';
                     }
@@ -373,22 +373,22 @@
             
             $contenedor = '';
         
-            foreach ($trainingActions as $trainingAction) {
+            foreach ($elements as $e) {
                 $titulo_representante = ($company->company_type_id == "Autónomo") ? "TITULAR" : "ADMINISTRADOR/A";
                 $bloqueHTML = '
                     <div class="col-md-12 mx-2 my-2">
                         <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
                         <p>
-                            Formación a impartir: Código <u>' . $trainingAction->code .'</u>  Denominación: <u> '. $trainingAction->name .' </u> 
+                            Formación a impartir: Código <u>' . $e->training_action->code .'</u>  Denominación: <u> '. $e->training_action->name .' </u> 
                         </p>
                         <p>
-                            Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>' .  $trainingAction->webPlatformCode   .'</u>
+                            Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>' .  $e->training_action->webPlatform->code   .'</u>
                         </p>
                         <p>
                             Nombre Centro: <u>'. $company->name . '</u>  CIF/NIF/NIE <u>'. $company->nif. '</u>
                         </p>
                         <p>
-                            URL <u>'. $trainingAction->webPlatformUrl.'</u>
+                            URL <u>'. $e->training_action->webPlatform->url.'</u>
                         </p>
                         <p>
                             Dirección: <u>'.$company->address.'</u> CP: <u> '.$company->post_code.'</u> Municipio: <u>'.$company->population.' </u>
