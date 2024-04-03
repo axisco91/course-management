@@ -18,11 +18,11 @@
             </td>
             <td width="70%"  style="border: none;">
                 <h1>ANEXO AL CONTRATO DE TRABAJO DE FORMACIÓN EN ALTERNANCIA</h1>
-                <h2>
+                <p style="font-size: 14px;">
                     CONVENIO DE COLABORACIÓN SUSCRITO ENTRE EL CENTRO DE FORMACIÓN,
                     LA EMPRESA Y LA PERSONA TRABAJADORA PARA EL DESARROLLO DEL PLAN
                     FORMATIVO INDIVIDUAL
-                </h2>
+                </p>
             </td>
         </tr>
     </table>
