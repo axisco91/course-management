@@ -21,6 +21,26 @@
             .font-semibold{
                 font-weight: 600;
             }
+
+            .border-right-dotted{
+                border-right: 1px dotted black;
+            }
+
+            .text-xs{
+                font-size: 0.75rem;
+                font-style:italic; 
+            }
+
+            .text-sm{
+                font-size: 0.875rem;
+            }
+
+            .border-right{
+                border-right: 1px solid black;
+                border-bottom:none; 
+                border-left: none; 
+                border-top: none;
+            }
         </style>
     </head>
     <body>
@@ -41,40 +61,46 @@
                     01/08/23 al 14/08/23 y del 01/08/24 al 30/08/24)</p>
             </article>
 
-            <table class="mx-auto border border-2 border-black w-11/12 mt-5">
-                <thead>
-                    <tr class="border-bottom border-2 border-dark">
-                        <th colspan="8" class="font-semibold pl-3 text-start">ESPECIALIDADES SEPE: AGENTE COMERCIAL</th>
-                    </tr>
-                </thead>
+            <table class="mx-auto border border-2 border-dark2 mt-3">
                 <tbody>
-                    <tr class="border-b-2 border-black bg-color text-white text-center">
+                    <tr class="border-bottom border-2 border-dark">
+                        <td colspan="8" class="font-semibold ps-3 text-start">ESPECIALIDADES SEPE: AGENTE COMERCIAL</td>
+                    </tr>
+                    <tr class="border-bottom border-2 border-dark bg-color text-white text-center">
                         <td colspan="2" class="border-right border-2 border-dark font-semibold">MÓDULOS PROFESIONALES/FORMATIVO</td>
-                        <td colspan="4" class="border-r-2 border-black font-semibold">LUGAR Y FECHAS DE REALIZACIÓN DE LA ACCIÓN FORMATIVA </td>
+                        <td colspan="4" class="border-right border-2 border-dark font-semibold">LUGAR Y FECHAS DE REALIZACIÓN DE LA ACCIÓN FORMATIVA </td>
                         <td colspan="2" class="font-semibold">EVALUACIÓN FINAL</td>
                     </tr>
-                    <tr class="bg-color2 border-b-2 border-black">
+                    <tr class="bg-color2 border-bottom border-2 border-dark text-center text-sm">
                         <td class="border-right-dotted font-semibold">CÓDIGO</td>
-                        <td class="border-r-2 border-black font-semibold">DENOMINACIÓN</td>
+                        <td class="border-right border-2 border-dark font-semibold">DENOMINACIÓN</td>
                         <td class="border-right-dotted font-semibold">EMPRESA</td>
-                        <td class="border-r-2 border-black font-semibold">FECHAS</td>
+                        <td class="border-right border-2 border-dark font-semibold">FECHAS</td>
                         <td class="border-right-dotted font-semibold">CÓDIGO CENTRO FORMACIÓN</td>
-                        <td class="border-r-2 border-black font-semibold">FECHAS</td>
+                        <td class="border-right border-2 border-dark font-semibold">FECHAS</td>
                         <td class="border-right-dotted font-semibold">LUGAR (centro formación)</td>
                         <td class="font-semibold">EVALUACIÓN FINAL</td>
                     </tr>
-                    <tr>
-                        <td class="border-right-dotted font-semibold">...</td>
-                        <td class="border-r-2 border-black font-semibold">...</td>
-                        <td class="border-right-dotted font-semibold">...</td>
-                        <td class="border-r-2 border-black font-semibold">...</td>
-                        <td colspan="2" class="border-r-2 border-black font-semibold">...</td>
-                        <td colspan="2" class="font-semibold">...</td>
-                    </tr>
+                    @foreach ($elements as $e)
+                        <tr class="border-bottom border-2 border-dark text-center text-sm">
+                            <td class="border-right-dotted font-semibold">
+                                {{$e->training_action->codigo}}
+                                Horas: {{$e->training_action->total_hours}}
+                            </td>
+                            <td class="border-right border-2 border-dark font-semibold"> {{$e->training_action->name}} </td>
+                            <td class="border-right-dotted font-semibold"> {{$e->training_action->webPlatform->codigo ?? ''}} - {{$e->training_action->webPlatform->name}}</td>
+                            <td class="border-right border-2 border-dark font-semibold">
+                                Inicio: {{$e->training_contract->beginning_formation}} -
+                                Fin: {{$e->training_contract->end_formation}}
+                             </td>
+                            <td colspan="2" class="border-right border-2 border-dark font-semibold">No tiene sesiones presenciales</td>
+                            <td colspan="2" class="font-semibold">No tiene sesiones presenciales</td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
-            <div class="mx-auto">
-                <p class="text-xs italic font-semibold text-start">* Los días que por exámenes o sesiones de formación presencial el horario supere el tiempo de formación previsto se reducirá proporcionalmente el horario de trabajo para que el cómputo 
+            <div class="mx-auto mt-2">
+                <p class="text-xs font-semibold text-start">* Los días que por exámenes o sesiones de formación presencial el horario supere el tiempo de formación previsto se reducirá proporcionalmente el horario de trabajo para que el cómputo 
                     total de formación y trabajo no exceda la jornada máxima legal</p>
             </div>
         </div>
