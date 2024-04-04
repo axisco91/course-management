@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Solicitud Para CFA</title>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <style>
             .bg-black{
                 background-color: rgb(55, 49, 52) !important; 
@@ -25,387 +25,294 @@
             .bg-naranja{
                 background-color: rgb(233, 119, 33); 
             }
+
+            .font-bold{
+                font-weight: bold; 
+            }
+
+            .font-semibold{
+                font-weight: 600; 
+            }
+
+            .border-right{
+                border-right: 2px solid black; 
+            }
+
+            .border-left{
+                border-left: 2px solid black; 
+            }
+
+            .text-lg{
+                font-size: 1.125rem; 
+            }
+
+            .text-sm{
+                font-size: 0.875rem; 
+            }
+
+            .text-xs{
+                font-size: 0.75rem; 
+            }
         </style>
     </head>
     <body>
         <!-- CABECERA -->
-        <div class="grid grid-cols grid-flow-col m-5">
-            <img class="w-80 h-40" src="/Avanza/logo-naranja.png" alt="">
-            <div class="my-auto text-center">
-                <h3 class="font-bold text-lg">SOLICITUD PARA CFA (421)</h3>
-                <p class="ml-12 pl-12">Fecha: <input class="border-b-2 border-black" type="text"></p>
-            </div>
-        </div>
-        <hr class="h-4 bg-black">
+        <table class="mt-2" style="width: 90%">
+            <tr>
+                <td class="text-start" style="width: 50%">
+                    <img style="width: 100%" src="./Avanza/logo-naranja.png" alt="">
+                </td>
+                <td class="text-end">
+                    <h3 class="font-bold text-lg">SOLICITUD PARA CFA (421)</h3>
+                    <p class="ps-3">Fecha: {{$fechaActual}}</p>
+                </td>
+            </tr>
+        </table>
+        
+        <div class="bg-black" style="width: 100%; height: 5px"></div>
 
         <!-- INFORMACIÓN -->
         <section>
             <!-- ASESORÍA -->
-            <article class="mt-5">
-                <div class="flex">
-                    <div class="h-6 w-44 bg-gris mr-2"></div>
-                    <p class="font-semibold">ASESORÍA</p>
-                </div>
+            <article class="mt-2">
+                <table style="width: 100%">
+                    <tr>
+                        <td class="bg-gris" style="width: 20%; height: 10px"></td>
+                        <td class="font-semibold ps-2">ASESORÍA</td>
+                    </tr>
+                </table>
 
-                <div class=" w-11/12 mt-4 mx-auto border border-2 border-black">
-                    <div class="flex">
-                        <div class="flex w-3/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Nombre de la asesoría </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 p-2">
-                            <p class="text-sm text-center">CIF</p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <p></p>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-7/12 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Persona de contacto </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-5/12 p-2">
-                            <p class="text-sm text-center">Email </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <p></p>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-5/6 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Dirección </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/6 p-2">
-                            <p class="text-sm text-center">CP </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <p></p>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-1/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Localidad </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Provincia </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Teléfono </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 p-2">
-                            <p class="text-sm text-center">Fax </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <p></p>
-                    </div>
-                </div>
+                {{-- POBLARLO CON DATOS DE ASESORIA --}}
+                <table class="border border-2 border-black mt-2" style="width: 100%;">
+                    <tr class="p-2">
+                        <td class="px-1">Nombre de la asesoría   </td>
+                        <td class="border-left border-2 border-black px-1"> CIF   </td>
+                    </tr>
+                </table>
+
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr class="p-2">
+                        <td class="border-right border-left px-1">Persona de contacto   </td>
+                        <td class="border-right px-1"> Email   </td>
+                    </tr>
+                </table>
+                
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr class="p-2">
+                        <td class="border-left border-right px-1">Dirección   </td>
+                        <td class="border-right px-1"> CP   </td>
+                    </tr>
+                </table>
+                
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr class="p-2">
+                        <td class="border-left border-right px-1">Localidad   </td>
+                        <td class="border-right px-1"> Provincia   </td>
+                        <td class="border-right px-1"> Teléfono   </td>
+                        <td class="border-right px-1"> Fax   </td>
+                    </tr>
+                </table>
             </article>
 
             <!-- DATOS DE EMPRESA -->
-            <article class="mt-5">
-                <div class="flex">
-                    <div class="h-6 w-44 bg-gris mr-2"></div>
-                    <p class="font-semibold">DATOS DE EMPRESA</p>
-                </div>
+            <article class="mt-2">
+                <table style="width: 100%">
+                    <tr>
+                        <td class="bg-gris" style="width: 20%; height: 10px"></td>
+                        <td class="font-semibold ps-2">DATOS DE EMPRESA</td>
+                    </tr>
+                </table>
 
-                <div class=" w-11/12 mt-4 mx-auto border border-2 border-black">
-                    <div class="flex p-2">
-                        <p class="text-sm text-center">Nombre comercial </p>
-                        <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-3/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Razón Social </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 p-2">
-                            <p class="text-sm text-center">CIF/NIF </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <p></p>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-7/12 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Dirección </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/6 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">CP </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 p-2">
-                            <p class="text-sm text-center">Teléfono </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-5/12 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Localidad </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Provincia </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/3 border-r-2 p-2">
-                            <p class="text-sm text-center">CNAE </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-5/12 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Cuenta cotización S.S. <span class="text-naranja text-xs">(1)</span></p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="w-1/6 border-r-2 border-black p-2">
-                            <p class="text-sm text-center my-auto"> Nº Trabajadores <span class="text-xs text-naranja">(2)</span> </p>
-                        </div>
-                        <div class="flex w-1/12 border-r-2 border-black p-2">
-                            <p class="text-sm text-center my-auto"> De 1 a 4 </p>
-                            <input class="ml-2 w-5 h-5 my-auto" type="checkbox">
-                        </div>
-                        <div class="flex w-1/12  border-r-2 border-black p-2">
-                            <p class="text-sm text-center my-auto"> más de 4 </p>
-                            <input class="ml-2 w-5 h-5 my-auto" type="checkbox">
-                        </div>
-                        <div class="flex w-1/4 p-2">
-                            <p class="text-sm text-center">
-                                Jornada anual según convenio 
-                                <span class="text-xs text-naranja">(3)</span> 
-                                <span class="text-xs">(1800 si no lo especifica)</span></p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-3/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Representante Legal </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 p-2">
-                            <p class="text-sm text-center">NIF/NIE </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <p></p>
-                    </div>
-                    <div class="flex border-t-2 border-black p-2">
-                        <p class="text-sm text-center">IBAN </p>
-                        <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                    </div>
-                </div>
+                <table class="border border-2 border-black mt-2" style="width: 100%;">
+                    <tr class="p-2">
+                        <td class="px-1">Nombre comercial   </td>
+                    </tr>
+                </table>
+
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr class="p-2">
+                        <td class="border-left border-right px-1">Razón Social   {{$company->name}}</td>
+                        <td class="border-right px-1">CIF/NIF   {{$company->nif}} </td>
+                    </tr>
+                </table>
+
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr class="p-2">
+                        <td class="border-left border-right px-1">Dirección   {{$company->address}}</td>
+                        <td class="border-right px-1"> CP   {{$company->post_code}} </td>
+                        <td class="border-right px-1"> Teléfono   {{$company->telephone}} </td>
+                    </tr>
+                </table>
+
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr class="p-2">
+                        <td class="border-left border-right px-1">Localidad   {{$company->population}}</td>
+                        <td class="border-right px-1"> Provincia   {{$company->province->name}} </td>
+                        <td class="border-right px-1"> CNAE   {{$company->cnae->name ?? ''}} </td>
+                    </tr>
+                </table>
+
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr class="p-2">
+                        <td class="border-left border-right px-1">Cuenta cotización S.S. <span class="text-naranja text-xs">(1)</span>   </td>
+                        <td class="border-right px-1">Nº Trabajadores <span class="text-xs text-naranja">(2)</span></td>
+                        <td class="border-right px-1">De 1 a 4 <input class="ml-2 w-5 h-5 my-auto" type="checkbox" {{$companyType->name == 'Autónomo' ? 'checked' : ''}}></td>
+                        <td class="border-right px-1">más de 4 <input class="ml-2 w-5 h-5 my-auto" type="checkbox" {{$companyType->name != 'Autónomo' ? 'checked' : ''}}></td>
+                        <td class="border-right px-1">Jornada anual según convenio 
+                            <span class="text-xs text-naranja">(3)</span> 
+                            <span class="text-xs">(1800 si no lo especifica)</span>
+                               {{$trainingContract->annually_day_hours ?? '1800'}}
+                        </td>
+                    </tr>
+                </table>
+                
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr class="p-2">
+                        <td class="border-left border-right px-1">Representante legal   {{$company->legal_representative}}</td>
+                        <td class="border-right px-1">NIF/NIE   {{$company->dni_legal_representative}} </td>
+                    </tr>
+                </table>
+                    
+                <table class="border-bottom border-2 border-black">
+                    <tr class="p-2">
+                        <td class="border-left border-right px-1">IBAN</td>
+                        @php
+                            $iban = str_replace(' ', '', $company->iban);
+                            $ibanArray = str_split($iban);
+                        @endphp
+
+                        @foreach($ibanArray as $char)
+                            <td class="px-1 border-right">{{ $char }}</td>
+                        @endforeach
+                    </tr>
+                </table>
             </article>
 
             <!-- DATOS DEL ALUMNO -->
-            <article class="mt-5">
-                <div class="flex">
-                    <div class="h-6 w-44 bg-gris mr-2"></div>
-                    <p class="font-semibold">DATOS DEL ALUMNO</p>
-                </div>
+            <article class="mt-2">
+                <table style="width: 100%">
+                    <tr>
+                        <td class="bg-gris" style="width: 20%; height: 10px"></td>
+                        <td class="font-semibold ps-2">DATOS DEL ALUMNO</td>
+                    </tr>
+                </table>
 
-                <div class=" w-11/12 mt-4 mx-auto border border-2 border-black">
-                    <div class="flex">
-                        <div class="flex w-3/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Nombre y apellidos </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 p-2">
-                            <p class="text-sm text-center">DNI/NIE</p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-1/3 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Dirección </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/3 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Localidad </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/3 p-2">
-                            <p class="text-sm text-center">Provincia </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-1/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Fecha de nacimiento </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Nacionalidad </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Número S.S. </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 p-2">
-                            <p class="text-sm text-center">Teléfono <span class="text-xs text-naranja">(4)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-1/2 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Email <span class="text-xs text-naranja">(4)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/2 p-2">
-                            <p class="text-sm text-center">Estudios Terminados <span class="text-xs text-naranja">(5)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-1/3 border-r-2 border-black">
-                            <div class="w-1/2 border-r-2 border-black p-2">
-                                <p class="text-sm text-center">¿Sistema de Garantía Juvenil? <span class="text-xs text-naranja">(6)</span></p>
-                            </div>
-                            <div class="w-1/2 flex">
-                                <div class="w-1/2 border-r-2 border-black p-2">
-                                    <p class="text-center">Si</p>
-                                    <input class="w-5 h-5 ml-12" type="checkbox">
-                                </div>
-                                <div class="w-1/2 p-2">
-                                    <p class="text-center">No</p>
-                                    <input class="w-5 h-5 ml-12" type="checkbox">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex w-1/3 border-r-2 border-black">
-                            <div class="w-1/2 border-r-2 border-black p-2">
-                                <p class="text-sm text-center">¿Trabajador con Discapacidad?</p>
-                            </div>
-                            <div class="w-1/2 flex">
-                                <div class="w-1/2 border-r-2 border-black p-2">
-                                    <p class="text-center">Si</p>
-                                    <input class="w-5 h-5 ml-12" type="checkbox">
-                                </div>
-                                <div class="w-1/2 p-2">
-                                    <p class="text-center">No</p>
-                                    <input class="w-5 h-5 ml-12" type="checkbox">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex w-1/3 ">
-                            <div class="w-1/2 flex items-center justify-center border-r-2 border-black p-2">
-                                <p class="text-sm">¿Exclusión Social?</p>
-                            </div>
-                            <div class="w-1/2 flex">
-                                <div class="w-1/2 border-r-2 border-black p-2">
-                                    <p class="text-center">Si</p>
-                                    <input class="w-5 h-5 ml-12" type="checkbox">
-                                </div>
-                                <div class="w-1/2 p-2">
-                                    <p class="text-center">No</p>
-                                    <input class="w-5 h-5 ml-12" type="checkbox">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <table class="border border-2 border-black mt-2" style="width: 100%">
+                    <tr>
+                        <td class="border-left border-right px-1">Nombre y apellidos   {{$trainingContract->student->name}} {{$trainingContract->student->surname}}</td>
+                        <td class="border-right px-1">DNI/NIE   {{$trainingContract->student->dni}}</td>
+                    </tr>
+                </table>
+
+                <table class="border border-2 border-black" style="width: 100%">
+                    <tr>
+                        <td class="border-left border-right px-1">Dirección   {{$trainingContract->student->direction ?? ''}}</td>
+                        <td class="border-right px-1">Localidad   {{$trainingContract->student->population}}</td>
+                        <td class="border-right px-1">Provincia   {{$trainingContract->student->province->name}}</td>
+                    </tr>
+                </table>
+
+                <table class="border border-2 border-black" style="width: 100%">
+                    <tr>
+                        <td class="border-left border-right px-1">Fecha de nacimiento   {{$trainingContract->student->date_of_birth}}</td>
+                        <td class="border-right px-1">Nacionalidad   {{$trainingContract->student->nationality ?? ''}}</td>
+                        <td class="border-right px-1">Número S.S   {{$trainingContract->student->social_security_number ?? ''}}</td>
+                        <td class="border-right px-1">Teléfono <span class="text-xs text-naranja">(4)</span>   {{$trainingContract->student->telephone ?? ''}}</td>
+                    </tr>
+                </table>
+
+                <table class="border border-2 border-black" style="width: 100%">
+                    <tr>
+                        <td class="border-left border-right px-1">Email <span class="text-xs text-naranja">(4)</span>   {{$trainingContract->student->email}}</td>
+                        <td class="border-right px-1">Estudios Terminados <span class="text-xs text-naranja">(5)</span>   {{$trainingContract->student->levelStudy->name}}</td>
+                    </tr>
+                </table>
+
+                <table class="border border-2 border-black" style="width: 100%">
+                    <tr>
+                        <td class="border-left border-right px-1">¿Sistema de Garantía Juvenil? <span class="text-xs text-naranja">(6)</span></td>
+                        <td class="border-right px-1">Si <input type="checkbox" {{$trainingContract->youth_guarantee == 1 ? 'checked' : ''}}></td>
+                        <td class="border-right px-1">No <input type="checkbox" {{$trainingContract->youth_guarantee == 0 ? 'checked' : ''}}></td>
+                        <td class="border-right px-1">¿Trabajador con Discapacidad?</td>
+                        <td class="border-right px-1">Si <input type="checkbox" {{$trainingContract->disabled == 1 ? 'checked' : ''}}></td>
+                        <td class="border-right px-1">No <input type="checkbox" {{$trainingContract->disabled == 0 ? 'checked' : ''}}></td>
+                        <td class="border-right px-1">¿Exclusión Social?</td>
+                        <td class="border-right px-1">Si <input type="checkbox" {{$trainingContract->social_exclusion == 1 ? 'checked' : ''}}></td>
+                        <td class="border-right px-1">No <input type="checkbox" {{$trainingContract->social_exclusion == 0 ? 'checked' : ''}}></td>
+                    </tr>
+                </table>
             </article>
 
             <!-- DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA -->
-            <article class="mt-5">
-                <div class="flex">
-                    <div class="h-6 w-44 bg-gris mr-2"></div>
-                    <p class="font-semibold">DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA</p>
-                </div>
+            <article class="mt-2">
+                <table style="width: 100%">
+                    <tr>
+                        <td class="bg-gris" style="width: 20%; height: 10px"></td>
+                        <td class="font-semibold ps-2">DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA</td>
+                    </tr>
+                </table>
 
-                <div class=" w-11/12 mt-4 mx-auto border border-2 border-black">
-                    <div class="flex">
-                        <div class="flex w-7/12 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Duración <span class="text-xs text-naranja">(7)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-2/12 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Fecha de inicio <span class="text-xs text-naranja">(8)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-2/12 justify-center items-center border-r-2 border-black p-2">
-                            <p class="text-sm ">¿Bonificado? <span class="text-xs text-naranja">(9)</span> </p>
-                        </div>
-                        <div class="flex w-1/12 justify-center items-center  border-r-2 border-black p-2">
-                            <p class="text-sm ">SI</p>
-                            <input class="ml-2 w-5 h-5" type="checkbox">
-                        </div>
-                        <div class="flex justify-center items-center w-1/12 p-2">
-                            <p class="text-sm ">NO</p>
-                            <input class="ml-2 w-5 h-5" type="checkbox">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-7/12 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Ocupación <span class="text-xs text-naranja">(10)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-5/12 p-2">
-                            <p class="text-sm text-center">Nº Convenios Colectivos <span class="text-xs text-naranja">(11)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-1/2 border-r-2 border-black p-2">
-                            <p class="text-sm text-center">Horario Formativo <span class="text-xs text-naranja">(12)</span> <span class="text-xs">(10 horas)</span></p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/2 p-2">
-                            <p class="text-sm text-center">Horario Laboral <span class="text-xs text-naranja">(12)</span> <span class="text-xs">(20 horas)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black p-2">
-                        <p class="text-sm text-center">Dirección del Centro de Trabajo <span class="text-xs text-naranja">(13)</span></p>
-                        <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-1/2 border-r-2 border-black p-2">
-                            <p class="text-sm text-center"> Vacaciones <span class="text-xs text-naranja">(15)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/2 p-2">
-                            <p class="text-sm text-center">Periodo de prueba <span class="text-xs text-naranja">(16)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-3/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center"> Tutor de empresa <span class="text-xs text-naranja">(17)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/4 p-2">
-                            <p class="text-sm text-center">DNI Tutor</p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                    <div class="flex border-t-2 border-black">
-                        <div class="flex w-1/4 border-r-2 border-black p-2">
-                            <p class="text-sm text-center"> Teléfono tutor  <span class="text-xs text-naranja">(18)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-3/4 p-2">
-                            <p class="text-sm text-center">Email tutor <span class="text-xs text-naranja">(19)</span> </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                </div>
+                <table class="border border-2 border-black mt-2" style="width: 100%;">
+                    <tr>
+                        <td class="border-right px-1">Duración <span class="text-xs text-naranja">(7)</span>   {{$trainingContract->formation_hours}} </td>
+                        <td class="border-right px-1">Fecha de inicio <span class="text-xs text-naranja">(8)</span>   {{$trainingContract->beginning_formation}} </td>
+                        <td class="border-right px-1">¿Bonificado? <span class="text-xs text-naranja">(9)</span></td>
+                        <td class="border-right px-1">SI  <input type="checkbox"></td>
+                        <td class="border-right px-1">NO  <input type="checkbox"></td>
+                    </tr>
+                </table>
 
-                <div class="w-11/12 mt-4 mx-auto ">
-                    <p class="text-sm">Cualificación profesor/tutor: <span class="text-xs text-naranja">(19)</span></p>
-                    <div class="flex border border-2 border-black mt-3">
-                        <div class="flex w-1/2 border-r-2 border-black p-2">
-                            <p class="text-sm text-center"> Experiencia </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                        <div class="flex w-1/2 p-2">
-                            <p class="text-sm text-center"> Formación </p>
-                            <input class="ml-2 bg-gray-200 rounded-md w-full" type="text">
-                        </div>
-                    </div>
-                </div>
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr>
+                        <td class="border-left border-right px-1">Ocupación <span class="text-xs text-naranja">(10)</span>   {{$occupation->name}} </td>
+                        <td class="border-right px-1">Nº Convenios Colectivos <span class="text-xs text-naranja">(11)</span>   {{$trainingContract->applicableAgreement->code ?? ''}}</td>
+                    </tr>
+                </table>
 
-                <div class="w-11/12 mt-4 mx-auto ">
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr>
+                        <td class="border-left border-right px-1">Horario Formativo <span class="text-xs text-naranja">(12)</span>   {{$trainingContract->training_schedule}} </td>
+                        <td class="border-right px-1">Horario Laboral <span class="text-xs text-naranja">(13)</span>   {{$trainingContract->working_hours}}</td>
+                    </tr>
+                </table>
+
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr>
+                        <td class="border-left border-right px-1">Dirección del Centro de Trabajo <span class="text-xs text-naranja">(14)</span>   {{$trainingContract->center_of_work}} </td>
+                    </tr>
+                </table>
+
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr>
+                        <td class="border-left border-right px-1">Vacaciones <span class="text-xs text-naranja">(15)</span></td>
+                        <td class="border-right px-1">Periodo de prueba<span class="text-xs text-naranja">(16)</span></td>
+                    </tr>
+                </table>
+
+                <table class="border-bottom border-2 border-black" style="width: 100%;">
+                    <tr>
+                        <td class="border-left border-right px-1">Tutor de empresa <span class="text-xs text-naranja">(17)</span>   {{$trainingContract->company_tutor}} </td>
+                        <td class="border-right px-1">DNI Tutor<span class="text-xs text-naranja">(18)</span>   {{$trainingContract->company_tutor_dni}}</td>
+                    </tr>
+                </table>
+
+                {{-- ESTOS DATOS NO ESTÁN EN LA BASE DE DATOS --}}
+                <table class="border-bottom border-2 border-black mb-1" style="width: 100%;">
+                    <tr>
+                        <td class="border-left border-right px-1">Teléfono Tutor<span class="text-xs text-naranja">(19)</span>   </td>
+                        <td class="border-right px-1">Email Tutor<span class="text-xs text-naranja">(20)</span>   </td>
+                    </tr>
+                </table>
+
+                <p class="text-sm">Cualificación profesor/tutor: <span class="text-xs text-naranja">(19)</span></p>
+                <table class="border border-2 border-black" style="width: 100%;">
+                    <tr>
+                        <td class="border-right px-1">Experiencia</span>   </td>
+                        <td class="px-1">Formación   </td>
+                    </tr>
+                </table>
+
+                <div class="mt-2 mx-auto ">
                     <p class="text-xs">
                         Con la finalidad de cumplir lo que establece la Ley Orgánica de Protección de Datos (LOPD) 3/2018 y el RGPD 2016/679 de 27 de abril de 2016, le informamos que los datos personales que aparecen en
                         este documento están incluidos en un fichero bajo la responsabilidad de AVZ FORMACION. Los datos no serán cedidos ni comunicados a terceros, salvo en los supuestos legalmente establecidos.
