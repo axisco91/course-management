@@ -133,7 +133,7 @@
             <p>Fecha de inicio: <u>{{$trainingContract->beginning}}</u></p>
             <p>Puesto de trabajo u ocupación: <u>{{$occupation->name}} </u> Cód. CNO <u>{{$occupation->cno}} </u></p>
             <p>Provincia del centro de trabajo: <u>{{$province->name}} </u> Horas de contrato, según convenio: <u>{{$trainingContract->annually_day_hours}} </u> </p>
-            <p>Convenio aplicable <u> {{$applicableAgreement->name}} ({{$agreementType->type}}) </u></p>
+            <p>Convenio aplicable <u> {{$applicableAgreement->name}} ({{$applicableAgreement->agreementType->type}}) </u></p>
         </div>
     </div>
     <div style="page-break-after: always;"></div>
@@ -218,26 +218,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php
+                    @php
                     $i = 1;
-                    foreach ($elements as $e) {
-                        echo '<tr>';
-    
-                        echo '<td>' . $i++ . '</td>';
-    
-                        echo '<td>' . $e->training_action->code . '</td>';
-    
-                        echo '<td>' . $e->training_action->name . '</td>';
-
-                        echo '<td>' . $e->training_action->total_hours . '</td>';
-
-                        echo '<td>' . 'TELEFORMACIÓN' . '</td>';
-
-                        echo '<td>' . $e->training_action->webPlatform->code . '</td>';
-
-                        echo '</tr>';
-                    }
-                    ?>
+                    @endphp
+                    @foreach ($elements as $e)
+                        <tr>
+                            <td>{{$i++}}</td>
+                            <td>{{$e->training_action->code}}</td>
+                            <td>{{$e->training_action->name}}</td>
+                            <td>{{$e->training_action->total_hours}}</td>
+                            <td>TELEFORMACIÓN</td>
+                            <td>{{$e->training_action->webPlatform->code}}</td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -299,7 +292,7 @@
                     <tr>
                         <td>2º</td>
                         <td>{{100-$trainingContract->percentage_second_year}}%</td>
-                        <td></td>
+                        <td>------------------------</td>
                     </tr>
                 </tbody>
             </table>
@@ -509,30 +502,14 @@
             Y para que conste, se extiende el presente acuerdo para la actividad formativa en el lugar y fecha a
             continuación indicados, firmando las partes.
         </p>
-        <?php
-            $meses = [
-                'January' => 'Enero',
-                'February' => 'Febrero',
-                'March' => 'Marzo',
-                'April' => 'Abril',
-                'May' => 'Mayo',
-                'June' => 'Junio',
-                'July' => 'Julio',
-                'August' => 'Agosto',
-                'September' => 'Septiembre',
-                'October' => 'Octubre',
-                'November' => 'Noviembre',
-                'December' => 'Diciembre'
-            ];
-
-            $nombre_mes = $meses[date('F')];
-            
-            // Obtener el día actual
-            $dia = date('d');
-        ?>
+        @php
+            $nombre_mes = now()->translatedFormat('F');
+            $dia = now()->format('d');
+            $anio = now()->format('Y');
+        @endphp
         
         <p>
-            En <u>{{$company->population}}</u>  a <u><?php echo $dia; ?></u> de <u><?php echo $nombre_mes; ?></u> de 2024
+            En <u>{{$company->population}}</u>  a <u>{{ $dia }}</u> de <u>{{ $nombre_mes }}</u> de 2024
         </p>
         <div style="margin: 20px;">
             <table width="100%" style="margin=10px;">

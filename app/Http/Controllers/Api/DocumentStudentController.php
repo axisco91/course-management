@@ -358,11 +358,11 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $trainingContract->load('provider');
         $occupation = Occupation::find($trainingContract->occupation_id);
         $company = Company::find($trainingContract->company_id);
+        $company->companyActivity = CompanyActivity::find($company->company_activity_id);
         $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
-        $agreementType = AgreementType::find($applicableAgreement->agreement_type_id);
+        $applicableAgreement->agreementType = AgreementType::find($applicableAgreement->agreement_type_id);
         $student = Student::find($trainingContract->student_id);
         $student->levelStudy = LevelStudy::find($student->level_study_id);
-        $company->companyActivity = CompanyActivity::find($company->company_activity_id);
         $province = Province::find($trainingContract->province_id);
         $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
@@ -390,7 +390,6 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
             'province' => $province,
             'elements' => $trainingElements,
             'applicableAgreement' => $applicableAgreement,
-            'agreementType' => $agreementType,
             'fechaActual' => $fechaActual,
             'bonus' => $bonus,
             'monthlyFormationHours' => $monthlyFormationHours,
