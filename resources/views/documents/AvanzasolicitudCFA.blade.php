@@ -189,7 +189,7 @@
             </article>
 
             <!-- DATOS DEL ALUMNO -->
-            <article class="mt-2">
+            <article class="mt-2" style="page-break-after: always;">
                 <table style="width: 100%">
                     <tr>
                         <td class="bg-gris" style="width: 20%; height: 10px"></td>
@@ -325,16 +325,16 @@
             <article class="mt-5 w-11/12 mx-auto">
                 <h2 class="font-bold text-xl text-naranja">Ayuda para completar el formulario</h2>
 
-                <div>
-                    <p class="mt-4 ">
+                <div class="text-sm">
+                    <p>
                         <span class="text-naranja font-bold">1.</span> <span class="font-bold">CCC Formación:</span> Indica el Código de Cuenta de Cotización específico para formación, que debe solicitarse previamente al
                         alta en Seguridad Social. Es el que deberá utilizar para dar el alta de todos los trabajadores con contrato de formación.
                     </p>
-                    <p class="mt-4 ">
+                    <p>
                         <span class="text-naranja font-bold">2.</span> <span class="font-bold">Nº de trabajadores plantilla:</span> Marca la opción de 1 a 4, 
                         si tu empresa tiene como máximo 4 trabajadores (bonificación por tutorización de 80€ mensual), y más de 4, cuando la plantilla sea superior (bonificación de 60€ mensual).
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">3.</span> <span class="font-bold">Jornada anual según convenio:</span> 
                             La jornada anual que puede tener como máximo el contrato de formación para cada
                             ocupación debe ser consultada siempre en el convenio colectivo. Si no se establece, será de 1.800 horas, según el Estatuto de
@@ -342,32 +342,32 @@
                             trabajador en modalidad de teleformación, y la cantidad total máxima que podrá bonificar la empresa en concepto de
                             formación.
                     </p>
-                    <p class="mt-4 ">
+                    <p>
                         <span class="text-naranja font-bold">4.</span> <span class="font-bold">Teléfono y email del alumno:</span>
                             Imprescindibles para que podamos realizar la formación del trabajador. Necesitamos el
                             teléfono personal y email para poder contactar con él fuera de su horario de trabajo y enviarle información sobre el curso.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">5.</span> <span class="font-bold">Estudios terminados:</span> 
                             Especifica el nivel académico del alumno, que deberá acreditarse adjuntando una copia de su
                             titulación. Muy importante: el trabajador no podrá tener formación oficial relacionada con el puesto de trabajo a desempeñar.
                     </p>
-                    <p class="mt-4 ">
+                    <p>
                         <span class="text-naranja font-bold">6.</span> <span class="font-bold">Inscrito en garantía juvenil:</span> 
                         Indicar si el alumno está inscrito en garantía juvenil.
                     </p>
-                    <p class="mt-4 ">
+                    <p>
                         <span class="text-naranja font-bold">7.</span> <span class="font-bold">Duración:</span> 
                             1 año, pudiendo prorrogarse hasta 3 años, siempre que en convenio colectivo no se indique lo contrario. Si
                             permite una duración de 6 meses, se recomienda establecer un año igualmente, con el fin de evitar tener que repetir el proceso
                             de autorización a los 6 meses del contrato.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">8.</span> <span class="font-bold">Fecha de inicio:</span> 
                             Fecha en que se va a iniciar el contrato de formación. Deberá indicarse previendo al menos el margen de 1
                             mes, para que haya tiempo suficiente para solicitar la autorización de inicio de la actividad formativa.
                     </p>
-                    <div class="mt-4 ">
+                    <div >
                         <p>
                             <span class="text-naranja font-bold">9.</span> <span class="font-bold">Bonificado:</span>
                             Marca la casilla que corresponda. El contrato tendrá derecho a la reducción de las cuotas de los seguros
@@ -386,16 +386,16 @@
                         <p class="ml-3">- La empresa no pueden haber tenido despidos reconocidos improcedentes o colectivos en contratos bonificados.</p> 
                         <p>Consulta con nuestro equipo tu caso en particular.</p>
                     </div>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">10.</span> <span class="font-bold">Ocupación:</span> 
                             Ocupación que va a desempeñar el trabajador en la empresa, que deberá estar directamente relacionada
                             con la formación que va a recibir durante su contrato.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">11.</span> <span class="font-bold">Convenio colectivo:</span> Indica el convenio colectivo de referencia para la empresa, ya que en éste se dan condiciones básicas
                         para su contrato.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">12.</span> <span class="font-bold">Horario formativo:</span> 
                             Margen temporal que va a dedicar el trabajador a la semana para formarse (10 horas). Es muy
                             importante el horario que aquí se indique, porque será el notificado en la solicitud de autorización. El SEPE comprobará que el
@@ -404,37 +404,37 @@
                             El horario podrá estar comprendido entre las 08:00 y 22:00 horas, en el que el trabajador tendrá un tutor a su disposición en
                             nuestro centro de formación.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">13.</span> <span class="font-bold">Horario de trabajo:</span> 
                             Horas de trabajo efectivo que va a desempeñar. El trabajador no podrá realizar trabajo nocturno, entre
                             las 22:00 y 06:00 horas, rotativo, ni a turnos.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">14.</span> <span class="font-bold">Dirección del centro de trabajo:</span>
                             La dirección del centro de trabajo donde va a trabajar el alumno es fundamental, se
                             presentará la solicitud en la Delegación Territorial de Empleo de su misma provincia.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">15.</span> <span class="font-bold">Vacaciones:</span> 
                             El período vacacional estipulado en el contrato.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">16.</span> <span class="font-bold">Período de prueba:</span> 
                             El periodo de prueba es un tiempo durante el cual la empresa y el trabajador se prueban mutuamente.
                             La empresa decide si el trabajador se ajusta al trabajo y el trabajador ve si lo que le ofrece la empresa es lo que buscaba, o si
                             las condiciones son las prometidas.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">17.</span> <span class="font-bold">Tutor de empresa:</span> 
                             Nombre de la persona que va a realizar el seguimiento del alumno en el mismo centro de trabajo y
                             horario.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">18.</span> <span class="font-bold">Teléfono y email del tutor:</span> 
                             Nuestros tutores estarán en continua comunicación con él, por ello, necesitan su teléfono
                             directo y email para poder coordinar la labor formativa.
                     </p>
-                    <p class="mt-4 ">
+                    <p >
                         <span class="text-naranja font-bold">19.</span> <span class="font-bold">Cualificación del tutor:</span>
                             Marca la casilla que proceda e indica la formación y/o experiencia profesional que le capacita para
                             tutorizar al trabajador en su puesto de trabajo.
