@@ -290,17 +290,23 @@ class TrainingContractController extends BaseController
     public function calculateHours($id)
     {
         $record = TrainingContract::findOrFail($id);
-        $hoursData = json_decode($record->calculateHours($id)->content(), true);
+        $hoursData = $record->calculateHours($id);
 
         // Devuelve una respuesta HTTP con los datos calculados
         return response()->json([
             'status' => 200,
-            'total_hours' => $hoursData['total_hours'],
+            'total_hours' => $hoursData['formative_hours_first_year'] + $hoursData['formative_hours_second_year'],
             'daily_hours_1' => $hoursData['daily_hours_1'],
             'daily_hours_2' => $hoursData['daily_hours_2'],
-            'total_days' => $hoursData['total_days'],
+            'formative_hours_first_year' => $hoursData['formative_hours_first_year'],
+            'formative_hours_second_year' => $hoursData['formative_hours_second_year'],
+            'total_days' => $hoursData['cont_days_first_year'] + $hoursData['cont_days_second_year'],
+            'updated_elements' => $hoursData['updated_elements'],
+            'end_formation' => $record->end_formation,
+            'end' => $record->end
         ]);
     }
+
 
     /**
      * Crea el curso y matricula al alumno
