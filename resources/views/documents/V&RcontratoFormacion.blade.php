@@ -6,6 +6,10 @@
     <title>Contrato Formación - V&R</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style type="text/css">
+        body{
+            font-family:  'Calibri', sans-serif; 
+        }
+
         hr{
             border: 2px solid rgb(225, 234, 231) !important; 
             color: rgb(225, 234, 231) !important; 
@@ -27,8 +31,7 @@
             position: fixed; 
             top: 0%; 
             right: 5%;
-            width: 25%;
-            margin-bottom: 2%;
+            width: 15%; 
         }
 
         .bg-green-100{
@@ -49,28 +52,20 @@
 
         .titulo{
             position: fixed;
-            top: 0%;
-            left: 15%; 
+            top: 1%;
+            right: 22%; 
             border-radius: 20%; 
-            width: 50%; 
+            width: 40%; 
         }   
+
+        .font-normal{
+            font-weight: normal; 
+        }
 
         .dni{
             position: fixed; 
-            top: 24.8%; 
-            right: 30%; 
-        }
-
-        .final_contract{
-            position: fixed; 
-            top: 28.7%; 
-            right: 12.5%; 
-        }
-
-        .final_formative_activity{
-            position: fixed; 
-            top: 32.4%; 
-            right: 5%; 
+            top: 23.9%; 
+            right: 22%; 
         }
 
         .text-center{
@@ -122,31 +117,42 @@
             bottom: 0%;  
             right: 0%; 
         }
+
+        @media print {
+        tr.page-break {
+            break-after: page;
+        }
+        tr.spacer {
+            border-top: 10px solid black;
+        }
+    }
     </style>
 </head>
 <body class="p-2">
 
-    <div class="container1 mb-3">
-        <p class="p-1 titulo bg-green-900 text-white text-center">CONTRATO DE FORMACIÓN EN ALTERNANCIA</p>
-        <img src="./V&R/logo.png" alt="" style="width: 16%;">
+    <div class="container1">
+        <p class="p-3 titulo bg-green-900 text-white text-center">CONTRATO DE FORMACIÓN EN ALTERNANCIA</p>
+        <img src="./V&R/logo.png" alt="">
     </div>
 
-    <div style="margin-top:10px">
-        <h1 class="text-left text-green-800 m-2" style="font-size: 16px;">PLANIFICACIÓN DE LA ACTIVIDAD FORMATIVA</h1>
+    <div style="margin-top:60px">
+        <p class="text-left font-bold text-green-800 m-2" style="font-size: 16px">PLANIFICACIÓN DE LA ACTIVIDAD FORMATIVA</p>
         <hr>
         <section class="mt-3">
-        <div class="first col-12" style="display: flex; justify-content: space-between; font-size: 8px;">
-            <p class="text-green-900 ml-1">OCUPACIÓN: <span class="text-green-900 font-normal">{{$occupation->name}}</span></p>
-            <p class="text-green-900 ml-1">ALUMNO/A: <span class="text-green-900 font-normal">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</span></p>
-            <p class="dni text-green-900 ml-1">DNI: <span class="text-green-900 font-normal">{{$trainingContract->student->dni}}</span></p>
-        </div>
-        <div class="second col-12" style="display: flex; justify-content: space-between; font-size: 8px;">
-            <p class="text-green-900 ml-1">Fecha inicio del contrato: <span class="text-green-900 font-normal">{{$trainingContract->beginning}}</span></p>
-            <p class="text-green-900 final_contract ml-1">Fecha de fin de contrato: <span class="text-green-900 font-normal">{{$trainingContract->end}}</span></p>
-            <p class="text-green-900 ml-1">Fecha de inicio actividad formativa: <span class="text-green-900 font-normal">{{$trainingContract->beginning_formation}}</span></p>
-            <p class="text-green-900 final_formative_activity ml-1">Fecha de fin actividad formativa: <span class="text-green-900 font-normal">{{$trainingContract->end_formation}}</span></p>
-        </div>
-    </section>
+            <div class="first" style=" font-size: 14px;">
+                <p class="text-green-900 ml-1" style="text-align:center; font-weight:bold;">OCUPACIÓN: <span class="text-green-900" style="font-weight:normal;">{{$occupation->name}}</span></p>
+                <p class="text-green-900" style="margin-left: 15%; font-weight:bold; ">ALUMNO/A: <span class="text-green-900" style="font-weight:normal;">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</span></p>
+                <p class="dni text-green-900 ml-1" style="font-weight:bold;">DNI: <span class="text-green-900" style="font-weight:normal;">{{$trainingContract->student->dni}}</span></p>
+            </div>
+            <div class="second" style=" font-size: 13px;">
+                <p aria-colspan="4">
+                    <span class="text-green-900 ml-2 font-bold">Fecha inicio del contrato: <span class="text-green-900 font-normal">{{$trainingContract->beginning}}</span></span>
+                    <span class="text-green-900 ml-2 font-bold">Fecha fin del contrato: <span class="text-green-900 font-normal">{{$trainingContract->end}}</span></span>
+                    <span class="text-green-900 ml-2 font-bold">Fecha de inicio actividad formativa: <span class="text-green-900 font-normal">{{$trainingContract->beginning_formation}}</span></span>
+                    <span class="text-green-900 ml-2 font-bold">Fecha de fin actividad formativa: <span class="text-green-900 font-normal">{{$trainingContract->end_formation}}</span></span>
+                </p>
+            </div>
+        </section>
         <section class="mt-3">
             <table class="mt-3 table table-sm table-bordered border-green-900 border border-2">
                 <tbody class="text-center">
@@ -173,22 +179,35 @@
                         <td>Horario</td>
                     </tr>
                     @foreach($elements as $e)
-                    <tr class="text-green-900 border-bottom border-2 border-green-100 font-bold">
-                        <td class="border-r-2 border-green-100">{{$e->training_action->codigo}}</td>
-                        <td class="border-r-2 border-green-100">{{$e->training_action->name}}</td>
-                        <td class="border-r-2 border-green-100">{{$e->training_contract->provider->name}}</td>
-                        <td class="border-r-2 border-green-100">{{$e->training_contract->beginning_formation}} / {{$e->training_contract->beginning_formation}}</td>
-                        <td class="border-r-2 border-green-100">{{$company->weekly_hours}}</td>
-                        <td class="border-r-2 border-green-100">{{$daysWeek}}</td>
-                        <td>{{$e->training_contract->working_hours}}</td>
-                    </tr>
+                        <tr class="text-green-900 border-bottom border-2 border-green-100 font-bold">
+                            <td class="border-r-2 border-green-100">{{$e->training_action->codigo}}</td>
+                            <td class="border-r-2 border-green-100">{{$e->training_action->name}}</td>
+                            <td class="border-r-2 border-green-100">{{$e->training_contract->provider->name ?? '' }}</td>
+                            <td class="border-r-2 border-green-100">{{$e->training_contract->beginning_formation}} / {{$e->training_contract->beginning_formation}}</td>
+                            <td class="border-r-2 border-green-100">
+
+                                {{-- NO SE SI SERIA ASI O HASTA EL PRIMER AÑO SE PONDRIA daily_hours_1 Y LUEGO SE LE SUMARIA EL daily_hours_2 --}}
+                                @php
+                                    $fInicioMasAnyo = \Carbon\Carbon::parse($e->training_contract->beginning)->addMonths(12)->format('Y-m-d'); 
+                                    
+                                    if ($fInicioMasAnyo <= $e->training_contract->end) {
+                                        echo $e->training_contract->daily_hours_1 * $daysWeek;
+                                    }
+                                    else {
+                                        echo $e->training_contract->daily_hours_2 * $daysWeek;
+                                    }
+                                @endphp
+                            </td>
+                            <td class="border-r-2 border-green-100">{{$daysWeek}}</td>
+                            <td>{{$e->training_contract->working_hours}}</td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
             <p class="text-xs">Durante las vacaciones legalmente establecidas no se organizará ninguna actividad formativa. Días con derecho a su disfrute para el periodo contractual vigente: 6</p>
         </section>
         <div class="pl-5 ">
-            <img src="./V&R/firma.PNG" alt="">
+            <img src="./V&R/firma.PNG" alt="" width="16%">
         </div>
         <div>
             <p class="underline footer1 text-green-100 font-bold ml-2">EMPRESA: <span class="text-green-900 underline">{{$company->name}}</span></p>

@@ -27,7 +27,11 @@ use App\Models\Occupation;
 use App\Models\Company; 
 use App\Models\TrainingContractElement; 
 use App\Models\TrainingContractBonus;
+use App\Models\Province;
+use App\Models\Population;
 use Illuminate\Support\Facades\Date;
+use App\Models\CompanyType;
+use App\Models\TrainingContractsExcludedDay;
 
 class DocumentStudentController extends BaseController
 {
@@ -338,15 +342,40 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);  
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
         $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
-    
+        $province = Province::find($trainingContract->province_id);
+        $companyType = CompanyType::find($company->company_type_id);
+        //$excludedDays= TrainingContractsExcludedDay::find($trainingContract->trainingContractExcludedDays->excluded_day_type_id);
+
+        $dias = []; 
         $daysWeek = 0; 
-        if($trainingContract->monday == 1) $daysWeek++; 
-        if($trainingContract->tuesday == 1) $daysWeek++; 
-        if($trainingContract->wednesday == 1) $daysWeek++; 
-        if($trainingContract->thursday == 1) $daysWeek++; 
-        if($trainingContract->friday == 1) $daysWeek++; 
-        if($trainingContract->saturday == 1) $daysWeek++; 
-        if($trainingContract->sunday == 1) $daysWeek++; 
+        if($trainingContract->monday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Lunes';
+        }
+        if($trainingContract->tuesday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Martes';
+        }
+        if($trainingContract->wednesday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Miércoles';
+        }
+        if($trainingContract->thursday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Jueves';
+        }
+        if($trainingContract->friday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Viernes';
+        }
+        if($trainingContract->saturday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Sábado';
+        }
+        if($trainingContract->sunday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Domingo';
+        }
         $fechaActual = Date::now()->format('d/m/Y');
     
         $pdf = PDF::loadView($viewName, ['occupation'=>$occupation, 
@@ -357,7 +386,12 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         'fechaActual' => $fechaActual,
         'monthlyFormationHours' => $monthlyFormationHours,
         'bonus' => $bonus, 
-        'sumaHoras' => 0]);
+        'sumaHoras' => 0, 
+        'province' => $province, 
+        'dias' => $dias, 
+        'companyType' => $companyType, 
+        //'excludedDays' => $excludedDays
+    ]);
 
         $pdf->setPaper('a4', $orientation);
         

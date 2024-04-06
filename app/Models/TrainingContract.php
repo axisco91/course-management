@@ -38,6 +38,12 @@ class TrainingContract extends Model
         return $this->hasMany(TrainingContractFestival::class);
     }
 
+    public function applicableAgreement()
+    {
+        return $this->belongsTo(ApplicableAgreement::class);
+    }
+    
+
     public function trainingContractExcludedDays()
     {
         return $this->hasMany(TrainingContractsExcludedDay::class);
