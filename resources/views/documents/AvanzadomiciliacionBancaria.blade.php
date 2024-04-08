@@ -122,7 +122,6 @@
 
             <!-- FECHA Y FIRMA -->
 
-            {{-- EN LA FECHA FALTA QUE EL MES SE VEA EN ESPAÑOL --}}
             <article>
                 @php
                     setlocale(LC_TIME, 'es');
