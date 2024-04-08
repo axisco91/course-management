@@ -73,7 +73,7 @@
     <body >
         <table style="width: 100%" class="mx-auto">
             <tr>
-                <td><img class="my-auto mx-auto" src="./Avanza/ministerio.PNG" alt=""></td>
+                <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
                 <td class="mx-auto">
                     <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
                 </td>

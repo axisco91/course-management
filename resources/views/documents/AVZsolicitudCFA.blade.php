@@ -60,7 +60,7 @@
         <table class="mt-2" style="width: 90%">
             <tr>
                 <td class="text-start" style="width: 50%">
-                    <img style="width: 100%" src="./Avanza/logo-naranja.png" alt="">
+                    <img style="width: 100%" src="./AVZ/logo-naranja.png" alt="">
                 </td>
                 <td class="text-end">
                     <h3 class="font-bold text-lg">SOLICITUD PARA CFA (421)</h3>
