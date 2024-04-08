@@ -1,5 +1,5 @@
 body {
-    font-family: 'Calibri', sans-serif !important;
+    font-family: "Open Sans";
 }
 
 .fixed-height-img-logo {
@@ -15,13 +15,12 @@ body {
 }
 
 h1 {
-    font-size: 18px;
-    font-family: "Open Sans";
+    font-size: 17px;
 }
 
 .table-container {
-    margin: auto; 
     width: 85%;
+    border-spacing: 0;
 }
 
 .pie-fondo {
@@ -31,18 +30,22 @@ h1 {
 }
 
 p,ul,ol {
-    font-size: 14px;
-    font-family: "Open Sans";
+    font-size: 13px;
 }
 
 th, td {
-    font-size: 14px;
+    font-size: 13px;
     border: 1px solid black;
     padding: 8px;
     text-align: center;
-    font-family: "Open Sans";
 }
 
 .sin-margin-bottom {
     margin-bottom: 0;
 }
+.no-vertical-padding {
+    padding-top: 0.1rem;
+    padding-bottom: 0.1rem;
+    line-height: 1; /* Ajusta el contenido al tamaño de la letra */
+}
+

@@ -10,7 +10,7 @@
 <body>
     <!-- PRIMERA PÁGINA -->
 
-<div class="container mt-4">
+<div class="mt-2">
     <div class="col-md-12 text-right">
         <img src="img-certificado/avz_logo_horizontal_CMYK_verde-gris_fondo-transparente.png" alt="avzlogo" class="img-fluid fixed-height-img-logo">
     </div>
@@ -19,20 +19,17 @@
         <h1 class="letra-color">CERTIFICADO DE BONIFICACIONES</h1>
     </div>
 
-    <div class="col-md-12 mt-5">
+    <div class="col-md-12 mt-2">
         <p> D. Antonio J. Jiménez Agraz, en representación del centro de formación AVZ FORMACION, S.L., con CIF nº B16826638,
             y código de centro 8000001711, certifica la contratación de los servicios de formación teórica de un contrato para la
             Formación en Alternancia con la Empresa: {{$company->name}}, con CIF {{$company->cif}} y por el trabajador {{$trainingContract->student->name}} {{$trainingContract->student->surname}},
             con DNI {{$trainingContract->student->dni}}, con inicio el {{$trainingContract->beginning_formation}} y finalización el {{$trainingContract->end_formation}}  y con las siguientes bonificaciones mensuales:</p>
     </div>
 
-    <div class="col-md-12 mt-5">
+    <div class="row mt-2">
         <p class="text-center letra-color">BONIFICACIONES POR LA FORMACIÓN TEÓRICA IMPARTIDA POR EL CENTRO</p>
-    </div>
 
-
-    <div class="row mt-5">
-        <table class="table-container">
+        <table class="mx-auto" style="width: 85%">
             <thead class="letra-color">
                 <tr>
                     <th>Mes</th>
@@ -40,24 +37,22 @@
                     <th>Fecha Fin</th>
                     <th>Horas</th>
                     <th>Importe a Bonificar</th>
-                    <th>a</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($bonus as $e)
-                    @php
-                        $monthKey = \Carbon\Carbon::parse($e->start)->format('Y-m');
-                        $sumaHoras += $monthlyFormationHours->{$monthKey} ?? 0;
-                    @endphp
+                @php
+                    $fechaInicio = \Carbon\Carbon::parse($e->start)->locale('es');
+                    $mesNombre = ucfirst($fechaInicio->translatedFormat('F'));
+                    $monthKey = $fechaInicio->format('Y-m');
+                    $sumaHoras += $monthlyFormationHours->{$monthKey} ?? 0;
+                @endphp
                     <tr>
-                        <td>{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</td>
-                        <td>{{$trainingContract->student->dni}}</td>
-                        <td>{{$e->start}}</td>
-                        <td>{{$e->end}}</td>
-                        <td>
-                        {{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey} : 'N/A' }}
-                        </td>
-                        <td >{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey}*5 : 'N/A' }}</td>
+                        <td class="no-vertical-padding">{{$mesNombre}}</td>
+                        <td class="no-vertical-padding">{{$e->start}}</td>
+                        <td class="no-vertical-padding">{{$e->end}}</td>
+                        <td class="no-vertical-padding">{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey} : 'N/A' }}</td>
+                        <td class="no-vertical-padding">{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey}*5 : 'N/A' }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -75,35 +70,40 @@
         $anio = now()->format('Y');
     @endphp
 
-    <div class="col-md-12 mt-5">
+    <div class="col-md-12 mt-2 mb-5">
         <p>Y para que conste donde proceda, firmo el presente certificado en Lucena, a {{$dia}} de {{$nombre_mes}} de {{$anio}}.</p>
     </div>
 </div>
 
-<div class="row mt-5">
-    <div class="col-md-8 align-self-end">
-            <p class="pie-fondo">info@avzformacion.com - 957 923 473 - 644 680 310</p>
-    </div>
-    <div class="col-md-4 text-center" >
-        <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
-    </div>
-</div>
+<table class="mt-5" style="border-collapse: collapse; width: 100%;">
+    <tr>
+        <td width="70%" style="padding: 0; border: none;">
+            <p class="pie-fondo" style="margin: 0; padding-left: 0;">info@avzformacion.com - 957 923 473 - 644 680 310</p>
+        </td>
+        <td width="30%" style="padding: 0; border: none;" class="text-center">
+            <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
+        </td>
+    </tr>
+</table>
 
 
-<div class="container mt-4">
+<div style="page-break-after: always;"></div>
+
+
+<div class="mt-2">
     <div class="col-md-12 text-right">
         <img src="img-certificado/avz_logo_horizontal_CMYK_verde-gris_fondo-transparente.png" alt="avzlogo" class="img-fluid fixed-height-img-logo">
     </div>
-    <div class="col-md-12 text-right mt-4">
+    <div class="col-md-12 text-right mt-2">
         <p>Fdo. Antonio J. Jiménez Agraz</p>
     </div>
     <div style="height:500px"></div>
 
-    <div class="col-md-12 mt-5">
+    <div class="col-md-12 mt-2">
         <p class="text-center letra-color">BONIFICACIÓN ADICIONAL POR LOS COSTES DERIVADOS DE LA OBLIGADA TUTORIZACIÓN EN LA EMPRESA</p>
     </div>
 
-    <div class="col-md-12 mt-5">
+    <div class="col-md-12 mt-2">
         <p>Según el art. 8, apartado 4, de la Orden ESS/2518/2013, de 26 de diciembre, por la que se regulan los aspectos formativos del contrato para la formación y el aprendizaje:</p>
     </div>
 
@@ -112,18 +112,21 @@
     </div>
 </div>
 
+<table style="border-collapse: collapse; width: 100%;">
+    <tr>
+        <td width="70%" style="padding: 0; border: none;">
+            <p class="pie-fondo" style="margin: 0; padding-left: 0;">info@avzformacion.com - 957 923 473 - 644 680 310</p>
+        </td>
+        <td width="30%" style="padding: 0; border: none;" class="text-center">
+            <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
+        </td>
+    </tr>
+</table>
 
-<div class="row mt-5">
-    <div class="col-md-8 align-self-end">
-            <p class="pie-fondo">info@avzformacion.com - 957 923 473 - 644 680 310</p>
-    </div>
-    <div class="col-md-4 text-center" >
-        <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
-    </div>
-</div>
+<div style="page-break-after: always;"></div>
 
 
-<div class="container mt-4">
+<div class="mt-2">
     <div class="col-md-12 text-right">
         <img src="img-certificado/avz_logo_horizontal_CMYK_verde-gris_fondo-transparente.png" alt="avzlogo" class="img-fluid fixed-height-img-logo">
     </div>
@@ -137,33 +140,40 @@
         <p>f) Elaborar, al finalizar la actividad laboral de la persona trabajadora, un informe sobre el desempeño del puesto de trabajo y los resultados de aprendizaje alcanzados en la empresa.</p>
     </div>
 
-    <div class="row mt-5">
-        <table class="table-container">
+    <div class="row mt-2">
+        <table class="mx-auto" style="width: 85%">
             <thead class="letra-color">
                 <tr>
                     <th>Mes</th>
                     <th>Fecha Inicio</th>
                     <th>Fecha Fin</th>
                     <th>Horas</th>
-                    <th>Importe a Bonificar</th>
-                    <th>a</th>
+                    <th>Importe</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($bonus as $e)
-                    @php
-                        $monthKey = \Carbon\Carbon::parse($e->start)->format('Y-m');
-                        $sumaHoras += $monthlyFormationHours->{$monthKey} ?? 0;
-                    @endphp
+                @php
+                    $fechaInicio = \Carbon\Carbon::parse($e->start)->locale('es');
+                    $mesNombre = ucfirst($fechaInicio->translatedFormat('F'));
+                    $monthKey = $fechaInicio->format('Y-m');
+                    $sumaHoras += $monthlyFormationHours->{$monthKey} ?? 0;
+                @endphp
                     <tr>
-                        <td class="borde">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</td>
-                        <td class="borde">{{$trainingContract->student->dni}}</td>
-                        <td class="borde">{{$e->start}}</td>
-                        <td class="borde">{{$e->end}}</td>
-                        <td class="borde">
-                        {{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey} : 'N/A' }}
+                        <td class="no-vertical-padding">{{$mesNombre}}</td>
+                        <td class="no-vertical-padding">{{$e->start}}</td>
+                        <td class="no-vertical-padding">{{$e->end}}</td>
+                        <td class="no-vertical-padding">{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey} : 'N/A' }}</td>
+                        <td class="no-vertical-padding">
+                            @php
+                                $multiplier = ($company->average_template < 5) ? 2 : 1.5;
+                            @endphp
+                            @if (property_exists($monthlyFormationHours, $monthKey))
+                                {{ $monthlyFormationHours->{$monthKey} * $multiplier }}
+                            @else
+                                N/A
+                            @endif
                         </td>
-                        <td >{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey}*5 : 'N/A' }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -172,62 +182,15 @@
 
 </div>
 
-<div class="row mt-5">
-    <div class="col-md-8 align-self-end">
-            <p class="pie-fondo">info@avzformacion.com - 957 923 473 - 644 680 310</p>
-    </div>
-    <div class="col-md-4 text-center" >
-        <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
-    </div>
-</div>
-
-
-
-
-
-<script>
-function generarTabla(numeroMeses, tablaBody) {
-    var meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-
-    for (var i = 0; i < numeroMeses; i++) {
-        var tr = document.createElement("tr");
-
-        var indiceMes = i % 12;
-
-        var tdMes = document.createElement("td");
-        tdMes.textContent = meses[indiceMes];
-
-        var tdInicio = document.createElement("td");
-        tdInicio.textContent = "- - - - -";
-
-        var tdFin = document.createElement("td");
-        tdFin.textContent = "- - - - -";
-
-        var tdHoras = document.createElement("td");
-        tdHoras.textContent = "- - - - -";
-
-        var tdBonificacion = document.createElement("td");
-        tdBonificacion.textContent = "- - - - -";
-
-        tr.appendChild(tdMes);
-        tr.appendChild(tdInicio);
-        tr.appendChild(tdFin);
-        tr.appendChild(tdHoras);
-        tr.appendChild(tdBonificacion);
-
-        tablaBody.appendChild(tr);
-    }
-}
-
-var tablaBody1 = document.getElementById("tabla-body-1");
-var tablaBody2 = document.getElementById("tabla-body-2");
-
-var numeroMeses = 25;
-
-generarTabla(numeroMeses, tablaBody1);
-generarTabla(numeroMeses, tablaBody2);
-
-
-</script>
+    <table style="border-collapse: collapse; width: 100%;">
+        <tr>
+            <td width="70%" style="padding: 0; border: none;">
+                <p class="pie-fondo" style="margin: 0; padding-left: 0;">info@avzformacion.com - 957 923 473 - 644 680 310</p>
+            </td>
+            <td width="30%" style="padding: 0; border: none;" class="text-center">
+                <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
