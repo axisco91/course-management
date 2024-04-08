@@ -50,11 +50,11 @@
                         $sumaHoras += $monthlyFormationHours->{$monthKey} ?? 0;
                     @endphp
                     <tr>
-                        <td class="borde">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</td>
-                        <td class="borde">{{$trainingContract->student->dni}}</td>
-                        <td class="borde">{{$e->start}}</td>
-                        <td class="borde">{{$e->end}}</td>
-                        <td class="borde">
+                        <td>{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</td>
+                        <td>{{$trainingContract->student->dni}}</td>
+                        <td>{{$e->start}}</td>
+                        <td>{{$e->end}}</td>
+                        <td>
                         {{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey} : 'N/A' }}
                         </td>
                         <td >{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey}*5 : 'N/A' }}</td>

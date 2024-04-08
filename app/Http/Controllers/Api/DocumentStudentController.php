@@ -33,7 +33,9 @@ use App\Models\WebPlatform;
 use App\Models\ApplicableAgreement;
 use App\Models\AgreementType;
 use App\Models\TrainingContractBonus;
+use App\Models\CompanyType;
 use Illuminate\Support\Facades\Date;
+
 
 
 class DocumentStudentController extends BaseController
@@ -367,19 +369,41 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
         $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
+        $companyType = CompanyType::find($company->company_type_id);
 
+ 
+        $dias = []; 
         $daysWeek = 0; 
-        if($trainingContract->monday == 1) $daysWeek++; 
-        if($trainingContract->tuesday == 1) $daysWeek++; 
-        if($trainingContract->wednesday == 1) $daysWeek++; 
-        if($trainingContract->thursday == 1) $daysWeek++; 
-        if($trainingContract->friday == 1) $daysWeek++; 
-        if($trainingContract->saturday == 1) $daysWeek++; 
-        if($trainingContract->sunday == 1) $daysWeek++; 
+        if($trainingContract->monday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Lunes';
+        }
+        if($trainingContract->tuesday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Martes';
+        }
+        if($trainingContract->wednesday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Miércoles';
+        }
+        if($trainingContract->thursday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Jueves';
+        }
+        if($trainingContract->friday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Viernes';
+        }
+        if($trainingContract->saturday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Sábado';
+        }
+        if($trainingContract->sunday == 1) {
+            $daysWeek++; 
+            $dias[] = 'Domingo';
+        }
         $fechaActual = Date::now()->format('d/m/Y');
 
-
-        
 
         $pdf = PDF::loadView($viewName,
         ['occupation'=>$occupation,
@@ -393,7 +417,11 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
             'fechaActual' => $fechaActual,
             'bonus' => $bonus,
             'monthlyFormationHours' => $monthlyFormationHours,
-            'sumaHoras'=>0]);
+            'sumaHoras'=>0,
+            'dias' => $dias, 
+            'companyType' => $companyType,
+            'daysWeek' => $daysWeek
+    ]);
 
         // Devolvemos el PDF como una respuesta de descarga
         $pdf->setPaper('a4', $orientation);
