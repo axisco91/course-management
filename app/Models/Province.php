@@ -25,6 +25,14 @@ class Province extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
+    public function advisors()
+    {
+        return $this->hasMany('App\Models\Advisor', 'province_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function students()
     {
         return $this->hasMany('App\Models\Student', 'province_id', 'id');

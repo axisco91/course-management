@@ -31,6 +31,14 @@ class Advisor extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function province()
+    {
+        return $this->hasOne('App\Models\Province', 'id', 'province_id');
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function commissions()
