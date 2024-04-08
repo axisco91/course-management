@@ -40,9 +40,26 @@
                     <th>Fecha Fin</th>
                     <th>Horas</th>
                     <th>Importe a Bonificar</th>
+                    <th>a</th>
                 </tr>
             </thead>
-            <tbody id="tabla-body-1">
+            <tbody>
+                @foreach($bonus as $e)
+                    @php
+                        $monthKey = \Carbon\Carbon::parse($e->start)->format('Y-m');
+                        $sumaHoras += $monthlyFormationHours->{$monthKey} ?? 0;
+                    @endphp
+                    <tr>
+                        <td class="borde">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</td>
+                        <td class="borde">{{$trainingContract->student->dni}}</td>
+                        <td class="borde">{{$e->start}}</td>
+                        <td class="borde">{{$e->end}}</td>
+                        <td class="borde">
+                        {{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey} : 'N/A' }}
+                        </td>
+                        <td >{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey}*5 : 'N/A' }}</td>
+                    </tr>
+                @endforeach
             </tbody>
         </table>
     </div>
@@ -129,7 +146,7 @@
                     <th>Fecha Fin</th>
                     <th>Horas</th>
                     <th>Importe a Bonificar</th>
-                    <th>aosjdaojd</th>
+                    <th>a</th>
                 </tr>
             </thead>
             <tbody>
