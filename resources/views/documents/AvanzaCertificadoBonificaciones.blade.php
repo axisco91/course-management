@@ -52,8 +52,14 @@
         <p style="font-size: x-small;">(*) Las cantidades expresadas en este documento son orientativas pudiendo variar en función de los periodos de no formación que deriven de vacaciones o bajas de cualquier índole, en cuyo caso recibirá un nuevo informe a tal efecto.</p>
     </div>
     
+    @php
+        $nombre_mes = now()->translatedFormat('F');
+        $dia = now()->format('d');
+        $anio = now()->format('Y');
+    @endphp
+
     <div class="col-md-12 mt-5">
-        <p>Y para que conste donde proceda, firmo el presente certificado en ____________, a _____ de ______________ de ___________.</p>
+        <p>Y para que conste donde proceda, firmo el presente certificado en Lucena, a {{$dia}} de {{$nombre_mes}} de {{$anio}}.</p>
     </div>
 </div>
 
@@ -123,9 +129,26 @@
                     <th>Fecha Fin</th>
                     <th>Horas</th>
                     <th>Importe a Bonificar</th>
+                    <th>aosjdaojd</th>
                 </tr>
             </thead>
-            <tbody id="tabla-body-2">
+            <tbody>
+                @foreach($bonus as $e)
+                    @php
+                        $monthKey = \Carbon\Carbon::parse($e->start)->format('Y-m');
+                        $sumaHoras += $monthlyFormationHours->{$monthKey} ?? 0;
+                    @endphp
+                    <tr>
+                        <td class="borde">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</td>
+                        <td class="borde">{{$trainingContract->student->dni}}</td>
+                        <td class="borde">{{$e->start}}</td>
+                        <td class="borde">{{$e->end}}</td>
+                        <td class="borde">
+                        {{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey} : 'N/A' }}
+                        </td>
+                        <td >{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey}*5 : 'N/A' }}</td>
+                    </tr>
+                @endforeach
             </tbody>
         </table>
     </div>
