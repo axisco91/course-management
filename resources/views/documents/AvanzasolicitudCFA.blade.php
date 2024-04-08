@@ -82,33 +82,32 @@
                     </tr>
                 </table>
 
-                {{-- POBLARLO CON DATOS DE ASESORIA --}}
                 <table class="border border-2 border-black mt-2" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="px-1">Nombre de la asesoría   </td>
-                        <td class="border-left border-2 border-black px-1"> CIF   </td>
+                        <td class="px-1">Nombre de la asesoría {{$company->advisor->name}}  </td>
+                        <td class="border-left border-2 border-black px-1"> CIF {{$company->advisor->nif}}  </td>
                     </tr>
                 </table>
 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-right border-left px-1">Persona de contacto   </td>
-                        <td class="border-right px-1"> Email   </td>
+                        <td class="border-right border-left px-1">Persona de contacto  {{$company->advisor->legal_representative}} </td>
+                        <td class="border-right px-1"> Email  {{$company->advisor->email}}  </td>
                     </tr>
                 </table>
                 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-left border-right px-1">Dirección   </td>
-                        <td class="border-right px-1"> CP   </td>
+                        <td class="border-left border-right px-1">Dirección  {{$company->advisor->address}}  </td>
+                        <td class="border-right px-1"> CP   {{$company->advisor->post_code}} </td>
                     </tr>
                 </table>
                 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-left border-right px-1">Localidad   </td>
-                        <td class="border-right px-1"> Provincia   </td>
-                        <td class="border-right px-1"> Teléfono   </td>
+                        <td class="border-left border-right px-1">Localidad   {{$company->advisor->population}} </td>
+                        <td class="border-right px-1"> Provincia   {{$company->advisor->province->name}} </td>
+                        <td class="border-right px-1"> Teléfono  {{$company->advisor->telephone}} </td>
                         <td class="border-right px-1"> Fax   </td>
                     </tr>
                 </table>
