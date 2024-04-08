@@ -124,6 +124,9 @@
 
             {{-- EN LA FECHA FALTA QUE EL MES SE VEA EN ESPAÑOL --}}
             <article>
+                @php
+                    setlocale(LC_TIME, 'es');
+                @endphp
                 <div class="text-center mt-4">
                     <p>En Lucena, a {{date('d')}} de {{strftime('%B')}} de {{date('Y')}}</p>
                 </div>
