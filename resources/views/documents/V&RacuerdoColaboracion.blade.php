@@ -139,9 +139,14 @@
     <div style="page-break-after: always;"></div>
 
     <!-- SEGUNDA PÁGINA-->
-    <div class="col-md-12 d-flex justify-content-center">
-        <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
-    </div>
+    <table>
+        <tr>
+            <td style="border:none; text-align:center">
+                <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
+            </td>
+        </tr>
+    </table>
+
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DEL CENTRO DE FORMACIÓN:</h1>
@@ -163,7 +168,7 @@
         <div class="col-md-12 mx-2 my-2">
             <h3>2.A. Formación acreditable</h3>
             <p>(La actividad deberá contener como mínimo un Módulo Formativo completo) </p>
-            <table>
+            <table style="width: 95%">
                 <thead>
                     <tr>
                         <th colspan="7">Título FP/CP/Módulo profesionales/Módulos formativos/Unidades formativas (todos “completos”)</th>
@@ -200,7 +205,7 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h3>2.B. Especialidades formativas</h3>
-            <table id="tablaEspecialidades">
+            <table style="width: 95%" id="tablaEspecialidades">
                 <thead>
                     <tr>
                         <th colspan="6">Especialidades formativas</th>
@@ -236,16 +241,25 @@
         </div>
     </div>
 
+    <div style="page-break-after: always;"></div>
 
-    <div class="col-md-12 d-flex justify-content-center">
-        <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
-    </div>
+
+
+    <table>
+        <tr>
+            <td style="border:none; text-align:center">
+                <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
+            </td>
+        </tr>
+    </table>
+
+
     <h1>
         3. DISTRIBUCIÓN DE LA ACTIVIDAD FORMATIVA Y DE LA ACTIVIDAD LABORAL MÁXIMA PREVISTA
     </h1>
     <div class="row">
-        <div class="col-md-12 mx-2 my-2">
-            <table class="tabla-estrecha">
+        <div class="mx-2 my-2">
+            <table style="width: 80%;margin: 0 auto;">
                 <thead>
                     <tr>
                         <th colspan="3">N.º DE HORAS ANUALES DE ACTIVIDAD FORMATIVA</th>
@@ -271,8 +285,8 @@
             </table>
         </div>
 
-        <div class="col-md-12 mx-2 my-2">
-            <table class="tabla-estrecha">
+        <div class="mx-2 my-2">
+            <table style="width: 80%;margin: 0 auto;">
                 <thead>
                     <tr>
                         <th colspan="3">N.º DE HORAS ANUALES DE ACTIVIDAD LABORAL</th>
@@ -297,6 +311,7 @@
                 </tbody>
             </table>
         </div>
+
         <div class="col-md-12 mx-2 my-2">
             <p>
                 La actividad formativa se desarrollará de acuerdo con la secuenciación y calendarización que se detallan en la planificación
@@ -321,6 +336,9 @@
 
 
 <!-- ITINERARIO FORMATIVO INDIVIDUAL -->
+
+<div style="page-break-after: always;"></div>
+
 
     <div class="col-md-12 d-flex justify-content-center">
         <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
@@ -369,10 +387,16 @@
             echo $contenedor;
             ?>
     </div>
-           
-        <div class="col-md-12 d-flex justify-content-center">
-            <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
-        </div>
+
+    <div style="page-break-after: always;"></div>
+
+    <table>
+        <tr>
+            <td style="border:none; text-align:center">
+                <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
+            </td>
+        </tr>
+    </table>
         <p>
             Se medirán aquellos objetivos observables que se correspondan con las diferentes tareas que componen la actividad
             laboral, de acuerdo con las realizaciones profesionales y según los criterios de realización estandarizados de la empresa.
@@ -444,135 +468,140 @@
             </div>
         </div>
 
-    <div class="col-md-12 d-flex justify-content-center">
-        <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
-    </div>
-    <h1>
-        5. DATOS DECLARATIVOS Y FORMALIZACIÓN DEL ACUERDO
-    </h1>
-    <h3>
-        Declaro que:
-    </h3>
-    <div class="col-md-12 mx-2 my-2">
-        <ul>
-            <li>El centro de trabajo se encuentra en: <u>{{$company->address}}  ({{$company->post_code}} {{$company->population}})</u></li>
-            <li>Son ciertos los datos que se consignan en el presente acuerdo, asumiendo en caso contrario las responsabilidades que pudieran derivarse de su inexactitud.</li>
-            <li>Conozco lo establecido en el artículo 11.2 del Estatuto de los Trabajadores y el Real Decreto 1.529/2012, de 8 de noviembre y demás normativas de desarrollo, así como la normativa que afecta a la actividad formativa objeto de esta solicitud.</li>
-            <li>Que autorizo/a al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a que acceda a las bases de datos de la Administración General del Estado y de las Administraciones de las Comunidades Autónomas, con garantía de confidencialidad y a los exclusivos efectos de facilitar la verificación de los datos consignados en esta solicitud, manifestando que quedo enterado de la obligación de informar a los Servicios Públicos de Empleo de cualquier variación de los mismos que pudiera producirse.</li>
-            <li>A efectos de lo establecido en el art. 6 del R.D. 1529/2012, de 8 de noviembre, la persona trabajadora objeto del contrato pertenece a alguno de los colectivos siguientes:</li>
-        </ul>
-        <ul style="list-style-type: none;">
-            <li>
-                <label for="opcion6">
-                <input type="checkbox" id="opcion6" name="opcion6" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
-                </label>
-                Personas con discapacidad
-            </li>
-            <li>
-                <label for="opcion7">
-                    <input type="checkbox" id="opcion7" name="opcion7" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
-                </label>
-                    Inscrito en el Sistema Nacional de Garantía
-            </li>
-            <li>
-                <label for="opcion7">
-                    <input type="checkbox" id="opcion7" name="opcion7" {{$trainingContract->social_exclusion == 1 ? 'checked' : ''}}>
-                </label>
-                Colectivos en situación de exclusión social y que la empresa contratante es una empresa de inserción
-            </li>
-        </ul>
-    </div>
-    <h3>
-        El/los centros formativos declaran:
-    </h3>
+        <div style="page-break-after: always;"></div>
 
-    <div class="col-md-12 mx-2 my-2">
-        <ul>
-            <li>Que la persona trabajadora, reúne alguno de los requisitos de acceso a la formación según lo establecido en el
-                art. 20 del R. D. 34/2008 de 18 de enero, y/o en la normativa del Sistema Educativo.
-            </li>
-            <li>Que autoriza al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a
-                que acceda a las bases de datos de la Administración General del Estado y de las Administraciones de las
-                Comunidades Autónomas, con garantía de confidencialidad y a los exclusivos efectos de facilitar la verificación de
-                los datos consignados en esta solicitud, manifestando que quedo enterado de la obligación de informar a los
-                Servicios Públicos de Empleo de cualquier variación de los mismos que pudiera producirse.
-            </li>
-        </ul>
-        <p>
-            Y para que conste, se extiende el presente acuerdo para la actividad formativa en el lugar y fecha a
-            continuación indicados, firmando las partes.
-        </p>
-        @php
-            $nombre_mes = now()->translatedFormat('F');
-            $dia = now()->format('d');
-            $anio = now()->format('Y');
-        @endphp
+
+        <table>
+            <tr>
+                <td style="border:none; text-align:center">
+                    <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
+                </td>
+            </tr>
+        </table>
         
-        <p>
-            En <u>{{$company->population}}</u>  a <u>{{ $dia }}</u> de <u>{{ $nombre_mes }}</u> de 2024
-        </p>
-        <div style="margin: 20px;">
-            <table width="100%" style="margin=10px;">
-                <tr>
-                    <td width="25%" style="border: none;">
-                        El/la trabajador/a
-                    </td>
-                    <td width="25%" style="border: none;">
-                        El/la representante legal del/de la menor, si procede
-                    </td>
-                    <td width="25%" style="border: none;">
-                        El/la representante de la empresa
-                    </td>
-                    <td width="25%" style="border: none;">
-                        El/los representante/s de los centro/s de formación
-                    </td>
-                </tr>
-                <tr>
-                    <td width="25%" style="border: none; padding-top: 130px;">
-                        <u>{{$student->name}} {{$student->surname}}</u>
-                    </td>
-                    <td width="25%" style="border: none; padding-top: 130px;">
-                        <u>{{$student->legal_guardian_name}}</u>
-                    </td>
-                    <td width="25%" style="border: none; padding-top: 130px;">
-                        <u>{{$company->legal_representative}}</u>
-                    </td>
-                    <td width="25%" style="border: none; padding-top: 130px;">
-                        <u>{{$trainingContract->company_tutor}}</u>
-                    </td>
-                </tr>
-            </table>
+        <h1>
+            5. DATOS DECLARATIVOS Y FORMALIZACIÓN DEL ACUERDO
+        </h1>
+        <h3>
+            Declaro que:
+        </h3>
+        <div class="col-md-12 mx-2 my-2">
+            <ul>
+                <li>El centro de trabajo se encuentra en: <u>{{$company->address}}  ({{$company->post_code}} {{$company->population}})</u></li>
+                <li>Son ciertos los datos que se consignan en el presente acuerdo, asumiendo en caso contrario las responsabilidades que pudieran derivarse de su inexactitud.</li>
+                <li>Conozco lo establecido en el artículo 11.2 del Estatuto de los Trabajadores y el Real Decreto 1.529/2012, de 8 de noviembre y demás normativas de desarrollo, así como la normativa que afecta a la actividad formativa objeto de esta solicitud.</li>
+                <li>Que autorizo/a al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a que acceda a las bases de datos de la Administración General del Estado y de las Administraciones de las Comunidades Autónomas, con garantía de confidencialidad y a los exclusivos efectos de facilitar la verificación de los datos consignados en esta solicitud, manifestando que quedo enterado de la obligación de informar a los Servicios Públicos de Empleo de cualquier variación de los mismos que pudiera producirse.</li>
+                <li>A efectos de lo establecido en el art. 6 del R.D. 1529/2012, de 8 de noviembre, la persona trabajadora objeto del contrato pertenece a alguno de los colectivos siguientes:</li>
+            </ul>
+            <ul style="list-style-type: none;">
+                <li>
+                    <label for="opcion6">
+                    <input type="checkbox" id="opcion6" name="opcion6" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
+                    </label>
+                    Personas con discapacidad
+                </li>
+                <li>
+                    <label for="opcion7">
+                        <input type="checkbox" id="opcion7" name="opcion7" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
+                    </label>
+                        Inscrito en el Sistema Nacional de Garantía
+                </li>
+                <li>
+                    <label for="opcion7">
+                        <input type="checkbox" id="opcion7" name="opcion7" {{$trainingContract->social_exclusion == 1 ? 'checked' : ''}}>
+                    </label>
+                    Colectivos en situación de exclusión social y que la empresa contratante es una empresa de inserción
+                </li>
+            </ul>
         </div>
-        
+        <h3>
+            El/los centros formativos declaran:
+        </h3>
 
-        <p class="no-margin-bottom">
-            Si hay más de un centro de formación, cada uno deberá suscribir este acuerdo.
-        </p>
-        <p>
-            Todas las páginas de este acuerdo deberán ir firmadas en el margen izquierdo para mayor seguridad jurídica.
-        </p>
-    </div>
+        <div class="col-md-12 mx-2 my-2">
+            <ul>
+                <li>Que la persona trabajadora, reúne alguno de los requisitos de acceso a la formación según lo establecido en el
+                    art. 20 del R. D. 34/2008 de 18 de enero, y/o en la normativa del Sistema Educativo.
+                </li>
+                <li>Que autoriza al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a
+                    que acceda a las bases de datos de la Administración General del Estado y de las Administraciones de las
+                    Comunidades Autónomas, con garantía de confidencialidad y a los exclusivos efectos de facilitar la verificación de
+                    los datos consignados en esta solicitud, manifestando que quedo enterado de la obligación de informar a los
+                    Servicios Públicos de Empleo de cualquier variación de los mismos que pudiera producirse.
+                </li>
+            </ul>
+            <p>
+                Y para que conste, se extiende el presente acuerdo para la actividad formativa en el lugar y fecha a
+                continuación indicados, firmando las partes.
+            </p>
+            @php
+                $nombre_mes = now()->translatedFormat('F');
+                $dia = now()->format('d');
+                $anio = now()->format('Y');
+            @endphp
+            
+            <p>
+                En <u>{{$company->population}}</u>  a <u>{{ $dia }}</u> de <u>{{ $nombre_mes }}</u> de 2024
+            </p>
+            <div style="margin: 20px;">
+                <table width="100%" style="margin=10px;">
+                    <tr>
+                        <td width="25%" style="border: none;">
+                            El/la trabajador/a
+                        </td>
+                        <td width="25%" style="border: none;">
+                            El/la representante legal del/de la menor, si procede
+                        </td>
+                        <td width="25%" style="border: none;">
+                            El/la representante de la empresa
+                        </td>
+                        <td width="25%" style="border: none;">
+                            El/los representante/s de los centro/s de formación
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="25%" style="border: none; padding-top: 130px;">
+                            <u>{{$student->name}} {{$student->surname}}</u>
+                        </td>
+                        <td width="25%" style="border: none; padding-top: 130px;">
+                            <u>{{$student->legal_guardian_name}}</u>
+                        </td>
+                        <td width="25%" style="border: none; padding-top: 130px;">
+                            <u>{{$company->legal_representative}}</u>
+                        </td>
+                        <td width="25%" style="border: none; padding-top: 130px;">
+                            <u>{{$trainingContract->company_tutor}}</u>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+
+            <p class="no-margin-bottom">
+                Si hay más de un centro de formación, cada uno deberá suscribir este acuerdo.
+            </p>
+            <p>
+                Todas las páginas de este acuerdo deberán ir firmadas en el margen izquierdo para mayor seguridad jurídica.
+            </p>
+        </div>
 
 
-<!-- PROTECCIÓN DE DATOS -->
+    <!-- PROTECCIÓN DE DATOS -->
 
-    <h1>
-        6. PROTECCIÓN DE DATOS
-    </h1>
-    <div class="col-md-12 mx-2 my-2">
-        <p>MV & JAR Consultores, S.L. es el Responsable del tratamiento de los datos personales proporcionados y le informa que
-            estos datos serán tratados de conformidad con lo dispuesto en el Reglamento (UE) 2016/679 de 27 de abril de 2016 (GDPR),
-            con la finalidad de mantener una relación de servicios de formación y conservarlos mientras exista un interés mutuo para
-            mantener el fin del tratamiento y cuando ya no sea necesario para tal fin, se suprimirán con medidas de seguridad
-            adecuadas para garantizar la seudonimización de los datos o la destrucción total de los mismos. Los datos podrán ser
-            comunicados a terceros para la prestación del servicio o por obligación legal. Asimismo, se informa que puede ejercer los
-            derechos de acceso, rectificación, portabilidad, supresión, limitación y oposición dirigiéndose a MV & JAR Consultores, S.L.
-            en C/ Real Fernando, local 4, - 11540 Sanlúcar de Barrameda (Cádiz). E-mail: info@vrconsultores.es y el de reclamación a
-            www.agpd.es.
-        </p>
-    </div>
-
-
-
+        <h1>
+            6. PROTECCIÓN DE DATOS
+        </h1>
+        <div class="col-md-12 mx-2 my-2">
+            <p>MV & JAR Consultores, S.L. es el Responsable del tratamiento de los datos personales proporcionados y le informa que
+                estos datos serán tratados de conformidad con lo dispuesto en el Reglamento (UE) 2016/679 de 27 de abril de 2016 (GDPR),
+                con la finalidad de mantener una relación de servicios de formación y conservarlos mientras exista un interés mutuo para
+                mantener el fin del tratamiento y cuando ya no sea necesario para tal fin, se suprimirán con medidas de seguridad
+                adecuadas para garantizar la seudonimización de los datos o la destrucción total de los mismos. Los datos podrán ser
+                comunicados a terceros para la prestación del servicio o por obligación legal. Asimismo, se informa que puede ejercer los
+                derechos de acceso, rectificación, portabilidad, supresión, limitación y oposición dirigiéndose a MV & JAR Consultores, S.L.
+                en C/ Real Fernando, local 4, - 11540 Sanlúcar de Barrameda (Cádiz). E-mail: info@vrconsultores.es y el de reclamación a
+                www.agpd.es.
+            </p>
+        </div>
 </body>
 </html>

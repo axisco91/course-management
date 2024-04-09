@@ -165,6 +165,9 @@
                     if ($diaInicio == 1 && $diaFin == $fechaFin->daysInMonth) {
                         $horasTotales = 40;
                     } else {
+                        if ($fechaInicio->month==2 && $diaInicio==28) {
+                            $diaInicio = 30;
+                        }
                         if ($diaInicio > 1 && $diaInicio < 30) {
                             $start = 40;
                             for ($i = 2; $i <= $diaInicio; $i++) {
@@ -181,6 +184,9 @@
                             $horasTotales = 1;
                         }
                         else{
+                            if ($fechaFin->month==2 && $diaFin==28) {
+                            $diaFin = 30;
+                            }
                             if ($diaFin > 1 && $diaFin < 30) {
                                 $start = 0;
                                 for ($i = 1; $i <= $diaFin; $i++) {
