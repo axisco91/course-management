@@ -46,7 +46,7 @@
     <body>
         <!-- CABECERA -->
         <div class="text-end">
-            <img src="./Avanza/logo.png" alt="" width="20%">
+            <img src="./AVZ/logo.png" alt="" width="20%">
         </div>
 
         <!-- INFORMACIÓN -->

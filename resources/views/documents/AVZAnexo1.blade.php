@@ -64,12 +64,16 @@
             .border-right{
                 border-right: 1px solid black !important;
             }
+
+            .underline{
+                text-decoration: underline;
+            }
         </style>
     </head>
     <body >
         <table style="width: 100%" class="mx-auto">
             <tr>
-                <td><img class="my-auto mx-auto" src="./Avanza/ministerio.PNG" alt=""></td>
+                <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
                 <td class="mx-auto">
                     <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
                 </td>
@@ -336,7 +340,7 @@
             <p class="text-2xl font-bold">4. CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</p>
         
             @foreach($elements as $e)
-                <article class="mx-auto mt-2 border border-2 border-dark pb-3">
+                <article class="mx-auto mt-4 border border-2 border-dark pb-3">
                     <p class="text-xl font-semibold ms-5 ">DATOS  DEL CENTRO DE FORMACIÓN</p>
                     <div class="mx-auto">
                         <p class="ms-2 mt-1 no-line-break">Formación a impartir:  Código {{$e->training_action->codigo}}</p>
@@ -358,28 +362,28 @@
                         <p class="ms-2 no-line-break"> Si la formación se imparte mediante teleformación, especificar código/s del/os Centros Presenciales vinculados:</p><br>
                          (CENTROS PRESENCIALES) {{-- NO SE LO QUE IRÍA AQUÍ --}}
                          <br>
-                        <p class="ms-2 no-line-break">Nombre Centro {{$company->name}} </p>
-                        <p class="ms-2 no-line-break">CIF/NIF/NIE {{$company->nif}}</p><br>
+                        <p class="ms-2 mt-1 no-line-break">Nombre Centro {{$company->name}} </p>
+                        <p class="ms-2 mt-1 no-line-break">CIF/NIF/NIE {{$company->nif}}</p><br>
 
                         <p class="ms-2">URL (Entidades de teleformación) {{$e->training_action->webPlatform->url ?? ''}}</p>
-                        <p class="ms-2 no-line-break">Dirección {{$company->address}}</p>
-                        <p class="ms-2 no-line-break">CP {{$company->post_code}}</p>
-                        <p class="ms-2 no-line-break"> Municipio {{$company->population}}</p><br>
+                        <p class="ms-2 mt-1 no-line-break">Dirección {{$company->address}}</p>
+                        <p class="ms-2 mt-1 no-line-break">CP {{$company->post_code}}</p>
+                        <p class="ms-2 mt-1 no-line-break"> Municipio {{$company->population}}</p><br>
 
-                        <p class="ms-2 no-line-break">Provincia  {{$province->name}}</p>
-                        <p class="ms-2 no-line-break">Teléfono {{$company->telephone}}</p>
-                        <p class="ms-2 no-line-break"> Correo electrónico {{$company->email}}</p><br>
+                        <p class="ms-2 mt-1 no-line-break">Provincia  {{$province->name}}</p>
+                        <p class="ms-2 mt-1 no-line-break">Teléfono {{$company->telephone}}</p>
+                        <p class="ms-2 mt-1 no-line-break"> Correo electrónico {{$company->email}}</p><br>
 
-                        <p class="ms-2 no-line-break">D./Dña. {{$company->legal_representative}} en concepto de 
+                        <p class="ms-2 mt-1 no-line-break">D./Dña. {{$company->legal_representative}} en concepto de 
                             @if($company->company_type_id == "Autónomo")
                                 TITULAR
                             @else
                                 ADMINISTRADOR
                             @endif
                         </p>
-                        <p class="ms-2 no-line-break">NIF/NIE  {{$company->dni_legal_representative}}</p><br>
-                        <p class="ms-2 no-line-break">Tutor/a del centro - D./Dña. {{$e->training_contract->company_tutor}} </p>
-                        <p class="ms-2 no-line-break">NIF/NIE {{$e->training_contract->company_tutor_dni}}</p><br>
+                        <p class="ms-2 mt-1 no-line-break">NIF/NIE  {{$company->dni_legal_representative}}</p><br>
+                        <p class="ms-2 mt-1 no-line-break">Tutor/a del centro - D./Dña. {{$e->training_contract->company_tutor}} </p>
+                        <p class="ms-2 mt-1 no-line-break">NIF/NIE {{$e->training_contract->company_tutor_dni}}</p><br>
                     </div>
                 </article>
             @endforeach
@@ -387,46 +391,46 @@
 
         <!-- DATOS DECLARATIVOS Y SOLICITUD -->
         <section class="mt-5">
-            <p class="text-2xl">5. DATOS DECLARATIVOS Y SOLICITUD</p>
+            <p class="text-2xl font-bold">5. DATOS DECLARATIVOS Y SOLICITUD</p>
 
-            <article class="w-11/12 mx-auto mt-5">
+            <article class="mx-auto mt-4 text-sm">
                 <div>
                     <p>Declaro que el centro de trabajo se encuentra en: {{$company->address}}</p>
-                    <p class="mt-4">Declaro bajo mi responsabilidad que son ciertos los datos que se consignan en el presente acuerdo, asumiento en caso 
+                    <p>Declaro bajo mi responsabilidad que son ciertos los datos que se consignan en el presente acuerdo, asumiento en caso 
                         contrario las responsabilidades que pudieran derivarse de su inexactitud.
                     </p>
-                    <p class="mt-4">Declaro conocer lo establecido en el artículo 11.2 del Estatuto de los Trabajadores y el Real Decreto 1.529/2012, de 8 de 
+                    <p>Declaro conocer lo establecido en el artículo 11.2 del Estatuto de los Trabajadores y el Real Decreto 1.529/2012, de 8 de 
                         noviembre  y  demás  normativas  de  desarrollo,  así  como  la  normativa  que  afecta  a  la  actividad  formativa  objeto  de  esta  
                         solicitud.
                     </p>
-                    <p class="mt-4">Autorizo al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a que acceda a 
+                    <p>Autorizo al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a que acceda a 
                         las bases de datos de la Administración General del Estado y de las Administraciones de las Comunidades Autónomas, con 
                         garantía de confidencialidad y a los exclusivos efectos de facilitar la verificación de los datos consignados en esta solicitud, 
                         manifestando que quedo enterado de la obligación de informar a los Servicios Públicos de Empleo de cualquier variación 
                         de los mismos que pudiera producirse.
                     </p>
-                    <p class="mt-4">Declaro bajo mi responsabilidad, a efectos de lo establecido en el art. 6 del R.D. 1529/2012, de 8 de noviembre, que la 
+                    <p>Declaro bajo mi responsabilidad, a efectos de lo establecido en el art. 6 del R.D. 1529/2012, de 8 de noviembre, que la 
                         persona trabajadora objeto del contrato pertenece a alguno de los colectivos siguientes:
                     </p>
                 </div>
 
-                <div class="mt-10">
-                    <p class="ms-4"><input class="w-5 h-5 mr-2" type="checkbox" {{$trainingContract->disabled == 1 ? 'checked' : ''}}>Personas con discapacidad</p>
-                    <p class="ms-4"><input class="w-5 h-5 mr-2" type="checkbox" {{$trainingContract->youth_guarantee == 1 ? 'checked' : ''}}>Inscrito en el Sistema Nacional de Garantía Juvenil</p>
-                    <p class="ms-4"><input class="w-5 h-5 mr-2" type="checkbox" {{$trainingContract->social_exclusion == 1 ? 'checked' : ''}}>Colectivos en situación de exclusión social y que la empresa contratante es una empresa de inserción</p>
+                <div class="mt-3 text-sm">
+                    <input class="no-line-break mr-2" type="checkbox" {{$trainingContract->disabled == 1 ? 'checked' : ''}}><p class="ms-4 no-line-break">Personas con discapacidad</p><br>
+                    <input class="no-line-break mr-2" type="checkbox" {{$trainingContract->youth_guarantee == 1 ? 'checked' : ''}}><p class="no-line-break ms-4">Inscrito en el Sistema Nacional de Garantía Juvenil</p><br>
+                    <input class="no-line-break mr-2" type="checkbox" {{$trainingContract->social_exclusion == 1 ? 'checked' : ''}}><p class="no-line-break ms-4">Colectivos en situación de exclusión social y que la empresa contratante es una empresa de inserción</p><br>
                 </div>  
 
-                <div class="mt-10">
+                <div class="mt-3 text-sm">
                     <p>Declaro bajo mi responsabilidad que la persona trabajadora, reúne alguno de los requisitos de acceso a la formación según 
                         lo establecido en el art. 20 del R. D. 34/2008 de 18 de Enero, y/o en la normativa del Sistema Educativo
                     </p>
                 </div>
 
-                <div class="mt-10">
-                    <p class="ms-4"><input class="w-5 h-5 mr-2" type="checkbox" checked>Acepto y doy mi conformidad con lo aquí declarado.</p>
+                <div class="mt-3 text-sm">
+                    <input class="no-line-break mr-2" type="checkbox" checked><p class="no-line-break ms-4">Acepto y doy mi conformidad con lo aquí declarado.</p>
                 </div>  
 
-                <div class="mt-10">
+                <div class="mt-3 text-sm">
                     <p>Y solicito se dé curso a la presente solicitud de «autorización de inicio de la formación inherente al contrato para la forma-
                         ción y el aprendizaje» ante la autoridad competente para su resolución.
                     </p>
@@ -434,7 +438,7 @@
 
                 <div class="mt-10">
                     <p class="text-xl">CLÁUSULA DE CONFORMIDAD RGPD Y LOPD</p>
-                    <p>De conformidad  con el Reglamento  UE 2016/679 relativo a la Protección  de las Personas  Físicas en lo que Respecta  al Tratamiento 
+                    <p class="text-sm">De conformidad  con el Reglamento  UE 2016/679 relativo a la Protección  de las Personas  Físicas en lo que Respecta  al Tratamiento 
                         de Datos Personales  y con la L.O. 3/2018 de Protección  de Datos Personales  y Garantía  de Derechos  Digitales  ; le informamos  que 
                         los datos de contacto utilizados para la presente comunicación  están incluidos en un fichero titularidad de AVZ FORMACIÓN  SL; con 
                         la finalidad  de posibilitar  las comunicaciones  a través  de correo  electrónico  que ésta mantiene  dentro  del ejercicio  de su actividad  (
@@ -448,16 +452,16 @@
                     </p>
                 </div>
 
-                <div class="mt-10">
+                <div class="mt-3">
                     <p class="font-bold">Datos a efectos de notificación</p>
                     <p class="mt-1"> 
-                        Dirección {{$trainingContract->student->direction}} 
-                        CP {{$trainingContract->student->post_code}}
+                        Dirección <span class="underline">{{$trainingContract->student->direction}}</span> 
+                        CP <span class="underline">{{$trainingContract->student->post_code}}</span>
                     </p>
                     <p class="mt-1"> 
-                        Provincia {{$trainingContract->student->province->name}}
-                        Correo Electrónico {{$trainingContract->student->email}}
-                        Teléfono de contacto {{$trainingContract->student->telephone}}
+                        Provincia <span class="underline">{{$trainingContract->student->province->name}}</span>
+                        Correo Electrónico <span class="underline">{{$trainingContract->student->email}}</span>
+                        Teléfono de contacto <span class="underline">{{$trainingContract->student->telephone}}</span>
                     </p>
                 </div>
             </article>
@@ -467,44 +471,37 @@
         <section class="mt-5">
             <p class="text-2xl font-semibold">6.  FORMALIZACIÓN DEL ACUERDO</p>
 
-            <article class="w-11/12 mx-auto mt-5">
-                <div class="mt-5">
+            <article class="mx-auto mt-3 text-sm">
+                <div>
                     <p class="mb-3">A suscribir junto con el contrato de trabajo. Si hay más de un centro de formación, cada uno deberá suscribir este acuerdo.</p>
                     <p class="mt-3 mb-10">Todas las páginas de este acuerdo deberán ir firmadas en el margen izquierdo para mayor seguridad jurídica.</p>
                     <p class="mt-5">Y para que conste, se extiende este acuerdo para la actividad formativa en el lugar y fecha a continuación indicados, firmando las partes.</p>
                 </div>
 
-                <div class="mt-10 text-end">
+                <div class="text-end">
                     <p>
-                        En <input class="border-b-2 w-1/3 border-dark" type="text">
-                        a <input class="border-b-2 w-1/12 border-dark" type="text">
-                        de <input class="border-b-2 w-1/12 border-dark" type="text">
-                        de 20<input class="border-b-2 w-1/12 border-dark" type="text">
+                        En Lucena
+                        a {{now()->day}}
+                        de {{now()->monthName}}
+                        de {{now()->year}}
                     </p>
                 </div>
 
-                <div class="mt-10">
-                    <div class="w-full mt-5 flex justify-end">
-                        <div class="flex text-center w-2/3">
-                            <p class="mr-5">El/la trabajador/a</p>
-                            <p class="ms-5 mr-5">El/la representante legal del/de la menor, si procede</p>
-                            <p class="ms-5 mr-5">El/la representate de la empresa</p>
-                            <p class="ms-5">El/los representante del/de los Centros de Formación</p>
-                        </div>
-                    </div>
-                    <div class="w-full mt-5 flex justify-end">
-                        <div class="flex w-2/3">
-                            <input class="mr-5 ms-0 border-b-2 border-dark w-24" type="text">
-                            <input class="ms-5 mr-5 border-b-2 border-dark" type="text">
-                            <input class="ms-5 mr-5 border-b-2 border-dark" type="text">
-                            <input class="ms-5 border-b-2 border-dark" type="text">
-                        </div>
-                    </div>
-                    @for($i = 0; $i < 3; $i++)
-                        <div class="w-full mt-5 flex justify-end">
-                            <input class="mr-9 border-b-2 border-dark" type="text">
-                        </div>
-                    @endfor
+                <div>
+                    <table class="text-end">
+                        <tr>
+                            <td>El/la trabajador/a</td>
+                            <td>El/la representante legal del/de la menor, si procede</td>
+                            <td>El/la representate de la empresa</td>
+                            <td>El/los representante del/de los Centros de Formación</td>
+                        </tr>
+                        <tr>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                            <td><input type="text"></td>
+                        </tr>
+                    </table>
                 </div>
             </article>
         </section>
