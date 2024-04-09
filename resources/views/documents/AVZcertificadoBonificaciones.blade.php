@@ -155,24 +155,59 @@
                 @foreach($bonus as $e)
                 @php
                     $fechaInicio = \Carbon\Carbon::parse($e->start)->locale('es');
+                    $fechaFin = \Carbon\Carbon::parse($e->end)->locale('es');
                     $mesNombre = ucfirst($fechaInicio->translatedFormat('F'));
                     $monthKey = $fechaInicio->format('Y-m');
-                    $sumaHoras += $monthlyFormationHours->{$monthKey} ?? 0;
+                    $horasTotales = 0;
+                    $diaInicio = $fechaInicio->day;
+                    $diaFin = $fechaFin->day;
+
+                    if ($diaInicio == 1 && $diaFin == $fechaFin->daysInMonth) {
+                        $horasTotales = 40;
+                    } else {
+                        if ($diaInicio > 1 && $diaInicio < 30) {
+                            $start = 40;
+                            for ($i = 2; $i <= $diaInicio; $i++) {
+                                if ($start % 4 == 0 && $start > 1) {
+                                    $start -= 2;
+                                } else { 
+                                    if ($start > 1) {
+                                        $start -= 1;
+                                    }
+                                }
+                                $horasTotales = $start;
+                            }
+                        } else if ($diaInicio >= 30) {
+                            $horasTotales = 1;
+                        }
+                        else{
+                            if ($diaFin > 1 && $diaFin < 30) {
+                                $start = 0;
+                                for ($i = 1; $i <= $diaFin; $i++) {
+                                    if ($i % 3 == 0) {
+                                        $start += 2;
+                                    } else {
+                                        $start++;
+                                    }
+                                    $horasTotales = $start;
+                                }
+                            } else if ($diaFin >= 30) {
+                                $horasTotales = 40;
+                            }
+                        }
+                    }
                 @endphp
+            
                     <tr>
                         <td class="no-vertical-padding">{{$mesNombre}}</td>
                         <td class="no-vertical-padding">{{$e->start}}</td>
                         <td class="no-vertical-padding">{{$e->end}}</td>
-                        <td class="no-vertical-padding">{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey} : 'N/A' }}</td>
+                        <td class="no-vertical-padding">{{ $horasTotales }}</td>
                         <td class="no-vertical-padding">
                             @php
                                 $multiplier = ($company->average_template < 5) ? 2 : 1.5;
                             @endphp
-                            @if (property_exists($monthlyFormationHours, $monthKey))
-                                {{ $monthlyFormationHours->{$monthKey} * $multiplier }}
-                            @else
-                                N/A
-                            @endif
+                            {{ $horasTotales * $multiplier }}
                         </td>
                     </tr>
                 @endforeach
@@ -181,8 +216,9 @@
     </div>
 
 </div>
+<br>
 
-    <table style="border-collapse: collapse; width: 100%;">
+    <table class="mt-2" style="border-collapse: collapse; width: 100%;">
         <tr>
             <td width="70%" style="padding: 0; border: none;">
                 <p class="pie-fondo" style="margin: 0; padding-left: 0;">info@avzformacion.com - 957 923 473 - 644 680 310</p>
