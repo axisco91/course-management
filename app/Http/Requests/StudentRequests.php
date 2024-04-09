@@ -25,17 +25,16 @@ class StudentRequests extends FormRequest
      */
     public function rules()
     {
-
         return [
             'name' => 'required|string',
             'surname' => 'required|string',
             'dni' => 'required|string',
             'telephone' => 'required|string',
             'email' => 'email|required',
-            'company_id' => 'required|exists:companies,id',
+            'company_id' => 'nullable|exists:companies,id',
             'user' => 'required|string',
             'password' => 'required|string',
-            'level_study_id' => 'required|exists:level_studies,id',
+            'level_study_id' => 'nullable|exists:level_studies,id',
             'disabled' => 'required|numeric',
             'active' => 'required|numeric'
         ];

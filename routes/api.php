@@ -215,6 +215,8 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('create', 'create');
             Route::post('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
+            Route::get('advisor/{advisor_id}', 'getIncidencesForAdvisor');
+
         });
     });
 
@@ -726,6 +728,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('register/{id}', 'register');
             Route::post('calculate-end-dates/{id}/{daily_hours_1}/{daily_hours_2}', 'calculateEndDates');
             Route::get('monthly-formation-hours/{id}', 'getMonthlyFormationHours');
+           
         });
     });
 
@@ -1024,6 +1027,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get/{id}', 'show');
             Route::get('create', 'store');
             Route::post('edit/{id}', 'update');
+            Route::delete('delete/{id}', 'delete');
             Route::get('years', 'years');
         });
     });
@@ -1032,12 +1036,14 @@ Route::middleware('auth:sanctum')->group( function () {
      * Series Facturas CFA
      */
 
-    Route::prefix('training-contract-series')->group(function() {
-        Route::get('/', [TrainingContractSeriesController::class, 'index']);
-        Route::post('create', [TrainingContractSeriesController::class, 'store']);
-        Route::get('show/{id}', [TrainingContractSeriesController::class, 'show']);
-        Route::post('update/{id}', [TrainingContractSeriesController::class, 'update']);
-        Route::delete('destroy/{id}', [TrainingContractSeriesController::class, 'destroy']);
+     Route::prefix('training-contract-series')->group(function() {
+        Route::controller(TrainingContractSeriesController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('get/{id}', 'show');
+            Route::get('create', 'store');
+            Route::post('edit/{id}', 'update');
+            Route::delete('delete/{id}', 'delete');
+        });
     });
 
     /**

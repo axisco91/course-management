@@ -429,7 +429,6 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $pdf->setPaper('a4', $orientation);
         return $pdf->download('test.pdf');
     }
-
 }
 
 

@@ -59,7 +59,17 @@ class TrainingContractBill extends Model
     {
         return $this->belongsTo('App\Models\TrainingContractSeries', 'series_id', 'id');
     }
-
+    public function student()
+    {
+        return $this->hasOneThrough(
+            'App\Models\Student',
+            'App\Models\TrainingContract',
+            'id', // Clave foránea en la tabla intermedia (TrainingContract)
+            'id', // Clave foránea en la tabla final (Student)
+            'training_contract_id', // Clave local en la tabla inicial (TrainingContractBill)
+            'student_id' // Clave local en la tabla intermedia (TrainingContract)
+        );
+    }
     public function scopeGetTrainingContractBills($query){
         return $query->select('training_contract_bills.*',
             'companies.name as company',
