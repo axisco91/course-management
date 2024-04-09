@@ -280,7 +280,7 @@
     <h3 class="no-line-break">SEGUNDA: </h3>
     <p class="no-line-break">la jornada total será de (11) <span class="dots">{{$trainingContract->annually_day_hours}}</span> horas <span class="dots">anual </span>	De ellas, el número de horas dedicadas a la actividad formativa
     será de <span class="dots"> {{$trainingContract->formative_hours_first_year}} </span> horas, que representan un <span class="dots">{{$trainingContract->percentage_first_year}} </span> por ciento de la jornada máxima prevista en el convenio colectivo de
-    <span class="dots">{{$applicableAgreement->name}} ({{$applicableAgreement->code}})</span>
+    <span class="dots">{{ $applicableAgreement ? $applicableAgreement->name : '' }} {{ $applicableAgreement ? ($applicableAgreement->code) : '' }}</span>
     <br>El tiempo efectivo de trabajo se prestará en el horario (12)<br>
     <span class="dots">
 
@@ -388,7 +388,7 @@
 
     <h3 class="no-line-break">NOVENA: </h3>
     <p class="no-line-break"> en lo no previsto en este contrato, se estará a la legislación vigente que resulte de aplicación y particularmente a lo dispuesto en el artículo 11 del Estatuto de los Trabajadores. Asimismo le será de aplicación lo dispuesto en el Convenio Colectivo de
-    <span class="dots"> {{$applicableAgreement->name}} ({{$applicableAgreement->agreementType->type}}) </span></p>
+    <span class="dots"> {{ $applicableAgreement ? $applicableAgreement->name : '' }}  {{ $applicableAgreement ? ($applicableAgreement->agreementType->type) : '' }} </span></p>
     <br>
 
     <h3 class="no-line-break">DECIMA: </h3>

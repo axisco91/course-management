@@ -362,7 +362,9 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $company = Company::find($trainingContract->company_id);
         $company->companyActivity = CompanyActivity::find($company->company_activity_id);
         $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
-        $applicableAgreement->agreementType = AgreementType::find($applicableAgreement->agreement_type_id);
+        if ($applicableAgreement) {
+            $applicableAgreement->agreementType = AgreementType::find($applicableAgreement->agreement_type_id);
+        }
         $student = Student::find($trainingContract->student_id);
         $student->levelStudy = LevelStudy::find($student->level_study_id);
         $province = Province::find($trainingContract->province_id);
