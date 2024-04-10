@@ -350,42 +350,37 @@
         4.1. DATOS CENTROS Y ACTIVIDAD FORMATIVA
     </h3>
     <div class="row">
-            <?php
-            
-            $contenedor = '';
-        
-            foreach ($elements as $e) {
-                $titulo_representante = ($company->company_type_id == "Autónomo") ? "TITULAR" : "ADMINISTRADOR/A";
-                $bloqueHTML = '
-                    <div class="col-md-12 mx-2 my-2">
-                        <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
-                        <p>
-                            Formación a impartir: Código <u>' . $e->training_action->code .'</u>  Denominación: <u> '. $e->training_action->name .' </u> 
-                        </p>
-                        <p>
-                            Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>' .  $e->training_action->webPlatform->code   .'</u>
-                        </p>
-                        <p>
-                            Nombre Centro: <u>'. $company->name . '</u>  CIF/NIF/NIE <u>'. $company->nif. '</u>
-                        </p>
-                        <p>
-                            URL <u>'. $e->training_action->webPlatform->url.'</u>
-                        </p>
-                        <p>
-                            Dirección: <u>'.$company->address.'</u> CP: <u> '.$company->post_code.'</u> Municipio: <u>'.$company->population.' </u>
-                        </p>
-                        <p>
-                            Provincia: <u>'.$province->name.'</u> Teléfono: <u>'.$company->telephone.'</u> Correo electrónico: <u>'.$company->email.'</u>
-                        </p>
-                        <p>
-                            D./Dña.: <u>'.$company->legal_representative. '</u> en concepto de <u>'. $titulo_representante.'</u> NIF/NIE: <u>'.$company->dni_legal_representative.' </u>
-                        </p>
-                    </div>
-                ';
-                $contenedor .= $bloqueHTML;
-            }
-            echo $contenedor;
-            ?>
+        <div class="col-md-12">
+            @foreach ($elements as $e)
+                @php
+                    $titulo_representante = ($company->company_type_id == "Autónomo") ? "TITULAR" : "ADMINISTRADOR/A";
+                @endphp
+                <div class="mx-2 my-2">
+                    <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
+                    <p>
+                        Formación a impartir: Código <u>{{ $e->training_action->code }}</u>  Denominación: <u>{{ $e->training_action->name }}</u> 
+                    </p>
+                    <p>
+                        Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>{{ $e->training_action->webPlatform->code }}</u>
+                    </p>
+                    <p>
+                        Nombre Centro: <u>{{ $company->name }}</u>  CIF/NIF/NIE <u>{{ $company->nif }}</u>
+                    </p>
+                    <p>
+                        URL <u>{{ $e->training_action->webPlatform->url }}</u>
+                    </p>
+                    <p>
+                        Dirección: <u>{{ $company->address }}</u> CP: <u>{{ $company->post_code }}</u> Municipio: <u>{{ $company->population }}</u>
+                    </p>
+                    <p>
+                        Provincia: <u>{{ $province->name }}</u> Teléfono: <u>{{ $company->telephone }}</u> Correo electrónico: <u>{{ $company->email }}</u>
+                    </p>
+                    <p>
+                        D./Dña.: <u>{{ $company->legal_representative }}</u> en concepto de <u>{{ $titulo_representante }}</u> NIF/NIE: <u>{{ $company->dni_legal_representative }}</u>
+                    </p>
+                </div>
+            @endforeach
+        </div>
     </div>
 
     <div style="page-break-after: always;"></div>
