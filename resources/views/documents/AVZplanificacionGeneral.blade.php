@@ -84,14 +84,14 @@
                     @foreach ($elements as $e)
                         <tr class="border-bottom border-2 border-dark text-center text-sm">
                             <td class="border-right-dotted font-semibold">
-                                {{$e->training_action->codigo}}
+                                {{$e->training_action->code}}
                                 Horas: {{$e->training_action->total_hours}}
                             </td>
                             <td class="border-right border-2 border-dark font-semibold"> {{$e->training_action->name}} </td>
-                            <td class="border-right-dotted font-semibold"> {{$e->training_action->webPlatform->codigo ?? ''}} - {{$e->training_action->webPlatform->name}}</td>
+                            <td class="border-right-dotted font-semibold"> {{$e->training_action->webPlatform->codigo ?? ''}} -  {{$e->training_action->webPlatform ? $e->training_action->webPlatform->name : ''}}</td>
                             <td class="border-right border-2 border-dark font-semibold">
-                                Inicio: {{$e->training_contract->beginning_formation}} -
-                                Fin: {{$e->training_contract->end_formation}}
+                                Inicio: {{$e->beginning}} -
+                                Fin: {{$e->end}}
                              </td>
                             <td colspan="2" class="border-right border-2 border-dark font-semibold">No tiene sesiones presenciales</td>
                             <td colspan="2" class="font-semibold">No tiene sesiones presenciales</td>

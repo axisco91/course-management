@@ -68,6 +68,9 @@
             .underline{
                 text-decoration: underline;
             }
+            .avoid-page-break {
+                page-break-inside: avoid;
+            }
         </style>
     </head>
     <body >
@@ -188,7 +191,7 @@
                         </tr>
                         <tr class="border-top  border-dark text-center">
                             <td class="border-right  border-dark">1</td>
-                            <td class="border-right  border-dark">codigo</td>
+                            <td class="border-right  border-dark">código</td>
                             <td class="border-right  border-dark">denominación</td>
                             <td class="border-right  border-dark">horas</td>
                             <td class="border-right  border-dark">Modalidad</td>
@@ -225,7 +228,7 @@
                             @endphp
                             <tr class="border-top  border-dark text-center">
                                 <td class="border-right  border-dark">{{$i}}</td>
-                                <td class="border-right  border-dark">{{$e->training_action->codigo}}</td>
+                                <td class="border-right  border-dark">{{$e->training_action->code}}</td>
                                 <td class="border-right  border-dark">{{$e->training_action->name}}</td>
                                 <td class="border-right  border-dark">{{$e->training_action->total_hours}}</td>
                                 <td class="border-right  border-dark">{{$e->training_action->modality->name}}</td>
@@ -336,7 +339,7 @@
         </section>
 
         <!-- CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA -->
-        <section class="mt-3">
+        <section class="mt-3 avoid-page-break">
             <p class="text-2xl font-bold">4. CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</p>
         
             @foreach($elements as $e)

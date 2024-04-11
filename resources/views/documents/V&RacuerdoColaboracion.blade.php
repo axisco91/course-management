@@ -229,11 +229,11 @@
                     @foreach ($elements as $e)
                         <tr>
                             <td>{{$i++}}</td>
-                            <td>{{$e->training_action->code}}</td>
+                            <td>{{$e->training_action->code ?? ''}}</td>
                             <td>{{$e->training_action->name}}</td>
                             <td>{{$e->training_action->total_hours}}</td>
                             <td>TELEFORMACIÓN</td>
-                            <td>{{$e->training_action->webPlatform->code}}</td>
+                            <td>{{$e->training_action->webPlatform->code ?? ''}}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -360,10 +360,10 @@
                     <div class="col-md-12 mx-2 my-2">
                         <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
                         <p>
-                            Formación a impartir: Código <u>' . $e->training_action->code .'</u>  Denominación: <u> '. $e->training_action->name .' </u> 
+                            Formación a impartir: Código <u>' . $e->training_action->code ?? '' .'</u>  Denominación: <u> '. $e->training_action->name .' </u> 
                         </p>
                         <p>
-                            Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>' .  $e->training_action->webPlatform->code   .'</u>
+                            Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>' .  $e->training_action->webPlatform->code ?? ''   .'</u>
                         </p>
                         <p>
                             Nombre Centro: <u>'. $company->name . '</u>  CIF/NIF/NIE <u>'. $company->nif. '</u>

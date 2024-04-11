@@ -106,7 +106,9 @@
             <tbody>
             @foreach($bonus as $e)
                 @php
-                    $monthKey = \Carbon\Carbon::parse($e->start)->format('Y-m');
+                    $fechaInicio = \Carbon\Carbon::parse($e->start)->locale('es');
+                    $mesNombre = ucfirst($fechaInicio->translatedFormat('F'));
+                    $monthKey = $fechaInicio->format('Y-m');
                     $sumaHoras += $monthlyFormationHours->{$monthKey} ?? 0;
                 @endphp
                 <tr>
