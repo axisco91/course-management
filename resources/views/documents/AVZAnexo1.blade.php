@@ -80,7 +80,7 @@
                 <td class="mx-auto">
                     <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
                 </td>
-                <td><img class="mx-5" src="./Avanza/logo.png" alt="" width="90%"></td>
+                <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="90%"></td>
             </tr>
         </table>
 
@@ -479,9 +479,9 @@
                         CP <span class="underline">{{$trainingContract->student->post_code}}</span>
                     </p>
                     <p class="mt-1"> 
-                        Provincia <span class="underline">{{$trainingContract->student->province->name}}</span>
-                        Correo Electrónico <span class="underline">{{$trainingContract->student->email}}</span>
-                        Teléfono de contacto <span class="underline">{{$trainingContract->student->telephone}}</span>
+                        Provincia <span class="underline">{{$trainingContract->student->province->name ?? ''}}</span>
+                        Correo Electrónico <span class="underline">{{$trainingContract->student->email ?? ''}}</span>
+                        Teléfono de contacto <span class="underline">{{$trainingContract->student->telephone ?? ''}}</span>
                     </p>
                 </div>
             </article>
