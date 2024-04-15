@@ -310,7 +310,16 @@
                             <tr class="text-center border-top  border-dark ">
                                 <td class="border-right  border-dark">{{$e->training_contract->beginning}}</td>
                                 <td class="border-right  border-dark">{{$e->training_contract->end}}</td>
-                                <td class="border-right  border-dark">{{$e->training_contract->daily_hours * $daysWeek}}</td>
+                                <td class="border-right  border-dark">
+                                    @php
+                                        $beginning_formation = \Carbon\Carbon::parse($e->training_contract->beginning_formation);
+                                        $end_first_year = $beginning_formation->copy()->addYear();
+                                        $beginning = \Carbon\Carbon::parse($e->beginning);
+                                        $daily_hours = $beginning->lte($end_first_year) ? $e->training_contract->daily_hours_1 : $e->training_contract->daily_hours_2;
+                                        $daily_hours_lab = 8 - $daily_hours;
+                                    @endphp
+                                    {{$daily_hours_lab * $daysWeek}}
+                                </td>
                                 <td class="border-right  border-dark">
                                     @foreach($dias as $day)
                                         {{$day}}
@@ -320,7 +329,15 @@
                                 <td class="border-right  border-dark">{{$e->training_action->codigo}}</td>
                                 <td class="border-right  border-dark">{{$e->training_contract->beginning_formation}}</td>
                                 <td class="border-right  border-dark">{{$e->training_contract->end_formation}}</td>
-                                <td class="border-right  border-dark">horas semanales formativas</td>
+                                <td class="border-right  border-dark">
+                                @php
+                                    $beginning_formation = \Carbon\Carbon::parse($e->training_contract->beginning_formation);
+                                    $end_first_year = $beginning_formation->copy()->addYear();
+                                    $beginning = \Carbon\Carbon::parse($e->beginning);
+                                    $daily_hours = $beginning->lte($end_first_year) ? $e->training_contract->daily_hours_1 : $e->training_contract->daily_hours_1;
+                                @endphp
+                                {{$daily_hours * $daysWeek}}
+                                </td>
                                 <td class="border-right  border-dark">
                                     @foreach($dias as $day)
                                         {{$day}}

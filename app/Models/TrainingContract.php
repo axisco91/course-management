@@ -207,178 +207,178 @@ class TrainingContract extends Model
 
     
     
-public function calculateHours($training_contract_id)
-{
-    Log::info('calculateHours called', ['training_contract_id' => $training_contract_id]);
+    public function calculateHours($training_contract_id)
+    {
+        Log::info('calculateHours called', ['training_contract_id' => $training_contract_id]);
 
-    $record = TrainingContract::findOrFail($training_contract_id);
-    Log::info('Record fetched', ['record' => $record->toArray()]);
+        $record = TrainingContract::findOrFail($training_contract_id);
+        Log::info('Record fetched', ['record' => $record->toArray()]);
 
-    $beginning_formation_carbon = Carbon::parse($record->beginning_formation);
-    $end_first_year = $beginning_formation_carbon->copy()->addYear()->subDay();
+        $beginning_formation_carbon = Carbon::parse($record->beginning_formation);
+        $end_first_year = $beginning_formation_carbon->copy()->addYear()->subDay();
 
-    $elements = TrainingContractElement::where('training_contract_id', $training_contract_id)->get();
-   
+        $elements = TrainingContractElement::where('training_contract_id', $training_contract_id)->get();
+    
 
-    $total_hours = $record->total_hours;
+        $total_hours = $record->total_hours;
 
-    $bonus_hours_first_year = $record->bonus_hours_first_year;
-    $bonus_hours_second_year = $record->bonus_hours_second_year;
+        $bonus_hours_first_year = $record->bonus_hours_first_year;
+        $bonus_hours_second_year = $record->bonus_hours_second_year;
 
-    Log::info('Bonus Hours', ['bonus_hours_first_year' => $bonus_hours_first_year, 'bonus_hours_second_year' => $bonus_hours_second_year]);
+        Log::info('Bonus Hours', ['bonus_hours_first_year' => $bonus_hours_first_year, 'bonus_hours_second_year' => $bonus_hours_second_year]);
 
-    $cont_days = 0;
-    $date = Carbon::parse($record->beginning_formation);
-    $end_date = Carbon::parse($record->end_formation);
-    $total = 0;
-    $vacations = 0;
-    $banckholiday = 0;
-    $fin_semana = 0;
-    $total_days = 0;
-    $cont_days_first_year = 0;
-    $cont_days_second_year = 0;
-    $daily_hours_1 = 0;
-    $daily_hours_2 = 0;
+        $cont_days = 0;
+        $date = Carbon::parse($record->beginning_formation);
+        $end_date = Carbon::parse($record->end_formation);
+        $total = 0;
+        $vacations = 0;
+        $banckholiday = 0;
+        $fin_semana = 0;
+        $total_days = 0;
+        $cont_days_first_year = 0;
+        $cont_days_second_year = 0;
+        $daily_hours_1 = $record->daily_hours_1;
+        $daily_hours_2 = $record->daily_hours_2;
 
-    do {
-        $excluded = TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $date);
-        $festival = TrainingContractFestival::existDay($date, $record->id)->first();
+        do {
+            $excluded = TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $date);
+            $festival = TrainingContractFestival::existDay($date, $record->id)->first();
 
-        if ($excluded) {
-            $vacations++;
-        } elseif ($festival) {
-            $banckholiday++;
-        } else {
-            switch($date->dayOfWeek){
-                case 0:
-                    if ($record->sunday === 0){
-                        $fin_semana++;
-                    }
-                    break;
-                case 1:
-                    if ($record->monday === 1){
-                        $cont_days++;
-                        if ($date->lt($beginning_formation_carbon->copy()->addYear())) {
-                            $cont_days_first_year++;
-                        } else {
-                            $cont_days_second_year++;
+            if ($excluded) {
+                $vacations++;
+            } elseif ($festival) {
+                $banckholiday++;
+            } else {
+                switch($date->dayOfWeek){
+                    case 0:
+                        if ($record->sunday === 0){
+                            $fin_semana++;
                         }
-                    }
-                    break;
-                case 2:
-                    if ($record->tuesday === 1){
-                        $cont_days++;
-                        if ($date->lt($beginning_formation_carbon->copy()->addYear())) {
-                            $cont_days_first_year++;
-                        } else {
-                            $cont_days_second_year++;
+                        break;
+                    case 1:
+                        if ($record->monday === 1){
+                            $cont_days++;
+                            if ($date->lt($beginning_formation_carbon->copy()->addYear())) {
+                                $cont_days_first_year++;
+                            } else {
+                                $cont_days_second_year++;
+                            }
                         }
-                    }
-                    break;
-                case 3:
-                    if ($record->wednesday === 1){
-                        $cont_days++;
-                        if ($date->lt($beginning_formation_carbon->copy()->addYear())) {
-                            $cont_days_first_year++;
-                        } else {
-                            $cont_days_second_year++;
+                        break;
+                    case 2:
+                        if ($record->tuesday === 1){
+                            $cont_days++;
+                            if ($date->lt($beginning_formation_carbon->copy()->addYear())) {
+                                $cont_days_first_year++;
+                            } else {
+                                $cont_days_second_year++;
+                            }
                         }
-                    }
-                    break;
-                case 4:
-                    if ($record->thursday === 1){
-                        $cont_days++;
-                        if ($date->lt($beginning_formation_carbon->copy()->addYear())) {
-                            $cont_days_first_year++;
-                        } else {
-                            $cont_days_second_year++;
+                        break;
+                    case 3:
+                        if ($record->wednesday === 1){
+                            $cont_days++;
+                            if ($date->lt($beginning_formation_carbon->copy()->addYear())) {
+                                $cont_days_first_year++;
+                            } else {
+                                $cont_days_second_year++;
+                            }
                         }
-                    }
-                    break;
-                case 5:
-                    if ($record->friday === 1){
-                        $cont_days++;
-                        if ($date->lt($beginning_formation_carbon->copy()->addYear())) {
-                            $cont_days_first_year++;
-                        } else {
-                            $cont_days_second_year++;
+                        break;
+                    case 4:
+                        if ($record->thursday === 1){
+                            $cont_days++;
+                            if ($date->lt($beginning_formation_carbon->copy()->addYear())) {
+                                $cont_days_first_year++;
+                            } else {
+                                $cont_days_second_year++;
+                            }
                         }
-                    }
-                    break;
-                case 6:
-                    if ($record->saturday === 0){
-                        $fin_semana++;
-                    }
-                    break;
+                        break;
+                    case 5:
+                        if ($record->friday === 1){
+                            $cont_days++;
+                            if ($date->lt($beginning_formation_carbon->copy()->addYear())) {
+                                $cont_days_first_year++;
+                            } else {
+                                $cont_days_second_year++;
+                            }
+                        }
+                        break;
+                    case 6:
+                        if ($record->saturday === 0){
+                            $fin_semana++;
+                        }
+                        break;
+                }
             }
+
+            $total++;
+            $date->addDay();
+        } while($end_date->gte($date));
+
+        Log::info('Loop finished', ['total' => $total, 'date' => $date->toDateString(), 'end_date' => $end_date->toDateString()]);
+
+        $updated_elements = $this->updateDates($training_contract_id);
+        $updated_elements_dates = array_map(function($element) {
+            return ['beginning' => $element->beginning, 'end' => $element->end];
+        }, $updated_elements);
+        Log::info('updateDates called', ['updated_elements_dates' => $updated_elements_dates]);
+        $record->refresh();
+
+        if ($cont_days_first_year != 0){
+            $daily_hours_1 = $record->daily_hours_1 ?? ($record->percentage_first_year ? 8 * $record->percentage_first_year / 100 : 0);
+            $daily_hours_2 = $record->daily_hours_2 ?? ($record->percentage_second_year ? 8 * $record->percentage_second_year / 100 : 0);
+
+            $formative_hours_first_year = $cont_days_first_year * $daily_hours_1;
+            $formative_hours_second_year = $cont_days_second_year * $daily_hours_2;
+
+            $record->update([
+                'total_days' => $cont_days_first_year + $cont_days_second_year,
+                'daily_hours_1' => $daily_hours_1,
+                'daily_hours_2' => $daily_hours_2,
+                'formation_hours' => $total_hours,
+                'formative_hours_first_year' => $formative_hours_first_year,
+                'formative_hours_second_year' => $formative_hours_second_year,
+            ]);
+
+            Log::info('Record updated', ['record' => $record->toArray()]);
         }
 
-        $total++;
-        $date->addDay();
-    } while($end_date->gte($date));
+        $last_element = !empty($updated_elements) ? end($updated_elements) : null;
+        $last_element_dates = $last_element ? ['beginning' => $last_element->beginning, 'end' => $last_element->end] : null;
+        Log::info('Last element dates', ['last_element_dates' => $last_element_dates]);
 
-    Log::info('Loop finished', ['total' => $total, 'date' => $date->toDateString(), 'end_date' => $end_date->toDateString()]);
+        if ($last_element) {
+            while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $last_element->end->toDateString())) {
+                $last_element->end->subDay();
+            }
 
-    $updated_elements = $this->updateDates($training_contract_id);
-    $updated_elements_dates = array_map(function($element) {
-        return ['beginning' => $element->beginning, 'end' => $element->end];
-    }, $updated_elements);
-    Log::info('updateDates called', ['updated_elements_dates' => $updated_elements_dates]);
-    $record->refresh();
+            $record->update([
+                'end_formation' => $last_element->end,
+                'end' => $last_element->end
+            ]);
+        } else if (!$record->end_formation) {
+            $record->update([
+                'end_formation' => Carbon::now(),
+                'end' => Carbon::now()
+            ]);
+        }
 
-    if ($cont_days_first_year != 0){
-        $daily_hours_1 = $record->percentage_first_year ? 8 * $record->percentage_first_year / 100 : 0;
-        $daily_hours_2 = $record->percentage_second_year ? 8 * $record->percentage_second_year / 100 : 0;
+        Log::info('End of calculateHours', ['end_formation' => $record->end_formation, 'end' => $record->end]);
 
-        $formative_hours_first_year = $cont_days_first_year * $daily_hours_1;
-        $formative_hours_second_year = $cont_days_second_year * $daily_hours_2;
-
-        $record->update([
-            'total_days' => $cont_days_first_year + $cont_days_second_year,
-            'daily_hours_1' => $daily_hours_1,
-            'daily_hours_2' => $daily_hours_2,
-            'formation_hours' => $total_hours,
+        return [
             'formative_hours_first_year' => $formative_hours_first_year,
             'formative_hours_second_year' => $formative_hours_second_year,
-        ]);
-
-        Log::info('Record updated', ['record' => $record->toArray()]);
+            'daily_hours_1' => $daily_hours_1,
+            'daily_hours_2' => $daily_hours_2,
+            'cont_days_first_year' => $cont_days_first_year,
+            'cont_days_second_year' => $cont_days_second_year,
+            'updated_elements' => $updated_elements,
+            'end_formation' => $record->end_formation,
+            'end' => $record->end
+        ];
     }
-
-    $last_element = !empty($updated_elements) ? end($updated_elements) : null;
-    $last_element_dates = $last_element ? ['beginning' => $last_element->beginning, 'end' => $last_element->end] : null;
-    Log::info('Last element dates', ['last_element_dates' => $last_element_dates]);
-
-    if ($last_element) {
-        while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $last_element->end->toDateString())) {
-            $last_element->end->subDay();
-        }
-
-        $record->update([
-            'end_formation' => $last_element->end,
-            'end' => $last_element->end
-        ]);
-    } else if (!$record->end_formation) {
-        $record->update([
-            'end_formation' => Carbon::now(),
-            'end' => Carbon::now()
-        ]);
-    }
-
-    Log::info('End of calculateHours', ['end_formation' => $record->end_formation, 'end' => $record->end]);
-
-    return [
-        'formative_hours_first_year' => $formative_hours_first_year,
-        'formative_hours_second_year' => $formative_hours_second_year,
-        'daily_hours_1' => $daily_hours_1,
-        'daily_hours_2' => $daily_hours_2,
-        'cont_days_first_year' => $cont_days_first_year,
-        'cont_days_second_year' => $cont_days_second_year,
-        'updated_elements' => $updated_elements,
-        'end_formation' => $record->end_formation,
-        'end' => $record->end
-    ];
-}
 
 
     /**

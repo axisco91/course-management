@@ -210,10 +210,7 @@
                         <td class="no-vertical-padding">{{$e->end}}</td>
                         <td class="no-vertical-padding">{{ $horasTotales }}</td>
                         <td class="no-vertical-padding">
-                            @php
-                                $multiplier = ($company->average_template < 5) ? 2 : 1.5;
-                            @endphp
-                            {{ $horasTotales * $multiplier }}
+                            {{$e->amount}}
                         </td>
                     </tr>
                 @endforeach

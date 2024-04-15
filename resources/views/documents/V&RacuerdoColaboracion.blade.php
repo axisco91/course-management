@@ -358,16 +358,16 @@
                 <div class="mx-2 my-2">
                     <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
                     <p>
-                        Formación a impartir: Código <u>{{ $e->training_action->code }}</u>  Denominación: <u>{{ $e->training_action->name }}</u> 
+                        Formación a impartir: Código <u>{{ $e->training_action->code ?? ''}}</u>  Denominación: <u>{{ $e->training_action->name }}</u> 
                     </p>
                     <p>
-                        Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>{{ $e->training_action->webPlatform->code }}</u>
+                        Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>{{ $e->training_action->webPlatform->code ?? '' }}</u>
                     </p>
                     <p>
                         Nombre Centro: <u>{{ $company->name }}</u>  CIF/NIF/NIE <u>{{ $company->nif }}</u>
                     </p>
                     <p>
-                        URL <u>{{ $e->training_action->webPlatform->url }}</u>
+                        URL <u>{{ $e->training_action->webPlatform->url ?? ''}}</u>
                     </p>
                     <p>
                         Dirección: <u>{{ $company->address }}</u> CP: <u>{{ $company->post_code }}</u> Municipio: <u>{{ $company->population }}</u>
