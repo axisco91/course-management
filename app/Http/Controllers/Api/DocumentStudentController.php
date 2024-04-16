@@ -438,14 +438,12 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         // Cargamos la vista Blade
         Log::info('metodoLlamado' . $trainingContractBill);
         $trainingContractBill->load('provider');
-        Log::info('metodoLlamado2');
-
         $trainingContract = TrainingContract::find($trainingContractBill->training_contract_id);
-        Log::info('metodoLlamado3');
-
+        $trainingContractSeries = TrainingContractSeries::find($trainingContractBill->series_id);
         $occupation = Occupation::find($trainingContract->occupation_id);
         $company = Company::find($trainingContract->company_id);
         $student = Student::find($trainingContract->student_id);
+        $trainingContractBonus = TrainingContractBonus::find($trainingContractBill->training_contract_bonus_id);
 
         
         $pdf = PDF::loadView($viewName,
@@ -454,7 +452,9 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
             'trainingContractBill' => $trainingContractBill,
             'trainingContract' => $trainingContract,
             'company' => $company,
-            'student' => $student
+            'student' => $student,
+            'trainingContractSeries' => $trainingContractSeries,
+            'trainingContractBonus' => $trainingContractBonus
         ]);
 
         // Devolvemos el PDF como una respuesta de descarga

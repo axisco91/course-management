@@ -25,12 +25,12 @@
         </table>
 
 
-        <h1 class="letra-verde mt-3" style="text-align: center">FACTURA</h1>
+        <h1 class="letra-verde mt-4" style="text-align: center">FACTURA</h1>
 
-        <table style="width:100%" class="mt-3">
+        <table style="width:100%" class="mt-4">
             <tr>
                 <td style="width:50%; border: none; vertical-align: top;">
-                    <p class="letra-gris menos-margin-bottom"><b>Nº Factura</b> <span class="letra-verde"> ------</span></p>
+                    <p class="letra-gris menos-margin-bottom"><b>Nº Factura</b> <span class="letra-verde"> {{$trainingContractSeries->series}}{{str_pad($trainingContractBill->number, 3, '0', STR_PAD_LEFT)}}/{{$trainingContractBill->year}}</span></p>
                     <p class="letra-gris menos-margin-bottom"><b>Fecha</b><span class="letra-verde"> {{now()->format('d/m/Y')}} </span></p>
                 </td>
                 <td  style="width:50%;border: none; text-align: right" class="letra-verde">
@@ -44,7 +44,7 @@
         </table>
 
 
-        <table style="width:100%" class="menos-margin-bottom-2 mt-3">
+        <table style="width:100%" class="menos-margin-bottom-2 mt-4">
             <tr>
                 <td class="menos-margin-bottom-2" style="width:70%; border: none;">
                     <p><b><span class="letra-verde">Concepto: </span></b>IMPARTICION DE FORMACION DE LOS SIGUIENTES ALUMNOS/TRABAJADORES</p>
@@ -63,17 +63,17 @@
                     <p><b><span class="letra-verde">Modalidad: </span></b> Teleformación </p>
                     <p><b><span class="letra-verde">Ocupación: </span></b> {{$occupation->name}} </p>
                     <p><b><span class="letra-verde">Trabajador/ a: </span></b> {{$student->name}} {{$student->surname}} <b><span class="letra-verde">DNI: </span></b> {{$student->dni}} </p>
-                    <p><b><span class="letra-verde">Fecha inicio y fecha fin de la formación: </span></b>-------------</p>
-                    <p><b><span class="letra-verde">Horas: </span></b>---</p>
+                    <p><b><span class="letra-verde">Fecha inicio y fecha fin de la formación: </span></b> {{$trainingContractBonus->start}} - {{$trainingContractBonus->end}} </p>
+                    <p><b><span class="letra-verde">Horas: </span></b> {{$trainingContractBill->hours}} </p>
 
                 </td>
                 <td class="menos-margin-bottom-2" style="width:30%; border: none; vertical-align: top; text-align: center">
-                    <p><b>--------</b></p>
+                    <p><b>{{$trainingContractBill->amount}}</b></p>
                 </td>
             </tr>
         </table>
 
-        <table style="width:100%" class="mt-3">
+        <table style="width:100%" class="mt-4">
             <tr>
                 <td style="text-align: right">
                     <p>Forma de pago: DOMICILIADO</p>
@@ -92,24 +92,24 @@
                     <table style="width:100%">
                         <tr>
                             <td class="fondo-gris" style="width: 50%; border-right: 2px solid white;">
-                                <p class="menos-margin-bottom"> Base imponible:</p>
+                                <p class="menos-margin-bottom ml-1" > Base imponible:</p>
                                 <hr class="menos-margin-bottom" style="border-top: 2px solid white;">
-                                <p class="menos-margin-bottom"> I.V.A. (21%)</p>
+                                <p class="menos-margin-bottom ml-1"> I.V.A. (21%)</p>
                                 <hr class="menos-margin-bottom" style="border-top: 2px solid white;">
-                                <p class="menos-margin-bottom"> Total Factura:</p>
+                                <p class="menos-margin-bottom ml-1"><b> Total Factura:</b></p>
 
                             </td>
                             <td class="fondo-gris" style="width: 50%">
-                                <p class="menos-margin-bottom"> ---------</p>
+                                <p class="menos-margin-bottom ml-1"> {{$trainingContractBill->amount}}</p>
                                 <hr class="menos-margin-bottom" style="border-top: 2px solid white;">
-                                <p class="menos-margin-bottom"> 0,00 €</p>
+                                <p class="menos-margin-bottom ml-1"> 0,00 €</p>
                                 <hr class="menos-margin-bottom" style="border-top: 2px solid white;">
-                                <p class="menos-margin-bottom"> ---------</p>
+                                <p class="menos-margin-bottom ml-1"><b> {{$trainingContractBill->amount}}</b></p>
                             </td>
                         </tr>
                         <tr>
                             <td colspan="2" class="fondo-gris" style="width: 100%;border-top: 2px solid white;">
-                                <p><span class="fondo-gris">Exento de I.V.A. según Ley 37/92- Art. 20-9º</span></p>
+                                <p class="menos-margin-bottom ml-1"><span class="fondo-gris">Exento de I.V.A. según Ley 37/92- Art. 20-9º</span></p>
                             </td>
                         </tr>
                     </table>
@@ -118,7 +118,7 @@
         </table>
         
 
-        <p class="mt-3"><b>Aplicar en los seguros sociales del mes de:</b> enero del 2024 (que se presentan en el mes siguiente)</p>
+        <p class="mt-4"><b>Aplicar en los seguros sociales del mes de:</b> enero del 2024 (que se presentan en el mes siguiente)</p>
         <p> Los costes de la formación objeto de bonificación deberán quedar expresamente identificados en la 
             contabilidad de la empresa (Orden ESS/2518/2013 art. 9.3).</p>
         <p class="letra-verde-pequena"> <b>MV & JAR CONSULTORES, S.L. es Responsable del tratamiento de conformidad con el GDPR con la finalidad de mantener una 
