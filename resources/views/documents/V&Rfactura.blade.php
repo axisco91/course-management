@@ -100,11 +100,11 @@
 
                             </td>
                             <td class="fondo-gris" style="width: 50%">
-                                <p class="menos-margin-bottom ml-1"> {{$trainingContractBill->amount}}</p>
+                                <p class="menos-margin-bottom ml-1"> {{$trainingContractBill->amount}} €</p>
                                 <hr class="menos-margin-bottom" style="border-top: 2px solid white;">
                                 <p class="menos-margin-bottom ml-1"> 0,00 €</p>
                                 <hr class="menos-margin-bottom" style="border-top: 2px solid white;">
-                                <p class="menos-margin-bottom ml-1"><b> {{$trainingContractBill->amount}}</b></p>
+                                <p class="menos-margin-bottom ml-1"><b> {{$trainingContractBill->amount}} €</b></p>
                             </td>
                         </tr>
                         <tr>
