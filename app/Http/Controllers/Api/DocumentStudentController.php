@@ -34,6 +34,8 @@ use App\Models\ApplicableAgreement;
 use App\Models\AgreementType;
 use App\Models\TrainingContractBonus;
 use App\Models\CompanyType;
+use App\Models\TrainingContractSeries;
+use App\Models\TrainingContractBill;
 use Illuminate\Support\Facades\Date;
 
 
@@ -369,6 +371,7 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $student->levelStudy = LevelStudy::find($student->level_study_id);
         $province = Province::find($trainingContract->province_id);
         $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
+        
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
         $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
         $companyType = CompanyType::find($company->company_type_id);
@@ -412,7 +415,6 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
             'trainingContract' => $trainingContract,
             'company' => $company,
             'student' => $student,
-            'ocupation' => $occupation,
             'province' => $province,
             'elements' => $trainingElements,
             'applicableAgreement' => $applicableAgreement,
@@ -429,59 +431,34 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $pdf->setPaper('a4', $orientation);
         return $pdf->download('test.pdf');
     }
+
+
+    
+    public function testPdfFactura($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
+        // Cargamos la vista Blade
+        Log::info('metodoLlamado' . $trainingContractBill);
+        $trainingContractBill->load('provider');
+        Log::info('metodoLlamado2');
+
+        $trainingContract = TrainingContract::find($trainingContractBill->training_contract_id);
+        Log::info('metodoLlamado3');
+
+        $occupation = Occupation::find($trainingContract->occupation_id);
+        $company = Company::find($trainingContract->company_id);
+        $student = Student::find($trainingContract->student_id);
+
+        
+        $pdf = PDF::loadView($viewName,
+        [   
+            'occupation'=>$occupation,
+            'trainingContractBill' => $trainingContractBill,
+            'trainingContract' => $trainingContract,
+            'company' => $company,
+            'student' => $student
+        ]);
+
+        // Devolvemos el PDF como una respuesta de descarga
+        $pdf->setPaper('a4', $orientation);
+        return $pdf->download('test.pdf');
+    }
 }
-
-
-//ANTIGUO CODIGO
-// public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait') {
-//     // Cargamos la vista Blade
-//     $trainingContract->load('provider');
-//     $occupation = Occupation::find($trainingContract->occupation_id);
-//     $companies = Company::find($trainingContract->company_id);
-//     $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
-//     $agreementType = AgreementType::find($applicableAgreement->agreement_type_id);
-//     $student = Student::find($trainingContract->student_id);
-//     $student->levelStudy = LevelStudy::find($student->level_study_id);
-//     $companies->companyActivity = CompanyActivity::find($companies->company_activity_id);
-//     $province = Province::find($trainingContract->province_id);
-//     $trainingContractElements = TrainingContractElement::where('training_contract_id', $trainingContract->id)->get();
-//     $trainingActions = [];
-
-//     foreach ($trainingContractElements as $element) {
-//         // Obtener el TrainingAction asociado a este elemento del contrato de entrenamiento
-//         $trainingAction = TrainingAction::find($element->training_action_id);
-//         // Obtener el ID de la plataforma web asociada al TrainingAction
-//         $webPlatformId = $trainingAction->web_platform_id;
-
-//         // Obtener la plataforma web utilizando el ID
-//         $webPlatform = WebPlatform::find($webPlatformId);
-//         $webPlatformCode = $webPlatform->code;
-
-//         // Asignar el código de la plataforma web al TrainingAction
-//         $trainingAction->webPlatformCode = $webPlatformCode;
-    
-//         // Obtener la URL de la plataforma web
-//         $webPlatformUrl = $webPlatform->url;
-    
-//         // Asignar la URL de la plataforma web al TrainingAction
-//         $trainingAction->webPlatformUrl = $webPlatformUrl;
-         
-//         // Agregar el TrainingAction al array de TrainingActions
-//         $trainingActions[] = $trainingAction;
-//     }
-
-//     $pdf = PDF::loadView($viewName,
-//     ['occupation'=>$occupation,
-//         'trainingContract' => $trainingContract,
-//         'companies' => $companies,
-//         'student' => $student,
-//         'ocupation' => $occupation,
-//         'province' => $province,
-//         'trainingActions' => $trainingActions,
-//         'trainingContractElements' => $trainingContractElements,
-//         'applicableAgreement' => $applicableAgreement,
-//         'agreementType' => $agreementType]);
-//     // Devolvemos el PDF como una respuesta de descarga
-//     $pdf->setPaper('a4', $orientation);
-//     return $pdf->download('test.pdf');
-// }
