@@ -51,8 +51,8 @@
                         <td class="no-vertical-padding">{{$mesNombre}}</td>
                         <td class="no-vertical-padding">{{$e->start}}</td>
                         <td class="no-vertical-padding">{{$e->end}}</td>
-                        <td class="no-vertical-padding">{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey} : 'N/A' }}</td>
-                        <td class="no-vertical-padding">{{ property_exists($monthlyFormationHours, $monthKey) ? $monthlyFormationHours->{$monthKey}*5 : 'N/A' }}</td>
+                        <td class="no-vertical-padding">{{$e->amount / 5}}</td>
+                        <td class="no-vertical-padding">{{$e->amount}}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -74,19 +74,6 @@
         <p>Y para que conste donde proceda, firmo el presente certificado en Lucena, a {{$dia}} de {{$nombre_mes}} de {{$anio}}.</p>
     </div>
 </div>
-
-<table class="mt-5" style="border-collapse: collapse; width: 100%;">
-    <tr>
-        <td width="70%" style="padding: 0; border: none;">
-            <p class="pie-fondo" style="margin: 0; padding-left: 0;">info@avzformacion.com - 957 923 473 - 644 680 310</p>
-        </td>
-        <td width="30%" style="padding: 0; border: none;" class="text-center">
-            <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
-        </td>
-    </tr>
-</table>
-
-
 <div style="page-break-after: always;"></div>
 
 
@@ -112,16 +99,7 @@
     </div>
 </div>
 
-<table style="border-collapse: collapse; width: 100%;">
-    <tr>
-        <td width="70%" style="padding: 0; border: none;">
-            <p class="pie-fondo" style="margin: 0; padding-left: 0;">info@avzformacion.com - 957 923 473 - 644 680 310</p>
-        </td>
-        <td width="30%" style="padding: 0; border: none;" class="text-center">
-            <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
-        </td>
-    </tr>
-</table>
+
 
 <div style="page-break-after: always;"></div>
 
@@ -210,7 +188,10 @@
                         <td class="no-vertical-padding">{{$e->end}}</td>
                         <td class="no-vertical-padding">{{ $horasTotales }}</td>
                         <td class="no-vertical-padding">
-                            {{$e->amount}}
+                            @php
+                                $multiplier = ($company->average_template < 5) ? 2 : 1.5;
+                            @endphp
+                            {{ $horasTotales * $multiplier }}
                         </td>
                     </tr>
                 @endforeach
@@ -220,7 +201,7 @@
 
 </div>
 <br>
-
+<footer>
     <table class="mt-2" style="border-collapse: collapse; width: 100%;">
         <tr>
             <td width="70%" style="padding: 0; border: none;">
@@ -231,5 +212,6 @@
             </td>
         </tr>
     </table>
+ </footer>
 </body>
 </html>
