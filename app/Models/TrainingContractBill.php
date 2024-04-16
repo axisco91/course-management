@@ -38,6 +38,10 @@ class TrainingContractBill extends Model
     {
         return $this->hasOne('App\Models\Company', 'id', 'company_id');
     }
+    public function provider()
+    {
+        return $this->hasOne('App\Models\Provider', 'id', 'company_id');
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

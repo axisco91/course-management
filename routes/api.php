@@ -1204,6 +1204,8 @@ Route::prefix('document-students')->group(function() {
         Route::get('/studentViewPdf/{key}/{viewName}/{trainingContract}', 'DocumentStudentController@studentViewPdf');
         Route::post('sign-pdf', 'signPDF');
         Route::get('/test-pdf/{viewName}/{trainingContract}/{orientation?}', 'testPDF');
+        Route::get('/test-pdf-factura/{viewName}/{trainingContractBill}/{orientation?}', 'testPdfFactura');
+
     });
 });
 
