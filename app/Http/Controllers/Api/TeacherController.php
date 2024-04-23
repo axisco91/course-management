@@ -108,11 +108,7 @@ class TeacherController extends BaseController
         ]);
     }
 
-    /**
-     * Creamos docente
-     * @param TeacherRequests $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function store(TeacherRequests $request){
         try {
             $data = $request->all();
@@ -127,6 +123,13 @@ class TeacherController extends BaseController
             } else {
                 $teacher['used'] = false;
             }
+
+            // Asociar las áreas formativas al profesor
+            $teacherAreaIds = $request->input('teacher_area_ids');  // Los IDs de las áreas a las que está relacionado el profesor
+            foreach ($teacherAreaIds as $teacherAreaId) {
+                $teacher->teacherAreas()->attach($teacherAreaId);
+            }
+
             $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
             return response()->json([
                 'status' => 200,
@@ -140,12 +143,6 @@ class TeacherController extends BaseController
         }
     }
 
-    /**
-     * Editamos docente
-     * @param $id
-     * @param TeacherRequests $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function update($id, TeacherRequests $request){
         try {
             $data = $request->all();
@@ -161,6 +158,14 @@ class TeacherController extends BaseController
             } else {
                 $teacher['used'] = false;
             }
+
+            // Actualizar las áreas formativas asociadas al profesor
+            $teacher->teacherAreas()->detach();
+            $teacherAreaIds = $request->input('teacher_area_ids');  // Los IDs de las áreas a las que está relacionado el profesor
+            foreach ($teacherAreaIds as $teacherAreaId) {
+                $teacher->teacherAreas()->attach($teacherAreaId);
+            }
+
             $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
             return response()->json([
                 'status' => 200,
@@ -173,6 +178,7 @@ class TeacherController extends BaseController
             ]);
         }
     }
+ 
 
     /**
      * Comprobamos DNI

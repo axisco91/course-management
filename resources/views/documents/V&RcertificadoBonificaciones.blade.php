@@ -80,7 +80,7 @@
             <div class="mt-3">
                 La contratación de los servicios de formación teórica en la modalidad de TELEFORMACIÓN inherente a 
                 un contrato para la Formación y el Aprendizaje en Alternancia con el siguiente detalle: 
-                <p>Empresa: <span class="subrayado">{{$company->name}}</span>– CIF <span class="subrayado">{{$company->nif}}</span> </p>
+                <p>Empresa: <span class="subrayado">{{$trainingContract->company->name}}</span>– CIF <span class="subrayado">{{$trainingContract->company->nif}}</span> </p>
                 <p>Trabajador/a: <span class="subrayado">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</span> </p>
                 <p>Contratación con inicio el <span class="subrayado">{{$trainingContract->beginning}}</span>, y finalización el <span class="underline">{{$trainingContract->end}}</span>. </p>
             </div>    

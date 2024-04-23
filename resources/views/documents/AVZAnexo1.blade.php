@@ -107,17 +107,17 @@
             <article class="border border-1 border-dark mt-2">
                 <div class="mx-auto" style="width: 95%">
                     <p class="text-xl font-bold">DATOS DE LA EMPRESA</p>
-                    <p class="ms-2 text-sm">Razón social   {{$company->name}}   CIF/NIF/NIE   {{$company->nif}}</p>
-                    <p class="ms-2 text-sm">D./Dña.   {{$company->legal_representative}}   en concepto de 
-                        @if($company->company_type_id == "Autónomo")
+                    <p class="ms-2 text-sm">Razón social   {{$trainingContract->company->name}}   CIF/NIF/NIE   {{$trainingContract->company->nif}}</p>
+                    <p class="ms-2 text-sm">D./Dña.   {{$trainingContract->company->legal_representative}}   en concepto de 
+                        @if($trainingContract->company->company_type_id == "Autónomo")
                             TITULAR
                         @else
                             ADMINISTRADOR
                         @endif
-                        NIF/NIE: {{$company->dni_legal_representative}}</p>
-                    <p class="ms-2 text-sm">Correo electrónico de la empresa {{$company->email}} Tfno. empresa {{$company->telephone}}</p>
+                        NIF/NIE: {{$trainingContract->company->dni_legal_representative}}</p>
+                    <p class="ms-2 text-sm">Correo electrónico de la empresa {{$trainingContract->company->email}} Tfno. empresa {{$trainingContract->company->telephone}}</p>
                     <p class="ms-2 text-sm">Tutor/a de la empresa - D./Dña. {{$trainingContract->company_tutor}} NIF/NIE {{$trainingContract->company_tutor_dni}}</p>
-                    <input class="no-line-break" type="checkbox" {{$company->company_type_id == "Autónomo" ? 'checked' : ''}}><p class="ms-2 text-sm no-line-break"> Empresa con menos de 5 trabajadores</p>
+                    <input class="no-line-break" type="checkbox" {{$trainingContract->company->company_type_id == "Autónomo" ? 'checked' : ''}}><p class="ms-2 text-sm no-line-break"> Empresa con menos de 5 trabajadores</p>
                 </div>                
             </article>
 
@@ -155,9 +155,9 @@
                         <p class="no-line-break">(a consignar una vez comunicada la formalización del contrato)</p><br>
                         <p class="ms-2 no-line-break">Fecha de inicio {{$trainingContract->beginning}}</p>
                         <p class="ms-2 no-line-break">Fecha de fin {{$trainingContract->end}}</p><br>
-                        <p class="ms-2 no-line-break">Puesto de trabajo u ocupación {{$occupation->name}}</p>
-                        <p class="ms-2 no-line-break">Cód. CNO {{$occupation->cno}}</p><br>
-                        <p class="ms-2 no-line-break">Provincia del centro de trabajo {{$province->name}}</p>
+                        <p class="ms-2 no-line-break">Puesto de trabajo u ocupación {{$trainingContract->occupation->name}}</p>
+                        <p class="ms-2 no-line-break">Cód. CNO {{$trainingContract->occupation->cno}}</p><br>
+                        <p class="ms-2 no-line-break">Provincia del centro de trabajo {{$trainingContract->province->name ?? ''}}</p>
                         <p class="ms-2 no-line-break"> Horas del contrato: Año 1.º {{$trainingContract->formative_hours_first_year}}</p>
                         <p class="ms-2 no-line-break">Año 2.º {{$trainingContract->formative_hours_second_year}}</p><br>
                         <p class="ms-2">Convenio aplicable  {{$trainingContract->applicableAgreement->name ?? ''}} </p>
@@ -382,26 +382,26 @@
                         <p class="ms-2 no-line-break"> Si la formación se imparte mediante teleformación, especificar código/s del/os Centros Presenciales vinculados:</p><br>
                          (CENTROS PRESENCIALES) {{-- NO SE LO QUE IRÍA AQUÍ --}}
                          <br>
-                        <p class="ms-2 mt-1 no-line-break">Nombre Centro {{$company->name}} </p>
-                        <p class="ms-2 mt-1 no-line-break">CIF/NIF/NIE {{$company->nif}}</p><br>
+                        <p class="ms-2 mt-1 no-line-break">Nombre Centro {{$trainingContract->company->name}} </p>
+                        <p class="ms-2 mt-1 no-line-break">CIF/NIF/NIE {{$trainingContract->company->nif}}</p><br>
 
                         <p class="ms-2">URL (Entidades de teleformación) {{$e->training_action->webPlatform->url ?? ''}}</p>
-                        <p class="ms-2 mt-1 no-line-break">Dirección {{$company->address}}</p>
-                        <p class="ms-2 mt-1 no-line-break">CP {{$company->post_code}}</p>
-                        <p class="ms-2 mt-1 no-line-break"> Municipio {{$company->population}}</p><br>
+                        <p class="ms-2 mt-1 no-line-break">Dirección {{$trainingContract->company->address}}</p>
+                        <p class="ms-2 mt-1 no-line-break">CP {{$trainingContract->company->post_code}}</p>
+                        <p class="ms-2 mt-1 no-line-break"> Municipio {{$trainingContract->company->population}}</p><br>
 
-                        <p class="ms-2 mt-1 no-line-break">Provincia  {{$province->name}}</p>
-                        <p class="ms-2 mt-1 no-line-break">Teléfono {{$company->telephone}}</p>
-                        <p class="ms-2 mt-1 no-line-break"> Correo electrónico {{$company->email}}</p><br>
+                        <p class="ms-2 mt-1 no-line-break">Provincia  {{$trainingContract->province->name ?? ''}}</p>
+                        <p class="ms-2 mt-1 no-line-break">Teléfono {{$trainingContract->company->telephone}}</p>
+                        <p class="ms-2 mt-1 no-line-break"> Correo electrónico {{$trainingContract->company->email}}</p><br>
 
-                        <p class="ms-2 mt-1 no-line-break">D./Dña. {{$company->legal_representative}} en concepto de 
-                            @if($company->company_type_id == "Autónomo")
+                        <p class="ms-2 mt-1 no-line-break">D./Dña. {{$trainingContract->company->legal_representative}} en concepto de 
+                            @if($trainingContract->company->company_type_id == "Autónomo")
                                 TITULAR
                             @else
                                 ADMINISTRADOR
                             @endif
                         </p>
-                        <p class="ms-2 mt-1 no-line-break">NIF/NIE  {{$company->dni_legal_representative}}</p><br>
+                        <p class="ms-2 mt-1 no-line-break">NIF/NIE  {{$trainingContract->company->dni_legal_representative}}</p><br>
                         <p class="ms-2 mt-1 no-line-break">Tutor/a del centro - D./Dña. {{$e->training_contract->company_tutor}} </p>
                         <p class="ms-2 mt-1 no-line-break">NIF/NIE {{$e->training_contract->company_tutor_dni}}</p><br>
                     </div>
@@ -415,7 +415,7 @@
 
             <article class="mx-auto mt-4 text-sm">
                 <div>
-                    <p>Declaro que el centro de trabajo se encuentra en: {{$company->address}}</p>
+                    <p>Declaro que el centro de trabajo se encuentra en: {{$trainingContract->company->address}}</p>
                     <p>Declaro bajo mi responsabilidad que son ciertos los datos que se consignan en el presente acuerdo, asumiento en caso 
                         contrario las responsabilidades que pudieran derivarse de su inexactitud.
                     </p>

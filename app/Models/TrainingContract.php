@@ -27,6 +27,10 @@ class TrainingContract extends Model
     {
         return $this->belongsTo(Student::class);
     }
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     public function trainingContractElements()
     {
@@ -43,13 +47,25 @@ class TrainingContract extends Model
     {
         return $this->hasMany(TrainingContractsExcludedDay::class);
     }
+
     public function provider()
     {
         return $this->belongsTo(Provider::class);
     }
+
     public function applicableAgreement()
     {
         return $this->belongsTo(ApplicableAgreement::class);
+    }
+
+    public function occupation()
+    {
+        return $this->belongsTo(Occupation::class);
+    }
+
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
     }
     
     public function scopeGetTrainingContracts($query){

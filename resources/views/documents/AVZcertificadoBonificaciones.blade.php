@@ -22,7 +22,7 @@
     <div class="col-md-12 mt-2">
         <p> D. Antonio J. Jiménez Agraz, en representación del centro de formación AVZ FORMACION, S.L., con CIF nº B16826638,
             y código de centro 8000001711, certifica la contratación de los servicios de formación teórica de un contrato para la
-            Formación en Alternancia con la Empresa: {{$company->name}}, con CIF {{$company->cif}} y por el trabajador {{$trainingContract->student->name}} {{$trainingContract->student->surname}},
+            Formación en Alternancia con la Empresa: {{$trainingContract->company->name}}, con CIF {{$trainingContract->company->cif}} y por el trabajador {{$trainingContract->student->name}} {{$trainingContract->student->surname}},
             con DNI {{$trainingContract->student->dni}}, con inicio el {{$trainingContract->beginning_formation}} y finalización el {{$trainingContract->end_formation}}  y con las siguientes bonificaciones mensuales:</p>
     </div>
 
@@ -189,7 +189,7 @@
                         <td class="no-vertical-padding">{{ $horasTotales }}</td>
                         <td class="no-vertical-padding">
                             @php
-                                $multiplier = ($company->average_template < 5) ? 2 : 1.5;
+                                $multiplier = ($trainingContract->company->average_template < 5) ? 2 : 1.5;
                             @endphp
                             {{ $horasTotales * $multiplier }}
                         </td>

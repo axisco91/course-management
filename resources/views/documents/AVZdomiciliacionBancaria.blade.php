@@ -61,27 +61,27 @@
                 <div>
                     <div aria-colspan="2" class="p-2" > 
                         <p>
-                            <span><strong>Razón Social:</strong> {{$company->name}} </span>
-                            <span class="campos font-semibold" style="margin-left: 2.4"> C.I.F. O N.I.F.:<span style="font-weight: normal"> {{$company->nif}}</span> </span>
+                            <span><strong>Razón Social:</strong> {{$trainingContract->company->name}} </span>
+                            <span class="campos font-semibold" style="margin-left: 2.4"> C.I.F. O N.I.F.:<span style="font-weight: normal"> {{$trainingContract->company->nif}}</span> </span>
                         </p>
                     </div>
                 </div>
                 <div class="p-2 border-top border-2 border-gray-400"> 
-                    <p><strong>Responsable:</strong> {{$company->legal_representative}} </p>
+                    <p><strong>Responsable:</strong> {{$trainingContract->company->legal_representative}} </p>
                 </div>
                 <div class="border-top border-2 border-gray-400">
                     <div aria-colspan="2" class="p-2"> 
                         <p style="width: 100%">
-                            <span> <strong>Domicilio:</strong> {{$company->address}} </span>
-                            <span class="campos"> <strong>Teléfono:</strong> {{$company->telephone}}</span>
+                            <span> <strong>Domicilio:</strong> {{$trainingContract->company->address}} </span>
+                            <span class="campos"> <strong>Teléfono:</strong> {{$trainingContract->company->telephone}}</span>
                         </p>
                     </div>
                 </div>
                 <div aria-colspan="3" class="border-top border-2 border-gray-400">
                     <p class="p-2">
-                        <span> <strong>Localidad:</strong> {{$company->population}} </span>
-                        <span class="campos"> <strong>C.P:</strong>{{$company->post_code}} </span> 
-                        <span class="campos"> <strong>Provincia:</strong> {{$company->province->name}}</span>
+                        <span> <strong>Localidad:</strong> {{$trainingContract->company->population}} </span>
+                        <span class="campos"> <strong>C.P:</strong>{{$trainingContract->company->post_code}} </span> 
+                        <span class="campos"> <strong>Provincia:</strong> {{$trainingContract->company->province->name}}</span>
                     </p>
                 </div>
             </article>
@@ -105,7 +105,7 @@
             <article class="border border-2 border-gray-400">
                 <p class="text-center font-semibold">IBAN </p>
                 <div class="border-top border-2 border-gray-400 p-2 text-center">
-                    {{$company->iban}}
+                    {{$trainingContract->company->iban ?? ''}}
                 </div>
             </article>
 
@@ -113,7 +113,7 @@
             <h3 class="color text-lg font-semibold mt-4 text-start">DATOS DE LA FORMACION</h3>
             <article class="border border-2 border-gray-400">
                 <div class="flex p-2">
-                    <p class="font-semibold">Ocupación: <span style="font-weight: normal">{{$occupation->name}}</span> </p>
+                    <p class="font-semibold">Ocupación: <span style="font-weight: normal">{{$trainingContract->occupation->name}}</span> </p>
                 </div>
                 <div class="border-top border-2 border-gray-400 p-2 ">
                     <p><span class="font-semibold">Centro: </span>  AVZ FORMACION S.L. (8000001711)</p>

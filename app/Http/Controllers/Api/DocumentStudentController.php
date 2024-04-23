@@ -36,6 +36,7 @@ use App\Models\TrainingContractBonus;
 use App\Models\CompanyType;
 use App\Models\TrainingContractSeries;
 use App\Models\TrainingContractBill;
+use ZipArchive;
 use Illuminate\Support\Facades\Date;
 
 
@@ -357,84 +358,67 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         }
     }
 
-    public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait') {
-        // Cargamos la vista Blade
-        $trainingContract->load('provider');
-        $occupation = Occupation::find($trainingContract->occupation_id);
-        $company = Company::find($trainingContract->company_id);
-        $company->companyActivity = CompanyActivity::find($company->company_activity_id);
-        $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
-        if ($applicableAgreement) {
-            $applicableAgreement->agreementType = AgreementType::find($applicableAgreement->agreement_type_id);
-        }
-        $student = Student::find($trainingContract->student_id);
-        $student->levelStudy = LevelStudy::find($student->level_study_id);
-        $province = Province::find($trainingContract->province_id);
-        $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
-        
-        $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
-        $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
-        $companyType = CompanyType::find($company->company_type_id);
+public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait') {
+    // Cargamos las relaciones necesarias
+    $trainingContract->load('provider', 'occupation', 'company', 'company.companyActivity', 'applicableAgreement.agreementType', 'student.levelStudy', 'province');
 
- 
-        $dias = []; 
-        $daysWeek = 0; 
-        if($trainingContract->monday == 1) {
-            $daysWeek++; 
-            $dias[] = 'Lunes';
-        }
-        if($trainingContract->tuesday == 1) {
-            $daysWeek++; 
-            $dias[] = 'Martes';
-        }
-        if($trainingContract->wednesday == 1) {
-            $daysWeek++; 
-            $dias[] = 'Miércoles';
-        }
-        if($trainingContract->thursday == 1) {
-            $daysWeek++; 
-            $dias[] = 'Jueves';
-        }
-        if($trainingContract->friday == 1) {
-            $daysWeek++; 
-            $dias[] = 'Viernes';
-        }
-        if($trainingContract->saturday == 1) {
-            $daysWeek++; 
-            $dias[] = 'Sábado';
-        }
-        if($trainingContract->sunday == 1) {
-            $daysWeek++; 
-            $dias[] = 'Domingo';
-        }
-        $fechaActual = Date::now()->format('d/m/Y');
+    $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
+    $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
+    $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
+    $companyType = CompanyType::find($trainingContract->company->company_type_id);
 
+    $dias = []; 
+    $daysWeek = 0; 
+    if($trainingContract->monday == 1) {
+        $daysWeek++; 
+        $dias[] = 'Lunes';
+    }
+    if($trainingContract->tuesday == 1) {
+        $daysWeek++; 
+        $dias[] = 'Martes';
+    }
+    if($trainingContract->wednesday == 1) {
+        $daysWeek++; 
+        $dias[] = 'Miércoles';
+    }
+    if($trainingContract->thursday == 1) {
+        $daysWeek++; 
+        $dias[] = 'Jueves';
+    }
+    if($trainingContract->friday == 1) {
+        $daysWeek++; 
+        $dias[] = 'Viernes';
+    }
+    if($trainingContract->saturday == 1) {
+        $daysWeek++; 
+        $dias[] = 'Sábado';
+    }
+    if($trainingContract->sunday == 1) {
+        $daysWeek++; 
+        $dias[] = 'Domingo';
+    }
+    $fechaActual = Date::now()->format('d/m/Y');
 
-        $pdf = PDF::loadView($viewName,
-        ['occupation'=>$occupation,
-            'trainingContract' => $trainingContract,
-            'company' => $company,
-            'student' => $student,
-            'province' => $province,
-            'elements' => $trainingElements,
-            'applicableAgreement' => $applicableAgreement,
-            'fechaActual' => $fechaActual,
-            'bonus' => $bonus,
-            'monthlyFormationHours' => $monthlyFormationHours,
-            'sumaHoras'=>0,
-            'dias' => $dias, 
-            'companyType' => $companyType,
-            'daysWeek' => $daysWeek
+    $pdf = PDF::loadView($viewName,
+    ['trainingContract' => $trainingContract,
+        'elements' => $trainingElements,
+        'fechaActual' => $fechaActual,
+        'bonus' => $bonus,
+        'monthlyFormationHours' => $monthlyFormationHours,
+        'sumaHoras'=>0,
+        'dias' => $dias, 
+        'companyType' => $companyType,
+        'daysWeek' => $daysWeek
     ]);
 
-        // Devolvemos el PDF como una respuesta de descarga
-        $pdf->setPaper('a4', $orientation);
-        return $pdf->download('test.pdf');
-    }
+    // Devolvemos el PDF como una respuesta de descarga
+    $pdf->setPaper('a4', $orientation);
+    return $pdf->download('test.pdf');
+}
 
 
     
-    public function testPdfFactura($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
+    public function generatePdf($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
         // Cargamos la vista Blade
         Log::info('metodoLlamado' . $trainingContractBill);
         $trainingContractBill->load('provider');
@@ -444,8 +428,7 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
         $company = Company::find($trainingContract->company_id);
         $student = Student::find($trainingContract->student_id);
         $trainingContractBonus = TrainingContractBonus::find($trainingContractBill->training_contract_bonus_id);
-
-        
+    
         $pdf = PDF::loadView($viewName,
         [   
             'occupation'=>$occupation,
@@ -456,9 +439,45 @@ public function studentViewPdf($key, $viewName, TrainingContract $trainingContra
             'trainingContractSeries' => $trainingContractSeries,
             'trainingContractBonus' => $trainingContractBonus
         ]);
-
-        // Devolvemos el PDF como una respuesta de descarga
+    
+        // Configuramos el papel y la orientación del PDF
         $pdf->setPaper('a4', $orientation);
+    
+        // Devolvemos el objeto PDF
+        return $pdf;
+    }
+    
+    public function testPdfFactura($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
+        // Generamos el PDF
+        $pdf = $this->generatePdf($viewName, $trainingContractBill, $orientation);
+    
+        // Devolvemos el PDF como una respuesta de descarga
         return $pdf->download('test.pdf');
+    }
+
+    public function generateInvoices(Request $request) {
+        // Crea un nuevo archivo ZIP
+        $zip = new ZipArchive;
+        $zipFileName = tempnam(sys_get_temp_dir(), 'invoices') . '.zip';
+        $zip->open($zipFileName, ZipArchive::CREATE);
+    
+        // Recorre los IDs de las facturas
+        $billIds = $request->input('billIds');
+        foreach ($billIds as $billId) {
+            // Genera la vista de la factura y guárdala como un archivo PDF en un directorio temporal
+            $trainingContractBill = TrainingContractBill::find($billId);
+            $pdf = $this->generatePdf('documents.V&Rfactura',$trainingContractBill);
+            $pdfFileName = tempnam(sys_get_temp_dir(), 'invoice') . '.pdf';
+            file_put_contents($pdfFileName, $pdf->output());
+    
+            // Añade el archivo PDF al archivo ZIP
+            $zip->addFile($pdfFileName, "factura_cfa_{$billId}.pdf");
+        }
+    
+        // Cierra el archivo ZIP
+        $zip->close();
+    
+        // Devuelve el archivo ZIP como una respuesta de descarga
+        return response()->download($zipFileName, 'facuturas.zip');
     }
 }

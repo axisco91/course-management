@@ -69,7 +69,7 @@
                     X Itinerario del Catálogo de especialidades formativas del Sistema Nacional de Empleo:
                 </p> 
                 <p>
-                <u>{{$occupation->name}} </u>
+                <u>{{$trainingContract->occupation->name}} </u>
                 </p>
             </div>
         </div>
@@ -79,22 +79,22 @@
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DE LA EMPRESA:</h1>
             <p>
-                Razón social  <u>{{$company->name}}</u> CIF/NIF/NIE  <u>{{$company->nif}}</u>
+                Razón social  <u>{{$trainingContract->company->name}}</u> CIF/NIF/NIE  <u>{{$trainingContract->company->nif}}</u>
             </p>
             <p>
-                D./Dña. <u>{{$company->legal_representative}}</u> en concepto de <u>
+                D./Dña. <u>{{$trainingContract->company->legal_representative}}</u> en concepto de <u>
                 <?php
-                if($company->company_type_id=="Autónomo"){
+                if($trainingContract->company->company_type_id=="Autónomo"){
                     echo "TITULAR";
                 }else{
                     echo "ADMINISTRADOR/A";
                 }
             ?>
             </u>
-            NIF/NIE  <u>{{$company->dni_legal_representative}}</u> 
+            NIF/NIE  <u>{{$trainingContract->company->dni_legal_representative}}</u> 
             </p>
             <p>
-                Correo electrónico de la empresa <u>{{$company->email}}</u>  Tfno. Empresa <u>{{$company->telephone}} </u>
+                Correo electrónico de la empresa <u>{{$trainingContract->company->email}}</u>  Tfno. Empresa <u>{{$trainingContract->company->telephone}} </u>
             </p>
             
             <p>
@@ -102,7 +102,7 @@
             </p>
             <p>
                 Cualificación y/o experiencia profesional adecuada <input type="checkbox" id="opcion1" name="opcion1" checked>
-                Empresa con menos de 5 trabajadores <input type="checkbox" id="opcion2" name="opcion2" {{ $company->average_template <= 5 ? 'checked' : '' }}>
+                Empresa con menos de 5 trabajadores <input type="checkbox" id="opcion2" name="opcion2" {{ $trainingContract->company->average_template <= 5 ? 'checked' : '' }}>
             </p>
         </div>
     </div>
@@ -111,7 +111,7 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1> DATOS DEL TRABAJADOR:</h1>
-            <p>D./Dña. <u> {{$student->name}} {{$student->surname}}</u> NIF/NIE <u> {{$student->dni}} </u> Fecha de nac. <u> {{$student->date_of_birth}} </u> </p>
+            <p>D./Dña. <u> {{$trainingContract->student->name}} {{$trainingContract->student->surname}}</u> NIF/NIE <u> {{$trainingContract->student->dni}} </u> Fecha de nac. <u> {{$trainingContract->student->date_of_birth}} </u> </p>
             <p>Reúne requisitos de acceso a la Formación de este contrato</p>
             <p>
                 Inscrito/a en el sistema Nacional de Garantía Juvenil <input type="checkbox" id="opcion3" name="opcion3" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
@@ -131,9 +131,9 @@
             <h1>DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA:</h1>
             <p>Identificador contrato n.º ____________________ (a consignar una vez comunicada la formalización del contrato)</p>
             <p>Fecha de inicio: <u>{{$trainingContract->beginning}}</u></p>
-            <p>Puesto de trabajo u ocupación: <u>{{$occupation->name}} </u> Cód. CNO <u>{{$occupation->cno}} </u></p>
-            <p>Provincia del centro de trabajo: <u>{{$province->name}} </u> Horas de contrato, según convenio: <u>{{$trainingContract->annually_day_hours}} </u> </p>
-            <p>Convenio aplicable <u> {{ $applicableAgreement ? $applicableAgreement->name : '' }}  {{ $applicableAgreement ? "({$applicableAgreement->agreementType->type})" : '' }} </u></p>
+            <p>Puesto de trabajo u ocupación: <u>{{$trainingContract->occupation->name}} </u> Cód. CNO <u>{{$trainingContract->occupation->cno}} </u></p>
+            <p>Provincia del centro de trabajo: <u>{{$trainingContract->province->name}} </u> Horas de contrato, según convenio: <u>{{$trainingContract->annually_day_hours}} </u> </p>
+            <p>Convenio aplicable <u> {{ $trainingContract->applicableAgreement ? $trainingContract->applicableAgreement->name : '' }}  {{ $trainingContract->applicableAgreement ? "({$trainingContract->applicableAgreement->agreementType->type})" : '' }} </u></p>
         </div>
     </div>
     <div style="page-break-after: always;"></div>
@@ -150,10 +150,10 @@
     <div class="row">
         <div class="col-md-12 mx-2 my-2">
             <h1>DATOS DEL CENTRO DE FORMACIÓN:</h1>
-            <p>Razón social <u>{{$company->name}}</u>  CIF/NIF/NIE <u>{{$company->nif}}</u></p>
-            <p>Dirección <u>{{$company->address}}</u> CP <u>{{$company->post_code}}</u> Municipio <u>{{$company->population}}</u></p>
-            <p>Provincia <u>{{$province->name}}</u> Teléfono <u>{{$company->telephone}} </u>  Correo electrónico <u>{{$company->email}}</u> </p>
-            <p>D./Dña. <u>{{$company->legal_representative}}</u> En concepto de <u> (representante)</u>   NIF/NIE <u>{{$company->dni_legal_representative}} </u></p>
+            <p>Razón social <u>{{$trainingContract->company->name}}</u>  CIF/NIF/NIE <u>{{$trainingContract->company->nif}}</u></p>
+            <p>Dirección <u>{{$trainingContract->company->address}}</u> CP <u>{{$trainingContract->company->post_code}}</u> Municipio <u>{{$trainingContract->company->population}}</u></p>
+            <p>Provincia <u>{{$trainingContract->province->name}}</u> Teléfono <u>{{$trainingContract->company->telephone}} </u>  Correo electrónico <u>{{$trainingContract->company->email}}</u> </p>
+            <p>D./Dña. <u>{{$trainingContract->company->legal_representative}}</u> En concepto de <u> (representante)</u>   NIF/NIE <u>{{$trainingContract->company->dni_legal_representative}} </u></p>
         </div>
     </div>
 
@@ -353,7 +353,7 @@
         <div class="col-md-12">
             @foreach ($elements as $e)
                 @php
-                    $titulo_representante = ($company->company_type_id == "Autónomo") ? "TITULAR" : "ADMINISTRADOR/A";
+                    $titulo_representante = ($trainingContract->company->company_type_id == "Autónomo") ? "TITULAR" : "ADMINISTRADOR/A";
                 @endphp
                 <div class="mx-2 my-2">
                     <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
@@ -364,19 +364,19 @@
                         Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>{{ $e->training_action->webPlatform->code ?? '' }}</u>
                     </p>
                     <p>
-                        Nombre Centro: <u>{{ $company->name }}</u>  CIF/NIF/NIE <u>{{ $company->nif }}</u>
+                        Nombre Centro: <u>{{ $trainingContract->company->name }}</u>  CIF/NIF/NIE <u>{{ $trainingContract->company->nif }}</u>
                     </p>
                     <p>
                         URL <u>{{ $e->training_action->webPlatform->url ?? ''}}</u>
                     </p>
                     <p>
-                        Dirección: <u>{{ $company->address }}</u> CP: <u>{{ $company->post_code }}</u> Municipio: <u>{{ $company->population }}</u>
+                        Dirección: <u>{{ $trainingContract->company->address }}</u> CP: <u>{{ $trainingContract->company->post_code }}</u> Municipio: <u>{{ $trainingContract->company->population }}</u>
                     </p>
                     <p>
-                        Provincia: <u>{{ $province->name }}</u> Teléfono: <u>{{ $company->telephone }}</u> Correo electrónico: <u>{{ $company->email }}</u>
+                        Provincia: <u>{{ $trainingContract->province->name ?? '' }}</u> Teléfono: <u>{{ $trainingContract->company->telephone }}</u> Correo electrónico: <u>{{ $trainingContract->company->email }}</u>
                     </p>
                     <p>
-                        D./Dña.: <u>{{ $company->legal_representative }}</u> en concepto de <u>{{ $titulo_representante }}</u> NIF/NIE: <u>{{ $company->dni_legal_representative }}</u>
+                        D./Dña.: <u>{{ $trainingContract->company->legal_representative }}</u> en concepto de <u>{{ $titulo_representante }}</u> NIF/NIE: <u>{{ $trainingContract->company->dni_legal_representative }}</u>
                     </p>
                 </div>
             @endforeach
@@ -482,7 +482,7 @@
         </h3>
         <div class="col-md-12 mx-2 my-2">
             <ul>
-                <li>El centro de trabajo se encuentra en: <u>{{$company->address}}  ({{$company->post_code}} {{$company->population}})</u></li>
+                <li>El centro de trabajo se encuentra en: <u>{{$trainingContract->company->address}}  ({{$trainingContract->company->post_code}} {{$trainingContract->company->population}})</u></li>
                 <li>Son ciertos los datos que se consignan en el presente acuerdo, asumiendo en caso contrario las responsabilidades que pudieran derivarse de su inexactitud.</li>
                 <li>Conozco lo establecido en el artículo 11.2 del Estatuto de los Trabajadores y el Real Decreto 1.529/2012, de 8 de noviembre y demás normativas de desarrollo, así como la normativa que afecta a la actividad formativa objeto de esta solicitud.</li>
                 <li>Que autorizo/a al Servicio Público de Empleo de la Comunidad Autónoma y al Servicio Público de Empleo Estatal a que acceda a las bases de datos de la Administración General del Estado y de las Administraciones de las Comunidades Autónomas, con garantía de confidencialidad y a los exclusivos efectos de facilitar la verificación de los datos consignados en esta solicitud, manifestando que quedo enterado de la obligación de informar a los Servicios Públicos de Empleo de cualquier variación de los mismos que pudiera producirse.</li>
@@ -536,7 +536,7 @@
             @endphp
             
             <p>
-                En <u>{{$company->population}}</u>  a <u>{{ $dia }}</u> de <u>{{ $nombre_mes }}</u> de 2024
+                En <u>{{$trainingContract->company->population}}</u>  a <u>{{ $dia }}</u> de <u>{{ $nombre_mes }}</u> de 2024
             </p>
             <div style="margin: 20px;">
                 <table width="100%" style="margin=10px;">
@@ -556,13 +556,13 @@
                     </tr>
                     <tr>
                         <td width="25%" style="border: none; padding-top: 130px;">
-                            <u>{{$student->name}} {{$student->surname}}</u>
+                            <u>{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</u>
                         </td>
                         <td width="25%" style="border: none; padding-top: 130px;">
-                            <u>{{$student->legal_guardian_name}}</u>
+                            <u>{{$trainingContract->student->legal_guardian_name}}</u>
                         </td>
                         <td width="25%" style="border: none; padding-top: 130px;">
-                            <u>{{$company->legal_representative}}</u>
+                            <u>{{$trainingContract->company->legal_representative}}</u>
                         </td>
                         <td width="25%" style="border: none; padding-top: 130px;">
                             <u>{{$trainingContract->company_tutor}}</u>

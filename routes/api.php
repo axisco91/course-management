@@ -1205,6 +1205,7 @@ Route::prefix('document-students')->group(function() {
         Route::post('sign-pdf', 'signPDF');
         Route::get('/test-pdf/{viewName}/{trainingContract}/{orientation?}', 'testPDF');
         Route::get('/test-pdf-factura/{viewName}/{trainingContractBill}/{orientation?}', 'testPdfFactura');
+        Route::post('generate-invoices', 'generateInvoices');
 
     });
 });

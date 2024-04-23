@@ -18,8 +18,8 @@
                 <td style="width:70%; border: none; text-align: right">
                     <p class="letra-verde menos-margin-bottom"><b>MV & JAR CONSULTORES SL</b></p>
                     <p class="letra-verde menos-margin-bottom">B-72132988</p>
-                    <p class="letra-verde menos-margin-bottom">C/ Real Fernando, Local 4</p>
-                    <p class="letra-verde menos-margin-bottom">11540 Sanlúcar de Barrameda (Cádiz)</p>
+                    <p class="letra-verde menos-margin-bottom letra-verde-pequena">C/ Real Fernando, Local 4</p>
+                    <p class="letra-verde menos-margin-bottom letra-verde-pequena">11540 Sanlúcar de Barrameda (Cádiz)</p>
                 </td>
             </tr>
         </table>
@@ -29,15 +29,15 @@
 
         <table style="width:100%" class="mt-4">
             <tr>
-                <td style="width:50%; border: none; vertical-align: top;">
-                    <p class="letra-gris menos-margin-bottom"><b>Nº Factura</b> <span class="letra-verde"> {{$trainingContractSeries->series}}{{str_pad($trainingContractBill->number, 3, '0', STR_PAD_LEFT)}}/{{$trainingContractBill->year}}</span></p>
+                <td style="width:60%; border: none; vertical-align: top;">
+                    <p class="letra-gris menos-margin-bottom"><b>Nº Factura</b> <span class="letra-verde"> {{$trainingContractSeries->series ?? ''}}{{str_pad($trainingContractBill->number, 3, '0', STR_PAD_LEFT)}}/{{$trainingContractBill->year}}</span></p>
                     <p class="letra-gris menos-margin-bottom"><b>Fecha</b><span class="letra-verde"> {{now()->format('d/m/Y')}} </span></p>
                 </td>
-                <td  style="width:50%;border: none; text-align: right" class="letra-verde">
+                <td  style="width:60%;border: none; text-align: right" class="letra-verde">
                     <p class="menos-margin-bottom-2"><b>{{$company->name}}</b></p>
-                    <p class="menos-margin-bottom-2"> {{$company->address}} </p>
-                    <p class="menos-margin-bottom-2"> {{$company->post_code}} {{$company->population}} </p>
-                    <p class="menos-margin-bottom-2"> {{$company->province->name}}</p>
+                    <p class="menos-margin-bottom-2 letra-verde-pequena"> {{$company->address}} </p>
+                    <p class="menos-margin-bottom-2 letra-verde-pequena"> {{$company->post_code}} {{$company->population}} </p>
+                    <p class="menos-margin-bottom-2 letra-verde-pequena"> {{$company->province->name}}</p>
                     <p class="menos-margin-bottom-2"><b>CIF {{$company->nif}}</b></p>
                 </td>
             </tr>

@@ -84,30 +84,30 @@
 
                 <table class="border border-2 border-black mt-2" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="px-1">Nombre de la asesoría {{$company->advisor->name}}  </td>
-                        <td class="border-left border-2 border-black px-1"> CIF {{$company->advisor->nif}}  </td>
+                        <td class="px-1">Nombre de la asesoría {{$trainingContract->advisor->name ?? ''}}  </td>
+                        <td class="border-left border-2 border-black px-1"> CIF {{$trainingContract->company->advisor->nif}}  </td>
                     </tr>
                 </table>
 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-right border-left px-1">Persona de contacto  {{$company->advisor->legal_representative}} </td>
-                        <td class="border-right px-1"> Email  {{$company->advisor->email}}  </td>
+                        <td class="border-right border-left px-1">Persona de contacto  {{$trainingContract->company->advisor->legal_representative}} </td>
+                        <td class="border-right px-1"> Email  {{$trainingContract->company->advisor->email}}  </td>
                     </tr>
                 </table>
                 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-left border-right px-1">Dirección  {{$company->advisor->address}}  </td>
-                        <td class="border-right px-1"> CP   {{$company->advisor->post_code}} </td>
+                        <td class="border-left border-right px-1">Dirección  {{$trainingContract->company->advisor->address}}  </td>
+                        <td class="border-right px-1"> CP   {{$trainingContract->company->advisor->post_code}} </td>
                     </tr>
                 </table>
                 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-left border-right px-1">Localidad   {{$company->advisor->population}} </td>
-                        <td class="border-right px-1"> Provincia   {{$company->advisor->province->name}} </td>
-                        <td class="border-right px-1"> Teléfono  {{$company->advisor->telephone}} </td>
+                        <td class="border-left border-right px-1">Localidad   {{$trainingContract->company->advisor->population}} </td>
+                        <td class="border-right px-1"> Provincia   {{$trainingContract->province->name}} </td>
+                        <td class="border-right px-1"> Teléfono  {{$trainingContract->company->advisor->telephone}} </td>
                         <td class="border-right px-1"> Fax   </td>
                     </tr>
                 </table>
@@ -130,24 +130,24 @@
 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-left border-right px-1">Razón Social   {{$company->name}}</td>
-                        <td class="border-right px-1">CIF/NIF   {{$company->nif}} </td>
+                        <td class="border-left border-right px-1">Razón Social   {{$trainingContract->company->name}}</td>
+                        <td class="border-right px-1">CIF/NIF   {{$trainingContract->company->nif}} </td>
                     </tr>
                 </table>
 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-left border-right px-1">Dirección   {{$company->address}}</td>
-                        <td class="border-right px-1"> CP   {{$company->post_code}} </td>
-                        <td class="border-right px-1"> Teléfono   {{$company->telephone}} </td>
+                        <td class="border-left border-right px-1">Dirección   {{$trainingContract->company->address}}</td>
+                        <td class="border-right px-1"> CP   {{$trainingContract->company->post_code}} </td>
+                        <td class="border-right px-1"> Teléfono   {{$trainingContract->company->telephone}} </td>
                     </tr>
                 </table>
 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-left border-right px-1">Localidad   {{$company->population}}</td>
-                        <td class="border-right px-1"> Provincia   {{$company->province->name}} </td>
-                        <td class="border-right px-1"> CNAE   {{$company->cnae->name ?? ''}} </td>
+                        <td class="border-left border-right px-1">Localidad   {{$trainingContract->company->population}}</td>
+                        <td class="border-right px-1"> Provincia   {{$trainingContract->province->name ?? ''}} </td>
+                        <td class="border-right px-1"> CNAE   {{$trainingContract->company->cnae->name ?? ''}} </td>
                     </tr>
                 </table>
 
@@ -155,8 +155,9 @@
                     <tr class="p-2">
                         <td class="border-left border-right px-1">Cuenta cotización S.S. <span class="text-naranja text-xs">(1)</span>   </td>
                         <td class="border-right px-1">Nº Trabajadores <span class="text-xs text-naranja">(2)</span></td>
-                        <td class="border-right px-1">De 1 a 4 <input class="ml-2 w-5 h-5 my-auto" type="checkbox" {{$companyType->name == 'Autónomo' ? 'checked' : ''}}></td>
-                        <td class="border-right px-1">más de 4 <input class="ml-2 w-5 h-5 my-auto" type="checkbox" {{$companyType->name != 'Autónomo' ? 'checked' : ''}}></td>
+                        </td>
+                        <td class="border-right px-1">De 1 a 4 <input class="ml-2 w-5 h-5 my-auto" type="checkbox" {{$trainingContract->company->companyType && $trainingContract->company->companyType->name == 'Autónomo' ? 'checked' : ''}}></td>
+                        <td class="border-right px-1">más de 4 <input class="ml-2 w-5 h-5 my-auto" type="checkbox" {{$trainingContract->company->companyType && $trainingContract->company->companyType->name != 'Autónomo' ? 'checked' : ''}}></td>
                         <td class="border-right px-1">Jornada anual según convenio 
                             <span class="text-xs text-naranja">(3)</span> 
                             <span class="text-xs">(1800 si no lo especifica)</span>
@@ -167,8 +168,8 @@
                 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-left border-right px-1">Representante legal   {{$company->legal_representative}}</td>
-                        <td class="border-right px-1">NIF/NIE   {{$company->dni_legal_representative}} </td>
+                        <td class="border-left border-right px-1">Representante legal   {{$trainingContract->company->legal_representative}}</td>
+                        <td class="border-right px-1">NIF/NIE   {{$trainingContract->company->dni_legal_representative}} </td>
                     </tr>
                 </table>
                     
@@ -176,7 +177,7 @@
                     <tr class="p-2">
                         <td class="border-left border-right px-1">IBAN</td>
                         @php
-                            $iban = str_replace(' ', '', $company->iban);
+                            $iban = str_replace(' ', '', $trainingContract->company->iban);
                             $ibanArray = str_split($iban);
                         @endphp
 
@@ -263,7 +264,7 @@
 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr>
-                        <td class="border-left border-right px-1">Ocupación <span class="text-xs text-naranja">(10)</span>   {{$occupation->name}} </td>
+                        <td class="border-left border-right px-1">Ocupación <span class="text-xs text-naranja">(10)</span>   {{$trainingContract->occupation->name}} </td>
                         <td class="border-right px-1">Nº Convenios Colectivos <span class="text-xs text-naranja">(11)</span>   {{$trainingContract->applicableAgreement->code ?? ''}}</td>
                     </tr>
                 </table>

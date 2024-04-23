@@ -33,7 +33,7 @@
         <tr>
             <td width="15%" class="left-align">
                 <p class="no-margin-bottom"> CIF/NIF/NIE</p>
-                <p class="empty-paragraph">{{$company->nif}}</p>
+                <p class="empty-paragraph">{{$trainingContract->company->nif}}</p>
             </td>
             <td width="85%" style="border: none;"></td>
         </tr>
@@ -43,16 +43,16 @@
         <tr>
             <td width="50%;" class="left-align">
                 <p class="no-margin-bottom"> D./DÑA.</p>
-                <p class="empty-paragraph">{{$company->legal_representative}}</p>
+                <p class="empty-paragraph">{{$trainingContract->company->legal_representative}}</p>
             </td>
             <td width="10%;" class="left-align">
                 <p class="no-margin-bottom"> NIF/NIE</p>
-                <p class="empty-paragraph">{{$company->dni_legal_representative}}</p>
+                <p class="empty-paragraph">{{$trainingContract->company->dni_legal_representative}}</p>
             </td>
             <td width="40%;" class="left-align">
                 <p class="no-margin-bottom"> EN CONCEPTO (1)</p>
                 <p class="empty-paragraph">
-                    @if($company->company_type_id=="Autónomo")
+                    @if($trainingContract->company->company_type_id=="Autónomo")
                         TITULAR
                     @else
                         ADMINISTRADOR/A
@@ -66,11 +66,11 @@
         <tr>
             <td width="50%" class="left-align">
                 <p class="no-margin-bottom"> NOMBRE O RAZÓN SOCIAL DE LA EMPRESA</p>
-                <p class="empty-paragraph">{{$company->name}}</p>
+                <p class="empty-paragraph">{{$trainingContract->company->name}}</p>
             </td>
             <td width="50%" class="left-align">
                 <p class="no-margin-bottom"> DOMICILIO SOCIAL</p>
-                <p class="empty-paragraph">{{$company->address}}</p>
+                <p class="empty-paragraph">{{$trainingContract->company->address}}</p>
             </td>
         </tr>
     </table>
@@ -83,11 +83,11 @@
             </td>
             <td width="50%" class="left-align">
                 <p class="no-margin-bottom"> MUNICIPIO</p>
-                <p class="empty-paragraph">{{$company->population}}</p>
+                <p class="empty-paragraph">{{$trainingContract->company->population}}</p>
             </td>
             <td width="10%" class="left-align">
                 <p class="no-margin-bottom"> C.POSTAL</p>
-                <p class="empty-paragraph">{{$company->post_code}}</p>
+                <p class="empty-paragraph">{{$trainingContract->company->post_code}}</p>
             </td>
         </tr>
     </table>
@@ -98,15 +98,15 @@
         <tr>
             <td width="10%" class="left-align">
                 <p class="no-margin-bottom"> RÉGIMEN</p>
-                <p class="empty-paragraph">{{$company->regimen}}</p>
+                <p class="empty-paragraph">{{$trainingContract->company->regimen}}</p>
             </td>
             <td width="25%" class="left-align">
                 <p class="no-margin-bottom"> CÓDIGO CUENTA COTIZACIÓN</p>
-                <p class="empty-paragraph">{{$company->quote}}</p>
+                <p class="empty-paragraph">{{$trainingContract->company->quote}}</p>
             </td>
             <td width="65%" class="left-align">
                 <p class="no-margin-bottom"> ACTIVIDAD ECONÓMICA</p>
-                <p class="empty-paragraph">{{$company->companyActivity->name}}</p>
+                <p class="empty-paragraph">{{$trainingContract->company->companyActivity->name ?? ''}}</p>
             </td>
         </tr>
     </table>
@@ -130,19 +130,19 @@
         <tr>
             <td width="40%" class="left-align">
                 <p class="no-margin-bottom"> D./DÑA.</p>
-                <p class="empty-paragraph">{{$student->name}} {{$student->surname}}</p>
+                <p class="empty-paragraph">{{$trainingContract->student->name}} {{$trainingContract->student->surname}}</p>
             </td>
             <td width="10%" class="left-align">
                 <p class="no-margin-bottom"> NIF/NIE</p>
-                <p class="empty-paragraph">{{$student->dni}}</p>
+                <p class="empty-paragraph">{{$trainingContract->student->dni}}</p>
             </td>
             <td width="20%" class="left-align">
                 <p class="no-margin-bottom"> FECHA NACIMIENTO</p>
-                <p class="empty-paragraph">{{$student->date_of_birth}}</p>
+                <p class="empty-paragraph">{{$trainingContract->student->date_of_birth}}</p>
             </td>
             <td width="30%" class="left-align">
                 <p class="no-margin-bottom"> Nº AFILIACIÓN SEGURIDAD SOCIAL</p>
-                <p class="empty-paragraph">{{$student->social_security_number}}</p>
+                <p class="empty-paragraph">{{$trainingContract->student->social_security_number}}</p>
             </td>
         </tr>
     </table>
@@ -151,11 +151,11 @@
         <tr>
             <td width="70%" class="left-align">
                 <p class="no-margin-bottom"> NIVEL FORMATIVO</p>
-                <p class="empty-paragraph">{{$student->levelStudy->name}}</p>
+                <p class="empty-paragraph">{{$trainingContract->student->levelStudy->name}}</p>
             </td>
             <td width="30%" class="left-align">
                 <p class="no-margin-bottom"> NACIONALIDAD</p>
-                <p class="empty-paragraph">{{$student->nationality}}</p>
+                <p class="empty-paragraph">{{$trainingContract->student->nationality}}</p>
             </td>
         </tr>
     </table>
@@ -163,7 +163,7 @@
         <tr>
             <td width="70%" class="left-align">
                 <p class="no-margin-bottom"> MUNICIPIO DEL DOMICILIO</p>
-                <p class="empty-paragraph">{{$student->population}}</p>
+                <p class="empty-paragraph">{{$trainingContract->student->population}}</p>
             </td>
             <td width="30%" class="left-align">
                 <p class="no-margin-bottom"> PAÍS DOMICILIO</p>
@@ -174,9 +174,9 @@
 
     <p>
         con la asistencia legal, en su caso, de D./Dña.
-        <span class="dots">{{$student->legal_guardian_dni}}
+        <span class="dots">{{$trainingContract->student->legal_guardian_dni}}
         </span> con NIF/NIE
-        <span class="dots">{{$student->legal_guardian_name}}
+        <span class="dots">{{$trainingContract->student->legal_guardian_name}}
         </span>, en calidad de (2)
         <span class="dots">Padre, madre, tutor/a o persona o institución que le tenga a su cargo
         </span>
@@ -272,15 +272,15 @@
     <br>
 
     <ul class="no-bullets">
-        <li>a) Actividad laboral (6) <span class="dots">{{$occupation->name}}</span>
-                CNO: <span class="dots">{{(substr($occupation->cno, 0, 4))}} </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$company->address}} ({{$company->post_code}} {{$company->population}}) </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots"> {{$trainingContract->company_tutor}}</span> , cuya cualificación profesional es (9) <span class="dots"> {{$occupation->name}} </span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} </span></li>
-        <li>b) La actividad formativa vinculada al contrato es <span class="dots">{{$occupation->name}}	</span>, de acuerdo con el convenio de colaboración suscrito por la empresa con el centro o entidad formativa y que se incorpora como anexo en este contrato (10).</li>
+        <li>a) Actividad laboral (6) <span class="dots">{{$trainingContract->occupation->name}}</span>
+                CNO: <span class="dots">{{(substr($trainingContract->occupation->cno, 0, 4))}} </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$trainingContract->company->address}} ({{$trainingContract->company->post_code}} {{$trainingContract->company->population}}) </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots"> {{$trainingContract->company_tutor}}</span> , cuya cualificación profesional es (9) <span class="dots"> {{$trainingContract->occupation->name}} </span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} </span></li>
+        <li>b) La actividad formativa vinculada al contrato es <span class="dots">{{$trainingContract->occupation->name}}	</span>, de acuerdo con el convenio de colaboración suscrito por la empresa con el centro o entidad formativa y que se incorpora como anexo en este contrato (10).</li>
     </ul>
 
     <h3 class="no-line-break">SEGUNDA: </h3>
     <p class="no-line-break">la jornada total será de (11) <span class="dots">{{$trainingContract->annually_day_hours}}</span> horas <span class="dots">anual </span>	De ellas, el número de horas dedicadas a la actividad formativa
     será de <span class="dots"> {{$trainingContract->formative_hours_first_year}} </span> horas, que representan un <span class="dots">{{$trainingContract->percentage_first_year}} </span> por ciento de la jornada máxima prevista en el convenio colectivo de
-    <span class="dots">{{ $applicableAgreement ? $applicableAgreement->name : '' }} {{ $applicableAgreement ? "({$applicableAgreement->code})" : '' }}</span>
+    <span class="dots">{{ $trainingContract->applicableAgreement ? $trainingContract->applicableAgreement->name : '' }} {{ $trainingContract->applicableAgreement ? "({$trainingContract->applicableAgreement->code})" : '' }}</span>
     <br>El tiempo efectivo de trabajo se prestará en el horario (12)<br>
     <span class="dots">
 
@@ -388,7 +388,7 @@
 
     <h3 class="no-line-break">NOVENA: </h3>
     <p class="no-line-break"> en lo no previsto en este contrato, se estará a la legislación vigente que resulte de aplicación y particularmente a lo dispuesto en el artículo 11 del Estatuto de los Trabajadores. Asimismo le será de aplicación lo dispuesto en el Convenio Colectivo de
-    <span class="dots"> {{ $applicableAgreement ? $applicableAgreement->name : '' }}  {{ $applicableAgreement ? ($applicableAgreement->agreementType->type) : '' }} </span></p>
+    <span class="dots"> {{ $trainingContract->applicableAgreement ? $$trainingContract->applicableAgreement->name : '' }}  {{ $trainingContract->applicableAgreement ? ($trainingContract->applicableAgreement->agreementType->type) : '' }} </span></p>
     <br>
 
     <h3 class="no-line-break">DECIMA: </h3>
@@ -1066,7 +1066,7 @@
             $anio = now()->format('Y');
         @endphp
 
-        <p>En <span class="dots">{{$company->population}} </span> a <span class="dots">{{$dia}} </span> de <span class="dots">{{$nombre_mes}}</span> de <span class="dots">{{$anio}}</span></p>
+        <p>En <span class="dots">{{$trainingContract->company->population}} </span> a <span class="dots">{{$dia}} </span> de <span class="dots">{{$nombre_mes}}</span> de <span class="dots">{{$anio}}</span></p>
    
 
         <div style="height:250px">
