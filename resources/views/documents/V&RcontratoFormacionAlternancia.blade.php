@@ -13,14 +13,14 @@
     <table>
         <tr>
             <td width="55%"  style="border: none; text-align:left;">
-                <img src="img-contrato/mtes.png" alt="mtes" class="img-fluid fixed-height-img-mtes">
+                <img src="img-contrato/mtes.PNG" alt="mtes" class="img-fluid fixed-height-img-mtes">
             </td>
             <td width="45%"  style="border: none;">
                 <div class="col-md-12">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe">
+                    <img src="img-contrato/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe">
                 </div>
                 <div class="col-md-12">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue">
+                    <img src="img-contrato/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue">
                 </div>
             </td>
         </tr>
