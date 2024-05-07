@@ -17,7 +17,7 @@ h3{
 }
 
 p,ul,ol,li {
-    font-size: 10px;
+    font-size: 12px;
 }
 .small-text li {
     font-size: 8px;
@@ -46,6 +46,10 @@ p,ul,ol,li {
     margin-bottom: 0; /* Elimina el margen inferior del texto */
 }
 
+u {
+    text-decoration-color: black;
+}
+
 .empty-paragraph {
     background-color: #f1f4ff;
     margin:0px;
@@ -60,9 +64,18 @@ p,ul,ol,li {
 hr {
     border-color: black;
 }
+.pie-fondo {
+    background-color: #008dd0;
+    margin-left: 0;
+    color:white;
+}
 
 .fixed-height-img-logo {
-    height: 80px;
+    height: 100px;
+}
+
+.fixed-height-img-eurocert{
+    height: 90px;
 }
 
 .dots {
