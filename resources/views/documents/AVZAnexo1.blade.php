@@ -86,6 +86,7 @@
                     <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
                 </td>
                 <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
+                <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
             </tr>
         </table>
 
@@ -207,6 +208,17 @@
                     </tbody>
                 </table>
             </article>
+
+            <table style="width: 100%" class="mx-auto mb-0">
+                <tr>
+                    <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
+                    <td class="mx-auto">
+                        <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
+                    </td>
+                    <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
+                    <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
+                </tr>
+            </table>
 
             <!-- 2.b -->
             <article>
@@ -331,6 +343,11 @@
                                     if($trainingContract->annually_day_hours == 1800)
                                         $hoursWeek = 40; 
 
+                                    // Si no son 1800 horas pero no llega a ser un año serán 40 horas semanales
+                                    elseif ($trainingContract->annually_day_hours != 1800 && $end_first_year > $trainingContract->end) {
+                                        $hoursWeek = 40; 
+                                    }
+
                                     // Si no pues hacemos una regla de tres
                                     else {
                                         $hoursWeek = ($trainingContract->annually_day_hours * 40)/ 1800;
@@ -405,18 +422,39 @@
 
                 <p class="text-xs mt-1 mb-0">Criterios para la conciliación de las vacaciones a las que tiene derecho la persona trabajadora en la empresa y de los períodos no lectivos en el centro de formación:</p>
                 <p class="text-xs mt-0 mb-0">La actividad formativa se desarrollará de acuerdo a la secuenciación y calendarización que se detallan en la planificación formativa que se acompaña al contrato y/o cada una de sus prórrogas</p>
+                <p class="text-xs mt-0 mb-0">https://www.sepe.es</p>
             </article>
         </section>
 
         <!-- CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA -->
+        <table style="width: 100%" class="mx-auto mb-0">
+            <tr>
+                <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
+                <td class="mx-auto">
+                    <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
+                </td>
+                <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
+                <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
+            </tr>
+        </table>
         <section>
             <p class="text-2xl font-bold">4. CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</p>
             @php
                 $i = 0;
             @endphp
             @foreach($elements as $e)
-                @if($i != 0 && $i % 4 == 0)
+                @if($i != 0 && $i % 3 == 0)
                     <div style="page-break-after: always;"></div>
+                    <table style="width: 100%" class="mx-auto mb-0">
+                        <tr>
+                            <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
+                            <td class="mx-auto">
+                                <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
+                            </td>
+                            <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
+                            <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
+                        </tr>
+                    </table>
                 @endif
                 @php
                     $i++;
@@ -472,11 +510,21 @@
 
         <!-- DATOS DECLARATIVOS Y SOLICITUD -->
         <section class="mt-3" style="page-break-before: always;">
+            <table style="width: 100%" class="mx-auto mb-0">
+                <tr>
+                    <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
+                    <td class="mx-auto">
+                        <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
+                    </td>
+                    <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
+                    <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
+                </tr>
+            </table>
             <p class="text-2xl font-bold">5. DATOS DECLARATIVOS Y SOLICITUD</p>
 
             <article class="mx-auto text-sm">
                 <div>
-                    <p class="mb-0">Declaro que el centro de trabajo se encuentra en: {{$trainingContract->company->address}}</p>
+                    <p class="mb-0">Declaro que el centro de trabajo se encuentra en: <span class="underline">{{$trainingContract->company->address}}</span></p>
                     <p class="mb-0">Declaro bajo mi responsabilidad que son ciertos los datos que se consignan en el presente acuerdo, asumiento en caso 
                         contrario las responsabilidades que pudieran derivarse de su inexactitud.
                     </p>
@@ -536,20 +584,30 @@
                 <div>
                     <p class="font-bold mb-0">Datos a efectos de notificación</p>
                     <p class="mt-1 mb-0"> 
-                        Dirección <span class="underline">{{$trainingContract->student->direction}}</span> 
-                        CP <span class="underline">{{$trainingContract->student->post_code}}</span>
+                        Dirección <span class="underline">C/PEDRO ANGULO 6</span> 
+                        CP <span class="underline">14900</span>
                     </p>
                     <p class="mt-1"> 
-                        Provincia <span class="underline">{{$trainingContract->student->province->name ?? ''}}</span>
-                        Correo Electrónico <span class="underline">{{$trainingContract->student->email ?? ''}}</span>
-                        Teléfono de contacto <span class="underline">{{$trainingContract->student->telephone ?? ''}}</span>
+                        Provincia <span class="underline">CÓRDOBA</span>
+                        Correo Electrónico <span class="underline">info@avzformacion.com</span>
+                        Teléfono de contacto <span class="underline">910600410</span>
                     </p>
                 </div>
             </article>
         </section>
 
         <!-- FORMALIZACIÓN DEL ACUERDO -->
-        <section class="mt-3">
+        <section class="mt-3" style="page-break-before: always ">
+            <table style="width: 100%" class="mx-auto mb-0">
+                <tr>
+                    <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
+                    <td class="mx-auto">
+                        <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
+                    </td>
+                    <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
+                    <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
+                </tr>
+            </table>
             <p class="text-2xl font-semibold">6.  FORMALIZACIÓN DEL ACUERDO</p>
 
             <article class="mx-auto mt-1 text-sm">
@@ -571,16 +629,16 @@
                 <div>
                     <table class="text-end">
                         <tr>
-                            <td>El/la trabajador/a</td>
-                            <td>El/la representante legal del/de la menor, si procede</td>
-                            <td>El/la representate de la empresa</td>
-                            <td>El/los representante del/de los Centros de Formación</td>
+                            <td class="p-4 text-center">El/la trabajador/a</td>
+                            <td class="p-4 text-center">El/la representante legal del/de la menor, si procede</td>
+                            <td class="p-4 text-center">El/la representate de la empresa</td>
+                            <td class="p-4 text-center">El/los representante del/de los Centros de Formación</td>
                         </tr>
                         <tr>
-                            <td><div class="mx-auto" style="width: 90%; border-bottom: 1px solid black"></div></td>
-                            <td><div class="mx-auto" style="width: 90%; border-bottom: 1px solid black"></div></td>
-                            <td><div class="mx-auto" style="width: 90%; border-bottom: 1px solid black"></div></td>
-                            <td><div class="mx-auto" style="width: 90%; border-bottom: 1px solid black"></div></td>
+                            <td class="pe-4 text-center">{{$trainingContract->student->name}}  {{$trainingContract->student->surname}}</td>
+                            <td class="pe-4 text-center"></td>
+                            <td class="pe-4 text-center">{{$trainingContract->company->legal_representative}}</td>
+                            <td class="text-center">ANTONIO JOSÉ JIMÉNEZ AGRAZ</td>
                         </tr>
                     </table>
                 </div>
