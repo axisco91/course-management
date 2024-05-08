@@ -41,7 +41,7 @@
         @endforeach
     </table>
 
-    <p>Le recordamos que la fecha de inicio de la formación asociada a su contrato de formación y aprendizaje es el <b><u>{{ \Carbon\Carbon::parse($trainingContract->beginning)->locale('es')->isoFormat('D [de] MMMM [de] Y') }}</u></b> y, por lo tanto, a partir de esa fecha deberá acceder diariamente a la plataforma de teleformación para su realización. La dirección de la citada plataforma es:</p>    <p class="text-center"><b><a href="http://campus.avzformacion.com">http://campus.avzformacion.com</a></b></p>
+    <p>Le recordamos que la fecha de inicio de la formación asociada a su contrato de formación y aprendizaje es el <b><u>{{ \Carbon\Carbon::parse($trainingContract->beginning)->locale('es')->isoFormat('D [de] MMMM [de] Y') }}</u></b> y, por lo tanto, a partir de esa fecha deberá acceder diariamente a la plataforma de teleformación para su realización. La dirección de la citada plataforma es:</p>    <p class="text-center"><b><a href="http://avzformacion.com/aula">http://avzformacion.com/aula</a></b></p>
     <p>y deberá acceder con los siguientes datos de acceso:</p>
     <p class="text-center">- Usuario: <b>{{$trainingContract->student->user}}</b> </p>
     <p class="text-center">- Contraseña: <b>{{$trainingContract->student->password}}</b> </p>

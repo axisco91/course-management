@@ -79,15 +79,34 @@
         <tr>
             <td width="40%" class="left-align">
                 <p class="no-margin-bottom"> PAIS</p>
-                <p class="empty-paragraph">ESPAÑA</p>
+                <p>
+                    <span class="empty-paragraph" style="float: left; width: 80%;">ESPAÑA</span>
+                    <span class="empty-paragraph" style="float: right;">
+                        @foreach(str_split(str_replace(' ', '', 724)) as $numero)
+                            <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $numero }}</span>
+                        @endforeach
+                    </span>
+                </p>
+                <div style="clear: both;"></div> {{--  se utiliza a menudo para prevenir que los elementos flotantes se desborden fuera de su contenedor --}}
             </td>
-            <td width="50%" class="left-align">
+            <td width="47%" class="left-align">
                 <p class="no-margin-bottom"> MUNICIPIO</p>
-                <p class="empty-paragraph">{{$trainingContract->company->population}}</p>
+                <p>
+                    <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->company->population}}</span>
+                    <span class="empty-paragraph" style="float: right;">
+                        @foreach(range(0, 4) as $i)
+                            <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
+                        @endforeach
+                    </span>
+                </p>
             </td>
-            <td width="10%" class="left-align">
+            <td width="13%" class="left-align">
                 <p class="no-margin-bottom"> C.POSTAL</p>
-                <p class="empty-paragraph">{{$trainingContract->company->post_code}}</p>
+                <p class="empty-paragraph">
+                    @foreach(str_split(str_replace(' ', '', $trainingContract->company->post_code)) as $numero)
+                        <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $numero }}</span>
+                    @endforeach
+                </p>
             </td>
         </tr>
     </table>
@@ -96,17 +115,41 @@
     <h1>DATOS DE LA CUENTA DE COTIZACIÓN</h1>
     <table>
         <tr>
-            <td width="10%" class="left-align">
+            <td width="13%" class="left-align">
                 <p class="no-margin-bottom"> RÉGIMEN</p>
-                <p class="empty-paragraph">{{$trainingContract->company->regimen}}</p>
+                <p class="empty-paragraph">
+                    @if(!empty($trainingContract->company->regimen))
+                        @foreach(str_split(str_replace(' ', '', $trainingContract->company->regimen)) as $numero)
+                            <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $numero }}</span>
+                        @endforeach
+                    @else
+                        @foreach(range(0, 3) as $i)
+                            <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
+                        @endforeach
+                    @endif
+                </p>
             </td>
-            <td width="25%" class="left-align">
+            <td width="27%" class="left-align">
                 <p class="no-margin-bottom"> CÓDIGO CUENTA COTIZACIÓN</p>
-                <p class="empty-paragraph">{{$trainingContract->company->quote}}</p>
+                <p class="empty-paragraph">
+                    @foreach(str_split(str_replace(' ', '', $trainingContract->company->quote)) as $numero)
+                        <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $numero }}</span>
+                    @endforeach
+                </p>
             </td>
-            <td width="65%" class="left-align">
+            <td width="60%" class="left-align">
                 <p class="no-margin-bottom"> ACTIVIDAD ECONÓMICA</p>
-                <p class="empty-paragraph">{{$trainingContract->company->companyActivity->name ?? ''}}</p>
+                <p>
+                    <span class="empty-paragraph" style="float: left; width: 90%;">
+                        {{ substr($trainingContract->company->cnae->name ?? '', 6) }}
+                    </span>
+                    <span class="empty-paragraph" style="float: right;">
+                        @foreach(str_split(substr($trainingContract->company->cnae->name ?? '', 0, 2)) as $char)
+                            <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $char }}</span>
+                        @endforeach
+                    </span>
+                </p>
+                <div style="clear: both;"></div>
             </td>
         </tr>
     </table>
@@ -115,12 +158,27 @@
     <table>
         <tr>
             <td width="40%" class="left-align">
-                <p class="no-margin-bottom"> PAÍS</p>
-                <p class="empty-paragraph">ESPAÑA</p>
+                <p class="no-margin-bottom"> PAIS</p>
+                <p>
+                    <span class="empty-paragraph" style="float: left; width: 80%;">ESPAÑA</span>
+                    <span class="empty-paragraph" style="float: right;">
+                        @foreach(str_split(str_replace(' ', '', 724)) as $numero)
+                            <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $numero }}</span>
+                        @endforeach
+                    </span>
+                </p>
+                <div style="clear: both;"></div> {{--  se utiliza a menudo para prevenir que los elementos flotantes se desborden fuera de su contenedor --}}
             </td>
             <td width="60%" class="left-align">
                 <p class="no-margin-bottom"> MUNICIPIO</p>
-                <p class="empty-paragraph">{{$trainingContract->center_of_work}}</p>
+                <p>
+                    <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->center_of_work}}</span>
+                    <span class="empty-paragraph" style="float: right;">
+                        @foreach(range(0, 4) as $i)
+                            <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
+                        @endforeach
+                    </span>
+                </p>
             </td>
         </tr>
     </table>
@@ -138,24 +196,43 @@
             </td>
             <td width="20%" class="left-align">
                 <p class="no-margin-bottom"> FECHA NACIMIENTO</p>
-                <p class="empty-paragraph">{{$trainingContract->student->date_of_birth}}</p>
+                <p class="empty-paragraph">{{ \Carbon\Carbon::parse($trainingContract->student->date_of_birth)->format('d/m/Y') }}</p>
             </td>
             <td width="30%" class="left-align">
                 <p class="no-margin-bottom"> Nº AFILIACIÓN SEGURIDAD SOCIAL</p>
-                <p class="empty-paragraph">{{$trainingContract->student->social_security_number}}</p>
+                <p class="empty-paragraph">
+                    @foreach(str_split($trainingContract->student->social_security_number) as $number)
+                        <span style="border: 1px solid black; padding: 1px 4px; margin: -2px;">{{ $number }}</span>
+                    @endforeach
+                </p>
             </td>
         </tr>
     </table>
-
+    
     <table>
         <tr>
             <td width="70%" class="left-align">
                 <p class="no-margin-bottom"> NIVEL FORMATIVO</p>
-                <p class="empty-paragraph">{{$trainingContract->student->levelStudy->name}}</p>
+                <p>
+                    <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->student->levelStudy->name}}</span>
+                    <span class="empty-paragraph" style="float: right;">
+                        @foreach(range(0,1) as $i)
+                            <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
+                        @endforeach
+                    </span>
+                </p>
+                <div style="clear: both;"></div> {{--  se utiliza a menudo para prevenir que los elementos flotantes se desborden fuera de su contenedor --}}
             </td>
             <td width="30%" class="left-align">
                 <p class="no-margin-bottom"> NACIONALIDAD</p>
-                <p class="empty-paragraph">{{$trainingContract->student->nationality}}</p>
+                <p>
+                    <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->student->nationality}}</span>
+                    <span class="empty-paragraph" style="float: right;">
+                        @foreach(range(0, 2) as $i)
+                            <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
+                        @endforeach
+                    </span>
+                </p>
             </td>
         </tr>
     </table>
@@ -163,11 +240,27 @@
         <tr>
             <td width="70%" class="left-align">
                 <p class="no-margin-bottom"> MUNICIPIO DEL DOMICILIO</p>
-                <p class="empty-paragraph">{{$trainingContract->student->population}}</p>
+                <p>
+                    <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->student->population}}</span>
+                    <span class="empty-paragraph" style="float: right;">
+                        @foreach(range(0, 4) as $i)
+                            <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
+                        @endforeach
+                    </span>
+                </p>
             </td>
             <td width="30%" class="left-align">
                 <p class="no-margin-bottom"> PAÍS DOMICILIO</p>
-                <p class="empty-paragraph">ESPAÑA</p>
+                <p>
+                    <span class="empty-paragraph" style="float: left; width: 80%;">ESPAÑA</span>
+                    <span class="empty-paragraph" style="float: right;">
+                        @foreach(str_split(str_replace(' ', '', 724)) as $numero)
+                            <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $numero }}</span>
+                        @endforeach
+                    </span>
+                </p>
+                <div style="clear: both;"></div> {{-- se utiliza a menudo para prevenir que los elementos flotantes se desborden fuera de su contenedor --}}
+          
             </td>
         </tr>
     </table>
@@ -185,6 +278,7 @@
 
     <h1 class="text-center m-0 p-0">DECLARAN</h1>
     <h3 class="no-line-break">PRIMERA: </h3>
+
     <p class="no-line-break">: este contrato tiene por objeto compatibilizar la actividad laboral retribuida con los correspondientes procesos formativos en el ámbito de la formación profesional, los estudios universitarios o el Catálogo de Especialidades Formativas del Sistema Nacional de Empleo.</p>
 
     <br>
@@ -233,16 +327,18 @@
         <li>(5) Se aportará la certificación que acredite al trabajador la condición de persona con capacidad intelectual límite expedido por el Organismo Oficial correspondiente.</li>
     </ul>
 
-    <table>
-        <tr>
-            <td style="border: none; text-align: center; margin: 0; padding: 0;">
-                @php
-                    $page=1;
-                    echo $page;
-                @endphp
-            </td>
-        </tr>
-    </table>
+    <div style="position: absolute; bottom: 0; width: 100%;">
+        <table>
+            <tr>
+                <td style="border: none; text-align: center; margin: 0; padding: 0;">
+                    @php
+                        $page=1;
+                        echo $page;
+                    @endphp
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <div style="page-break-after: always;"></div>
 
@@ -268,12 +364,13 @@
     <h1 class="text-center">CLAUSULAS</h1>
 
     <h3 class="no-line-break">PRIMERA: </h3>
+        {{-- FALTAN DATOS --}}
     <p class="no-line-break">el contrato tiene por objeto la cualificación profesional en régimen de alternancia de:</p>
     <br>
 
     <ul class="no-bullets">
         <li>a) Actividad laboral (6) <span class="dots">{{$trainingContract->occupation->name}}</span>
-                CNO: <span class="dots">{{(substr($trainingContract->occupation->cno, 0, 4))}} </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$trainingContract->company->address}} ({{$trainingContract->company->post_code}} {{$trainingContract->company->population}}) </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots"> {{$trainingContract->company_tutor}}</span> , cuya cualificación profesional es (9) <span class="dots"> {{$trainingContract->occupation->name}} </span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} </span></li>
+                CNO: <span class="dots">{{(substr($trainingContract->occupation->cno, 0, 4))}} </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$trainingContract->company->address}} ({{$trainingContract->company->post_code}} {{$trainingContract->company->population}}) </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots"> ______________________________________ </span> , cuya cualificación profesional es (9) <span class="dots"> Tutor Experto </span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} </span></li>
         <li>b) La actividad formativa vinculada al contrato es <span class="dots">{{$trainingContract->occupation->name}}	</span>, de acuerdo con el convenio de colaboración suscrito por la empresa con el centro o entidad formativa y que se incorpora como anexo en este contrato (10).</li>
     </ul>
 
@@ -298,7 +395,7 @@
     </p>
     <br>
 
-    <input type="checkbox" id="opcion1" name="opcion1" checked class="no-line-break">
+    <input type="checkbox" id="opcion1" name="opcion1" class="no-line-break">
     <p class="no-line-break">TRABAJO A DISTANCIA, siempre que se garantice como mínimo un 50 % de prestación de servicio presencial (13).</p>
 
     <br>
@@ -349,22 +446,24 @@
         <li>(17) Mínimo: 30 días naturales.</li>
     </ul>
 
-    <table>
-        <tr>
-            <td width="48%" style="border: none; text-align:left;">
-                <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
-            </td>
-            <td width="4%" style="border: none; text-align:center;">
-                @php
-                    $page++;
-                    echo $page;
-                @endphp
-            </td>
-            <td width="48%" style="border: none; text-align:right;">
-                <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
-            </td>
-        </tr>
-    </table>
+    <div style="position: absolute; bottom: 0; width: 100%;">
+        <table>
+            <tr>
+                <td width="48%" style="border: none; text-align:left;">
+                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                </td>
+                <td width="4%" style="border: none; text-align:center;">
+                    @php
+                        $page++;
+                        echo $page;
+                    @endphp
+                </td>
+                <td width="48%" style="border: none; text-align:right;">
+                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <hr>
     <div style="page-break-after: always;"></div>
@@ -377,22 +476,22 @@
     </div>
 
     <h3 class="no-line-break">SEPTIMA: </h3>
-    <p class="no-line-break"> el presente contrato dará derecho a una bonificación de 91 euros al mes durante su vigencia, incluidas las prórrogas. También dará derecho a una bonificación de 28 euros en las cuotas de la persona trabajadora en la Seguridad Social por los conceptos de recaudación conjunta (artículo
+    <p class="no-line-break"> El presente contrato dará derecho a una bonificación de 91 euros al mes durante su vigencia, incluidas las prórrogas. También dará derecho a una bonificación de 28 euros en las cuotas de la persona trabajadora en la Seguridad Social por los conceptos de recaudación conjunta (artículo
     23 del Real Decreto-ley 1/2023, de 10 de enero. En caso de personas con discapacidad, se podrá optar por aplicar la bonificación del 50 % en la cotización establecida en la disposición adicional vigésima del Estatuto de los Trabajadores.</p>
     <br>
 
     <h3 class="no-line-break">OCTAVA: </h3>
-    <p class="no-line-break"> el presente contrato se extinguirá por la expiración del tiempo convenido, incluyendo, en su caso, las prórrogas que se puedan acordar, así
+    <p class="no-line-break"> El presente contrato se extinguirá por la expiración del tiempo convenido, incluyendo, en su caso, las prórrogas que se puedan acordar, así
     como las demás causas previstas en el artículo 49 del Estatuto de los Trabajadores.</p>
     <br>
 
     <h3 class="no-line-break">NOVENA: </h3>
-    <p class="no-line-break"> en lo no previsto en este contrato, se estará a la legislación vigente que resulte de aplicación y particularmente a lo dispuesto en el artículo 11 del Estatuto de los Trabajadores. Asimismo le será de aplicación lo dispuesto en el Convenio Colectivo de
+    <p class="no-line-break"> En lo no previsto en este contrato, se estará a la legislación vigente que resulte de aplicación y particularmente a lo dispuesto en el artículo 11 del Estatuto de los Trabajadores. Asimismo le será de aplicación lo dispuesto en el Convenio Colectivo de
     <span class="dots"> {{ $trainingContract->applicableAgreement ? $$trainingContract->applicableAgreement->name : '' }}  {{ $trainingContract->applicableAgreement ? ($trainingContract->applicableAgreement->agreementType->type) : '' }} </span></p>
     <br>
 
     <h3 class="no-line-break">DECIMA: </h3>
-    <p class="no-line-break"> el contenido del presente contrato se comunicará al Servicio Público de Empleo de <span class="dots">CONTRAT@</span> en el plazo de los 10 días hábiles siguientes a su concertación. El/la empresario/a comunicará el fin de la relación laboral al Servicio Público de Empleo de <span class="dots">CONTRAT@</span> en el plazo de los 10 días hábiles siguientes a su terminación.</p>
+    <p class="no-line-break"> El contenido del presente contrato se comunicará al Servicio Público de Empleo de <span class="dots">CONTRAT@</span> en el plazo de los 10 días hábiles siguientes a su concertación. El/la empresario/a comunicará el fin de la relación laboral al Servicio Público de Empleo de <span class="dots">CONTRAT@</span> en el plazo de los 10 días hábiles siguientes a su terminación.</p>
     <br>
 
     <h3 class="no-line-break">UNDECIMA: </h3>
@@ -405,24 +504,27 @@
     </p>
     <br>
 
-    <table>
-        <tr>
-            <td width="48%" style="border: none; text-align:left;">
-                <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
-            </td>
-            <td width="4%" style="border: none; text-align:center;">
-                <td width="4%" style="border: none; text-align:center;">
-                    @php
-                        $page++;
-                        echo $page;
-                    @endphp
+    <div style="position: absolute; bottom: 0; width: 100%;">
+        <table>
+            <tr>
+                <td width="48%" style="border: none; text-align:left;">
+                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
                 </td>
-            </td>
-            <td width="48%" style="border: none; text-align:right;">
-                <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
-            </td>
-        </tr>
-    </table>
+                <td width="4%" style="border: none; text-align:center;">
+                    <td width="4%" style="border: none; text-align:center;">
+                        @php
+                            $page++;
+                            echo $page;
+                        @endphp
+                    </td>
+                </td>
+                <td width="48%" style="border: none; text-align:right;">
+                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                </td>
+            </tr>
+        </table>
+    </div>
+
     <div style="page-break-after: always;"></div>
 
     
@@ -458,22 +560,25 @@
         <p> y cumple los requisitos exigidos en la norma regulatoria.
     </div>
 
-    <table>
-        <tr>
-            <td width="48%" style="border: none; text-align:left;">
-                <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
-            </td>
-            <td width="4%" style="border: none; text-align:center;">
-                @php
-                    $page++;
-                    echo $page;
-                @endphp
-            </td>
-            <td width="48%" style="border: none; text-align:right;">
-                <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
-            </td>
-        </tr>
-    </table>
+    <div style="position: absolute; bottom: 0; width: 100%;">
+        <table>
+            <tr>
+                <td width="48%" style="border: none; text-align:left;">
+                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                </td>
+                <td width="4%" style="border: none; text-align:center;">
+                    @php
+                        $page++;
+                        echo $page;
+                    @endphp
+                </td>
+                <td width="48%" style="border: none; text-align:right;">
+                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                </td>
+            </tr>
+        </table>
+    </div>
+
     <div style="page-break-after: always;"></div>
 
     <!-- QUINTA PÁGINA -->
@@ -590,22 +695,24 @@
         </ul>
     </div>
 
-    <table>
-        <tr>
-            <td width="48%" style="border: none; text-align:left;">
-                <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
-            </td>
-            <td width="4%" style="border: none; text-align:center;">
-                @php
-                    $page++;
-                    echo $page;
-                @endphp
-            </td>
-            <td width="48%" style="border: none; text-align:right;">
-                <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
-            </td>
-        </tr>
-    </table>
+    <div style="position: absolute; bottom: 0; width: 100%;">
+        <table>
+            <tr>
+                <td width="48%" style="border: none; text-align:left;">
+                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                </td>
+                <td width="4%" style="border: none; text-align:center;">
+                    @php
+                        $page++;
+                        echo $page;
+                    @endphp
+                </td>
+                <td width="48%" style="border: none; text-align:right;">
+                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <div style="page-break-after: always;"></div>
 
@@ -732,22 +839,25 @@
             <li>(1)	Indicar el organismo oficial que emite la certificación.</li>
         </ul>
     </div>
-    <table>
-        <tr>
-            <td width="48%" style="border: none; text-align:left;">
-                <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
-            </td>
-            <td width="4%" style="border: none; text-align:center;">
-                @php
-                    $page++;
-                    echo $page;
-                @endphp
-            </td>
-            <td width="48%" style="border: none; text-align:right;">
-                <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
-            </td>
-        </tr>
-    </table>
+
+    <div style="position: absolute; bottom: 0; width: 100%;">
+        <table>
+            <tr>
+                <td width="48%" style="border: none; text-align:left;">
+                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                </td>
+                <td width="4%" style="border: none; text-align:center;">
+                    @php
+                        $page++;
+                        echo $page;
+                    @endphp
+                </td>
+                <td width="48%" style="border: none; text-align:right;">
+                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <div style="page-break-after: always;"></div>
 <!-- SEPTIMA PÁGINA -->
@@ -824,22 +934,24 @@
         </ul>
 
     </div>
-    <table>
-        <tr>
-            <td width="48%" style="border: none; text-align:left;">
-                <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
-            </td>
-            <td width="4%" style="border: none; text-align:center;">
-                @php
-                    $page++;
-                    echo $page;
-                @endphp
-            </td>
-            <td width="48%" style="border: none; text-align:right;">
-                <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
-            </td>
-        </tr>
-    </table>
+    <div style="position: absolute; bottom: 0; width: 100%;">
+        <table>
+            <tr>
+                <td width="48%" style="border: none; text-align:left;">
+                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                </td>
+                <td width="4%" style="border: none; text-align:center;">
+                    @php
+                        $page++;
+                        echo $page;
+                    @endphp
+                </td>
+                <td width="48%" style="border: none; text-align:right;">
+                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                </td>
+            </tr>
+        </table>
+    </div>
     <div style="page-break-after: always;"></div>
 
 <!--OCTAVA PÁGINA -->
@@ -907,22 +1019,25 @@
         <p>La Entidad Gestora de las prestaciones abonará mensualmente al/a la trabajador/a el 50 % de la cuantía del subsidio durante la vigencia del contrato, con el límite máximo del doble del período pendiente de percibirlo. El/la empresario/a, durante este tiempo tendrá cumplida la obligación del pago del salario que corresponda al/a la trabajador/a, completando la cuantía del subsidio recibido por el/la trabajador/a hasta el importe de dicho salario, siendo responsable de las cotizaciones a la Seguridad Social por todas las contingencias y por el total del salario indicado, incluyendo el importe del subsidio.</p>
         <p>En el supuesto de trabajadores/as incluidos en el REASS, la Entidad Gestora abonará al/a la trabajador/a el 50 % del importe de la cuota fija del REASS durante la vigencia del contrato y el/la empresario/a será responsable de la cotización por jornadas reales al REASS por las contingencias que correspondan.</p>
     </div>
-    <table>
-        <tr>
-            <td width="48%" style="border: none; text-align:left;">
-                <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
-            </td>
-            <td width="4%" style="border: none; text-align:center;">
-                @php
-                    $page++;
-                    echo $page;
-                @endphp
-            </td>
-            <td width="48%" style="border: none; text-align:right;">
-                <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
-            </td>
-        </tr>
-    </table>
+    <div style="position: absolute; bottom: 0; width: 100%;">
+        <table>
+            <tr>
+                <td width="48%" style="border: none; text-align:left;">
+                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                </td>
+                <td width="4%" style="border: none; text-align:center;">
+                    @php
+                        $page++;
+                        echo $page;
+                    @endphp
+                </td>
+                <td width="48%" style="border: none; text-align:right;">
+                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                </td>
+            </tr>
+        </table>
+    </div>
+
     <div style="page-break-after: always;"></div>
 
 <!-- Novena Página -->
@@ -999,22 +1114,25 @@
 
         <p>El presente contrato se regulará por lo dispuesto en la legislación vigente que resulte de aplicación y particularmente por el artículo 11 del Estatuto de los Trabajadores.</p>
     </div>
-    <table>
-        <tr>
-            <td width="48%" style="border: none; text-align:left;">
-                <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
-            </td>
-            <td width="4%" style="border: none; text-align:center;">
-                @php
-                    $page++;
-                    echo $page;
-                @endphp
-            </td>
-            <td width="48%" style="border: none; text-align:right;">
-                <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
-            </td>
-        </tr>
-    </table>
+
+    <div style="position: absolute; bottom: 0; width: 100%;">
+        <table>
+            <tr>
+                <td width="48%" style="border: none; text-align:left;">
+                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                </td>
+                <td width="4%" style="border: none; text-align:center;">
+                    @php
+                        $page++;
+                        echo $page;
+                    @endphp
+                </td>
+                <td width="48%" style="border: none; text-align:right;">
+                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                </td>
+            </tr>
+        </table>
+    </div>
     <div style="page-break-after: always;"></div>
 
 <!-- DECIMA PÁGINA -->
@@ -1088,23 +1206,24 @@
         <h1 class="text-center">IMPORTANTE</h1>
         <h1 class="text-center">(TODAS LAS PÁGINAS CUMPLIMENTADAS DE ESTE CONTRATO DEBERÁN IR FIRMADAS EN EL MARGEN IZQUIERDO PARA MAYOR SEGURIDAD JURÍDICA)</h1>
     </div>
-
-    <table>
-        <tr>
-            <td width="48%" style="border: none; text-align:left;">
-                <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
-            </td>
-            <td width="4%" style="border: none; text-align:center;">
-                @php
-                    $page++;
-                    echo $page;
-                @endphp
-            </td>
-            <td width="48%" style="border: none; text-align:right;">
-                <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
-            </td>
-        </tr>
-    </table>
+    <div style="position: absolute; bottom: 0; width: 100%;">
+        <table>
+            <tr>
+                <td width="48%" style="border: none; text-align:left;">
+                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                </td>
+                <td width="4%" style="border: none; text-align:center;">
+                    @php
+                        $page++;
+                        echo $page;
+                    @endphp
+                </td>
+                <td width="48%" style="border: none; text-align:right;">
+                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                </td>
+            </tr>
+        </table>
+    </div>
     <br>
 
 
