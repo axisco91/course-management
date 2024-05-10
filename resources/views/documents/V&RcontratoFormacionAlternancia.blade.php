@@ -275,7 +275,6 @@
         </span>
     </p>
 
-
     <h1 class="text-center m-0 p-0">DECLARAN</h1>
     <h3 class="no-line-break">PRIMERA: </h3>
 
@@ -301,7 +300,7 @@
     <br>
         
 
-    <input class="no-line-break" type="radio" id="opcion4" name="trabajador4" value="alumnos" {{$trainingContract->specialty == 1 ? 'checked' : ''}}>
+    <input class="no-line-break" type="radio" id="opcion4" name="trabajador4" value="alumnos">
     <p class="no-line-break">Alumnos/as participantes en un programa público de empleo y formación al amparo de lo previsto en el artículo 13.3.b) de la Ley 3/2023, de 28 de febrero (3).</p>
     <br>
 
@@ -364,7 +363,7 @@
     <h1 class="text-center">CLAUSULAS</h1>
 
     <h3 class="no-line-break">PRIMERA: </h3>
-        {{-- FALTAN DATOS --}}
+
     <p class="no-line-break">el contrato tiene por objeto la cualificación profesional en régimen de alternancia de:</p>
     <br>
 
