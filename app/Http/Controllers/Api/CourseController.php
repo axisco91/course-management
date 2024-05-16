@@ -15,34 +15,36 @@ class CourseController extends BaseController
 {
     public function index(Request $request) {
         try {
-            $courses = Course::withCourseData();
+            $query = Course::withCourseData();
 
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
-                $courses->where('teacher_id', $user->teacher_id);
+                $query->where('teacher_id', $user->teacher_id);
             }
 
             if ($request->formative_action) {
-                $courses = $courses->where('courses.name', 'like', '%'.$request->formative_action.'%');
+                $query = $query->where('courses.name', 'like', '%'.$request->formative_action.'%');
             }
             if ($request->name) {
-                $courses = $courses->where('courses.name', 'like', '%'.$request->name.'&');
+                $query = $query->where('courses.name', 'like', '%'.$request->name.'&');
             }
             if ($request->group) {
-                $courses = $courses->where('courses.group', 'like', '%'.$request->group.'%');
+                $query = $query->where('courses.group', 'like', '%'.$request->group.'%');
             }
             if ($request->type) {
-                $courses = $courses->where('course_types.name', $request->type);
+                $query = $query->where('course_types.name', $request->type);
             }
             if ($request->status) {
-                $courses = $courses->where('course_statuses.name', $request->status);
+                $query = $query->where('course_statuses.name', $request->status);
             }
             if ($request->company) {
                 $registrations = Registration::where('company_id', $request->company)->groupBy('course_id')->pluck('course_id')->toArray();
-                $courses = $courses->where(function ($query) use ($registrations){
+                $query = $query->where(function ($query) use ($registrations){
                     $query->WhereIn('courses.id', $registrations);
                 });
             }
+
+            $courses = $query->get();
 
             foreach($courses as $course) {
                 $registration = Registration::where('course_id', $course->id)->first();
@@ -54,13 +56,14 @@ class CourseController extends BaseController
                 $course['number_registrations'] = $course->registrations->count();
             }
 
-            return $courses->orderBy('courses.beginning', 'desc')->get();
+            return $courses;
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
             ]);
         }
     }
+
 
     public function store(Request $request){
         try {

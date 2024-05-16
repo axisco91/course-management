@@ -49,7 +49,7 @@ class Tracing extends Model
 
     public function scopeTracing($query) {
         return $query->select('tracings.*',
-            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
+        DB::raw("CONCAT(training_actions.formative_action, ' / ', courses.group, ' ', training_actions.name) as course"),
             'companies.name as company',
             'students.name as student_name',
             'students.surname as student_surname',
