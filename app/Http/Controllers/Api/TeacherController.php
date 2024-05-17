@@ -108,7 +108,7 @@ class TeacherController extends BaseController
         ]);
     }
 
-    
+
     public function store(TeacherRequests $request){
         try {
             $data = $request->all();
@@ -125,7 +125,7 @@ class TeacherController extends BaseController
             }
 
             // Asociar las áreas formativas al profesor
-            $teacherAreaIds = $request->input('teacher_area_ids');  // Los IDs de las áreas a las que está relacionado el profesor
+            $teacherAreaIds = $request->input('teacher_area_id');  // Los IDs de las áreas a las que está relacionado el profesor
             foreach ($teacherAreaIds as $teacherAreaId) {
                 $teacher->teacherAreas()->attach($teacherAreaId);
             }
@@ -161,9 +161,18 @@ class TeacherController extends BaseController
 
             // Actualizar las áreas formativas asociadas al profesor
             $teacher->teacherAreas()->detach();
-            $teacherAreaIds = $request->input('teacher_area_ids');  // Los IDs de las áreas a las que está relacionado el profesor
-            foreach ($teacherAreaIds as $teacherAreaId) {
-                $teacher->teacherAreas()->attach($teacherAreaId);
+            $teacherAreaIds = $request->input('teacher_area_id');
+
+            if ($teacherAreaIds !== null) {
+                foreach ($teacherAreaIds as $teacherAreaId) {
+                    if (is_int($teacherAreaId)) {
+                        $teacher->teacherAreas()->attach($teacherAreaId);
+                    } else {
+                        error_log("teacherAreaId no es un entero: " . print_r($teacherAreaId, true));
+                    }
+                }
+            } else {
+                error_log("teacher_area_id no es un array o es null: " . print_r($teacherAreaIds, true));
             }
 
             $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
@@ -178,7 +187,7 @@ class TeacherController extends BaseController
             ]);
         }
     }
- 
+
 
     /**
      * Comprobamos DNI
