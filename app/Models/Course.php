@@ -58,6 +58,7 @@ class Course extends Model
         return $this->hasMany('App\Models\Chore', 'course_id', 'id');
     }
 
+    
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
@@ -89,7 +90,10 @@ class Course extends Model
     {
         return $this->hasMany('App\Models\Tracing', 'course_id', 'id');
     }
-
+    public function profitabilities()
+    {
+        return $this->hasMany('App\Models\Profitability', 'course_id', 'id');
+    }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
@@ -367,6 +371,9 @@ class Course extends Model
         
         // Delete chores
         $this->chores()->delete();
+
+        //Delete profits
+        $this->profitabilities()->delete();
     
         $this->save();
         Log::info('Tracings reset successfully');
