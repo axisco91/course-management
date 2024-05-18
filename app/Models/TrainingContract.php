@@ -212,7 +212,6 @@ class TrainingContract extends Model
         ]);
         return $training_contract;
     }
-
     public function calculateHours($training_contract_id)
     {
         Log::info('calculateHours called', ['training_contract_id' => $training_contract_id]);
@@ -252,8 +251,12 @@ class TrainingContract extends Model
                 $date->addDay();
             } while ($end_date->gte($date));
     
+            if ($cont_days_first_year == 0) {
+                throw new \Exception("No working days in the first year period");
+            }
+    
             $daily_hours_1 = round($bonus_hours_first_year / $cont_days_first_year, 2);
-            $daily_hours_2 = round($bonus_hours_second_year / $cont_days_second_year, 2);
+            $daily_hours_2 = $cont_days_second_year > 0 ? round($bonus_hours_second_year / $cont_days_second_year, 2) : 0;
     
             $record->update([
                 'total_days' => $total_days,
@@ -285,7 +288,6 @@ class TrainingContract extends Model
             $record->update([
                 'end_formation' => $calculated_end_date,
                 'total_days' => $total_days,
-                
             ]);
         }
     
@@ -327,6 +329,7 @@ class TrainingContract extends Model
             'end' => $record->end
         ];
     }
+    
     
     private function updateDates($training_contract_id, $daily_hours_1, $daily_hours_2, $end_formation)
     {
@@ -398,16 +401,16 @@ class TrainingContract extends Model
             Log::info('Element', ['id' => $element->id, 'beginning' => $element->beginning, 'end' => $element->end]);
         }
     
-        // Ensure the last element's end date matches end_formation if provided
-        if ($end_formation) {
+        // Ensure the last element matches the given end_formation date
+        if ($end_formation && !empty($updated_elements)) {
             $last_element = end($updated_elements);
-            if ($last_element) {
-                $last_element->update(['end' => Carbon::parse($end_formation)]);
-            }
+            $last_element->update(['end' => Carbon::parse($end_formation)]);
         }
     
         return $updated_elements;
     }
+    
+    
     
     private function isWorkingDay($date, $record)
     {
