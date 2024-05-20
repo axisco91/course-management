@@ -118,7 +118,7 @@
                     <div class="text-sm">
                         <p class=" mb-0">Razón social   {{$trainingContract->company->name}}   CIF/NIF/NIE   {{$trainingContract->company->nif}}</p>
                         <p class=" mb-0">D./Dña.   {{$trainingContract->company->legal_representative}}   en concepto de 
-                        @if($trainingContract->company->company_type_id == "Autónomo")
+                        @if($trainingContract->company->companyType->name == "Autónomo")
                             TITULAR
                         @else
                             ADMINISTRADOR
@@ -126,7 +126,7 @@
                         NIF/NIE: {{$trainingContract->company->dni_legal_representative}}</p>
                         <p class=" mb-0">Correo electrónico de la empresa {{$trainingContract->company->email}} Tfno. empresa {{$trainingContract->company->telephone}}</p>
                         <p class="mb-0">Tutor/a de la empresa - D./Dña. {{$trainingContract->company_tutor}} NIF/NIE {{$trainingContract->company_tutor_dni}}</p>
-                        <input class="no-line-break mb-0 ms-1" type="checkbox" {{$trainingContract->company->company_type_id == "Autónomo" ? 'checked' : ''}}><span class="ms-2 no-line-break"> Empresa con menos de 5 trabajadores</span>
+                        <input class="no-line-break mb-0 ms-1" type="checkbox" {{$trainingContract->company->companyType->name == "Autónomo" ? 'checked' : ''}}><span class="ms-2 no-line-break"> Empresa con menos de 5 trabajadores</span>
                     </div>
                 </div>                
             </article>
@@ -299,7 +299,17 @@
                 </table>
             </article>
 
-            <article>
+            <article style="page-break-before: always">
+                <table style="width: 100%" class="mx-auto mb-0">
+                    <tr>
+                        <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
+                        <td class="mx-auto">
+                            <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
+                        </td>
+                        <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
+                        <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
+                    </tr>
+                </table>
                 <table class="mt-2 mx-auto border border-2 border-dark text-sm" style="width: 100%">
                     <tbody>
                         <tr>
@@ -617,12 +627,19 @@
                     <p class="mt-5">Y para que conste, se extiende este acuerdo para la actividad formativa en el lugar y fecha a continuación indicados, firmando las partes.</p>
                 </div>
 
+                @php
+                    $meses = [
+                        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+                    ];
+                    $dia = \Carbon\Carbon::parse($trainingContract->beginning)->format('d');
+                    $num_mes = \Carbon\Carbon::parse($trainingContract->beginning)->format('m');
+                    $anio = \Carbon\Carbon::parse($trainingContract->beginning)->format('Y');
+
+                    $mes = $meses[$num_mes - 1];
+                @endphp
                 <div class="text-end">
                     <p>
-                        En Lucena
-                        a {{now()->day}}
-                        de {{now()->monthName}}
-                        de {{now()->year}}
+                        En LUCENA, a {{$dia}} de {{$mes}} de {{$anio}}
                     </p>
                 </div>
 
