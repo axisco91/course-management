@@ -83,7 +83,7 @@ class Company extends Model
      */
     public function companyType()
     {
-        return $this->hasOne('App\Models\CompanyType', 'id', 'type_id');
+        return $this->hasOne('App\Models\CompanyType', 'id', 'company_type_id');
     }
 
     /**
