@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-use App\Mail\PotentialPrivateStudent as PotentialPrivateEmail;
+use App\Mail\PotentialPrivateStudent as PotentialPrivateStudent;
 use App\Mail\PotentialStudent as PotentialEmail;
 use App\Models\PotentialStudent;
 use App\Models\Student;
@@ -90,8 +90,8 @@ class PotentialStudentController extends BaseController
                     ->getTransport()
                     ->setUsername('zona@avzformacion.com')
                     ->setPassword('Avz.2021');
-                Mail::to($request['email'])->send(new PotentialPrivateEmail());
-                return response()->json([
+                    Mail::to($request['email'])->send(new PotentialPrivateStudent());
+                    return response()->json([
                     'status' => 200
                 ]);
             } catch(Exception $e) {
