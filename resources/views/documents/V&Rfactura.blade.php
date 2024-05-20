@@ -46,10 +46,10 @@
 
         <table style="width:100%" class="menos-margin-bottom-2 mt-4">
             <tr>
-                <td class="menos-margin-bottom-2" style="width:70%; border: none;">
+                <td class="menos-margin-bottom-2" style="width:85%; border: none;">
                     <p><b><span class="letra-verde">Concepto: </span></b>IMPARTICION DE FORMACION DE LOS SIGUIENTES ALUMNOS/TRABAJADORES</p>
                 </td>
-                <td class="menos-margin-bottom-2" style="width:30%; border: none; text-align: center">
+                <td class="menos-margin-bottom-2" style="width:15%; border: none; text-align: center">
                     <p><b>Importe</b></p>
                 </td>
             </tr>
@@ -59,15 +59,18 @@
 
         <table style="width:100%">
             <tr>
-                <td class="menos-margin-bottom-2" style="width:70%; border: none;">
-                    <p><b><span class="letra-verde">Modalidad: </span></b> Teleformación </p>
-                    <p><b><span class="letra-verde">Ocupación: </span></b> {{$occupation->name}} </p>
-                    <p><b><span class="letra-verde">Trabajador/ a: </span></b> {{$student->name}} {{$student->surname}} <b><span class="letra-verde">DNI: </span></b> {{$student->dni}} </p>
-                    <p><b><span class="letra-verde">Fecha inicio y fecha fin de la formación: </span></b> {{$trainingContractBonus->start}} - {{$trainingContractBonus->end}} </p>
-                    <p><b><span class="letra-verde">Horas: </span></b> {{$trainingContractBill->hours}} </p>
+                <td class="menos-margin-bottom-2" style="width:85%; border: none;">
+                    <p><b><span class="letra-verde">Modalidad:</span></b> Teleformación </p>
+                    <p><b><span class="letra-verde">Ocupación:</span></b> {{$occupation->name}} </p>
+                    <p><b><span class="letra-verde">Trabajador/ a:</span></b> {{$student->name}} {{$student->surname}} <b><span class="letra-verde">DNI:</span></b> {{$student->dni}} </p>
+                    <p><b><span class="letra-verde">Fecha inicio y fecha fin de la formación:</span></b> 
+                        {{ \DateTime::createFromFormat('Y-m-d', $trainingContractBonus->start)->format('d/m/Y') }} - 
+                        {{ \DateTime::createFromFormat('Y-m-d', $trainingContractBonus->end)->format('d/m/Y') }}  
+                    </p>
+                    <p><b><span class="letra-verde">Horas:</span></b> {{$trainingContractBill->hours}} </p>
 
                 </td>
-                <td class="menos-margin-bottom-2" style="width:30%; border: none; vertical-align: top; text-align: center">
+                <td class="menos-margin-bottom-2" style="width:15%; border: none; vertical-align: top; text-align: center">
                     <p><b>{{$trainingContractBill->amount}}</b></p>
                 </td>
             </tr>
@@ -86,7 +89,7 @@
         <table style="width:100%">
             <tr>
                 <td style="width: 50%">
-                    <img src="img-factura/v&firma.PNG" alt="firma" style="max-width: 40%;">
+                    <img src="img-factura/V&Rfirma.PNG" alt="firma" style="max-width: 40%;">
                 </td>
                 <td style="width: 50%; text-align:right">
                     <table style="width:100%">
@@ -118,13 +121,10 @@
         </table>
         
 
-        <p class="mt-4"><b>Aplicar en los seguros sociales del mes de:</b> enero del 2024 (que se presentan en el mes siguiente)</p>
-        <p> Los costes de la formación objeto de bonificación deberán quedar expresamente identificados en la 
+        <p class="mt-4"><b>Aplicar en los seguros sociales del mes de:</b> {{ \Carbon\Carbon::now()->locale('es')->isoFormat('MMMM [de] Y') }} (que se presentan en el mes siguiente)</p>
+        <p class="mt-2"> Los costes de la formación objeto de bonificación deberán quedar expresamente identificados en la 
             contabilidad de la empresa (Orden ESS/2518/2013 art. 9.3).</p>
-        <p class="letra-verde-pequena"> <b>MV & JAR CONSULTORES, S.L. es Responsable del tratamiento de conformidad con el GDPR con la finalidad de mantener una 
-            relación comercial y conservarlos mientras exista un- interés mutuo para ello. Los datos podrán ser comunicados a terceros. Puede 
-            ejercer los derechos de acceso, rectificación, portabilidad, supresión, limitación y oposición en Calle Real Fernando, local, 4 - 11540 
-            Sanlúcar de Barrameda (Cádiz). Email: <u>info@vrconsultores.es</u> y el de reclamación a <u>www.agpd.es</u></b></p>
+        <p class="mt-2 letra-verde-pequena"> <b>MV & JAR Consultores, S.L. es el Responsable del tratamiento de los datos personales proporcionados bajo su consentimiento y le informa de que estos datos serán tratados de conformidad con lo dispuesto en el Reglamento (UE) 2016/679, de 27 de abril (GDPR), y la Ley Orgánica 3/2018, de 5 de diciembre (LOPDGDD), con la finalidad de mantener una relación de servicios  y conservarlos durante no más tiempo del necesario para mantener el fin del tratamiento o mientras existan prescripciones legales que dictaminen su custodia. No se comunicarán los datos a terceros, salvo obligación legal. Asimismo, se le informa de que puede ejercer los derechos de acceso, rectificación, portabilidad y supresión de sus datos y los de limitación y oposición a su tratamiento dirigiéndose a MV & JAR Consultores, S.L. en C/ Real Fernando, local 4, - 11540 Sanlúcar de Barrameda (Cádiz) Email: <a href="mailto:info@vrconsultores.es"></a> info@vrconsultores.es y el de reclamación a <a href="www.aepd.es."><u>www.aepd.es.</u></a></p>
         
     </body>
 
