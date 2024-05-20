@@ -289,22 +289,29 @@ class TrainingContractController extends BaseController
      */
     public function calculateHours($id)
     {
-        $record = TrainingContract::findOrFail($id);
-        $hoursData = $record->calculateHours($id);
+        try {
+            $record = TrainingContract::findOrFail($id);
+            $hoursData = $record->calculateHours($id);
 
-        // Devuelve una respuesta HTTP con los datos calculados
-        return response()->json([
-            'status' => 200,
-            'total_hours' => $hoursData['formative_hours_first_year'] + $hoursData['formative_hours_second_year'],
-            'daily_hours_1' => $hoursData['daily_hours_1'],
-            'daily_hours_2' => $hoursData['daily_hours_2'],
-            'formative_hours_first_year' => $hoursData['formative_hours_first_year'],
-            'formative_hours_second_year' => $hoursData['formative_hours_second_year'],
-            'total_days' => $hoursData['cont_days_first_year'] + $hoursData['cont_days_second_year'],
-            'updated_elements' => $hoursData['updated_elements'],
-            'end_formation' => $record->end_formation,
-            'end' => $record->end
-        ]);
+            // Devuelve una respuesta HTTP con los datos calculados
+            return response()->json([
+                'status' => 200,
+                'total_hours' => $hoursData['formative_hours_first_year'] + $hoursData['formative_hours_second_year'],
+                'daily_hours_1' => $hoursData['daily_hours_1'],
+                'daily_hours_2' => $hoursData['daily_hours_2'],
+                'formative_hours_first_year' => $hoursData['formative_hours_first_year'],
+                'formative_hours_second_year' => $hoursData['formative_hours_second_year'],
+                'total_days' => $hoursData['cont_days_first_year'] + $hoursData['cont_days_second_year'],
+                'updated_elements' => $hoursData['updated_elements'],
+                'end_formation' => $record->end_formation,
+                'end' => $record->end
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
 
