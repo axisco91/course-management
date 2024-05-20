@@ -94,8 +94,8 @@
                 <p>
                     <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->company->population}}</span>
                     <span class="empty-paragraph" style="float: right;">
-                        @foreach(range(0, 4) as $i)
-                            <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
+                        @foreach(str_split($trainingContract->company->population_code) as $numero)
+                            <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $numero }}</span>
                         @endforeach
                     </span>
                 </p>
@@ -172,10 +172,10 @@
             <td width="60%" class="left-align">
                 <p class="no-margin-bottom"> MUNICIPIO</p>
                 <p>
-                    <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->center_of_work}}</span>
+                    <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->company->population}}</span>
                     <span class="empty-paragraph" style="float: right;">
-                        @foreach(range(0, 4) as $i)
-                            <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
+                        @foreach(str_split($trainingContract->company->population_code) as $numero)
+                            <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $numero }}</span>
                         @endforeach
                     </span>
                 </p>
@@ -201,8 +201,10 @@
             <td width="30%" class="left-align">
                 <p class="no-margin-bottom"> Nº AFILIACIÓN SEGURIDAD SOCIAL</p>
                 <p class="empty-paragraph">
-                    @foreach(str_split($trainingContract->student->social_security_number) as $number)
-                        <span style="border: 1px solid black; padding: 1px 4px; margin: -2px;">{{ $number }}</span>
+                    @foreach(preg_split('/\s*/', $trainingContract->student->social_security_number) as $number)
+                        @if(!empty($number))
+                            <span style="border: 1px solid black; padding: 1px 4px; margin: -2px;">{{ $number }}</span>
+                        @endif
                     @endforeach
                 </p>
             </td>
@@ -228,8 +230,8 @@
                 <p>
                     <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->student->nationality}}</span>
                     <span class="empty-paragraph" style="float: right;">
-                        @foreach(range(0, 2) as $i)
-                            <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
+                        @foreach(str_split($trainingContract->student->nationality_code) as $numero)
+                            <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $numero }}</span>
                         @endforeach
                     </span>
                 </p>
@@ -243,8 +245,8 @@
                 <p>
                     <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->student->population}}</span>
                     <span class="empty-paragraph" style="float: right;">
-                        @foreach(range(0, 4) as $i)
-                            <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
+                        @foreach(str_split($trainingContract->student->population_code) as $numero)
+                            <span style="border: 1px solid black; padding: 2px 4px; margin: -2px;">{{ $numero }}</span>
                         @endforeach
                     </span>
                 </p>
