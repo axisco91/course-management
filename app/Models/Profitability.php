@@ -17,22 +17,17 @@ class Profitability extends Model
 
     protected $fillable = ['course_id','company_id','student_id','price','license','teacher','management','nebrija_title','discount','collaborator_commission','advisor_commission','total','benefits','observations', 'advisor_percentage', 'collaborator_percentage', 'number_students'];
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function company()
-    {
-        return $this->hasOne('App\Models\Company', 'id', 'company_id');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
+    // Define the relationship with the Course model
     public function course()
-    {
-        return $this->hasOne('App\Models\Course', 'id', 'course_id');
-    }
-
+        {
+            return $this->belongsTo(Course::class);
+        }
+    
+    // Define the relationship with the Company model
+    public function company()
+        {
+            return $this->belongsTo(Company::class);
+        }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */

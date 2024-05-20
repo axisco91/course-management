@@ -19,38 +19,40 @@ class ProfitabilityController extends BaseController
     }
 
     /**
-     * Obtener rentabilidad
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function index(Request $request) {
-        try {
-            $profits = Profitability::with('registrations.student')
+ * Obtener rentabilidad
+ * @return \Illuminate\Http\JsonResponse
+ */
+public function index(Request $request) {
+    try {
+        $profits = Profitability::with(['registrations.student', 'course.courseStatuses', 'company'])
             ->profitability();
-            $cfa = CourseType::where('name', 'CFA')->first();
-            if ($cfa) {
-                $profits = $profits->where('course_type_id', '!=', $cfa->id);
-            }
 
-            if ($request->course) {
-                $profits = $profits->where('courses.name', 'like', '%'.$request->course.'%');
-            }
-            if ($request->company) {
-                $profits = $profits->where('companies.name', 'like', '%'.$request->company.'&');
-            }
-            if ($request->status) {
-                $profits = $profits->where('course_statuses.name', 'like', '%'.$request->status.'%');
-            }
-
-            $profits = $profits
-                ->orderBy('courses.beginning', 'desc')
-                ->get();
-            return $profits;
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
+        // Apply necessary filters
+        if ($request->course) {
+            $profits = $profits->whereHas('course', function ($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->course . '%');
+            });
         }
+        if ($request->company) {
+            $profits = $profits->whereHas('company', function ($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->company . '%');
+            });
+        }
+        if ($request->status) {
+            $profits = $profits->whereHas('course.status', function ($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->status . '%');
+            });
+        }
+
+        $profits = $profits->orderBy('courses.beginning', 'desc')->get();
+        return response()->json($profits);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => $e->getMessage()
+        ]);
     }
+}
+
 
     /**
      * Obtener rentabilidad
