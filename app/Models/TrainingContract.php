@@ -441,4 +441,38 @@ class TrainingContract extends Model
     
         return false;
     }
+     /**
+     * Calculate the monthly formation hours for a training contract.
+     *
+     * @param int $training_contract_id The ID of the training contract.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function calculateMonthlyFormationHours($training_contract_id)
+    {
+        $record = TrainingContract::findOrFail($training_contract_id);
+
+        $beginning_date = Carbon::parse($record->beginning_formation);
+        $end_date = Carbon::parse($record->end_formation);
+
+        $monthly_formation_hours = [];
+
+        for ($date = $beginning_date; $date->lte($end_date); $date->addMonth()) {
+            $cont_days = 0;
+            $month_start_date = (clone $date)->startOfMonth();
+            $month_end_date = (clone $date)->endOfMonth();
+
+            for ($day = $month_start_date; $day->lte($month_end_date); $day->addDay()) {
+                if ($this->isWorkingDay($day, $record)) {
+                    $cont_days++;
+                }
+            }
+
+            $monthly_formation_hours[$date->format('Y-m')] = $cont_days * $record->daily_hours_1;
+        }
+
+        return response()->json([
+            'status' => 200,
+            'monthly_formation_hours' => $monthly_formation_hours,
+        ]);
+    }
 }    

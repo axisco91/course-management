@@ -371,31 +371,31 @@ public function testPdf($viewName, TrainingContract $trainingContract, $orientat
     $daysWeek = 0; 
     if($trainingContract->monday == 1) {
         $daysWeek++; 
-        $dias[] = 'Lunes';
+        $dias[] = 'L';
     }
     if($trainingContract->tuesday == 1) {
         $daysWeek++; 
-        $dias[] = 'Martes';
+        $dias[] = 'M';
     }
     if($trainingContract->wednesday == 1) {
         $daysWeek++; 
-        $dias[] = 'Miércoles';
+        $dias[] = 'X';
     }
     if($trainingContract->thursday == 1) {
         $daysWeek++; 
-        $dias[] = 'Jueves';
+        $dias[] = 'J';
     }
     if($trainingContract->friday == 1) {
         $daysWeek++; 
-        $dias[] = 'Viernes';
+        $dias[] = 'V';
     }
     if($trainingContract->saturday == 1) {
         $daysWeek++; 
-        $dias[] = 'Sábado';
+        $dias[] = 'S';
     }
     if($trainingContract->sunday == 1) {
         $daysWeek++; 
-        $dias[] = 'Domingo';
+        $dias[] = 'D';
     }
     $fechaActual = Date::now()->format('d/m/Y');
 
