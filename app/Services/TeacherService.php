@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Teacher;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+
 
 class TeacherService
 {
@@ -55,8 +57,11 @@ class TeacherService
             'active' => $data['active']
         ]);
 
-        $teacher->teacherAreas()->sync($data['teacher_areas']);
-
+        if (isset($data['teacher_areas']) && is_array($data['teacher_areas'])) {
+            $teacher->teacherAreas()->sync($data['teacher_areas']);
+        } else {
+            Log::error("teacher_areas is not set or not an array", ['teacher_areas' => $data['teacher_areas']]);
+        }
         return $teacher;
     }
 }
