@@ -516,8 +516,8 @@
                         <p class="ms-2 mt-0 mb-0 no-line-break">D./Dña. <u>ANTONIO JOSE JIMENEZ AGRAZ</u> en concepto de <u>ADMINISTRADOR</u></p>
                         <p class="ms-2 mb-0 no-line-break">NIF/NIE  <u>50614013Y</u></p><br>
                         {{-- HAY QUE CAMBIAR LA BASE DE DATOS --}}
-                        <p class="ms-2 mb-0 no-line-break">Tutor/a del centro - D./Dña. <u>{{$e->training_contract->training_tutor}}</u> </p>
-                        <p class="ms-2 mb-0 no-line-break">NIF/NIE <u>{{$e->training_contract->training_tutor_dni}}</u></p><br>
+                        <p class="ms-2 mb-0 no-line-break">Tutor/a del centro - D./Dña. <u>{{$e->training_tutor}}</u> </p>
+                        <p class="ms-2 mb-0 no-line-break">NIF/NIE <u>{{$e->training_tutor_dni}}</u></p><br>
                     </div>
                 </article>
             @endforeach
