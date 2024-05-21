@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddTutorToTrainingContractsTable extends Migration
+class AddTutorToTrainingActionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,9 @@ class AddTutorToTrainingContractsTable extends Migration
      */
     public function up()
     {
-        Schema::table('training_contracts', function (Blueprint $table) {
+        Schema::table('training_actions', function (Blueprint $table) {
             $table->string('training_tutor')->nullable();        
-            $table->string('training_tutor_dni')->nullable();  
+            $table->string('training_tutor_dni')->nullable(); 
         });
     }
 
@@ -26,7 +26,7 @@ class AddTutorToTrainingContractsTable extends Migration
      */
     public function down()
     {
-        Schema::table('training_contracts', function (Blueprint $table) {
+        Schema::table('training_actions', function (Blueprint $table) {
             $table->dropColumn('training_tutor');
             $table->dropColumn('training_tutor_dni');
         });
