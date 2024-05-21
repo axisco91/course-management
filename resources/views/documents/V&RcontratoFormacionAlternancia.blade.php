@@ -371,7 +371,7 @@
 
     <ul class="no-bullets">
         <li>a) Actividad laboral (6) <span class="dots">{{$trainingContract->occupation->name}}</span>
-                CNO: <span class="dots">{{(substr($trainingContract->occupation->cno, 0, 4))}} </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$trainingContract->company->address}} ({{$trainingContract->company->post_code}} {{$trainingContract->company->population}}) </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots"> ______________________________________ </span> , cuya cualificación profesional es (9) <span class="dots"> Tutor Experto </span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} </span></li>
+                CNO: <span class="dots">{{(substr($trainingContract->occupation->cno, 0, 4))}} </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$trainingContract->company->address}} ({{$trainingContract->company->post_code}} {{$trainingContract->company->population}}) </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots">  {{$trainingContract->training_tutor}} </span> , cuya cualificación profesional es (9) <span class="dots"> Tutor Experto </span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} </span></li>
         <li>b) La actividad formativa vinculada al contrato es <span class="dots">{{$trainingContract->occupation->name}}	</span>, de acuerdo con el convenio de colaboración suscrito por la empresa con el centro o entidad formativa y que se incorpora como anexo en este contrato (10).</li>
     </ul>
 
@@ -382,14 +382,14 @@
     <br>El tiempo efectivo de trabajo se prestará en el horario (12)<br>
     <span class="dots">
 
-    DEL {{$trainingContract->beginning}} AL {{$trainingContract->end}}:{{$trainingContract->working_hours}}<br>
+    DEL {{ \Carbon\Carbon::parse($trainingContract->beginning)->format('d/m/Y') }} AL {{ \Carbon\Carbon::parse($trainingContract->end)->format('d/m/Y') }} {{$trainingContract->end}}:{{$trainingContract->working_hours}}<br>
         
     </span>
     <br>
     La actividad formativa se impartirá de acuerdo al siguiente calendario:
     <span class="dots">
     <br>
-    DEL {{$trainingContract->beginning_formation}} AL {{$trainingContract->end_formation}}:{{$trainingContract->training_schedule}}
+    DEL {{ \Carbon\Carbon::parse($trainingContract->beginning_formation)->format('d/m/Y') }} AL {{ \Carbon\Carbon::parse($trainingContract->end_formation)->format('d/m/Y') }}:{{$trainingContract->training_schedule}}
     </span>
     <br>
     reflejado en el anexo del plan formativo individual.
@@ -401,20 +401,27 @@
 
     <br>
 
+    
     @php
         use Carbon\Carbon;
         $fechaInicio = Carbon::parse($trainingContract->beginning);
-        $fechaFin = Carbon::parse($trainingContract->end);
+        $fechaFin = Carbon::parse($trainingContract->end)->addDay(); //para que salga el total correctamente
         $diff = $fechaFin->diff($fechaInicio);
         $duracionContrato = '';
         if ($diff->y > 0) {
             $duracionContrato .= $diff->y . ' años, ';
         }
-        $duracionContrato .= $diff->m . ' meses, ' . $diff->d . ' días';
+        if ($diff->m > 0) {
+            $duracionContrato .= $diff->m . ' meses, ';
+        }
+        if ($diff->d > 0) {
+            $duracionContrato .= $diff->d . ' días';
+        }
+        $duracionContrato = rtrim($duracionContrato, ', '); // Remove trailing comma and space
     @endphp
 
     <h3 class="no-line-break">TERCERA: </h3>
-    <p class="no-line-break"> la duración del presente contrato será de (14) <span class="dots"> {{$duracionContrato}}</span> y se extenderá desde <span class="dots"> {{$trainingContract->beginning}} </span> hasta <span class="dots">{{$trainingContract->end}}</span> </p>
+    <p class="no-line-break"> la duración del presente contrato será de (14) <span class="dots"> {{$duracionContrato}}</span> y se extenderá desde <span class="dots"> {{ \Carbon\Carbon::parse($trainingContract->beginning)->format('d/m/Y') }} </span> hasta <span class="dots">{{ \Carbon\Carbon::parse($trainingContract->end)->format('d/m/Y') }}</span> </p>
     <br>
 
     <h3 class="no-line-break">CUARTA: </h3>
@@ -500,8 +507,7 @@
     <br>
 
     <h3 class="no-line-break">DUODECIMA: </h3>
-    <p class="no-line-break"> PROTECCIÓN DE DATOS. - Los datos consignados en el presente modelo tendrán la protección derivada del Reglamento (UE)
-    2016/679 del Parlamento Europeo, de 27 de abril de 2016 y de la Ley Organica 3/2018, de 5 de diciembre.
+    <p class="no-line-break"> PROTECCIÓN DE DATOS. - De conformidad con el Reglamento UE 2016/679 relativo a la Protección de las Personas Físicas en lo que Respecta al Tratamiento de Datos Personales y con la L.O. 3/2018 de Protección de Datos Personales y Garantía de Derechos Digitales ; le informamos que los datos de contacto utilizados para la presente comunicación están incluidos en un fichero titularidad de AVZ FORMACIÓN SL y AVANZA ASESORAMIENTO GLOBAL; con la finalidad de posibilitar las comunicaciones a través de correo electrónico que ésta mantiene dentro del ejercicio de su actividad (como clientes, proveedores o personal). La causa que legitima este tratamiento de datos es el consentimiento. Los datos podrán ser transmitidos a la entidad que presta el servicio de asesoramiento laboral, fiscal y contable y en su caso a la entidad de almacenamiento web.
     </p>
     <br>
 
@@ -599,7 +605,7 @@
             <table style="width: 100%;">
                 <tr>
                     <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
-                        <input type="radio" id="opcion1" name="radio" class="no-line-break">
+                        <input type="radio" id="opcion1" name="radio" class="no-line-break" {{ $trainingContract->youth_guarantee == 0 && $trainingContract->disabled == 0 ? 'checked' : '' }}>
                         <p class="no-line-break">SIN BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL</p>
                         <hr style="margin: 0; padding-right: 0;">
                     </td>
@@ -613,7 +619,7 @@
                             <tr>
                                 <td style="border: none; padding: 0;">
                                     <div class="border-div">
-                                        <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break">
+                                        <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break" {{ $trainingContract->youth_guarantee == 0 && $trainingContract->disabled == 0 ? 'checked' : '' }}>
                                         TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">421</span></p>
                                         <p style="text-align: left;"><input type="radio" id="opcion2" name="tiempo" class="no-line-break">
                                         TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">521</span></p>
@@ -630,7 +636,7 @@
             <table style="width: 100%;">
                 <tr>
                     <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
-                        <input type="radio" id="opcion1" name="radio" class="no-line-break">
+                        <input type="radio" id="opcion1" name="radio" class="no-line-break" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
                         <p class="no-line-break">CON BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL (1)</p>
                         <hr style="margin: 0; padding-right: 0;">
                     </td>
@@ -644,7 +650,7 @@
                             <tr>
                                 <td style="border: none; padding: 0;">
                                     <div class="border-div">
-                                        <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break">
+                                        <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
                                         TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">450</span></p>
                                         <p style="text-align: left;"><input type="radio" id="opcion2" name="tiempo" class="no-line-break">
                                         TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">550</span></p>
@@ -661,7 +667,7 @@
             <table style="width: 100%;">
                 <tr>
                     <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
-                        <input type="radio" id="opcion1" name="radio" class="no-line-break">
+                        <input type="radio" id="opcion1" name="radio" class="no-line-break" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
                         <p class="no-line-break">CON BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL PARA PERSONAS CON DISCAPACIDAD (2)</p>
                         <hr style="margin: 0; padding-right: 0;">
                     </td>
@@ -675,7 +681,7 @@
                             <tr>
                                 <td style="border: none; padding: 0;">
                                     <div class="border-div">
-                                        <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break">
+                                        <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
                                         TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">450</span></p>
                                         <p style="text-align: left;"><input type="radio" id="opcion2" name="tiempo" class="no-line-break">
                                         TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">550</span></p>
@@ -902,7 +908,7 @@
         </div>
 
 
-        <p>Se establece un período de adaptación al trabajo que a su vez tendrá el carácter de período de prueba de (1) <span class="dots">.............................................................</span> en las condiciones siguientes (2)
+        <p>Se establece un período de adaptación al trabajo que a su vez tendrá el carácter de período de prueba de (1) <span class="dots">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> en las condiciones siguientes (2)
             <span class="dots">.............................................................................................................................................................................................................................................
             .............................................................................................................................................................................................................................................
             .............................................................................................................................................................................................................................................</span>
