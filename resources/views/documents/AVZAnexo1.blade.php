@@ -1,5 +1,5 @@
 <!DOCTYPE htms>
-<htms lang="en">
+<html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +10,7 @@
                 font-family: 'League Gothic', sans-serif !important; 
             }
 
-            .text-2xl{
+            .text-lg{
                 font-size: 1rem !important;
             }
 
@@ -80,27 +80,46 @@
             u {
                 color: black;
             }
+
+            @page {
+            margin: 100px 25px;
+        }
+        header {
+            position: fixed;
+            top: -75px;
+            left: 0;
+            right: 0;
+            height: 100px;
+            text-align: center;
+        }
+
+        body {
+            margin-top: 30px;
+        }
+
         </style>
     </head>
     <body >
-        <table style="width: 100%" class="mx-auto mb-0">
-            <tr>
-                <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
-                <td class="mx-auto">
-                    <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
-                </td>
-                <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
-                <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
-            </tr>
-        </table>
-
+        <header class="mb-5">
+            <table style="width: 100%" class="mx-auto mb-0">
+                <tr>
+                    <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
+                    <td class="mx-auto">
+                        <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
+                    </td>
+                    <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
+                    <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
+                </tr>
+            </table>
+        </header>
+        <main>
         <p class="text-lg font-bold">ANEXO 1</p>
         
-        <p class="text-2xl font-bold">ACUERDO PARA LA ACTIVIDAD FORMATIVA DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA</p>
+        <p class="text-lg font-bold">ACUERDO PARA LA ACTIVIDAD FORMATIVA DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA</p>
 
         <!-- DATOS GENERALES -->
         <section>
-            <p class="text-2xl font-bold">1. DATOS GENERALES</p>
+            <p class="text-lg font-bold">1. DATOS GENERALES</p>
 
             <article class="border border-1 border-dark mt-1">
                 <div class="mx-auto" style="width: 95%">
@@ -179,7 +198,7 @@
 
         <!-- ACTIVIDAD FORMATIVA -->
         <section class="mt-1" >
-            <p class="text-2xl font-bold mb-0">2. ACTIVIDAD FORMATIVA</p>
+            <p class="text-lg font-bold mb-0">2. ACTIVIDAD FORMATIVA</p>
             
             <!-- 2.a -->
             <article>
@@ -220,8 +239,8 @@
                         <td style="border: none; text-align: center; margin: 0; padding: 0;">
                             @php
                                 $page=1;
-                                echo $page;
                             @endphp
+                            <p class="text-lg">{{ $page }}</p>
                         </td>
                     </tr>
                 </table>
@@ -229,16 +248,6 @@
 
     <div style="page-break-after: always;"></div>
 
-            <table style="width: 100%" class="mx-auto mb-0">
-                <tr>
-                    <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
-                    <td class="mx-auto">
-                        <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
-                    </td>
-                    <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
-                    <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
-                </tr>
-            </table>
 
             <!-- 2.b -->
             <article>
@@ -257,12 +266,28 @@
                             <td class="font-semibold border-right  border-dark">Modalidad (Presencial, Teleformación, Distancia1)</td>
                             <td class="font-semibold">Código de Centro educativo autorizado / Código del Centro acreditado en Registro Estatal</td>
                         </tr>
+        
                         @php
-                             $i = 0;    
+                             $i = 0;   
                         @endphp
                         @foreach($elements as $e)
+                            @if($i != 0 && $i % 19 == 0)
+                                <div style="position: absolute; bottom: 0; width: 100%;">
+                                    <table style="margin: auto;">
+                                        <tr>
+                                            <td style="border: none; text-align: center; margin: 0; padding: 0;">
+                                                @php
+                                                    $page++;
+                                                @endphp
+                                                <p class="text-lg">{{ $page }}</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <tr style="page-break-after: always;"></tr>
+                                @endif
                             @php
-                                $i++; 
+                                $i++;
                             @endphp
                             <tr class="border-top  border-dark text-center">
                                 <td class="border-right  border-dark">{{$i}}</td>
@@ -280,7 +305,7 @@
 
          <!-- CALENDARIO Y DISTRIBUCIÓN -->
         <section style="page-break-after: always">
-            <p class="text-2xl font-bold">3. CALENDARIO Y DISTRIBUCIÓN</p>
+            <p class="text-lg font-bold">3. CALENDARIO Y DISTRIBUCIÓN</p>
          
             <article>
                 <table class="mt-2 mx-auto border border-2 border-dark text-sm" style="width: 100%">
@@ -317,19 +342,23 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <div style="position: absolute; bottom: 0; width: 100%;">
+                    <table style="margin: auto;">
+                        <tr>
+                            <td style="border: none; text-align: center; margin: 0; padding: 0;">
+                                @php
+                                    $page++;
+                                @endphp
+                                <p class="text-lg">{{ $page }}</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
             </article>
 
             <article style="page-break-before: always">
-                <table style="width: 100%" class="mx-auto mb-0">
-                    <tr>
-                        <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
-                        <td class="mx-auto">
-                            <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
-                        </td>
-                        <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
-                        <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
-                    </tr>
-                </table>
+                
                 <table class="mt-2 mx-auto border border-2 border-dark text-sm" style="width: 100%">
                     <tbody>
                         <tr>
@@ -453,43 +482,50 @@
                 <p class="text-xs mt-1 mb-0">Criterios para la conciliación de las vacaciones a las que tiene derecho la persona trabajadora en la empresa y de los períodos no lectivos en el centro de formación:</p>
                 <p class="text-xs mt-0 mb-0">La actividad formativa se desarrollará de acuerdo a la secuenciación y calendarización que se detallan en la planificación formativa que se acompaña al contrato y/o cada una de sus prórrogas</p>
                 <p class="text-xs mt-0 mb-0">https://www.sepe.es</p>
+
+                <div style="position: absolute; bottom: 0; width: 100%;">
+                    <table style="margin: auto;">
+                        <tr>
+                            <td style="border: none; text-align: center; margin: 0; padding: 0;">
+                                @php
+                                    $page++;
+                                @endphp
+                                <p class="text-lg">{{ $page }}</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
             </article>
         </section>
 
         <!-- CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA -->
-        <table style="width: 100%" class="mx-auto mb-0">
-            <tr>
-                <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
-                <td class="mx-auto">
-                    <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
-                </td>
-                <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
-                <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
-            </tr>
-        </table>
         <section>
-            <p class="text-2xl font-bold">4. CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</p>
+            <p class="text-lg font-bold">4. CENTROS IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</p>
             @php
                 $i = 0;
             @endphp
             @foreach($elements as $e)
                 @if($i != 0 && $i % 4 == 0)
+
+                    <div style="position: absolute; bottom: 0; width: 100%;">
+                        <table style="margin: auto;">
+                            <tr>
+                                <td style="border: none; text-align: center; margin: 0; padding: 0;">
+                                    @php
+                                        $page++;
+                                    @endphp
+                                    <p class="text-lg">{{ $page }}</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                     <div style="page-break-after: always;"></div>
-                    <table style="width: 100%" class="mx-auto mb-0">
-                        <tr>
-                            <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
-                            <td class="mx-auto">
-                                <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
-                            </td>
-                            <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
-                            <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
-                        </tr>
-                    </table>
+                    
                 @endif
                 @php
                     $i++;
                 @endphp
-                <article class="mx-auto mt-1 border border-2 border-dark pb-3" >
+                <article class="mx-auto mt-1 border border-2 border-dark pb-0" >
                     <p class="text-xl font-semibold ms-2 mb-0 ">DATOS  DEL CENTRO DE FORMACIÓN</p>
                     <div class="mx-auto text-sm">
                         <p class="ms-2 mb-0 no-line-break">Formación a impartir:  Código <u>{{$e->training_action->code}}</u></p>
@@ -540,17 +576,8 @@
 
         <!-- DATOS DECLARATIVOS Y SOLICITUD -->
         <section class="mt-3" style="page-break-before: always;">
-            <table style="width: 100%" class="mx-auto mb-0">
-                <tr>
-                    <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
-                    <td class="mx-auto">
-                        <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
-                    </td>
-                    <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
-                    <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
-                </tr>
-            </table>
-            <p class="text-2xl font-bold">5. DATOS DECLARATIVOS Y SOLICITUD</p>
+
+            <p class="text-lg font-bold">5. DATOS DECLARATIVOS Y SOLICITUD</p>
 
             <article class="mx-auto text-sm">
                 <div>
@@ -628,17 +655,8 @@
 
         <!-- FORMALIZACIÓN DEL ACUERDO -->
         <section class="mt-3" style="page-break-before: always ">
-            <table style="width: 100%" class="mx-auto mb-0">
-                <tr>
-                    <td><img class="my-auto mx-auto" src="./AVZ/ministerio.PNG" alt=""></td>
-                    <td class="mx-auto">
-                        <p class="bg-gray-300 my-auto text-sm p-2 font-bold" style="width: 125%">SERVICIO PÚBLICO DE EMPLEO ESTATAL</p>
-                    </td>
-                    <td><img class="mx-5" src="./AVZ/logo.png" alt="" width="80%"></td>
-                    <td><img class="mx-5" src="./AVZ/euroCert.png" alt="" width="60%"></td>
-                </tr>
-            </table>
-            <p class="text-2xl font-semibold">6.  FORMALIZACIÓN DEL ACUERDO</p>
+
+            <p class="text-lg font-semibold">6.  FORMALIZACIÓN DEL ACUERDO</p>
 
             <article class="mx-auto mt-1 text-sm">
                 <div>
@@ -681,5 +699,6 @@
                 </div>
             </article>
         </section>
+        </main>
     </body>
-</htms>
+</html>
