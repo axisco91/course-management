@@ -80,7 +80,6 @@
             u {
                 color: black;
             }
-
         </style>
     </head>
     <body >
@@ -121,16 +120,16 @@
                 <div class="mx-auto" style="width: 95%">
                     <p class="text-xl font-bold mb-0">DATOS DE LA EMPRESA</p>
                     <div class="text-sm">
-                        <p class=" mb-0">Razón social   {{$trainingContract->company->name}}   CIF/NIF/NIE   {{$trainingContract->company->nif}}</p>
-                        <p class=" mb-0">D./Dña.   {{$trainingContract->company->legal_representative}}   en concepto de 
+                        <p class=" mb-0">Razón social   <u>{{$trainingContract->company->name}}</u>   CIF/NIF/NIE   <u>{{$trainingContract->company->nif}}</u></p>
+                        <p class=" mb-0">D./Dña.   <u>{{$trainingContract->company->legal_representative}}</u>   en concepto de 
                         @if($trainingContract->company->companyType->name == "Autónomo")
-                            TITULAR
+                            <u>TITULAR</u>
                         @else
-                            ADMINISTRADOR
+                            <u>ADMINISTRADOR</u>
                         @endif
-                        NIF/NIE: {{$trainingContract->company->dni_legal_representative}}</p>
-                        <p class=" mb-0">Correo electrónico de la empresa {{$trainingContract->company->email}} Tfno. empresa {{$trainingContract->company->telephone}}</p>
-                        <p class="mb-0">Tutor/a de la empresa - D./Dña. {{$trainingContract->company_tutor}} NIF/NIE {{$trainingContract->company_tutor_dni}}</p>
+                        NIF/NIE: <u>{{$trainingContract->company->dni_legal_representative}}</u></p>
+                        <p class=" mb-0">Correo electrónico de la empresa <u>{{$trainingContract->company->email}}</u> Tfno. empresa <u>{{$trainingContract->company->telephone}}</u></p>
+                        <p class="mb-0">Tutor/a de la empresa - D./Dña. <u>{{$trainingContract->company_tutor}}</u> NIF/NIE <u>{{$trainingContract->company_tutor_dni}}</u></p>
                         <input class="no-line-break mb-0 ms-1" type="checkbox" {{$trainingContract->company->companyType->name == "Autónomo" ? 'checked' : ''}}><span class="ms-2 no-line-break"> Empresa con menos de 5 trabajadores</span>
                     </div>
                 </div>                
@@ -140,9 +139,9 @@
                 <div class="mx-auto" style="width: 95%; ">
                     <p class="text-xl font-bold mb-0">DATOS DEL TRABAJADOR</p>
                     <div class="text-sm">
-                        <p class="ms-2 no-line-break">D./Dña.  {{$trainingContract->student->name}}  {{$trainingContract->student->surname}} </p>
-                        <p class="ms-2 no-line-break">NIF/NIE   {{$trainingContract->student->dni}}</p>
-                        <p class="ms-2 no-line-break">Fecha de nacimiento   {{$trainingContract->student->date_of_birth}}</p> <br>
+                        <p class="ms-2 no-line-break">D./Dña.  <u>{{$trainingContract->student->name}}  {{$trainingContract->student->surname}} </u></p> 
+                        <p class="ms-2 no-line-break">NIF/NIE   <u>{{$trainingContract->student->dni}}</u></p>
+                        <p class="ms-2 no-line-break">Fecha de nacimiento   <u>{{ \Carbon\Carbon::parse($trainingContract->student->date_of_birth)->format('d/m/Y') }}</u></p> <br>
                         <input class="no-line-break mb-0" type="checkbox"><p class="ms-2 mb-0 no-line-break">Reúne requisitos de acceso a la Formación de este contrato.</p><br>
                         <input class="no-line-break mb-0" type="checkbox" {{$trainingContract->youth_guarantee == 1 ? 'checked' : ''}}> 
                         <p class="ms-2 mb-0 no-line-break">Inscrito/a en el Sistema Nacional de Garantía Juvenil.</p><br>
@@ -165,14 +164,14 @@
                             @endfor
                         </p>
                         <p class="no-line-break">(a consignar una vez comunicada la formalización del contrato)</p><br>
-                        <p class="no-line-break">Fecha de inicio {{$trainingContract->beginning}}</p>
-                        <p class="no-line-break">Fecha de fin {{$trainingContract->end}}</p><br>
-                        <p class="no-line-break">Puesto de trabajo u ocupación {{$trainingContract->occupation->name}}</p>
-                        <p class="no-line-break">Cód. CNO {{$trainingContract->occupation->cno}}</p><br>
-                        <p class="no-line-break">Provincia del centro de trabajo {{$trainingContract->province->name ?? ''}}</p>
-                        <p class="no-line-break"> Horas del contrato: Año 1.º {{$trainingContract->formative_hours_first_year}}</p>
-                        <p class="no-line-break">Año 2.º {{$trainingContract->formative_hours_second_year}}</p><br>
-                        <p>Convenio aplicable  {{$trainingContract->applicableAgreement->name ?? ''}} </p>
+                        <p class="no-line-break">Fecha de inicio <u>{{ \Carbon\Carbon::parse($trainingContract->beginning)->format('d/m/Y') }}</u></p>
+                        <p class="no-line-break">Fecha de fin <u>{{ \Carbon\Carbon::parse($trainingContract->end)->format('d/m/Y') }}</u></p><br>
+                        <p class="no-line-break">Puesto de trabajo u ocupación <u>{{$trainingContract->occupation->name}}</u></p>
+                        <p class="no-line-break">Cód. CNO <u>{{$trainingContract->occupation->cno}}</u></p><br>
+                        <p class="no-line-break">Provincia del centro de trabajo <u>{{$trainingContract->province->name ?? ''}}</u></p>
+                        <p class="no-line-break"> Horas del contrato: Año 1.º <u>{{$trainingContract->formative_hours_first_year}}</u></p>
+                        <p class="no-line-break">Año 2.º <u>{{$trainingContract->formative_hours_second_year}}</u></p><br>
+                        <p>Convenio aplicable  <u>{{$trainingContract->applicableAgreement->name ?? ''}}</u> </p>
                     </div>
                 </div>                
             </article>
@@ -183,7 +182,7 @@
             <p class="text-2xl font-bold mb-0">2. ACTIVIDAD FORMATIVA</p>
             
             <!-- 2.a -->
-            <article style="page-break-after: always;">
+            <article>
                 <p class="text-xl ms-5 font-bold mb-0">2. A Formación acreditable</p>
                 <p class="text-sm" style="margin-left: 90px">(La actividad formativa deberá contener como mínimo un Módulo Formativo completo)</p>
 
@@ -213,6 +212,22 @@
                     </tbody>
                 </table>
             </article>
+
+
+            <div style="position: absolute; bottom: 0; width: 100%;">
+                <table style="margin: auto;">
+                    <tr>
+                        <td style="border: none; text-align: center; margin: 0; padding: 0;">
+                            @php
+                                $page=1;
+                                echo $page;
+                            @endphp
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+    <div style="page-break-after: always;"></div>
 
             <table style="width: 100%" class="mx-auto mb-0">
                 <tr>
@@ -458,7 +473,7 @@
                 $i = 0;
             @endphp
             @foreach($elements as $e)
-                @if($i != 0 && $i % 3 == 0)
+                @if($i != 0 && $i % 4 == 0)
                     <div style="page-break-after: always;"></div>
                     <table style="width: 100%" class="mx-auto mb-0">
                         <tr>
@@ -477,7 +492,7 @@
                 <article class="mx-auto mt-1 border border-2 border-dark pb-3" >
                     <p class="text-xl font-semibold ms-2 mb-0 ">DATOS  DEL CENTRO DE FORMACIÓN</p>
                     <div class="mx-auto text-sm">
-                        <p class="ms-2 mb-0 no-line-break">Formación a impartir:  Código <u>{{$e->training_action->codigo}}</u></p>
+                        <p class="ms-2 mb-0 no-line-break">Formación a impartir:  Código <u>{{$e->training_action->code}}</u></p>
                         <p class="ms-2 mb-0 no-line-break">Denominación <u>{{$e->training_action->name}}</u></p> <br>
 
                         <div class="ms-2">
