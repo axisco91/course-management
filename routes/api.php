@@ -757,6 +757,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get-registered/{id}', 'getRegistrations');
             Route::get('get-not-registered/{id}', 'getNotRegistered');
             Route::get('get-all', 'getAllRegistrations');
+            Route::put('update/{id}', 'update');
         });
     });
 
