@@ -10,7 +10,7 @@
                 font-family: 'League Gothic', sans-serif !important; 
             }
 
-            .text-lg{
+            .text-2xl{
                 font-size: 1rem !important;
             }
 
@@ -272,6 +272,9 @@
                         @endphp
                         @foreach($elements as $e)
                             @if($i != 0 && $i % 19 == 0)
+                                <tr class="border-top border-dark">
+                                    <td colspan="6" style="height: 0px;"></td>
+                                </tr>
                                 <div style="position: absolute; bottom: 0; width: 100%;">
                                     <table style="margin: auto;">
                                         <tr>
@@ -525,9 +528,9 @@
                 @php
                     $i++;
                 @endphp
-                <article class="mx-auto mt-1 border border-2 border-dark pb-0" >
-                    <p class="text-xl font-semibold ms-2 mb-0 ">DATOS  DEL CENTRO DE FORMACIÓN</p>
-                    <div class="mx-auto text-sm">
+                <article class="mx-auto mt-1 border border-2 border-dark pb-1" >
+                    <p class="text-sm font-semibold ms-2 mb-0 ">DATOS  DEL CENTRO DE FORMACIÓN</p>
+                    <div class="mx-auto text-xs">
                         <p class="ms-2 mb-0 no-line-break">Formación a impartir:  Código <u>{{$e->training_action->code}}</u></p>
                         <p class="ms-2 mb-0 no-line-break">Denominación <u>{{$e->training_action->name}}</u></p> <br>
 
@@ -572,6 +575,18 @@
                     </div>
                 </article>
             @endforeach
+            <div style="position: absolute; bottom: 0; width: 100%;">
+                <table style="margin: auto;">
+                    <tr>
+                        <td style="border: none; text-align: center; margin: 0; padding: 0;">
+                            @php
+                                $page++;
+                            @endphp
+                            <p class="text-lg">{{ $page }}</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </section>  
 
         <!-- DATOS DECLARATIVOS Y SOLICITUD -->
@@ -651,6 +666,18 @@
                     </p>
                 </div>
             </article>
+            <div style="position: absolute; bottom: 0; width: 100%;">
+                <table style="margin: auto;">
+                    <tr>
+                        <td style="border: none; text-align: center; margin: 0; padding: 0;">
+                            @php
+                                $page++;
+                            @endphp
+                            <p class="text-lg">{{ $page }}</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </section>
 
         <!-- FORMALIZACIÓN DEL ACUERDO -->
@@ -698,6 +725,18 @@
                     </table>
                 </div>
             </article>
+            <div style="position: absolute; bottom: 0; width: 100%;">
+                <table style="margin: auto;">
+                    <tr>
+                        <td style="border: none; text-align: center; margin: 0; padding: 0;">
+                            @php
+                                $page++;
+                            @endphp
+                            <p class="text-lg">{{ $page }}</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </section>
         </main>
     </body>
