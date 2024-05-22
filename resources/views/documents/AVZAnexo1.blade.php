@@ -76,6 +76,11 @@
             .parrafo{
                 margin-top: -8px !important; 
             }
+
+            u {
+                color: black;
+            }
+
         </style>
     </head>
     <body >
@@ -472,8 +477,8 @@
                 <article class="mx-auto mt-1 border border-2 border-dark pb-3" >
                     <p class="text-xl font-semibold ms-2 mb-0 ">DATOS  DEL CENTRO DE FORMACIÓN</p>
                     <div class="mx-auto text-sm">
-                        <p class="ms-2 mb-0 no-line-break">Formación a impartir:  Código {{$e->training_action->codigo}}</p>
-                        <p class="ms-2 mb-0 no-line-break">Denominación {{$e->training_action->name}}</p> <br>
+                        <p class="ms-2 mb-0 no-line-break">Formación a impartir:  Código <u>{{$e->training_action->codigo}}</u></p>
+                        <p class="ms-2 mb-0 no-line-break">Denominación <u>{{$e->training_action->name}}</u></p> <br>
 
                         <div class="ms-2">
                             <input class="mb-0 no-line-break" type="checkbox">
@@ -496,23 +501,23 @@
                             <p class="ms-2 mt-0 mb-0 no-line-break"> Si la formación se imparte mediante teleformación, especificar código/s del/os Centros Presenciales vinculados:</p>
                         </div>
 
-                        <p class="ms-2 mb-0 no-line-break">Nombre Centro AVZ FORMACION, SL </p>
-                        <p class="ms-2 mb-0 no-line-break">CIF/NIF/NIE B16826638</p><br>
+                        <p class="ms-2 mb-0 no-line-break">Nombre Centro <u>AVZ FORMACION, SL</u> </p>
+                        <p class="ms-2 mb-0 no-line-break">CIF/NIF/NIE <u>B16826638</u></p><br>
 
-                        <p class="ms-2 mb-0">URL (Entidades de teleformación)  avzformacion.com/aula</p>
-                        <p class="ms-2 mb-0 no-line-break">Dirección C\ EL PESO 35, 3º D</p>
-                        <p class="ms-2 mb-0 no-line-break">CP 14900</p>
-                        <p class="ms-2 mb-0 no-line-break"> Municipio LUCENA</p><br>
+                        <p class="ms-2 mb-0">URL (Entidades de teleformación)  <u>avzformacion.com/aula</u></p>
+                        <p class="ms-2 mb-0 no-line-break">Dirección <u>C\ EL PESO 35, 3º D</u></p>
+                        <p class="ms-2 mb-0 no-line-break">CP <u>14900</u></p>
+                        <p class="ms-2 mb-0 no-line-break"> Municipio <u>LUCENA</u></p><br>
 
-                        <p class="ms-2 mb-0 no-line-break">Provincia  CÓRDOBA</p>
-                        <p class="ms-2 mb-0 no-line-break">Teléfono 910600410</p>
-                        <p class="ms-2 mb-0 no-line-break"> Correo electrónico info@avzformacion.com</p><br>
+                        <p class="ms-2 mb-0 no-line-break">Provincia  <u>CÓRDOBA</u></p>
+                        <p class="ms-2 mb-0 no-line-break">Teléfono <u>910600410</u></p>
+                        <p class="ms-2 mb-0 no-line-break"> Correo electrónico <u>info@avzformacion.com</u></p><br>
 
-                        <p class="ms-2 mt-0 mb-0 no-line-break">D./Dña. ANTONIO JOSE JIMENEZ AGRAZ en concepto de ADMINISTRADOR</p>
-                        <p class="ms-2 mb-0 no-line-break">NIF/NIE  50614013Y</p><br>
+                        <p class="ms-2 mt-0 mb-0 no-line-break">D./Dña. <u>ANTONIO JOSE JIMENEZ AGRAZ</u> en concepto de <u>ADMINISTRADOR</u></p>
+                        <p class="ms-2 mb-0 no-line-break">NIF/NIE  <u>50614013Y</u></p><br>
                         {{-- HAY QUE CAMBIAR LA BASE DE DATOS --}}
-                        <p class="ms-2 mb-0 no-line-break">Tutor/a del centro - D./Dña. __________________________________________________ </p>
-                        <p class="ms-2 mb-0 no-line-break">NIF/NIE ___________________________</p><br>
+                        <p class="ms-2 mb-0 no-line-break">Tutor/a del centro - D./Dña. <u>{{$e->training_tutor}}</u> </p>
+                        <p class="ms-2 mb-0 no-line-break">NIF/NIE <u>{{$e->training_tutor_dni}}</u></p><br>
                     </div>
                 </article>
             @endforeach
