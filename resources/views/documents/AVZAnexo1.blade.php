@@ -96,6 +96,15 @@
         body {
             margin-top: 30px;
         }
+        .no-border-top {
+            border-top: none !important;
+        }
+        .no-border-left {
+            border-left: none !important;
+        }
+        .no-border-right {
+            border-right: none !important;
+        }
 
         </style>
     </head>
@@ -252,7 +261,7 @@
             <!-- 2.b -->
             <article>
                 <p class="text-xl ms-5 mt-2 font-bold">2. B. Especialidades Formativas</p>
-
+            
                 <table class="mt3 mx-auto border border-2 border-dark text-sm" style="width: 100%">
                     <tbody>
                         <tr>
@@ -261,17 +270,17 @@
                         <tr class="border-top border-2 border-dark text-center">
                             <td class="font-semibold border-right border-dark"></td>
                             <td class="font-semibold border-right border-dark">Código</td>
-                            <td class="font-semibold border-right  border-dark">Denominación</td>
-                            <td class="font-semibold border-right  border-dark">N.º Horas</td>
-                            <td class="font-semibold border-right  border-dark">Modalidad (Presencial, Teleformación, Distancia1)</td>
+                            <td class="font-semibold border-right border-dark">Denominación</td>
+                            <td class="font-semibold border-right border-dark">N.º Horas</td>
+                            <td class="font-semibold border-right border-dark">Modalidad (Presencial, Teleformación, Distancia1)</td>
                             <td class="font-semibold">Código de Centro educativo autorizado / Código del Centro acreditado en Registro Estatal</td>
                         </tr>
-        
+            
                         @php
-                             $i = 0;   
+                            $i = 0;   
                         @endphp
                         @foreach($elements as $e)
-                            @if($i != 0 && $i % 19 == 0)
+                            @if($i != 0 && $i % 18 == 0)
                                 <tr class="border-top border-dark">
                                     <td colspan="6" style="height: 0px;"></td>
                                 </tr>
@@ -288,19 +297,24 @@
                                     </table>
                                 </div>
                                 <tr style="page-break-after: always;"></tr>
-                                @endif
+                                <tr class="border-bottom border-dark">
+                                    <td colspan="6" style="height: 0px;"></td>
+                                </tr>
+                            @endif
                             @php
                                 $i++;
                             @endphp
-                            <tr class="border-top  border-dark text-center">
-                                <td class="border-right  border-dark">{{$i}}</td>
-                                <td class="border-right  border-dark">{{$e->training_action->code}}</td>
-                                <td class="border-right  border-dark">{{$e->training_action->name}}</td>
-                                <td class="border-right  border-dark">{{$e->training_action->total_hours}}</td>
-                                <td class="border-right  border-dark">{{$e->training_action->modality->name}}</td>
+                            <tr class="border-top border-dark text-center {{ $i % 18 == 1 ? 'no-border-top' : '' }}">
+                                <td class="border-right border-dark {{ $i % 18 == 1 ? 'no-border-left' : '' }}">{{$i}}</td>
+                                <td class="border-right border-dark">{{$e->training_action->code}}</td>
+                                <td class="border-right border-dark">{{$e->training_action->name}}</td>
+                                <td class="border-right border-dark">{{$e->training_action->total_hours}}</td>
+                                <td class="border-right border-dark">{{$e->training_action->modality->name}}</td>
                                 <td>{{$e->training_action->webPlatform->name ?? ''}}</td>
                             </tr>
                         @endforeach
+                        <!-- Add a final row to simulate margin-bottom -->
+
                     </tbody>
                 </table>
             </article>

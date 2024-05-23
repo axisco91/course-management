@@ -399,6 +399,9 @@ public function testPdf($viewName, TrainingContract $trainingContract, $orientat
     }
     $fechaActual = Date::now()->format('d/m/Y');
 
+    ini_set('max_execution_time', 180); // PARA LOS CFA QUE SON MUY LARGOS, 60 segunddos(tiempo por defecto) no es suficiente
+
+
     $pdf = PDF::loadView($viewName,
     ['trainingContract' => $trainingContract,
         'elements' => $trainingElements,
@@ -429,7 +432,6 @@ public function testPdf($viewName, TrainingContract $trainingContract, $orientat
         $student = Student::find($trainingContract->student_id);
         $trainingContractBonus = TrainingContractBonus::find($trainingContractBill->training_contract_bonus_id);
     
-        ini_set('max_execution_time', 180); // PARA LOS CFA QUE SON MUY LARGOS, 60 segunddos(tiempo por defecto) no es suficiente
 
         $pdf = PDF::loadView($viewName,
         [   
