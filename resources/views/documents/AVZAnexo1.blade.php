@@ -404,8 +404,6 @@
                                 <td>{{$e->training_action->webPlatform->name ?? ''}}</td>
                             </tr>
                         @endforeach
-                        <!-- Add a final row to simulate margin-bottom -->
-
                     </tbody>
                 </table>
             </article>
@@ -712,8 +710,12 @@
                         <p class="ms-2 mt-0 mb-0 no-line-break">D./Dña. <u>ANTONIO JOSE JIMENEZ AGRAZ</u> en concepto de <u>ADMINISTRADOR</u></p>
                         <p class="ms-2 mb-0 no-line-break">NIF/NIE  <u>50614013Y</u></p><br>
                         {{-- HAY QUE CAMBIAR LA BASE DE DATOS --}}
-                        <p class="ms-2 mb-0 no-line-break">Tutor/a del centro - D./Dña. <u>{{$e->training_tutor}}</u> </p>
-                        <p class="ms-2 mb-0 no-line-break">NIF/NIE <u>{{$e->training_tutor_dni}}</u></p><br>
+                        <table class="ms-3" style="width: 95%">
+                            <td style="width: 20%">Tutor/a del centro - D./Dña.</td>
+                            <td class="border-bottom" style="width: 40%">{{$e->training_tutor}}</td>
+                            <td style="width: 8%">NIF/NIE</td>
+                            <td class="border-bottom">{{$e->training_tutor_dni}}</td><br>
+                        </table>
                     </div>
                 </article>
             @endforeach
