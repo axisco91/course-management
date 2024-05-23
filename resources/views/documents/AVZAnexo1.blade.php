@@ -715,9 +715,9 @@
                         {{-- HAY QUE CAMBIAR LA BASE DE DATOS --}}
                         <table class="ms-3" style="width: 95%">
                             <td style="width: 20%">Tutor/a del centro - D./Dña.</td>
-                            <td class="border-bottom" style="width: 40%">{{$e->training_tutor}}</td>
-                            <td style="width: 8%">NIF/NIE</td>
-                            <td class="border-bottom">{{$e->training_tutor_dni}}</td><br>
+                            <td class="border-bottom" style="width: 54%">{{$e->training_tutor}}</td>
+                            <td style="width: 6%">NIF/NIE</td>
+                            <td class="border-bottom" style="width: 20%">{{$e->training_tutor_dni}}</td><br>
                         </table>
                     </div>
                 </article>
