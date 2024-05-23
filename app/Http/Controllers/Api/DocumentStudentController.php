@@ -432,7 +432,6 @@ public function testPdf($viewName, TrainingContract $trainingContract, $orientat
         $student = Student::find($trainingContract->student_id);
         $trainingContractBonus = TrainingContractBonus::find($trainingContractBill->training_contract_bonus_id);
     
-
         $pdf = PDF::loadView($viewName,
         [   
             'occupation'=>$occupation,

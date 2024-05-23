@@ -22,6 +22,10 @@
                 font-size: 0.8rem !important;
             }
             
+            .text-md{
+                font-size: 0.75rem !important;
+            }
+
             .bg-gray-300 {
                 background-color: #C4C3C8;
             }
@@ -61,8 +65,16 @@
                 border-top: 1px solid black !important;
             }
 
+            .border-bottom{
+                border-bottom: 1px solid black !important;
+            }
+
             .border-right{
                 border-right: 1px solid black !important;
+            }
+
+            .border-left{
+                border-left: 1px solid black !important;
             }
 
             .underline{
@@ -81,12 +93,10 @@
                 color: black;
             }
 
-            @page {
-            margin: 100px 25px;
-        }
+         
         header {
             position: fixed;
-            top: -75px;
+            top: -45px;
             left: 0;
             right: 0;
             height: 100px;
@@ -94,7 +104,7 @@
         }
 
         body {
-            margin-top: 30px;
+            margin-top: 60px;
         }
         .no-border-top {
             border-top: none !important;
@@ -134,7 +144,7 @@
                 <div class="mx-auto" style="width: 95%">
                     <p class="text-xl font-bold mb-0">LA ACTIVIDAD FORMATIVA ESTARÁ DIRIGIDA A LA OBTENCIÓN DE <span class="text-sm font-normal">(desglose en apartado 2)</span></p>
                     
-                    <div class="text-sm">
+                    <div class="text-lg">
                         <input type="checkbox" class="no-line-break mb-0"><span class="ms-2 no-line-break mb-0">Título de formación profesional (denominación) </span><br>
                         <input type="checkbox" class="no-line-break"><span class="ms-2 no-line-break">Certificado de profesionalidad (denominación)</span><br>
                         <input type="checkbox" class="no-line-break"><span class="ms-2 no-line-break me-2">Certificación académica</span><br>
@@ -147,17 +157,55 @@
             <article class="border border-1 border-dark mt-1">
                 <div class="mx-auto" style="width: 95%">
                     <p class="text-xl font-bold mb-0">DATOS DE LA EMPRESA</p>
-                    <div class="text-sm">
-                        <p class=" mb-0">Razón social   <u>{{$trainingContract->company->name}}</u>   CIF/NIF/NIE   <u>{{$trainingContract->company->nif}}</u></p>
-                        <p class=" mb-0">D./Dña.   <u>{{$trainingContract->company->legal_representative}}</u>   en concepto de 
-                        @if($trainingContract->company->companyType->name == "Autónomo")
-                            <u>TITULAR</u>
-                        @else
-                            <u>ADMINISTRADOR</u>
-                        @endif
-                        NIF/NIE: <u>{{$trainingContract->company->dni_legal_representative}}</u></p>
-                        <p class=" mb-0">Correo electrónico de la empresa <u>{{$trainingContract->company->email}}</u> Tfno. empresa <u>{{$trainingContract->company->telephone}}</u></p>
-                        <p class="mb-0">Tutor/a de la empresa - D./Dña. <u>{{$trainingContract->company_tutor}}</u> NIF/NIE <u>{{$trainingContract->company_tutor_dni}}</u></p>
+                    <div class="text-lg">
+                        <table style="width: 100%">
+                            <tr>
+                                <td style="width: 12%">Razón social</td>
+                                <td class="border-bottom ms-2" style="width: 63%">{{$trainingContract->company->name}}</td>
+                                <td style="11.5%" class="ms-2">CIF/NIF/NIE</td>
+                                <td style="13.5%" class="border-bottom ms-2">{{$trainingContract->company->nif}}</td>
+                            </tr>
+                        </table>
+                        <table style="width: 100%">
+                            <tr>
+                                <td style="width: 7.5%">D./Dña.</td>
+                                <td class="border-bottom ms-2" style="width: 34.5%">{{$trainingContract->company->legal_representative}}</td>
+                                <td style="width: 12.5%" class="ms-2">en concepto de </td>
+                                <td class="border-bottom" style="width: 29.5%">@if($trainingContract->company->companyType->name == "Autónomo")
+                                        TITULAR
+                                    @else
+                                        ADMINISTRADOR
+                                    @endif
+                                </td>
+                                <td style="width: 5%" class="ms-2">NIF/NIE: </td>
+                                <td class="border-bottom ms-2" style="width: 11%">{{$trainingContract->company->dni_legal_representative}}</td>
+                            </tr>
+                        </table>
+                        <table style="width: 100%">
+                            <td>
+                                <td style="width: 28%">Correo electrónico de la empresa</td>
+                                <td class="border-bottom ms-2" style="width: 47%">{{$trainingContract->company->email}}</td>
+                                <td style="width: 13%" class="ms-2">Tfno. empresa</td>
+                                <td class="border-bottom ms-2" style="width: 12%">{{$trainingContract->company->telephone}}</td>
+                            </td>
+                        </table>
+                        <table style="width: 100%">
+                            <tr>
+                                {{--No se calcula bien--}}
+                                {{-- @php
+                                    $fechaInicio = \Carbon\Carbon::parse($trainingContract->start)->locale('es');
+                                    $monthKey = $fechaInicio->format('Y-m');
+                                    $sumaHoras += $monthlyFormationHours->{$monthKey} ?? 0;
+                                @endphp --}}
+                                <td style="width: 25%">Tutor/a de la empresa - D./Dña.</td>
+                                <td class="border-bottom ms-2" style="width: 18.5%">{{$trainingContract->company_tutor}}</td>
+                                <td style="width: 15%" class="ms-2">Horas mensuales</td>
+                                <td class="border-bottom ms-2" style="width: 11.5%">{{--$sumaHoras--}}</td>
+                                <td style="width: 8%" class="ms-2">NIF/NIE</td>
+                                <td class="border-bottom ms-2" style="width: 17%">{{$trainingContract->company_tutor_dni}}</td>
+                            </tr>
+                        </table>
+                        
                         <input class="no-line-break mb-0 ms-1" type="checkbox" {{$trainingContract->company->companyType->name == "Autónomo" ? 'checked' : ''}}><span class="ms-2 no-line-break"> Empresa con menos de 5 trabajadores</span>
                     </div>
                 </div>                
@@ -166,10 +214,17 @@
             <article class="border border-1 border-dark mt-1">
                 <div class="mx-auto" style="width: 95%; ">
                     <p class="text-xl font-bold mb-0">DATOS DEL TRABAJADOR</p>
-                    <div class="text-sm">
-                        <p class="ms-2 no-line-break">D./Dña.  <u>{{$trainingContract->student->name}}  {{$trainingContract->student->surname}} </u></p> 
-                        <p class="ms-2 no-line-break">NIF/NIE   <u>{{$trainingContract->student->dni}}</u></p>
-                        <p class="ms-2 no-line-break">Fecha de nacimiento   <u>{{ \Carbon\Carbon::parse($trainingContract->student->date_of_birth)->format('d/m/Y') }}</u></p> <br>
+                    <div class="text-lg">
+                        <table style="width: 100%">
+                            <tr>
+                                <td style="width: 10%">D./Dña.</td>
+                                <td class="border-bottom" style="width: 43%">{{$trainingContract->student->name}} {{$trainingContract->student->surname}} </td>
+                                <td style="width: 8%">NIF/NIE</td>
+                                <td class="border-bottom" style="width: 12%">{{$trainingContract->student->dni}}</td>
+                                <td style="width: 20%">Fecha de nacimiento</td>
+                                <td class="border-bottom" style="width: 7%">{{ \Carbon\Carbon::parse($trainingContract->student->date_of_birth)->format('d/m/Y') }}</td>
+                            </tr>
+                        </table>
                         <input class="no-line-break mb-0" type="checkbox"><p class="ms-2 mb-0 no-line-break">Reúne requisitos de acceso a la Formación de este contrato.</p><br>
                         <input class="no-line-break mb-0" type="checkbox" {{$trainingContract->youth_guarantee == 1 ? 'checked' : ''}}> 
                         <p class="ms-2 mb-0 no-line-break">Inscrito/a en el Sistema Nacional de Garantía Juvenil.</p><br>
@@ -184,22 +239,58 @@
             <article class="border border-1 border-dark mt-1">
                 <div class="mx-auto" style="width: 95%">
                     <p class="text-xl font-bold mb-0">DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA</p>
-                    <div class="text-sm">
-                        <p class="no-line-break">Identificador contrato n.º</p>
-                        <p class="border2 no-line-break">
-                            @for($i = 0; $i < 16; $i++)
-                                <span style="border-right: 1px solid black; width:4.1px; padding-right: 4px">  </span>
-                            @endfor
-                        </p>
-                        <p class="no-line-break">(a consignar una vez comunicada la formalización del contrato)</p><br>
-                        <p class="no-line-break">Fecha de inicio <u>{{ \Carbon\Carbon::parse($trainingContract->beginning)->format('d/m/Y') }}</u></p>
-                        <p class="no-line-break">Fecha de fin <u>{{ \Carbon\Carbon::parse($trainingContract->end)->format('d/m/Y') }}</u></p><br>
-                        <p class="no-line-break">Puesto de trabajo u ocupación <u>{{$trainingContract->occupation->name}}</u></p>
-                        <p class="no-line-break">Cód. CNO <u>{{$trainingContract->occupation->cno}}</u></p><br>
-                        <p class="no-line-break">Provincia del centro de trabajo <u>{{$trainingContract->province->name ?? ''}}</u></p>
-                        <p class="no-line-break"> Horas del contrato: Año 1.º <u>{{$trainingContract->formative_hours_first_year}}</u></p>
-                        <p class="no-line-break">Año 2.º <u>{{$trainingContract->formative_hours_second_year}}</u></p><br>
-                        <p>Convenio aplicable  <u>{{$trainingContract->applicableAgreement->name ?? ''}}</u> </p>
+                    <div class="text-lg">
+                        <table style="width: 100%">
+                            <tr>
+                                <td>Identificador contrato n.º</td>
+                                <p class="border2 no-line-break ps-1">
+                                    @for($i = 0; $i < 16; $i++)
+                                        <span style="border-right: 1px solid black; width:4.5px; padding-right: 2px; padding-left: 2px">  </span>
+                                    @endfor
+                                </p>
+                                <td>(a consignar una vez comunicada la formalización del contrato)</td>
+                            </tr>
+                        </table>
+                        <table style="width: 50%">
+                            <tr>
+                                <td style="width: 25%">Fecha de inicio</td>
+                                <td class="border-bottom" >{{ \Carbon\Carbon::parse($trainingContract->beginning)->format('d/m/Y') }}</td>
+                                <td style="width: 23%">Fecha de fin</td>
+                                <td class="border-bottom">{{ \Carbon\Carbon::parse($trainingContract->end)->format('d/m/Y') }}</td>
+                            </tr>
+                        </table>
+                        <table style="width: 100%">
+                            <tr>
+                                <td style="width: 25%">Puesto de trabajo u ocupación</td>
+                                <td class="border-bottom">{{$trainingContract->occupation->name}}</td>
+                                <td style="width: 10%">Cód. CNO</td>
+                                <td class="border-left border-top border-bottom" style="width: 20%">
+                                    @php
+                                        $cnoArray = str_split($trainingContract->occupation->cno);
+                                    @endphp
+
+                                    @foreach($cnoArray as $char)
+                                        <span class="border-right" style="padding-top: 7px; padding-bottom: 3.5px; padding-right: 3.1px; padding-left: 3px">{{ $char }}</span>
+                                    @endforeach
+                                </td>
+                            </tr>
+                        </table>
+                        <table style="width: 100%">
+                            <tr>
+                                <td style="width: 25%">Provincia del centro de trabajo</td>
+                                <td class="border-bottom">{{$trainingContract->province->name ?? ''}}</td>
+                                <td style="width: 22%">Horas del contrato: Año 1.º</td>
+                                <td class="border-bottom" style="width: 8%">{{$trainingContract->formative_hours_first_year}}</td>
+                                <td  style="width: 8%">Año 2.º</td>
+                                <td class="border-bottom" style="width: 8%">{{$trainingContract->formative_hours_second_year}}</td>
+                            </tr>
+                        </table>
+                        <table style="width: 100%" class="mb-2">
+                            <tr>
+                                <td style="width: 18%">Convenio aplicable</td>
+                                <td class="border-bottom" style="width: 85%">{{$trainingContract->applicableAgreement->name ?? ''}}</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>                
             </article>
@@ -255,7 +346,7 @@
                 </table>
             </div>
 
-    <div style="page-break-after: always;"></div>
+            <div style="page-break-after: always;"></div>
 
 
             <!-- 2.b -->
@@ -544,9 +635,15 @@
                 @endphp
                 <article class="mx-auto mt-1 border border-2 border-dark pb-1" >
                     <p class="text-sm font-semibold ms-2 mb-0 ">DATOS  DEL CENTRO DE FORMACIÓN</p>
-                    <div class="mx-auto text-xs">
-                        <p class="ms-2 mb-0 no-line-break">Formación a impartir:  Código <u>{{$e->training_action->code}}</u></p>
-                        <p class="ms-2 mb-0 no-line-break">Denominación <u>{{$e->training_action->name}}</u></p> <br>
+                    <div class="mx-auto text-sm">
+                        <table class="ms-4" style="width: 95%">
+                            <tr>
+                                <td style="width: 21%">Formación a impartir:  Código</td>
+                                <td class="border-bottom" style="width: 13%">{{$e->training_action->codigo}}</td>
+                                <td style="width: 11%">Denominación</td>
+                                <td class="border-bottom ">{{$e->training_action->name}}</td>
+                            </tr>
+                        </table>
 
                         <div class="ms-2">
                             <input class="mb-0 no-line-break" type="checkbox">
@@ -569,18 +666,49 @@
                             <p class="ms-2 mt-0 mb-0 no-line-break"> Si la formación se imparte mediante teleformación, especificar código/s del/os Centros Presenciales vinculados:</p>
                         </div>
 
-                        <p class="ms-2 mb-0 no-line-break">Nombre Centro <u>AVZ FORMACION, SL</u> </p>
-                        <p class="ms-2 mb-0 no-line-break">CIF/NIF/NIE <u>B16826638</u></p><br>
+                        <table class="ms-3" style="width: 95%">
+                            <tr>
+                                <td style="width: 13%">Nombre Centro</td>
+                                <td class="border-bottom">AVZ FORMACION, SL</td>
+                                <td style="width: 12%">CIF/NIF/NIE</td>
+                                <td class="border-bottom" style="width: 15%">B16826638L</td>
+                            </tr>
+                        </table>
 
-                        <p class="ms-2 mb-0">URL (Entidades de teleformación)  <u>avzformacion.com/aula</u></p>
-                        <p class="ms-2 mb-0 no-line-break">Dirección <u>C\ EL PESO 35, 3º D</u></p>
-                        <p class="ms-2 mb-0 no-line-break">CP <u>14900</u></p>
-                        <p class="ms-2 mb-0 no-line-break"> Municipio <u>LUCENA</u></p><br>
+                        <table class="ms-3" style="width: 95%">
+                            <tr>
+                                <td style="width: 25%">URL (Entidades de teleformación)</td>
+                                <td class="border-bottom">avzformacion.com/aula</td>
+                            </tr>
+                        </table>
 
-                        <p class="ms-2 mb-0 no-line-break">Provincia  <u>CÓRDOBA</u></p>
-                        <p class="ms-2 mb-0 no-line-break">Teléfono <u>910600410</u></p>
-                        <p class="ms-2 mb-0 no-line-break"> Correo electrónico <u>info@avzformacion.com</u></p><br>
+                        <table class="ms-3" style="width: 95%">
+                            <tr>
+                                <td style="width: 9%">Dirección</td>
+                                <td class="border-bottom">C\ EL PESO 35, 3º D</td>
+                                <td style="width: 5%">CP</td>
+                                <td class="border-bottom">14900</td>
+                                <td style="width: 9%">Municipio</td>
+                                <td class="border-bottom">LUCENA</td>
+                            </tr>
+                        </table>
 
+                        <table class="ms-3" style="width: 95%">
+                            <tr>
+                                <td style="width: 9%">Provincia</td>
+                                <td class="border-bottom">CÓRDOBA</td>
+                                <td style="width: 8%">Teléfono</td>
+                                <td class="border-bottom">910600410</td>
+                                <td style="width: 13%">Correo electrónico</td>
+                                <td class="border-bottom">info@avzformacion.com</td>
+                            </tr>
+                        </table>
+
+                        <table class="ms-3" style="width: 95%">
+                            <tr>
+                                <td></td>
+                            </tr>
+                        </table>
                         <p class="ms-2 mt-0 mb-0 no-line-break">D./Dña. <u>ANTONIO JOSE JIMENEZ AGRAZ</u> en concepto de <u>ADMINISTRADOR</u></p>
                         <p class="ms-2 mb-0 no-line-break">NIF/NIE  <u>50614013Y</u></p><br>
                         {{-- HAY QUE CAMBIAR LA BASE DE DATOS --}}
