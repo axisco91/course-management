@@ -706,11 +706,14 @@
 
                         <table class="ms-3" style="width: 95%">
                             <tr>
-                                <td></td>
+                                <td style="width: 6%">D./Dña.</td>
+                                <td class="border-bottom" style="width: 29%">ANTONIO JOSE JIMENEZ AGRAZ</td>
+                                <td style="width: 13%">en concepto de</td>
+                                <td class="border-bottom">ADMINISTRADOR</td>
+                                <td style="width: 6%">NIF/NIE</td>
+                                <td class="border-bottom">50614013Y</td>
                             </tr>
                         </table>
-                        <p class="ms-2 mt-0 mb-0 no-line-break">D./Dña. <u>ANTONIO JOSE JIMENEZ AGRAZ</u> en concepto de <u>ADMINISTRADOR</u></p>
-                        <p class="ms-2 mb-0 no-line-break">NIF/NIE  <u>50614013Y</u></p><br>
                         {{-- HAY QUE CAMBIAR LA BASE DE DATOS --}}
                         <p class="ms-2 mb-0 no-line-break">Tutor/a del centro - D./Dña. <u>{{$e->training_tutor}}</u> </p>
                         <p class="ms-2 mb-0 no-line-break">NIF/NIE <u>{{$e->training_tutor_dni}}</u></p><br>
