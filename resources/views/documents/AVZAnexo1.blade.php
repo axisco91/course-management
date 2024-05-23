@@ -22,6 +22,10 @@
                 font-size: 0.8rem !important;
             }
             
+            .text-md{
+                font-size: 0.75rem !important;
+            }
+
             .bg-gray-300 {
                 background-color: #C4C3C8;
             }
@@ -89,12 +93,10 @@
                 color: black;
             }
 
-            @page {
-            margin: 100px 25px;
-        }
+         
         header {
             position: fixed;
-            top: -75px;
+            top: -45px;
             left: 0;
             right: 0;
             height: 100px;
@@ -102,7 +104,7 @@
         }
 
         body {
-            margin-top: 30px;
+            margin-top: 60px;
         }
         .no-border-top {
             border-top: none !important;
@@ -633,9 +635,15 @@
                 @endphp
                 <article class="mx-auto mt-1 border border-2 border-dark pb-1" >
                     <p class="text-sm font-semibold ms-2 mb-0 ">DATOS  DEL CENTRO DE FORMACIÓN</p>
-                    <div class="mx-auto text-xs">
-                        <p class="ms-2 mb-0 no-line-break">Formación a impartir:  Código <u>{{$e->training_action->code}}</u></p>
-                        <p class="ms-2 mb-0 no-line-break">Denominación <u>{{$e->training_action->name}}</u></p> <br>
+                    <div class="mx-auto text-sm">
+                        <table class="ms-4" style="width: 95%">
+                            <tr>
+                                <td style="width: 21%">Formación a impartir:  Código</td>
+                                <td class="border-bottom" style="width: 13%">{{$e->training_action->codigo}}</td>
+                                <td style="width: 11%">Denominación</td>
+                                <td class="border-bottom ">{{$e->training_action->name}}</td>
+                            </tr>
+                        </table>
 
                         <div class="ms-2">
                             <input class="mb-0 no-line-break" type="checkbox">
@@ -658,18 +666,49 @@
                             <p class="ms-2 mt-0 mb-0 no-line-break"> Si la formación se imparte mediante teleformación, especificar código/s del/os Centros Presenciales vinculados:</p>
                         </div>
 
-                        <p class="ms-2 mb-0 no-line-break">Nombre Centro <u>AVZ FORMACION, SL</u> </p>
-                        <p class="ms-2 mb-0 no-line-break">CIF/NIF/NIE <u>B16826638</u></p><br>
+                        <table class="ms-3" style="width: 95%">
+                            <tr>
+                                <td style="width: 13%">Nombre Centro</td>
+                                <td class="border-bottom">AVZ FORMACION, SL</td>
+                                <td style="width: 12%">CIF/NIF/NIE</td>
+                                <td class="border-bottom" style="width: 15%">B16826638L</td>
+                            </tr>
+                        </table>
 
-                        <p class="ms-2 mb-0">URL (Entidades de teleformación)  <u>avzformacion.com/aula</u></p>
-                        <p class="ms-2 mb-0 no-line-break">Dirección <u>C\ EL PESO 35, 3º D</u></p>
-                        <p class="ms-2 mb-0 no-line-break">CP <u>14900</u></p>
-                        <p class="ms-2 mb-0 no-line-break"> Municipio <u>LUCENA</u></p><br>
+                        <table class="ms-3" style="width: 95%">
+                            <tr>
+                                <td style="width: 25%">URL (Entidades de teleformación)</td>
+                                <td class="border-bottom">avzformacion.com/aula</td>
+                            </tr>
+                        </table>
 
-                        <p class="ms-2 mb-0 no-line-break">Provincia  <u>CÓRDOBA</u></p>
-                        <p class="ms-2 mb-0 no-line-break">Teléfono <u>910600410</u></p>
-                        <p class="ms-2 mb-0 no-line-break"> Correo electrónico <u>info@avzformacion.com</u></p><br>
+                        <table class="ms-3" style="width: 95%">
+                            <tr>
+                                <td style="width: 9%">Dirección</td>
+                                <td class="border-bottom">C\ EL PESO 35, 3º D</td>
+                                <td style="width: 5%">CP</td>
+                                <td class="border-bottom">14900</td>
+                                <td style="width: 9%">Municipio</td>
+                                <td class="border-bottom">LUCENA</td>
+                            </tr>
+                        </table>
 
+                        <table class="ms-3" style="width: 95%">
+                            <tr>
+                                <td style="width: 9%">Provincia</td>
+                                <td class="border-bottom">CÓRDOBA</td>
+                                <td style="width: 8%">Teléfono</td>
+                                <td class="border-bottom">910600410</td>
+                                <td style="width: 13%">Correo electrónico</td>
+                                <td class="border-bottom">info@avzformacion.com</td>
+                            </tr>
+                        </table>
+
+                        <table class="ms-3" style="width: 95%">
+                            <tr>
+                                <td></td>
+                            </tr>
+                        </table>
                         <p class="ms-2 mt-0 mb-0 no-line-break">D./Dña. <u>ANTONIO JOSE JIMENEZ AGRAZ</u> en concepto de <u>ADMINISTRADOR</u></p>
                         <p class="ms-2 mb-0 no-line-break">NIF/NIE  <u>50614013Y</u></p><br>
                         {{-- HAY QUE CAMBIAR LA BASE DE DATOS --}}
