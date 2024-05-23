@@ -104,7 +104,7 @@
         }
 
         body {
-            margin-top: 60px;
+            margin-top: 50px;
         }
         .no-border-top {
             border-top: none !important;
@@ -633,13 +633,13 @@
                 @endphp
                 <article class="mx-auto mt-1 border border-2 border-dark pb-1" >
                     <p class="text-sm font-semibold ms-2 mb-0 ">DATOS  DEL CENTRO DE FORMACIÓN</p>
-                    <div class="mx-auto text-sm">
+                    <div class="mx-auto text-xs">
                         <table class="ms-4" style="width: 95%">
                             <tr>
                                 <td style="width: 21%">Formación a impartir:  Código</td>
                                 <td class="border-bottom" style="width: 13%">{{$e->training_action->codigo}}</td>
                                 <td style="width: 11%">Denominación</td>
-                                <td class="border-bottom ">{{$e->training_action->name}}</td>
+                                <td class="border-bottom no-linea-break">{{$e->training_action->name}}</td>
                             </tr>
                         </table>
 
