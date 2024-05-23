@@ -371,13 +371,13 @@
 
     <ul class="no-bullets">
         <li>a) Actividad laboral (6) <span class="dots">{{$trainingContract->occupation->name}}</span>
-                CNO: <span class="dots">{{(substr($trainingContract->occupation->cno, 0, 4))}} </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$trainingContract->company->address}} ({{$trainingContract->company->post_code}} {{$trainingContract->company->population}}) </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots">  {{$trainingAction->training_tutor}} </span> , cuya cualificación profesional es (9) <span class="dots"> Tutor Experto </span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} </span></li>
+                CNO: <span class="dots">{{(substr($trainingContract->occupation->cno, 0, 4))}} </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$trainingContract->company->address}} ({{$trainingContract->company->post_code}} {{$trainingContract->company->population}}) </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots">  {{$trainingContract->training_tutor}} </span> , cuya cualificación profesional es (9) <span class="dots"> Tutor Experto </span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} </span></li>
         <li>b) La actividad formativa vinculada al contrato es <span class="dots">{{$trainingContract->occupation->name}}	</span>, de acuerdo con el convenio de colaboración suscrito por la empresa con el centro o entidad formativa y que se incorpora como anexo en este contrato (10).</li>
     </ul>
 
     <h3 class="no-line-break">SEGUNDA: </h3>
     <p class="no-line-break">la jornada total será de (11) <span class="dots">{{$trainingContract->annually_day_hours}}</span> horas <span class="dots">anual </span>	De ellas, el número de horas dedicadas a la actividad formativa
-    será de <span class="dots"> {{$trainingContract->formative_hours_first_year}} </span> horas, que representan un <span class="dots">{{$trainingContract->percentage_first_year}} </span> por ciento de la jornada máxima prevista en el convenio colectivo de
+    será de <span class="dots"> {{$trainingContract->bonus_hours_first_year}} </span> horas, que representan un <span class="dots">{{$trainingContract->percentage_first_year}} </span> por ciento de la jornada máxima prevista en el convenio colectivo de
     <span class="dots">{{ $trainingContract->applicableAgreement ? $trainingContract->applicableAgreement->name : '' }} {{ $trainingContract->applicableAgreement ? "({$trainingContract->applicableAgreement->code})" : '' }}</span>
     <br>El tiempo efectivo de trabajo se prestará en el horario (12)<br>
     <span class="dots">
@@ -909,16 +909,16 @@
 
 
         <p>Se establece un período de adaptación al trabajo que a su vez tendrá el carácter de período de prueba de (1) <span class="dots">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> en las condiciones siguientes (2)
-            <span class="dots">.............................................................................................................................................................................................................................................
+            <span class="fondo-azul">.............................................................................................................................................................................................................................................
             .............................................................................................................................................................................................................................................
             .............................................................................................................................................................................................................................................</span>
         </p>
         <p>Para lograr la adecuación del puesto de trabajo a las características del/de la trabajador/a, la empresa se compromete a realizar las siguientes adaptaciones al puesto de trabajo
-            <span class="dots">.............................................................................................................................................................................................................................................
+            <span class="fondo-azul">.............................................................................................................................................................................................................................................
             .............................................................................................................................................................................................................................................
             .............................................................................................................................................................................................................................................</span>
             y/o en caso de que el contrato sea a distancia se realizarán los servicios de ajuste de personal y social siguientes
-            <span class="dots">.............................................................................................................................................................................................................................................
+            <span class="fondo-azul">.............................................................................................................................................................................................................................................
             .............................................................................................................................................................................................................................................
             .............................................................................................................................................................................................................................................</span>
         </p>
@@ -1089,32 +1089,32 @@
         <p>Que este contrato se realiza en el marco del Programa de Fomento del Empleo Agrario. (Real Decreto 939/1997, de 20 de junio).</p>
         <p>Que el empleador es corporación local.</p>
         <p>Datos de la oferta de trabajo presentada en la oficina de empleo:
-            <span class="dots">.............................................................................................................................................................................................................................................
+            <span class="fondo-azul">.............................................................................................................................................................................................................................................
             .............................................................................................................................................................................................................................................
             .............................................................................................................................................................................................................................................</span>
         </p>
         <div class="col-md-12">
             <ul class="no-bullets">
                 <li>
-                    Número de expediente del Programa de Fomento de Empleo Agrario: <span class="dots">.............................................</span>
+                    Número de expediente del Programa de Fomento de Empleo Agrario: <span class="fondo-azul">.............................................</span>
                 </li>
                 <li>
-                    Provincia: <span class="dots">................................................................</span>
+                    Provincia: <span class="fondo-azul">................................................................</span>
                 </li>
                 <li>
-                Localidad obra: <span class="dots">............................................................................................................................................................................................... </span>
+                Localidad obra: <span class="fondo-azul">............................................................................................................................................................................................... </span>
                 </li>
                 <li>
-                    Año: <span class="dots">..............</span>
+                    Año: <span class="fondo-azul">..............</span>
                 </li>
                 <li>
-                    Ent. Grupo: <span class="dots">............................................................................</span>
+                    Ent. Grupo: <span class="fondo-azul">............................................................................</span>
                 </li>
                 <li>
-                    Programa: <span class="dots">.............................................................................</span>
+                    Programa: <span class="fondo-azul">.............................................................................</span>
                 </li>
                 <li>
-                Número de sección: <span class="dots">............................................................................</span>
+                Número de sección: <span class="fondo-azul">............................................................................</span>
                 </li>
             </ul>
         </div>
@@ -1152,7 +1152,7 @@
     </table>
     <div class="mt-4 borde-redondeado">
         <h1 class="text-center">CLAUSULAS ADICIONALES</h1>
-        <p class="text-center"><span style="background-color: #f1f4ff">........................................................................................................................................................................................................................................
+        <p class="text-center"><span class="fondo-azul">........................................................................................................................................................................................................................................
             ........................................................................................................................................................................................................................................
             ........................................................................................................................................................................................................................................
             ........................................................................................................................................................................................................................................

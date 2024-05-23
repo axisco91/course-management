@@ -93,6 +93,10 @@ hr {
     text-decoration: none;
 }
 
+.fondo-azul {
+    background-color: #f1f4ff;
+}
+
 .borde-redondeado {
     border-radius: 10px;
     border: 1px solid black;
