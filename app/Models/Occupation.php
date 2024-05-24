@@ -11,7 +11,7 @@ class Occupation extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'cno'];
 
     public static function getOccupations(){
         $occupations = Occupation::select('*', 'id as value', 'name as label')

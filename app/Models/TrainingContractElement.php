@@ -15,7 +15,7 @@ class TrainingContractElement extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days', 'order', 'course_id'];
+    protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days', 'order', 'course_id', 'training_tutor', 'training_tutor_dni'];
 
     public function training_contract(){
         return $this->belongsTo(TrainingContract::class);

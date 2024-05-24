@@ -147,6 +147,8 @@ class TrainingContract extends Model
             'observations' => $data['observations'],
             'daily_hours_1' => $data['daily_hours_1'],
             'daily_hours_2' => $data['daily_hours_2'],
+            'training_tutor' => $data['training_tutor'],
+            'training_tutor_dni' => $data['training_tutor_dni'],
         ]);
         $training_contract->excludedDays()->sync($data['excluded_day_id']);
         return $training_contract;
@@ -209,6 +211,8 @@ class TrainingContract extends Model
             'observations' => $data['observations'],
             'daily_hours_1' => $data['daily_hours_1'],
             'daily_hours_2' => $data['daily_hours_2'],
+            'training_tutor' => $data['training_tutor'],
+            'training_tutor_dni' => $data['training_tutor_dni'],
         ]);
         return $training_contract;
     }
