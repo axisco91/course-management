@@ -45,6 +45,7 @@ class Student extends Model
         'legal_guardian_dni',
         'population_code',
         'nationality_code',
+        'regimen'
     ];
 
     /**

@@ -44,7 +44,8 @@ class StudentService
             'legal_guardian_name' => $data['legal_guardian_name'] ? $data['legal_guardian_name'] : null,
             'legal_guardian_dni' => $data['legal_guardian_dni'] ? $data['legal_guardian_dni'] : null,
             'population_code' => $data['population_code'] ? $data['population_code'] : null,
-            'nationality_code' => $data['nationality_code'] ? $data['nationality_code'] : null
+            'nationality_code' => $data['nationality_code'] ? $data['nationality_code'] : null,
+            'regimen' => $data['regimen'] ? $data['regimen'] : null
 
         ]);
     }
@@ -83,7 +84,8 @@ class StudentService
             'legal_guardian_name' => $data['legal_guardian_name'] ? $data['legal_guardian_name'] : null,
             'legal_guardian_dni' => $data['legal_guardian_dni'] ? $data['legal_guardian_dni'] : null,
             'population_code' => $data['population_code'] ? $data['population_code'] : null,
-            'nationality_code' => $data['nationality_code'] ? $data['nationality_code'] : null
+            'nationality_code' => $data['nationality_code'] ? $data['nationality_code'] : null,
+            'regimen' => $data['regimen'] ? $data['regimen'] : null
         ]);
         return $student;
     }
