@@ -40,6 +40,12 @@ class StudentService
             'observation' => $data['observation'] ? $data['observation'] : null,
             'iban' => $data['iban'] ? $data['iban'] : null,
             'active' => $data['active'],
+            'nationality' => $data['nationality'] ? $data['nationality'] : null,
+            'legal_guardian_name' => $data['legal_guardian_name'] ? $data['legal_guardian_name'] : null,
+            'legal_guardian_dni' => $data['legal_guardian_dni'] ? $data['legal_guardian_dni'] : null,
+            'population_code' => $data['population_code'] ? $data['population_code'] : null,
+            'nationality_code' => $data['nationality_code'] ? $data['nationality_code'] : null
+
         ]);
     }
 
@@ -72,7 +78,12 @@ class StudentService
             'observation' => $data['observation'] ? $data['observation'] : null,
             'iban' => $data['iban'] ? $data['iban'] : null,
             'disabled' => $data['disabled'],
-            'active' => $data['active']
+            'active' => $data['active'],
+            'nationality' => $data['nationality'] ? $data['nationality'] : null,
+            'legal_guardian_name' => $data['legal_guardian_name'] ? $data['legal_guardian_name'] : null,
+            'legal_guardian_dni' => $data['legal_guardian_dni'] ? $data['legal_guardian_dni'] : null,
+            'population_code' => $data['population_code'] ? $data['population_code'] : null,
+            'nationality_code' => $data['nationality_code'] ? $data['nationality_code'] : null
         ]);
         return $student;
     }

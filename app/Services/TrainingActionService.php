@@ -50,6 +50,7 @@ class TrainingActionService
             'specialty' => $data['specialty'],
             'in_catalog' => $data['in_catalog'],
             'course_origin_id' => $data['course_origin_id'] != -1 ? $data['course_origin_id'] : null,
+            'code' => $data['code'] ? $data['code'] : null,
         ]);
 
         return $trainingAction;
