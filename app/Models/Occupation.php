@@ -42,7 +42,8 @@ class Occupation extends Model
 
     public static function createOccupation($data){
         $occupation = Occupation::create([
-            'name' => $data['name']
+            'name' => $data['name'],
+            'cno' => $data['cno']
         ]);
 
         return $occupation;
@@ -51,7 +52,8 @@ class Occupation extends Model
     public static function updateOccupation($id, $data){
         $occupation = Occupation::find($id);
         $occupation->update([
-            'name' => $data['name']
+            'name' => $data['name'],
+            'cno' => $data['cno']
         ]);
 
         return $occupation;
