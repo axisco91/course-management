@@ -7,6 +7,7 @@ use App\Models\Teacher;
 use App\Services\TeacherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class TeacherController extends BaseController
 {
@@ -108,7 +109,7 @@ class TeacherController extends BaseController
         ]);
     }
 
-    
+
     public function store(TeacherRequests $request){
         try {
             $data = $request->all();
@@ -125,7 +126,7 @@ class TeacherController extends BaseController
             }
 
             // Asociar las áreas formativas al profesor
-            $teacherAreaIds = $request->input('teacher_area_ids');  // Los IDs de las áreas a las que está relacionado el profesor
+            $teacherAreaIds = $request->input('teacher_area_id');  // Los IDs de las áreas a las que está relacionado el profesor
             foreach ($teacherAreaIds as $teacherAreaId) {
                 $teacher->teacherAreas()->attach($teacherAreaId);
             }
@@ -143,27 +144,44 @@ class TeacherController extends BaseController
         }
     }
 
-    public function update($id, TeacherRequests $request){
+    public function update($id, TeacherRequests $request)
+    {
         try {
             $data = $request->all();
             $teacher = Teacher::find($id);
+            if (!$teacher) {
+                Log::error("Teacher not found with id: $id");
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Teacher not found'
+                ]);
+            }
+
             $element = $this->teacherService->update($teacher, $data);
             $teacher = Teacher::teacher()
                 ->where('teachers.id', $element->id)
                 ->first();
             $course = Course::where('teacher_id', $teacher->id)
                 ->first();
-            if ($course) {
-                $teacher['used'] = true;
-            } else {
-                $teacher['used'] = false;
-            }
+            $teacher['used'] = $course ? true : false;
 
             // Actualizar las áreas formativas asociadas al profesor
             $teacher->teacherAreas()->detach();
-            $teacherAreaIds = $request->input('teacher_area_ids');  // Los IDs de las áreas a las que está relacionado el profesor
-            foreach ($teacherAreaIds as $teacherAreaId) {
-                $teacher->teacherAreas()->attach($teacherAreaId);
+            $teacherAreaIds = $request->input('teacher_areas', []); // Obtener como array
+
+            Log::info('Request data:', ['request' => $request->all()]);
+            Log::info('Teacher area IDs received:', ['teacher_area_ids' => $teacherAreaIds]);
+
+            if (is_array($teacherAreaIds)) {
+                foreach ($teacherAreaIds as $teacherAreaId) {
+                    if (is_numeric($teacherAreaId)) { // Verificar que sea numérico
+                        $teacher->teacherAreas()->attach((int) $teacherAreaId); // Convertir a entero
+                    } else {
+                        Log::error("teacherAreaId is not numeric: " . print_r($teacherAreaId, true));
+                    }
+                }
+            } else {
+                Log::error("teacher_area_ids is null or not an array: " . print_r($teacherAreaIds, true));
             }
 
             $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
@@ -171,14 +189,15 @@ class TeacherController extends BaseController
                 'status' => 200,
                 'teacher' => $teacher
             ]);
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
+            Log::error("Exception occurred: " . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
     }
- 
+
 
     /**
      * Comprobamos DNI
