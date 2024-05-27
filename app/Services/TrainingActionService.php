@@ -83,6 +83,7 @@ class TrainingActionService
             'number_units' => $data['number_units'] ? $data['number_units'] : 0,
             'provider_id' => $data['provider_id'],
             'course_origin_id' => $data['course_origin_id'] != -1 ? $data['course_origin_id'] : null,
+            'code' => $data['code'] ? $data['code'] : null,
         ]);
         $trainingAction->update([
             'active' => $data['active']
