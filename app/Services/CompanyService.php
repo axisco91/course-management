@@ -36,6 +36,8 @@ class CompanyService
             'collaborator_id' => $data['collaborator_id'],
             'active' => $data['active'],
             'potential' => $data['potential'],
+            'regimen' =>$data['regimen'],
+            'population_code' => $data['population_code']
         ]);
     }
 
@@ -66,6 +68,8 @@ class CompanyService
             'collaborator_id' => $data['collaborator_id'],
             'active' => $data['active'],
             'potential' => $data['potential'],
+            'regimen' =>$data['regimen'],
+            'population_code' => $data['population_code']
         ]);
         return $company;
     }

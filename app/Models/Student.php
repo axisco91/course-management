@@ -42,7 +42,10 @@ class Student extends Model
         'active',
         'nationality',
         'legal_guardian_name',
-        'legal_guardian_dni'
+        'legal_guardian_dni',
+        'population_code',
+        'nationality_code',
+        'regimen'
     ];
 
     /**

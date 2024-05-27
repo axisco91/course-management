@@ -36,7 +36,8 @@ class Company extends Model
         'advisor_id',
         'active',
         'collaborator_id',
-        'potential'];
+        'potential',
+        'population_code'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -83,7 +84,7 @@ class Company extends Model
      */
     public function companyType()
     {
-        return $this->hasOne('App\Models\CompanyType', 'id', 'type_id');
+        return $this->hasOne('App\Models\CompanyType', 'id', 'company_type_id');
     }
 
     /**
