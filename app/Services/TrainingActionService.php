@@ -51,6 +51,8 @@ class TrainingActionService
             'in_catalog' => $data['in_catalog'],
             'course_origin_id' => $data['course_origin_id'] != -1 ? $data['course_origin_id'] : null,
             'code' => $data['code'] ? $data['code'] : null,
+            'training_tutor' => $data['training_tutor'] ? $data['training_tutor'] : null,
+            'training_tutor_dni' => $data['training_tutor_dni'] ? $data['training_tutor_dni'] : null,
         ]);
 
         return $trainingAction;
@@ -84,6 +86,8 @@ class TrainingActionService
             'provider_id' => $data['provider_id'],
             'course_origin_id' => $data['course_origin_id'] != -1 ? $data['course_origin_id'] : null,
             'code' => $data['code'] ? $data['code'] : null,
+            'training_tutor' => $data['training_tutor'] ? $data['training_tutor'] : null,
+            'training_tutor_dni' => $data['training_tutor_dni'] ? $data['training_tutor_dni'] : null,
         ]);
         $trainingAction->update([
             'active' => $data['active']
