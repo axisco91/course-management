@@ -5,6 +5,9 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\PotentialTrainingContract;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\PotentialTrainingContract as PotentialTrainingContractMail;
 
 class PotentialTrainingContractController extends Controller
 {
@@ -103,5 +106,29 @@ class PotentialTrainingContractController extends Controller
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    public function sendEmail(Request $request){
+        if ($request['email']){
+            try {
+                Mail::getSwiftMailer()
+                    ->getTransport()
+                    ->setUsername('zona@avzformacion.com')
+                    ->setPassword('Avz.2021');
+                    Mail::to($request['email'])->send(new PotentialTrainingContractMail());
+                    return response()->json([
+                    'status' => 200
+                ]);
+            } catch(Exception $e) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => $e->getMessage()
+                ]);
+            }
+        }
+        return response()->json([
+            'status' => 400,
+            'message' => 'Error al enviar correo'
+        ]);
     }
 }

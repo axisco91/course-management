@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\PotentialTrainingContractController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -202,7 +203,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('companies/{id}', 'getAdvisorCompanies');
             Route::get('training-contracts/{id}', 'getAdvisorTrainingContracts');
             Route::get('commissions', 'indexWithCommissions');
-            
+
         });
     });
 
@@ -728,7 +729,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('register/{id}', 'register');
             Route::post('calculate-end-dates/{id}/{daily_hours_1}/{daily_hours_2}', 'calculateEndDates');
             Route::get('monthly-formation-hours/{id}', 'getMonthlyFormationHours');
-           
+
         });
     });
 
@@ -846,6 +847,17 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getPotentialCompany');
             Route::post('convert/{id}', 'convertCompany');
+        });
+    });
+
+    /**
+     * Training Contracts
+     */
+    Route::prefix('potential-training-contract')->group(function() {
+        Route::controller(PotentialTrainingContractController::class)->group(function(){
+            Route::post('send-email', 'sendEmail');
+            Route::post('edit/{id}', 'edit');
+            Route::get('destroy/{id}', 'destroy');
         });
     });
 
