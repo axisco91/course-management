@@ -657,6 +657,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get/{id}', 'show');
             Route::post('edit-date/{id}', 'editDate');
             Route::get('display/all', 'getAll');
+            Route::post('edit-tutor-info/{id}', 'editTutorInfo'); 
         });
     });
 

@@ -14,7 +14,7 @@ class AddInactiveToStudentsTable extends Migration
     public function up()
     {
         Schema::table('students', function (Blueprint $table) {
-            $table->tinyInteger('inactive')->default(0);
+            $table->tinyInteger('active')->default(0);
         });
     }
 
@@ -26,7 +26,7 @@ class AddInactiveToStudentsTable extends Migration
     public function down()
     {
         Schema::table('students', function (Blueprint $table) {
-            $table->dropColumn('inactive');
+            $table->dropColumn('active');
         });
     }
 }

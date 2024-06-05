@@ -220,4 +220,32 @@ class TrainingContractElementController extends BaseController
             return response()->json(['status' => 500, 'error' => 'Error fetching training contract elements']);
         }
     }
+
+    public function editTutorInfo($id, Request $request) {
+        try {
+            $element = TrainingContractElement::find($id);
+            if (!$element) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Training Contract Element not found'
+                ]);
+            }
+    
+            $element->update([
+                'training_tutor' => $request->input('training_tutor'),
+                'training_tutor_dni' => $request->input('training_tutor_dni')
+            ]);
+    
+            return response()->json([
+                'status' => 200,
+                'element' => TrainingContractElement::info()->where('training_contract_elements.id', $element->id)->first(),
+                'message' => 'Tutor information updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

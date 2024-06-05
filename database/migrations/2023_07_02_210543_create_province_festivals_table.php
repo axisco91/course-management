@@ -16,7 +16,7 @@ class CreateProvinceFestivalsTable extends Migration
         Schema::create('province_festivals', function (Blueprint $table) {
             $table->id();
             $table->date('day');
-            $table->string('nombre')->nullable();
+            $table->string('name')->nullable();
             $table->foreignId('province_id')->index()->nullable()->onUpdate('cascade')->onDelete('setNull');
         });
     }
