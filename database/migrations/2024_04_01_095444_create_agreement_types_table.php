@@ -16,7 +16,7 @@ class CreateAgreementTypesTable extends Migration
         Schema::create('agreement_types', function (Blueprint $table) {
             $table->id();
             $table->string('type');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }
