@@ -20,6 +20,7 @@ class AddDirecctionTeachersTable extends Migration
             $table->string('population')->nullable();
             $table->foreignId('province_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->string('iban')->nullable();
+            $table->tinyInteger('active')->default(1);
         });
     }
 

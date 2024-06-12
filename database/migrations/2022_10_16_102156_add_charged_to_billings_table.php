@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::table('billings', function (Blueprint $table) {
             $table->tinyInteger('charged')->default(0);
+            $table->tinyInteger('remitted')->default(0);
         });
     }
 

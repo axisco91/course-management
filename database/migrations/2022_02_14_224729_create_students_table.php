@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('password');
             $table->date('date_of_birth')->nullable();
             $table->foreignId('level_study_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->tinyInteger('disabled');
+            $table->tinyInteger('disabled')->default(0);
             $table->string('social_security_number')->nullable();
             $table->string('c_quote')->nullable();
             $table->Integer('quote_group')->nullable();

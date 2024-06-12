@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->tinyInteger('has_commission')->default(0);
+            $table->tinyInteger('private_commission')->default(0);
         });
     }
 

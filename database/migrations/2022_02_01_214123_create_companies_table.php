@@ -34,10 +34,11 @@ class CreateCompaniesTable extends Migration
             $table->foreignId('population_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('province_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->string('population')->nullable();
-            $table->tinyInteger('active')->default('1');
+            $table->tinyInteger('active')->default(1);
             $table->string('available_credit')->default(0);
             $table->string('consumed_credit')->default(0);
             $table->string('remaining_credit')->nullable();
+            $table->tinyInteger('potential')->default(0);
         });
     }
 

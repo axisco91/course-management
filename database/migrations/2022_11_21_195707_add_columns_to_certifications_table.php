@@ -18,6 +18,7 @@ class AddColumnsToCertificationsTable extends Migration
             $table->foreignId('professional_area_id')->index()->nullable();
             $table->tinyInteger('level')->nullable();
             $table->string('code')->nullable();
+            $table->foreignId('training_action_id')->index()->nullable();
         });
     }
 
