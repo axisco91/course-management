@@ -69,22 +69,43 @@
         $dia = now()->format('d');
         $anio = now()->format('Y');
     @endphp
+    
+    @php
+    // Dividir la fecha en sus componentes
+    $fdate_parts = explode('-', $trainingContract->beginning_formation ?? '0000-00-00');
+    $fanio = $fdate_parts[0] ?? '0000';
+    $fmes = $fdate_parts[1] ?? '00';
+    $fdia = $fdate_parts[2] ?? '00';
 
-    <div class="col-md-12 mt-2 mb-5">
-        <p>Y para que conste donde proceda, firmo el presente certificado en Lucena, a {{$dia}} de {{$nombre_mes}} de {{$anio}}.</p>
+    // Convertir el número del mes a su nombre
+    $meses = [
+        '01' => 'enero',
+        '02' => 'febrero',
+        '03' => 'marzo',
+        '04' => 'abril',
+        '05' => 'mayo',
+        '06' => 'junio',
+        '07' => 'julio',
+        '08' => 'agosto',
+        '09' => 'septiembre',
+        '10' => 'octubre',
+        '11' => 'noviembre',
+        '12' => 'diciembre',
+    ];
+    $nombre_mes = $meses[$fmes] ?? 'mes desconocido';
+@endphp
+<div class="col-md-12 mt-2 mb-5">
+    <p>Y para que conste donde proceda, firmo el presente certificado en Lucena, a {{ $fdia }} de {{ $nombre_mes }} de {{ $fanio }}.</p>
+</div>
+<div class="col-md-12 text-right mt-2">
+        <p>Fdo. Antonio J. Jiménez Agraz</p>
     </div>
 </div>
 <div style="page-break-after: always;"></div>
-
-
 <div class="mt-2">
     <div class="col-md-12 text-right">
         <img src="img-certificado/avz_logo_horizontal_CMYK_verde-gris_fondo-transparente.png" alt="avzlogo" class="img-fluid fixed-height-img-logo">
     </div>
-    <div class="col-md-12 text-right mt-2">
-        <p>Fdo. Antonio J. Jiménez Agraz</p>
-    </div>
-    <div style="height:500px"></div>
 
     <div class="col-md-12 mt-2">
         <p class="text-center letra-color">BONIFICACIÓN ADICIONAL POR LOS COSTES DERIVADOS DE LA OBLIGADA TUTORIZACIÓN EN LA EMPRESA</p>
@@ -99,15 +120,8 @@
     </div>
 </div>
 
-
-
-<div style="page-break-after: always;"></div>
-
-
 <div class="mt-2">
-    <div class="col-md-12 text-right">
-        <img src="img-certificado/avz_logo_horizontal_CMYK_verde-gris_fondo-transparente.png" alt="avzlogo" class="img-fluid fixed-height-img-logo">
-    </div>
+   
     <div class="col-md-12">
         <p><b>Tenga en cuenta que para poderse aplicar esta bonificación adicional el tutor de empresa ha debido realizar las siguientes funciones:</b></p>
         <p class="sin-margin-bottom">a) Realizar la comunicación con el centro de formación a través del tutor del centro de formación.</p>

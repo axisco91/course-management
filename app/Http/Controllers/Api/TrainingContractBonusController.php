@@ -44,122 +44,69 @@ class TrainingContractBonusController extends BaseController
 
             Log::info('Total amount: ' . $total_amount);
 
-            // Calcula el número de meses en el primer y segundo año del contrato
-            $months_in_first_year = min(12, $beginning_date->diffInMonths($end_date) + 1);
-            $months_in_second_year = max(0, $beginning_date->diffInMonths($end_date) + 1 - 12);
+            // Crear un periodo de un mes de duración desde la fecha de inicio hasta la fecha de finalización
+            $period = CarbonPeriod::create($beginning_date, '1 month', $end_date->copy()->endOfMonth());
 
-            Log::info('Months in first year: ' . $months_in_first_year);
-            Log::info('Months in second year: ' . $months_in_second_year);
+            $total_months = iterator_count($period);
+            Log::info('Total months: ' . $total_months);
 
-            // Calcula el amount por mes para el primer y segundo año
-            $amount_per_month_first_year = $months_in_first_year > 0 ? $total_bonus_first_year / $months_in_first_year : 0;
-            $amount_per_month_second_year = $months_in_second_year > 0 ? $total_bonus_second_year / $months_in_second_year : 0;
+            // Calcular los días trabajados en el primer y último mes
+            $days_in_first_month = $beginning_date->daysInMonth;
+            $days_in_contract_first_month = $days_in_first_month - $beginning_date->day + 1;
+            $days_in_last_month = $end_date->daysInMonth;
+            $days_in_contract_last_month = $end_date->day;
 
-            Log::info('Amount per month first year: ' . $amount_per_month_first_year);
-            Log::info('Amount per month second year: ' . $amount_per_month_second_year);
+            // Calcular el monto proporcional para el primer y último mes
+            $amount_per_full_month = ($total_amount - (($total_amount / $total_months) * ($days_in_contract_first_month / $days_in_first_month) + ($total_amount / $total_months) * ($days_in_contract_last_month / $days_in_last_month))) / ($total_months - 2);
+            $amount_first_month = ($total_amount / $total_months) * ($days_in_contract_first_month / $days_in_first_month);
+            $amount_last_month = ($total_amount / $total_months) * ($days_in_contract_last_month / $days_in_last_month);
 
-            $period = CarbonPeriod::create($beginning_date, '1 month', $end_date);
+            // Redondear los montos al múltiplo de 5 más cercano
+            $amount_first_month = round($amount_first_month / 5) * 5;
+            $amount_last_month = round($amount_last_month / 5) * 5;
+            $amount_per_full_month = round($amount_per_full_month / 5) * 5;
+
+            Log::info('Amount per full month: ' . $amount_per_full_month);
+            Log::info('Amount for first month: ' . $amount_first_month);
+            Log::info('Amount for last month: ' . $amount_last_month);
 
             $amounts = [];
             foreach ($period as $key => $date) {
-                // Usa el amount por mes del primer año para los meses en el primer año, y el amount por mes del segundo año para los meses en el segundo año
-                if ($date->lt($beginning_date->copy()->addYear())) {
-                    $amount = $amount_per_month_first_year;
+                if ($key == 0) {
+                    $amount = $amount_first_month;
+                } elseif ($key == $total_months - 1) {
+                    $amount = $amount_last_month;
                 } else {
-                    $amount = $amount_per_month_second_year;
+                    $amount = $amount_per_full_month;
                 }
 
-                Log::info('Date: ' . $date . ' - Initial amount: ' . $amount);
-
-                // Si es el primer mes del contrato, ajusta el amount para tener en cuenta que el mes puede no ser completo
-                if ($date->equalTo($beginning_date)) {
-                    $days_in_month = $date->daysInMonth;
-                    $days_in_contract = $date->copy()->endOfMonth()->diffInDays(Carbon::parse($training_contract->beginning)) + 1;
-                    $amount *= $days_in_contract / $days_in_month;
-                    Log::info('Adjusted first month amount: ' . $amount);
-                }
-
-                // Si es el último mes del contrato, ajusta el amount para tener en cuenta que el mes puede no ser completo
-                if ($date->equalTo($end_date)) {
-                    $days_in_month = $date->daysInMonth;
-                    $days_in_contract = Carbon::parse($training_contract->end)->diffInDays($date->copy()->startOfMonth()) + 1;
-                    $amount *= $days_in_contract / $days_in_month;
-                    Log::info('Adjusted last month amount: ' . $amount);
-                }
-
-                // Redondea el amount al múltiplo de 5 más cercano
-                $amount = round($amount / 5) * 5;
-
-                Log::info('Final amount for ' . $date . ': ' . $amount);
+                Log::info('Date: ' . $date . ' - Amount: ' . $amount);
 
                 $amounts[] = $amount;
             }
 
             Log::info('Amounts before adjustment: ' . json_encode($amounts));
 
-            // Calcula la diferencia entre total_amount y la suma de los amounts
+            // Ajustar cualquier diferencia residual en el último bono
             $difference = $total_amount - array_sum($amounts);
-
-            Log::info('Difference before adjustment: ' . $difference);
-
-            // Ajusta la diferencia para que sea un múltiplo de 5
-            $difference = round($difference / 5) * 5;
-
-            Log::info('Rounded difference: ' . $difference);
-
-            // Distribuir la diferencia de manera uniforme entre todos los meses del segundo año
             if ($difference != 0) {
-                $second_year_start_index = null;
-                foreach ($period as $key => $date) {
-                    if ($date->gte($beginning_date->copy()->addYear())) {
-                        $second_year_start_index = $key;
-                        break;
-                    }
-                }
-
-                if ($second_year_start_index !== null) {
-                    $months_in_second_year = count($amounts) - $second_year_start_index;
-                    $amount_per_month_adjustment = $difference / $months_in_second_year;
-
-                    for ($i = $second_year_start_index; $i < count($amounts) - 1; $i++) {
-                        $amounts[$i] += $amount_per_month_adjustment;
-                        // Redondea el amount al múltiplo de 5 más cercano
-                        $amounts[$i] = round($amounts[$i] / 5) * 5;
-                    }
-
-                    // Recalcular la diferencia final después del ajuste
-                    $final_difference = $total_amount - array_sum($amounts);
-
-                    // Ajustar los meses del segundo año uniformemente sin que el último sea mayor
-                    $amount_per_month_adjustment = $final_difference / $months_in_second_year;
-                    for ($i = $second_year_start_index; $i < count($amounts) - 1; $i++) {
-                        $amounts[$i] += $amount_per_month_adjustment;
-                        // Redondea el amount al múltiplo de 5 más cercano
-                        $amounts[$i] = round($amounts[$i] / 5) * 5;
-                    }
-
-                    // Ajustar el último mes si queda una diferencia residual
-                    $final_difference = $total_amount - array_sum($amounts);
-                    if ($final_difference != 0) {
-                        $amounts[count($amounts) - 1] += $final_difference;
-                        // Redondea el amount al múltiplo de 5 más cercano
-                        $amounts[count($amounts) - 1] = round($amounts[count($amounts) - 1] / 5) * 5;
-                    }
-                }
+                $amounts[$total_months - 1] += $difference;
+                $amounts[$total_months - 1] = round($amounts[$total_months - 1] / 5) * 5;
             }
 
             Log::info('Amounts after adjustment: ' . json_encode($amounts));
 
-            // Crea los bonos con los amounts ajustados
+            // Crear los bonos con los montos ajustados
             foreach ($period as $key => $date) {
                 $start_date = $date->copy()->startOfMonth();
-                if ($date->equalTo($beginning_date)) {
+                $end_date_for_bonus = $date->copy()->endOfMonth();
+
+                if ($key == 0) {
                     $start_date = Carbon::parse($training_contract->beginning);
                 }
 
-                $end_date = $date->copy()->endOfMonth();
-                if ($date->equalTo($end_date)) {
-                    $end_date = Carbon::parse($training_contract->end);
+                if ($key == $total_months - 1) {
+                    $end_date_for_bonus = Carbon::parse($training_contract->end);
                 }
 
                 TrainingContractBonus::createBonus([
@@ -167,7 +114,7 @@ class TrainingContractBonusController extends BaseController
                     'month' => $date->month,
                     'year' => $date->year,
                     'start' => $start_date,
-                    'end' => $end_date,
+                    'end' => $end_date_for_bonus,
                     'amount' => $amounts[$key],
                     'hours' => 0,
                     'invoiced' => 0
@@ -242,7 +189,7 @@ class TrainingContractBonusController extends BaseController
         }
         return response()->json([
             'status' => 400,
-            'message' => 'Bonificado no existe'
+                'message' => 'Bonificado no existe'
         ]);
     }
 
@@ -262,3 +209,4 @@ class TrainingContractBonusController extends BaseController
         }
     }
 }
+ 

@@ -491,15 +491,18 @@ class TrainingContract extends Model
             return;
         }
     
+        // Inicializar la fecha de comienzo
         $beginning = new Carbon($training_contract->beginning_formation);
-        $end_first_year = $beginning->copy()->addYear()->subDay();
+    
+        // Determinar la fecha del último elemento con course_id no nulo antes del primer elemento con course_id nulo
+        foreach ($training_contract_elements as $element) {
+            if ($element->course_id === null) {
+                break;
+            }
+            $beginning = Carbon::parse($element->end)->copy()->addDay();
+        }
     
         foreach ($training_contract_elements as $element) {
-            if ($element->course_id !== null) {
-                $updated_elements[] = $element;
-                continue;
-            }
-    
             $hours = 0;
             if ($element->certification_id && $element->certification) {
                 $hours = $element->certification->total_hours;
@@ -507,37 +510,53 @@ class TrainingContract extends Model
                 $hours = $element->training_action->total_hours;
             }
     
-            if ($beginning->lte($end_first_year)) {
-                $days_to_add = $daily_hours_1 != 0 ? intval($hours / $daily_hours_1) : 0;
+            if ($element->course_id !== null) {
+                $updated_elements[] = $element;
+    
+                // Log de los elementos con course_id
+                Log::info('Element with course_id', [
+                    'id' => $element->id,
+                    'beginning' => $element->beginning,
+                    'end' => $element->end
+                ]);
             } else {
-                $days_to_add = $daily_hours_2 != 0 ? intval($hours / $daily_hours_2) : 0;
+                if ($beginning->lte($beginning->copy()->addYear()->subDay())) {
+                    $days_to_add = $daily_hours_1 != 0 ? intval($hours / $daily_hours_1) : 0;
+                } else {
+                    $days_to_add = $daily_hours_2 != 0 ? intval($hours / $daily_hours_2) : 0;
+                }
+    
+                $end = $beginning->copy();
+    
+                for ($i = 0; $i < $days_to_add; $i++) {
+                    do {
+                        $end->addDay();
+                    } while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $end->toDateString()) || TrainingContractFestival::existDay($end, $training_contract_id)->first());
+                }
+    
+                while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $end->toDateString()) || TrainingContractFestival::existDay($end, $training_contract_id)->first()) {
+                    $end->subDay();
+                }
+    
+                $element->update([
+                    'beginning' => $beginning->toDateString(),
+                    'end' => $end->toDateString()
+                ]);
+    
+                $updated_elements[] = $element;
+    
+                // Log de los elementos sin course_id
+                Log::info('Element without course_id', [
+                    'id' => $element->id,
+                    'beginning' => $element->beginning,
+                    'end' => $element->end
+                ]);
+    
+                $beginning = $end->copy()->addDay();
+                while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $beginning->toDateString()) || TrainingContractFestival::existDay($beginning, $training_contract_id)->first()) {
+                    $beginning->addDay();
+                }
             }
-            
-            $end = $beginning->copy();
-    
-            for ($i = 0; $i < $days_to_add; $i++) {
-                do {
-                    $end->addDay();
-                } while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $end->toDateString()) || TrainingContractFestival::existDay($end, $training_contract_id)->first());
-            }
-    
-            while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $end->toDateString()) || TrainingContractFestival::existDay($end, $training_contract_id)->first()) {
-                $end->subDay();
-            }
-    
-            $element->update([
-                'beginning' => $beginning,
-                'end' => $end
-            ]);
-    
-            $updated_elements[] = $element;
-    
-            $beginning = $end->copy();
-            do {
-                $beginning->addDay();
-            } while (TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $beginning->toDateString()) || TrainingContractFestival::existDay($beginning, $training_contract_id)->first());
-    
-            Log::info('Element', ['id' => $element->id, 'beginning' => $element->beginning, 'end' => $element->end]);
         }
     
         if ($end_formation && !empty($updated_elements)) {
@@ -549,6 +568,9 @@ class TrainingContract extends Model
     
         return $updated_elements;
     }
+    
+
+    
     
     
     /**
