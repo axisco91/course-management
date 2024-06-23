@@ -38,6 +38,8 @@ use App\Models\TrainingContractSeries;
 use App\Models\TrainingContractBill;
 use ZipArchive;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB; 
+
 
 
 
@@ -420,67 +422,139 @@ public function testPdf($viewName, TrainingContract $trainingContract, $orientat
 }
 
 
-    
-    public function generatePdf($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
-        // Cargamos la vista Blade
-        Log::info('metodoLlamado' . $trainingContractBill);
-        $trainingContractBill->load('provider');
-        $trainingContract = TrainingContract::find($trainingContractBill->training_contract_id);
-        $trainingContractSeries = TrainingContractSeries::find($trainingContractBill->series_id);
-        $occupation = Occupation::find($trainingContract->occupation_id);
-        $company = Company::find($trainingContract->company_id);
-        $student = Student::find($trainingContract->student_id);
-        $trainingContractBonus = TrainingContractBonus::find($trainingContractBill->training_contract_bonus_id);
-    
-        $pdf = PDF::loadView($viewName,
-        [   
-            'occupation'=>$occupation,
-            'trainingContractBill' => $trainingContractBill,
-            'trainingContract' => $trainingContract,
-            'company' => $company,
-            'student' => $student,
-            'trainingContractSeries' => $trainingContractSeries,
-            'trainingContractBonus' => $trainingContractBonus
-        ]);
-    
-        // Configuramos el papel y la orientación del PDF
-        $pdf->setPaper('a4', $orientation);
-    
-        // Devolvemos el objeto PDF
-        return $pdf;
-    }
-    
-    public function testPdfFactura($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
-        // Generamos el PDF
-        $pdf = $this->generatePdf($viewName, $trainingContractBill, $orientation);
-    
-        // Devolvemos el PDF como una respuesta de descarga
-        return $pdf->download('test.pdf');
+public function generatePdf($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
+    // Genera el número de factura si aún no tiene uno
+    if (is_null($trainingContractBill->number)) {
+        DB::beginTransaction();
+        try {
+            $lastBill = TrainingContractBill::lockForUpdate()->orderBy('number', 'desc')->first();
+            $number = $lastBill ? $lastBill->number + 1 : 1;
+            $trainingContractBill->number = $number;
+            $trainingContractBill->save();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
     }
 
-    public function generateInvoices(Request $request) {
-        // Crea un nuevo archivo ZIP
-        $zip = new ZipArchive;
-        $zipFileName = tempnam(sys_get_temp_dir(), 'invoices') . '.zip';
-        $zip->open($zipFileName, ZipArchive::CREATE);
-    
-        // Recorre los IDs de las facturas
-        $billIds = $request->input('billIds');
-        foreach ($billIds as $billId) {
-            // Genera la vista de la factura y guárdala como un archivo PDF en un directorio temporal
-            $trainingContractBill = TrainingContractBill::find($billId);
-            $pdf = $this->generatePdf('documents.V&Rfactura',$trainingContractBill);
+    // Actualiza el estado de 'invoice' si es 0
+    if ($trainingContractBill->invoice == 0) {
+        $trainingContractBill->invoice = 1;
+        $trainingContractBill->save();
+    }
+
+    // Cargamos la vista Blade
+    Log::info('metodoLlamado' . $trainingContractBill);
+    $trainingContractBill->load('provider');
+    $trainingContract = TrainingContract::find($trainingContractBill->training_contract_id);
+    $trainingContractSeries = TrainingContractSeries::find($trainingContractBill->series_id);
+    $occupation = Occupation::find($trainingContract->occupation_id);
+    $company = Company::find($trainingContract->company_id);
+    $student = Student::find($trainingContract->student_id);
+    $trainingContractBonus = TrainingContractBonus::find($trainingContractBill->training_contract_bonus_id);
+
+    $pdf = PDF::loadView($viewName,
+    [
+        'occupation' => $occupation,
+        'trainingContractBill' => $trainingContractBill,
+        'trainingContract' => $trainingContract,
+        'company' => $company,
+        'student' => $student,
+        'trainingContractSeries' => $trainingContractSeries,
+        'trainingContractBonus' => $trainingContractBonus
+    ]);
+
+    // Configuramos el papel y la orientación del PDF
+    $pdf->setPaper('a4', $orientation);
+
+    // Devolvemos el objeto PDF
+    return $pdf;
+}
+
+public function testPdfFactura($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
+    // Generamos el PDF
+    $pdf = $this->generatePdf($viewName, $trainingContractBill, $orientation);
+
+    // Devolvemos el PDF como una respuesta de descarga
+    return $pdf->download('test.pdf');
+}
+
+public function generateInvoices(Request $request) {
+    ini_set('max_execution_time', 300); // Aumenta el tiempo máximo de ejecución si es necesario
+
+    // Crea un nuevo archivo ZIP
+    $zip = new ZipArchive;
+    $zipFileName = tempnam(sys_get_temp_dir(), 'invoices') . '.zip';
+    $zip->open($zipFileName, ZipArchive::CREATE);
+
+    // Obtén los IDs de las facturas desde el request
+    $billIds = $request->input('billIds');
+
+    // Paginación
+    $perPage = 50; // Número de facturas a procesar por lote
+    $page = 1;
+
+    do {
+        // Obtiene un lote de facturas
+        $bills = TrainingContractBill::whereIn('id', $billIds)
+            ->orderBy('year', 'asc')
+            ->orderBy('month', 'asc')
+            ->orderBy('training_contract_id', 'asc')
+            ->skip(($page - 1) * $perPage)
+            ->take($perPage)
+            ->get();
+
+        if ($bills->isEmpty()) {
+            break;
+        }
+
+        // Genera números de factura secuenciales para las facturas que no tienen número
+        DB::beginTransaction();
+        try {
+            // Obtener el último número de factura asignado
+            $lastBill = TrainingContractBill::lockForUpdate()->orderBy('number', 'desc')->first();
+            $number = $lastBill ? $lastBill->number + 1 : 1;
+
+            // Asignar número de factura sólo a las facturas que no tienen número
+            foreach ($bills as $bill) {
+                if (is_null($bill->number)) {
+                    $bill->number = $number++;
+                    $bill->save();
+                }
+                // Actualiza el estado de 'invoice' si es 0
+                if ($bill->invoice == 0) {
+                    $bill->invoice = 1;
+                    $bill->save();
+                }
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            throw $e;
+        }
+
+        // Genera los PDFs y añade cada archivo al ZIP
+        foreach ($bills as $bill) {
+            $pdf = $this->generatePdf('documents.V&Rfactura', $bill);
             $pdfFileName = tempnam(sys_get_temp_dir(), 'invoice') . '.pdf';
             file_put_contents($pdfFileName, $pdf->output());
-    
+
             // Añade el archivo PDF al archivo ZIP
-            $zip->addFile($pdfFileName, "factura_cfa_{$billId}.pdf");
+            $zip->addFile($pdfFileName, "factura_cfa_{$bill->id}.pdf");
         }
-    
-        // Cierra el archivo ZIP
-        $zip->close();
-    
-        // Devuelve el archivo ZIP como una respuesta de descarga
-        return response()->download($zipFileName, 'facuturas.zip');
-    }
+
+        $page++;
+    } while (true);
+
+    // Cierra el archivo ZIP
+    $zip->close();
+
+    // Devuelve el archivo ZIP como una respuesta de descarga
+    return response()->download($zipFileName, 'facturas.zip');
+}
+
+
+
+
 }

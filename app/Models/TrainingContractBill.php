@@ -89,15 +89,10 @@ class TrainingContractBill extends Model
     }
 
     public static function createBill($bonus) {
-        $id = TrainingContractBill::orderBy('id', 'desc')->first();
         $training_contract = TrainingContract::where('id', $bonus['training_contract_id'])->first();
-        if ($id){
-            $number = $id['id'] + 1;
-        } else {
-            $number = 1;
-        }
+    
         $bill = TrainingContractBill::create([
-            'number' => $number,
+            'number' => null,  // No se genera el número aquí
             'training_contract_bonus_id' => $bonus->id,
             'training_contract_id' => $training_contract['id'],
             'company_id' => $training_contract['company_id'],
@@ -112,7 +107,7 @@ class TrainingContractBill extends Model
             'charged' => 0,
             'invoiced' => 0
         ]);
-
+    
         return $bill;
     }
 
