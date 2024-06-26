@@ -288,7 +288,7 @@
                         <table style="width: 100%" class="mb-2">
                             <tr>
                                 <td style="width: 18%">Convenio aplicable</td>
-                                <td class="border-bottom" style="width: 85%">{{$trainingContract->applicableAgreement->name ?? ''}}</td>
+                                <td class="border-bottom" style="width: 85%">{{$trainingContract->company->agreement ?? ''}}</td>
                             </tr>
                         </table>
                     </div>

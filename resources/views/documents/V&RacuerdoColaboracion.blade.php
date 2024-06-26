@@ -133,8 +133,10 @@
             <p>Fecha de inicio: <u>{{$trainingContract->beginning}}</u></p>
             <p>Puesto de trabajo u ocupación: <u>{{$trainingContract->occupation->name}} </u> Cód. CNO <u>{{$trainingContract->occupation->cno}} </u></p>
             <p>Provincia del centro de trabajo: <u>{{$trainingContract->province->name}} </u> Horas de contrato, según convenio: <u>{{$trainingContract->annually_day_hours}} </u> </p>
-            <p>Convenio aplicable <u> {{ $trainingContract->applicableAgreement ? $trainingContract->applicableAgreement->name : '' }}  {{ $trainingContract->applicableAgreement ? "({$trainingContract->applicableAgreement->agreementType->type})" : '' }} </u></p>
+            <p>Convenio aplicable <u> {{ $trainingContract->company->agreement ?? '' }} </u></p>
+    
         </div>
+
     </div>
     <div style="page-break-after: always;"></div>
 
