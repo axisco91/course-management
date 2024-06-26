@@ -459,7 +459,7 @@ class TrainingContract extends Model
     }
     
     /**
-     * Actualiza las fechas de los elementos de un contrato de formación.
+     * Calcula los días laborables entre dos fechas de forma recursiva.
      *
      * @param int $training_contract_id El ID del contrato de formación.
      * @param float $daily_hours_1 Las horas diarias para el primer año.
@@ -567,9 +567,10 @@ class TrainingContract extends Model
             if (Carbon::parse($end_formation)->gt($last_element->end)) {
                 $last_element->update(['end' => Carbon::parse($end_formation)]);
             }
+            $total_days++;
         }
-
-        return $updated_elements;
+    
+        return $this->calculateEndDate($date->copy()->addDay(), $total_hours_first_year, $total_hours_second_year, $beginning_formation_carbon, $daily_hours_1, $daily_hours_2, $record, $cont_days_first_year, $cont_days_second_year, $total_days);
     }
 
     
@@ -607,5 +608,4 @@ class TrainingContract extends Model
             'status' => 200,
             'monthly_formation_hours' => $monthly_formation_hours,
         ]);
-    }
-}    
+}

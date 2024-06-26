@@ -439,8 +439,8 @@ public function generatePdf($viewName, TrainingContractBill $trainingContractBil
     }
 
     // Actualiza el estado de 'invoice' si es 0
-    if ($trainingContractBill->invoice == 0) {
-        $trainingContractBill->invoice = 1;
+    if ($trainingContractBill->invoiced == 0) {
+        $trainingContractBill->invoiced = 1;
         $trainingContractBill->save();
     }
 
@@ -494,6 +494,7 @@ public function generateInvoices(Request $request) {
     // Paginación
     $perPage = 50; // Número de facturas a procesar por lote
     $page = 1;
+    $updatedBills = []; // Almacenar facturas actualizadas
 
     do {
         // Obtiene un lote de facturas
@@ -523,8 +524,8 @@ public function generateInvoices(Request $request) {
                     $bill->save();
                 }
                 // Actualiza el estado de 'invoice' si es 0
-                if ($bill->invoice == 0) {
-                    $bill->invoice = 1;
+                if ($bill->invoiced == 0) {
+                    $bill->invoiced = 1;
                     $bill->save();
                 }
             }
@@ -532,6 +533,54 @@ public function generateInvoices(Request $request) {
         } catch (\Exception $e) {
             DB::rollback();
             throw $e;
+        }
+
+        // Añadir facturas actualizadas al array
+        foreach ($bills as $bill) {
+            // Aquí cargamos las relaciones necesarias para asegurar que la estructura sea la misma
+            $bill->load(['company', 'training_contract.student']);
+            $bill['company'] = $bill->company->name;
+            $bill['student'] = $bill->training_contract->student->name . ' ' . $bill->training_contract->student->surname;
+
+            switch ($bill['month']) {
+                case 1:
+                    $bill['month_name'] = 'Enero';
+                    break;
+                case 2:
+                    $bill['month_name'] = 'Febrero';
+                    break;
+                case 3:
+                    $bill['month_name'] = 'Marzo';
+                    break;
+                case 4:
+                    $bill['month_name'] = 'Abril';
+                    break;
+                case 5:
+                    $bill['month_name'] = 'Mayo';
+                    break;
+                case 6:
+                    $bill['month_name'] = 'Junio';
+                    break;
+                case 7:
+                    $bill['month_name'] = 'Julio';
+                    break;
+                case 8:
+                    $bill['month_name'] = 'Agosto';
+                    break;
+                case 9:
+                    $bill['month_name'] = 'Septiembre';
+                    break;
+                case 10:
+                    $bill['month_name'] = 'Octubre';
+                    break;
+                case 11:
+                    $bill['month_name'] = 'Noviembre';
+                    break;
+                case 12:
+                    $bill['month_name'] = 'Diciembre';
+                    break;
+            }
+            $updatedBills[] = $bill->toArray();
         }
 
         // Genera los PDFs y añade cada archivo al ZIP
@@ -550,9 +599,18 @@ public function generateInvoices(Request $request) {
     // Cierra el archivo ZIP
     $zip->close();
 
-    // Devuelve el archivo ZIP como una respuesta de descarga
-    return response()->download($zipFileName, 'facturas.zip');
+    // Devuelve el archivo ZIP y las facturas actualizadas como una respuesta JSON
+    $zipContent = file_get_contents($zipFileName);
+    $base64Zip = base64_encode($zipContent);
+
+    return response()->json([
+        'zipFile' => $base64Zip,
+        'updatedBills' => $updatedBills
+    ]);
 }
+
+
+
 
 
 
