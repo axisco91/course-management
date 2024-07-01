@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class UpdateNumberAndModalityTrainingContractBillTable extends Migration
+class UpdateNumberAndAddModalityToTrainingContractBillTable extends Migration
 {
     /**
      * Run the migrations.
@@ -17,8 +17,8 @@ class UpdateNumberAndModalityTrainingContractBillTable extends Migration
             // Hacer que la columna 'number' sea nullable
             $table->integer('number')->nullable()->change();
             
-            // Hacer que la columna 'modality' sea nullable
-            $table->string('modality')->nullable()->change();
+            // Crear la columna 'modality' y hacer que sea nullable
+            $table->string('modality')->nullable();
         });
     }
 
@@ -33,8 +33,8 @@ class UpdateNumberAndModalityTrainingContractBillTable extends Migration
             // Revertir el cambio y hacer que la columna 'number' no sea nullable
             $table->integer('number')->nullable(false)->change();
             
-            // Revertir el cambio y hacer que la columna 'modality' no sea nullable
-            $table->string('modality')->nullable(false)->change();
+            // Eliminar la columna 'modality'
+            $table->dropColumn('modality');
         });
     }
 }

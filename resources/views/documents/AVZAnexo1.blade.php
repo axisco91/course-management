@@ -269,9 +269,9 @@
                                         $cnoArray = str_split($trainingContract->occupation->cno);
                                     @endphp
 
-                                    @foreach($cnoArray as $char)
-                                        <span class="border-right" style="padding-top: 7px; padding-bottom: 3.5px; padding-right: 3.1px; padding-left: 3px">{{ $char }}</span>
-                                    @endforeach
+                                    <span class="border-right" style="padding-top: 7px; padding-bottom: 3.5px; padding-right: 3.1px; padding-left: 3px">
+                                        {{$trainingContract->occupation->cno}}
+                                    </span>
                                 </td>
                             </tr>
                         </table>

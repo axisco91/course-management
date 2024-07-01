@@ -97,37 +97,30 @@ class TrainingContractBonusController extends BaseController
             $difference = $total_amount - array_sum($amounts);
             Log::info('Initial difference: ' . $difference);
     
+            // Distribuir la diferencia en los meses, asegurando que ningún monto sea demasiado grande o pequeño
             if (abs($difference) >= 5) {
-                for ($i = 0; $i < count($amounts) - 1 && abs($difference) >= 5; $i++) {
-                    $adjustment = $difference > 0 ? 5 : -5;
-                    $amounts[$i] += $adjustment;
-                    $difference -= $adjustment;
+                $increment = $difference > 0 ? 5 : -5;
+                for ($i = 0; $i < count($amounts) && abs($difference) >= 5; $i++) {
+                    $amounts[$i] += $increment;
+                    $difference -= $increment;
                 }
             }
     
             Log::info('Adjusted amounts: ' . json_encode($amounts));
             Log::info('Remaining difference: ' . $difference);
     
-            if ($difference != 0) {
-                $amounts[$total_months - 1] += $difference;
-                if ($amounts[$total_months - 1] < 5) {
-                    $adjustment_needed = 5 - $amounts[$total_months - 1];
-                    $amounts[$total_months - 1] = 5;
-                    $difference -= $adjustment_needed;
+            // Asegurar que ningún monto sea menor que 5 o desproporcionadamente grande
+            while ($difference != 0) {
+                for ($i = 0; $i < count($amounts); $i++) {
+                    if ($difference == 0) break;
     
-                    for ($i = 0; $i < $total_months - 1 && abs($difference) >= 5; $i++) {
+                    if ($difference > 0 && $amounts[$i] >= 5) {
+                        $amounts[$i] += 5;
+                        $difference -= 5;
+                    } elseif ($difference < 0 && $amounts[$i] > 5) {
                         $amounts[$i] -= 5;
                         $difference += 5;
-                        if ($difference == 0) break;
                     }
-                }
-            }
-    
-            // Asegurarse de que ningún monto sea menor que 5
-            foreach ($amounts as &$amount) {
-                if ($amount < 5) {
-                    $difference += 5 - $amount;
-                    $amount = 5;
                 }
             }
     
@@ -183,6 +176,7 @@ class TrainingContractBonusController extends BaseController
             ]);
         }
     }
+    
     
 
     public function create(Request $request){
