@@ -37,7 +37,9 @@ class CompanyService
             'active' => $data['active'],
             'potential' => $data['potential'],
             'regimen' =>$data['regimen'],
-            'population_code' => $data['population_code']
+            'population_code' => $data['population_code'],
+            'agreement' => $data['agreement']
+
         ]);
     }
 
@@ -69,7 +71,8 @@ class CompanyService
             'active' => $data['active'],
             'potential' => $data['potential'],
             'regimen' =>$data['regimen'],
-            'population_code' => $data['population_code']
+            'population_code' => $data['population_code'],
+            'agreement' => $data['agreement']
         ]);
         return $company;
     }

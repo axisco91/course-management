@@ -146,7 +146,8 @@ class TrainingContract extends Model
             'total_hours' => $bonusYearOne + $bonusYearTwo,
             'observations' => $data['observations'],
             'daily_hours_1' => $data['daily_hours_1'],
-            'daily_hours_2' => $data['daily_hours_2']
+            'daily_hours_2' => $data['daily_hours_2'],
+            'bonification' => $data['bonification'] ?? false,
         ]);
         $training_contract->excludedDays()->sync($data['excluded_day_id']);
         return $training_contract;
@@ -208,7 +209,9 @@ class TrainingContract extends Model
             'total_hours' => $bonusYearOne + $bonusYearTwo,
             'observations' => $data['observations'],
             'daily_hours_1' => $data['daily_hours_1'],
-            'daily_hours_2' => $data['daily_hours_2']
+            'daily_hours_2' => $data['daily_hours_2'],
+            'bonification' => $data['bonification'] ?? $training_contract->bonification,
+
         ]);
         return $training_contract;
     }

@@ -200,7 +200,7 @@
                                 <td style="width: 25%">Tutor/a de la empresa - D./Dña.</td>
                                 <td class="border-bottom ms-2" style="width: 18.5%">{{$trainingContract->company_tutor}}</td>
                                 <td style="width: 15%" class="ms-2">Horas mensuales</td>
-                                <td class="border-bottom ms-2" style="width: 11.5%">{{--$sumaHoras--}}</td>
+                                <td class="border-bottom ms-2" style="width: 11.5%">40</td>
                                 <td style="width: 8%" class="ms-2">NIF/NIE</td>
                                 <td class="border-bottom ms-2" style="width: 17%">{{$trainingContract->company_tutor_dni}}</td>
                             </tr>
@@ -225,7 +225,7 @@
                                 <td class="border-bottom" style="width: 7%">{{ \Carbon\Carbon::parse($trainingContract->student->date_of_birth)->format('d/m/Y') }}</td>
                             </tr>
                         </table>
-                        <input class="no-line-break mb-0" type="checkbox"><p class="ms-2 mb-0 no-line-break">Reúne requisitos de acceso a la Formación de este contrato.</p><br>
+                        <input class="no-line-break mb-0" type="checkbox" checked><p class="ms-2 mb-0 no-line-break">Reúne requisitos de acceso a la Formación de este contrato.</p><br>
                         <input class="no-line-break mb-0" type="checkbox" {{$trainingContract->youth_guarantee == 1 ? 'checked' : ''}}> 
                         <p class="ms-2 mb-0 no-line-break">Inscrito/a en el Sistema Nacional de Garantía Juvenil.</p><br>
                         <input class="no-line-break mb-0" type="checkbox" {{$trainingContract->disabled == 1 ? 'checked' : ''}}>

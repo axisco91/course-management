@@ -331,13 +331,13 @@ class DocumentStudentController extends BaseController
     }
 
     public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait') {
-        $trainingContract->load('provider', 'occupation', 'company', 'company.companyActivity', 'applicableAgreement.agreementType', 'student.levelStudy', 'province');
-
+        $trainingContract->load('provider', 'occupation', 'company', 'company.companyActivity', 'applicableAgreement.agreementType', 'student.levelStudy', 'province', 'trainingContractExcludedDays');
+    
         $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
         $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
         $companyType = CompanyType::find($trainingContract->company->company_type_id);
-
+    
         $dias = [];
         $daysWeek = 0;
         if ($trainingContract->monday == 1) {
@@ -369,9 +369,21 @@ class DocumentStudentController extends BaseController
             $dias[] = 'D';
         }
         $fechaActual = Date::now()->format('d/m/Y');
-
+    
+        // Filtrar los días excluidos con excluded_day_type_id = 1 y agrupar por grupos consecutivos
+        $excludedDays = $trainingContract->trainingContractExcludedDays->filter(function($day) {
+            return $day->excluded_day_type_id == 1;
+        })->groupBy(function($day) {
+            return \Carbon\Carbon::parse($day->day)->format('Y-m');
+        })->map(function($days) {
+            return [
+                'start_date' => $days->min('day'),
+                'end_date' => $days->max('day')
+            ];
+        });
+    
         ini_set('max_execution_time', 180); // PARA LOS CFA QUE SON MUY LARGOS, 60 segundos (tiempo por defecto) no es suficiente
-
+    
         $htmlContent = view($viewName, [
             'trainingContract' => $trainingContract,
             'elements' => $trainingElements,
@@ -381,16 +393,18 @@ class DocumentStudentController extends BaseController
             'sumaHoras' => 0,
             'dias' => $dias,
             'companyType' => $companyType,
-            'daysWeek' => $daysWeek
+            'daysWeek' => $daysWeek,
+            'excludedDays' => $excludedDays // Pasar los días excluidos a la vista
         ])->render();
-
+    
         $htmlContent = $this->adjustImagePaths($htmlContent);
-
+    
         $pdf = PDF::loadHTML($htmlContent);
-
+    
         $pdf->setPaper('a4', $orientation);
         return $pdf->download('test.pdf');
     }
+    
 
     public function generatePdf($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
         if (is_null($trainingContractBill->number)) {

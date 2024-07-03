@@ -143,15 +143,14 @@
 
             <!-- FECHA Y FIRMA -->
             <article style="margin-top: 6pc; margin-bottom: 6pc;">
-                @php
-                    setlocale(LC_TIME, 'es');
-                @endphp
-                <div class="text-center mt-4">
-                    <p>En Lucena, a {{date('d')}} de {{strftime('%B')}} de {{date('Y')}}</p>
-                </div>
-                <div class="text-end mt-10 w-11/12 mb-12">
-                    <p>(Firma y sello de la empresa)</p>
-                </div>
+            @php
+    $beginningDate = DateTime::createFromFormat('Y-m-d', $trainingContract->beginning);
+    $formatter = new IntlDateFormatter('es_ES', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
+    $formattedDate = $formatter->format($beginningDate);
+@endphp
+<div class="text-center mt-4">
+    <p>En Lucena, a {{$formattedDate}}</p>
+</div>
             </article>
 
             <!-- CLAUSULAS -->
