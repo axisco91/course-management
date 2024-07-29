@@ -236,4 +236,26 @@ class TrainingActionController extends BaseController
         }
         return $courses;
     }
+
+    
+public static function indexPublic()
+{
+    // Primero, obtén todas las instancias de TrainingAction.
+    $trainingActions = TrainingAction::all();
+
+    // Luego, carga las relaciones en cada instancia usando el método `load`.
+    $trainingActions->load([
+        'actionType',
+        'provider',
+        'modality',
+        'professionalArea',
+        'professionalFamily',
+        'trainingActionGroup',
+        'trainingActionLevel',
+        'tutoring',
+        'webPlatform'
+    ]);
+
+    return $trainingActions;
+}
 }

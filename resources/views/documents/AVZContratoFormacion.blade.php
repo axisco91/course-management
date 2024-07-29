@@ -201,8 +201,8 @@
             <td width="30%" class="left-align">
                 <p class="no-margin-bottom"> Nº AFILIACIÓN SEGURIDAD SOCIAL</p>
                 <p class="empty-paragraph">
-                    @foreach(preg_split('/\s*/', $trainingContract->student->social_security_number) as $number)
-                        @if(!empty($number))
+                    @foreach(str_split($trainingContract->student->social_security_number) as $number)
+                        @if(!empty($number) || $number === '0')
                             <span style="border: 1px solid black; padding: 1px 4px; margin: -2px;">{{ $number }}</span>
                         @endif
                     @endforeach

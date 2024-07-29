@@ -1041,10 +1041,10 @@ Route::middleware('auth:sanctum')->group( function () {
      Route::prefix('training-contract-series')->group(function() {
         Route::controller(TrainingContractSeriesController::class)->group(function(){
             Route::get('', 'index');
-            Route::get('get/{id}', 'show');
-            Route::get('create', 'store');
-            Route::post('edit/{id}', 'update');
-            Route::delete('delete/{id}', 'delete');
+            Route::get('{id}', 'show');
+            Route::post('', 'store');
+            Route::put('{id}', 'update');
+            Route::delete('{id}', 'delete');
         });
     });
 
@@ -1215,5 +1215,13 @@ Route::prefix('document-students')->group(function() {
 Route::prefix('document-types')->group(function() {
     Route::controller(DocumentTypeController::class)->group(function(){
         Route::get('', 'index');
+    });
+});
+
+Route::prefix('training-actions')->group(function() {
+    Route::controller(TrainingActionController::class)->group(function(){
+
+        // Nueva ruta GET para información pública
+        Route::get('public-info', 'indexPublic');
     });
 });

@@ -174,8 +174,8 @@
                         consentimiento .  Los  datos  podrán  ser  transmitidos  a  la  entidad  que  presta  el  servicio de  asesoramiento  laboral ,  fiscal  y  contable y  en  su caso  a la entidad  de 
                         almacenamiento  web.  Los datos proporcionados  se  conservarán  mientras  se  mantenga  la  relación  profesional  o  durante  los  años  necesarios  para  cumplir  con  las
                         obligaciones  legales.  Sin  perjuicio  de  ello  se  le  informa  de  que  usted  podrá  ejercitar  los  derechos  de  acceso,  rectificación,  supresión  (derecho  al  olvido),  limitación
-                        en  el  tratamiento ,  portabilidad  y  oposición enviando  una  solicitud  por  escrito,  acompañada  de  una  fotocopia  de  su  DNI  a  la  siguiente  dirección :  CALLE EL PESO
-                        35,  3º  D,  LUCENA (CÓRDOBA)  CP 14900  o  telemáticamente  a través  del  siguiente  correo  electrónico:  info@avzformacion.com.
+                        en  el  tratamiento ,  portabilidad  y  oposición enviando  una  solicitud  por  escrito,  acompañada  de  una  fotocopia  de  su  DNI  a  la  siguiente  dirección :  CALLE BALLESTEROS
+                        17,  LUCENA (CÓRDOBA)  CP 14900  o  telemáticamente  a través  del  siguiente  correo  electrónico:  info@avzformacion.com.
                     </p>
                 </div>
             </article>

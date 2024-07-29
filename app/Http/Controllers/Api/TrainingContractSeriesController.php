@@ -38,26 +38,36 @@ class TrainingContractSeriesController extends Controller
      */
     public function show($id)
     {
-        return $series;
-    }
-
-    
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        $series -> update($request->all());
+        $series = TrainingContractSeries::findOrFail($id);
         return response()->json([
             'status' => 200,
             'series' => $series
         ]);
     }
+
+    
+
+    /**
+    * Update the specified resource in storage.
+    *
+    * @param  \Illuminate\Http\Request  $request
+    * @param  int  $id
+    * @return \Illuminate\Http\Response
+    */
+   public function update(Request $request, $id)
+   {
+       // Busca la instancia de TrainingContractSeries por su ID
+       $series = TrainingContractSeries::findOrFail($id);
+
+       // Actualiza la instancia con los datos del request
+       $series->update($request->all());
+
+       // Devuelve la respuesta JSON
+       return response()->json([
+           'status' => 200,
+           'series' => $series
+       ]);
+   }
 
     /**
      * Remove the specified resource from storage.

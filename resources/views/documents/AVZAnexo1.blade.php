@@ -206,7 +206,7 @@
                             </tr>
                         </table>
                         
-                        <input class="no-line-break mb-0 ms-1" type="checkbox" {{$trainingContract->company->companyType->name == "Autónomo" ? 'checked' : ''}}><span class="ms-2 no-line-break"> Empresa con menos de 5 trabajadores</span>
+                        <input class="no-line-break mb-0 ms-1" type="checkbox" {{$trainingContract->company->average_template <= 5 ? 'checked' : ''}}><span class="ms-2 no-line-break"> Empresa con menos de 5 trabajadores</span>
                     </div>
                 </div>                
             </article>
@@ -265,14 +265,15 @@
                                 <td class="border-bottom">{{$trainingContract->occupation->name}}</td>
                                 <td style="width: 10%">Cód. CNO</td>
                                 <td class="border-left border-top border-bottom" style="width: 20%">
-                                    @php
-                                        $cnoArray = str_split($trainingContract->occupation->cno);
-                                    @endphp
-
-                                    <span class="border-right" style="padding-top: 7px; padding-bottom: 3.5px; padding-right: 3.1px; padding-left: 3px">
-                                        {{$trainingContract->occupation->cno}}
-                                    </span>
-                                </td>
+                                <p class="no-margin-bottom">Cód. CNO</p>
+                                <p class="empty-paragraph">
+                                    @foreach(str_split($trainingContract->occupation->cno) as $char)
+                                        @if(!empty($char) || $char === '0')
+                                            <span style="border: 1px solid black; padding: 1px 4px; margin: -2px;">{{ $char }}</span>
+                                        @endif
+                                    @endforeach
+                                </p>
+                            </td>
                             </tr>
                         </table>
                         <table style="width: 100%">
@@ -683,7 +684,7 @@
                         <table class="ms-3" style="width: 95%">
                             <tr>
                                 <td style="width: 9%">Dirección</td>
-                                <td class="border-bottom">C\ EL PESO 35, 3º D</td>
+                                <td class="border-bottom">C\ Ballesteros nº 17</td>
                                 <td style="width: 5%">CP</td>
                                 <td class="border-bottom">14900</td>
                                 <td style="width: 9%">Municipio</td>
@@ -795,7 +796,7 @@
                         almacenamiento  web . Los datos  proporcionados  se conservarán  mientras  se mantenga  la relación  profesional  o durante  los años 
                         necesarios  para cumplir con las obligaciones  legales. Sin perjuicio de ello se le informa de que usted podrá ejercitar los derechos  de 
                         acceso , rectificación , supresión  (derecho  al olvido ), limitación  en el tratamiento  , portabilidad  y oposición  enviando  una solicitud  por 
-                        escrito , acompañada  de  una  fotocopia  de  su  DNI  a la siguiente  dirección  : C.El Peso  35 , 3ºD, Lucena  (Córdoba ) CP  14900  o 
+                        escrito , acompañada  de  una  fotocopia  de  su  DNI  a la siguiente  dirección  : C. Ballesteros nº 17, Lucena  (Córdoba ) CP  14900  o 
                         telemáticamente a través del siguiente correo electrónico: info@avzformacion.com
                     </p>
                 </div>
@@ -803,7 +804,7 @@
                 <div>
                     <p class="font-bold mb-0">Datos a efectos de notificación</p>
                     <p class="mt-1 mb-0"> 
-                        Dirección <span class="underline">C/PEDRO ANGULO 6</span> 
+                        Dirección <span class="underline">C/BALLESTEROS 17</span> 
                         CP <span class="underline">14900</span>
                     </p>
                     <p class="mt-1"> 

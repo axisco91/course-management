@@ -24,7 +24,8 @@ class TracingController extends BaseController
      * Obtener los seguimientos
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request) {
+    public function index(Request $request) 
+    {
         try {
             $start = \Illuminate\Support\Carbon::now();
             $number_days = 5;
@@ -32,12 +33,12 @@ class TracingController extends BaseController
                 $number_days = 7;
             $start = $start->addDays($number_days);
             $tracings = Tracing::tracing();
-
+    
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
                  $tracings = $tracings->where('courses.teacher_id', $user->teacher_id);
             }
-
+    
             if ($request->course) {
                 $tracings = $tracings->where('courses.id', $request->course);
             }
@@ -61,10 +62,16 @@ class TracingController extends BaseController
             if ($request->end) {
                 $tracings = $tracings->where('courses.beginning', '<=', $request->end);
             }
-
-            $tracings = $tracings->orderBy('tracings.id', 'desc')
-                ->get();
-            foreach ($tracings as $tracing){
+    
+   
+    
+            $tracings = $tracings->orderBy('tracings.id', 'desc')->get();
+    
+       
+    
+            foreach ($tracings as $tracing) {
+                // Debug: Log each tracing's course_status_id
+    
                 if ($tracing->final_test === 0) {
                     $tracing['final_test_name'] = 'Pendiente';
                 } else if ($tracing->final_test === 1) {
@@ -79,12 +86,28 @@ class TracingController extends BaseController
                 } else if ($tracing->questionnaire === 2) {
                     $tracing['questionnaire_name'] = 'No realizado';
                 }
+    
+                // Attempt to get course_status_id from the tracing object
+                $tracing['course_status_id'] = $tracing->course_status_id;
+    
+                // If it's still null, try to fetch it directly from the Course model
+                if ($tracing['course_status_id'] === null) {
+                    $course = Course::find($tracing->course_id);
+                    $tracing['course_status_id'] = $course ? $course->course_status_id : null;
+                }
+    
+            
             }
+    
+         
+    
             return $tracings;
         } catch (\Exception $e) {
+            \Log::error("Error in index method: " . $e->getMessage());
+            \Log::error("Stack trace: " . $e->getTraceAsString());
             return response()->json([
                 'message' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
