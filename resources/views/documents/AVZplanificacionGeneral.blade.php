@@ -70,7 +70,7 @@
             <table class="mx-auto border border-2 border-dark2 mt-3">
                 <tbody>
                     <tr class="border-bottom border-2 border-dark">
-                        <td colspan="8" class="font-semibold ps-3 text-start">ESPECIALIDADES SEPE: AGENTE COMERCIAL</td>
+                        <td colspan="8" class="font-semibold ps-3 text-start">ESPECIALIDADES SEPE: {{$trainingContract->occupation->name}} ({{$trainingContract->occupation->cno}})</td>
                     </tr>
                     <tr class="border-bottom border-2 border-dark bg-color text-white text-center">
                         <td colspan="2" class="border-right border-2 border-dark font-semibold">MÓDULOS PROFESIONALES/FORMATIVO</td>
