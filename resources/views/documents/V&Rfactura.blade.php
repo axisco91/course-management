@@ -35,10 +35,10 @@
                 </td>
                 <td  style="width:60%;border: none; text-align: right" class="letra-verde">
                     <p class="menos-margin-bottom-2"><b>{{$company->name}}</b></p>
-                    <p class="menos-margin-bottom-2 letra-verde-pequena"> {{$company->address}} </p>
-                    <p class="menos-margin-bottom-2 letra-verde-pequena"> {{$company->post_code}} {{$company->population}} </p>
-                    <p class="menos-margin-bottom-2 letra-verde-pequena"> {{$company->province->name}}</p>
-                    <p class="menos-margin-bottom-2"><b>CIF {{$company->nif}}</b></p>
+                    <p class="menos-margin-bottom-2 letra-verde-pequena"> {{$company->address ?? ''}} </p>
+                    <p class="menos-margin-bottom-2 letra-verde-pequena"> {{$company->post_code ?? ''}} {{$company->population ?? ''}} </p>
+                    <p class="menos-margin-bottom-2 letra-verde-pequena"> {{$company->province->name ?? ''}}</p>
+                    <p class="menos-margin-bottom-2"><b>CIF {{$company->nif ?? ''}}</b></p>
                 </td>
             </tr>
         </table>
@@ -61,17 +61,17 @@
             <tr>
                 <td class="menos-margin-bottom-2" style="width:85%; border: none;">
                     <p><b><span class="letra-verde">Modalidad:</span></b> Teleformación </p>
-                    <p><b><span class="letra-verde">Ocupación:</span></b> {{$occupation->name}} </p>
-                    <p><b><span class="letra-verde">Trabajador/ a:</span></b> {{$student->name}} {{$student->surname}} <b><span class="letra-verde">DNI:</span></b> {{$student->dni}} </p>
+                    <p><b><span class="letra-verde">Ocupación:</span></b> {{$occupation->name ?? ''}} </p>
+                    <p><b><span class="letra-verde">Trabajador/ a:</span></b> {{$student->name ?? ''}} {{$student->surname ?? ''}} <b><span class="letra-verde">DNI:</span></b> {{$student->dni}} </p>
                     <p><b><span class="letra-verde">Fecha inicio y fecha fin de la formación:</span></b> 
                         {{ \DateTime::createFromFormat('Y-m-d', $trainingContractBonus->start)->format('d/m/Y') }} - 
                         {{ \DateTime::createFromFormat('Y-m-d', $trainingContractBonus->end)->format('d/m/Y') }}  
                     </p>
-                    <p><b><span class="letra-verde">Horas:</span></b> {{$trainingContractBill->hours}} </p>
+                    <p><b><span class="letra-verde">Horas:</span></b> {{$trainingContractBill->hours ?? ''}} </p>
 
                 </td>
                 <td class="menos-margin-bottom-2" style="width:15%; border: none; vertical-align: top; text-align: center">
-                    <p><b>{{$trainingContractBill->amount}}</b></p>
+                    <p><b>{{$trainingContractBill->amount ?? ''}}</b></p>
                 </td>
             </tr>
         </table>
@@ -103,11 +103,11 @@
 
                             </td>
                             <td class="fondo-gris" style="width: 50%">
-                                <p class="menos-margin-bottom ml-1"> {{$trainingContractBill->amount}} €</p>
+                                <p class="menos-margin-bottom ml-1"> {{$trainingContractBill->amount ?? ''}} €</p>
                                 <hr class="menos-margin-bottom" style="border-top: 2px solid white;">
                                 <p class="menos-margin-bottom ml-1"> 0,00 €</p>
                                 <hr class="menos-margin-bottom" style="border-top: 2px solid white;">
-                                <p class="menos-margin-bottom ml-1"><b> {{$trainingContractBill->amount}} €</b></p>
+                                <p class="menos-margin-bottom ml-1"><b> {{$trainingContractBill->amount ?? ''}} €</b></p>
                             </td>
                         </tr>
                         <tr>

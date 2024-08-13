@@ -42,7 +42,10 @@ class Student extends Model
         'active',
         'nationality',
         'legal_guardian_name',
-        'legal_guardian_dni'
+        'legal_guardian_dni',
+        'population_code',
+        'nationality_code',
+        'regimen'
     ];
 
     /**
@@ -137,14 +140,16 @@ class Student extends Model
             ->where('registrations.billing_id', $id);
     }
 
+    
     public function scopeGetRegistrated($query, $courseId){
-        return $query->select('students.*', 'registrations.is_bonus', 'companies.name as company_name',
-            'registrations.id as registration_id',
-            DB::raw("CONCAT(students.name,' ',students.surname) as student"))
-            ->leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
-            ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
-            ->where('registrations.course_id', $courseId);
+    return $query->select('students.*', 'registrations.is_bonus', 'companies.name as company_name',
+        'registrations.id as registration_id', 'registrations.price',
+        DB::raw("CONCAT(students.name,' ',students.surname) as student"))
+        ->leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
+        ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
+        ->where('registrations.course_id', $courseId);
     }
+
 
     public function scopeGetUnregistrated($query, $courseId){
         $registations = Student::leftJoin('registrations', 'students.id', '=', 'registrations.student_id')

@@ -53,7 +53,8 @@ class WebPlatform extends Model
     public static function createWebPlatform($data){
         $web_platform = WebPlatform::create([
             'name' => $data['name'],
-            'url' => $data['url']
+            'url' => $data['url'],
+            'code' => $data['code']
         ]);
         return $web_platform;
     }
@@ -62,7 +63,8 @@ class WebPlatform extends Model
         $web_platform = WebPlatform::find($id);
         $web_platform->update([
             'name' => $data['name'],
-            'url' => $data['url']
+            'url' => $data['url'],
+            'code' => $data['code']
         ]);
         return $web_platform;
     }

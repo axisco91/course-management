@@ -92,29 +92,29 @@
             <div class="border-bottom border-2 border-dark">
                 <p>
                     <span class="font-semibold px-4">Identificador del acreedor:</span>
-                    <span class="border-start border-2 border-dark ps-1" style="padding-top:3.8%; padding-bottom:3%;">{{$company->nif}}</span>
+                    <span class="border-start border-2 border-dark ps-1" style="padding-top:3.8%; padding-bottom:3%;">{{$trainingContract->company->nif}}</span>
                 </p>
             </div>
             <div class="border-bottom border-2 border-dark">
                 <p class="font-semibold">
                     <span class="px-4">Nombre del acreedor:</span>
-                    <span class="border-start border-2 border-dark font-normal ps-1" style="padding-top: 1%; padding-bottom:3%;">{{$company->name}}</span>
+                    <span class="border-start border-2 border-dark font-normal ps-1" style="padding-top: 1%; padding-bottom:3%;">{{$trainingContract->company->name}}</span>
                 </p>
             </div>
             <div class="border-bottom border-2 border-dark">
                 <p class="font-semibold">
                     <span class="px-4">Dirección:</span>
-                    <span class="border-start border-2 border-dark font-normal ps-1" style="padding-top: 1%; padding-bottom:3%;">{{$company->address}}</span>
+                    <span class="border-start border-2 border-dark font-normal ps-1" style="padding-top: 1%; padding-bottom:3%;">{{$trainingContract->company->address}}</span>
                 </p>
             </div>
             <div class="border-bottom border-2 border-dark">
                 <p>
                     <span class="font-semibold px-4">Código Postal:</span>
-                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$company->post_code}}</span>
+                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$trainingContract->company->post_code}}</span>
                     <span class="font-semibold border-start border-2 border-dark px-1" style="padding-top: 1%; padding-bottom:3%;">Población:</span>
-                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$company->population}}</span>
+                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$trainingContract->company->population}}</span>
                     <span class="font-semibold border-start border-2 border-dark px-1" style="padding-top: 1%; padding-bottom:3%;">Provincia:</span>
-                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$company->province->name}}</span>
+                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$trainingContract->company->province->name}}</span>
                 </p>
             </div>
             <div>  
@@ -141,7 +141,7 @@
                     <p class="font-bold mb-0">Nombre del deudor/es: </p>
                     <p class="text-xs">(titulares de la cuenta a cargo)</p>
                 </div>
-                <p class="name px-1" style="padding-top: 4%; padding-bottom: 3.2%; ">{{$company->name}}</p>
+                <p class="name px-1" style="padding-top: 4%; padding-bottom: 3.2%; ">{{$trainingContract->company->name}}</p>
             </div>
             <div class="border-bottom border-2 border-dark">
                 <p>
@@ -152,11 +152,11 @@
             <div class="border-bottom border-2 border-dark">
                 <p>
                     <span class="font-semibold px-4">Código Postal:</span>
-                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$company->post_code}}</span>
+                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$trainingContract->company->post_code}}</span>
                     <span class="font-semibold border-start border-2 border-dark px-1" style="padding-top: 1%; padding-bottom:3%;">Población:</span>
-                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$company->population}}</span>
+                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$trainingContract->company->population}}</span>
                     <span class="font-semibold border-start border-2 border-dark px-1" style="padding-top: 1%; padding-bottom:3%;">Provincia:</span>
-                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$company->province->name}}</span>
+                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom:3%;">{{$trainingContract->company->province->name}}</span>
                 </p>
             </div>
             <div class="border-bottom border-2 border-dark">
@@ -164,7 +164,7 @@
                     <span class="font-semibold px-4" >País del deudor:</span>
                     <span class="border-start border-2 border-dark font-normal ps-2 pe-4" style="padding-top: 1%; padding-bottom: 3.3%;">ESPAÑA</span>
                     <span class="font-semibold border-start border-2 border-dark px-1" style="padding-top: 1%; padding-bottom: 3.3%;">CIF/NIF del deudor:</span>
-                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom: 3.3%;">{{$company->nif}}</span>
+                    <span class="border-start border-2 border-dark font-normal px-1" style="padding-top: 1%; padding-bottom: 3.3%;">{{$trainingContract->company->nif}}</span>
                 </p>
             </div>
             <div class="border-bottom border-2 border-dark ">
@@ -173,7 +173,7 @@
                     <span class="border-start border-2 border-dark ps-2" style="padding-top:1%; padding-bottom:3%;">(swift BIC)</span>
                 </p>
             </div>
-            <p class="ps-4"><strong>Número de cuenta – IBAN</strong>: {{$company->iban}}</p>
+            <p class="ps-4"><strong>Número de cuenta – IBAN</strong>: {{$trainingContract->company->iban}}</p>
         </article>
 
         <!-- TIPO DE PAGO A REALIZAR -->

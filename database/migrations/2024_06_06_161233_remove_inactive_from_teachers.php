@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class Update1TrainingActionTable extends Migration
+class RemoveInactiveFromTeachers extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,10 @@ class Update1TrainingActionTable extends Migration
      */
     public function up()
     {
-        Schema::table('training_actions', function (Blueprint $table) {
-            $table->string('code')->nullable();
+        Schema::table('teachers', function (Blueprint $table) {
+            $table->dropColumn('inactive');
         });
-        }
+    }
 
     /**
      * Reverse the migrations.
@@ -25,8 +25,8 @@ class Update1TrainingActionTable extends Migration
      */
     public function down()
     {
-        Schema::table('training_actions', function (Blueprint $table) {
-            $table->dropColumn('code');
-    });
+        Schema::table('teachers', function (Blueprint $table) {
+            $table->tinyInteger('inactive')->default(0);
+        });
     }
 }

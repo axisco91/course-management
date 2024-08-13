@@ -19,6 +19,7 @@ use App\Services\BillService;
 use App\Services\ProfitabilityService;
 use App\Services\RegistrationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class RegistrationController extends BaseController
 {
@@ -220,10 +221,12 @@ class RegistrationController extends BaseController
      */
     public function getRegistration($id){
         $registration = Registration::find($id);
-        if ($registration) {
+            if ($registration) {
+            Log::info($registration);
             return response()->json([
                 'status' => 200,
                 'registration' => $registration
+                
             ]);
         }
         return response()->json([
@@ -262,7 +265,7 @@ class RegistrationController extends BaseController
      */
     public function getAllRegistrations() {
         try {
-            $registrations = Registration::all();
+            $registrations = Registration::with('course')->get();
             return response()->json([
                 'status' => 200,
                 'registrations' => $registrations
@@ -274,4 +277,34 @@ class RegistrationController extends BaseController
             ]);
         }
     }
+    /**
+     * Update a registration
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $registration = Registration::findOrFail($id);
+            $registration->update($request->all());
+    
+            
+            $registration->load('company'); 
+    
+            return response()->json([
+                'status' => 200,
+                'message' => 'Registration updated successfully',
+                'student' => $registration
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error updating registration: ' . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Error updating registration'
+            ], 500);
+        }
+    }
+
 }

@@ -289,19 +289,7 @@
     <br>
 
         
-    
-    @php
-        // Calcular la edad del estudiante
-        $birthDate = new DateTime($trainingContract->Student->date_of_birth);
-        $today = new DateTime();
-        $interval = $today->diff($birthDate);
-        $age = $interval->y;
-
-        // Determinar si el checkbox debe estar marcado
-        $isChecked = $age >= 16 && $age <= 30 ? 'checked' : '';
-    @endphp
-
-    <input class="no-line-break" type="radio" id="opcion1" name="trabajador" value="mayor_16_30" {{ $isChecked }}>
+    <input class="no-line-break" type="radio" id="opcion1" name="trabajador" value="mayor_16_30" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
     <p class="no-line-break">Mayor de 16 hasta 30 años inclusive.</p>
     <br>
 
@@ -560,32 +548,23 @@
     <div class="mt-4 borde-redondeado">
         <p> Que el CONTRATO DE FORMACIÓN EN ALTERNANCIA que se celebra (marque la casilla que corresponda) se realiza con las siguientes cláusulas
         específicas:</p>
-        @php
-            // Verificar si los demás checkboxes están desmarcados
-            $areOthersUnchecked = $trainingContract->youth_guarantee != 1 && $trainingContract->social_exclusion != 1 && $trainingContract->disabled != 1;
 
-            // Si los demás checkboxes están desmarcados, marcar este checkbox
-            $isChecked = $areOthersUnchecked ? 'checked' : '';
-        @endphp
-
-        <input type="checkbox" id="opcion1" name="opcion1" class="no-line-break" {{ $isChecked }}>
-        <p class="no-line-break">PARA LA FORMACIÓN EN ALTERNANCIA ORDINARIO	. . . . .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . pág. 5  </p>
-        <br>
-        <input type="checkbox" id="opcion2" name="opcion2" class="no-line-break"  {{ $trainingContract->social_exclusion == 1 ? 'checked' : '' }}>
-        <p class="no-line-break">PARA PERSONAS TRABAJADORAS EN SITUACIÓN DE EXCLUSIÓN SOCIAL EN EMPRESAS DE INSERCIÓN . . . . . . . . . . . . . . . pág. 6  </p>
-        <br>
-        <input type="checkbox" id="opcion3" name="opcion3" class="no-line-break"  {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
-        <p class="no-line-break">PARA PERSONAS CON DISCAPACIDAD EN CENTROS ESPECIALES DE EMPLEO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . pág. 7  </p>
-        <br>
-        <input type="checkbox" id="opcion4" name="opcion4" class="no-line-break">
-        <p class="no-line-break">PARA PERSONAS MAYORES DE 52 AÑOS BENEFICIARIAS DE LOS SUBSIDIOS POR DESEMPLEO . . . . . . . . . . . . . . . . . . . . . . . . pág. 8 </p>
-        <br>
-        <input type="checkbox" id="opcion5" name="opcion5" class="no-line-break">
-        <p class="no-line-break">PARA PERSONAS PARTICIPANTES EN EL PROGRAMA FOMENTO DEL EMPLEO AGRARIO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . pág. 9 </p>
-        <br>
+                <input type="checkbox" id="opcion1" name="opcion1" class="no-line-break"  {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
+                <p class="no-line-break">PARA LA FORMACIÓN EN ALTERNANCIA ORDINARIO	. . . . .  . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . pág. 5  </p>
+                <br>
+                <input type="checkbox" id="opcion2" name="opcion2" class="no-line-break"  {{ $trainingContract->social_exclusion == 1 ? 'checked' : '' }}>
+                <p class="no-line-break">PARA PERSONAS TRABAJADORAS EN SITUACIÓN DE EXCLUSIÓN SOCIAL EN EMPRESAS DE INSERCIÓN . . . . . . . . . . . . . . . pág. 6  </p>
+                <br>
+                <input type="checkbox" id="opcion3" name="opcion3" class="no-line-break"  {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
+                <p class="no-line-break">PARA PERSONAS CON DISCAPACIDAD EN CENTROS ESPECIALES DE EMPLEO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . pág. 7  </p>
+                <br>
+                <input type="checkbox" id="opcion4" name="opcion4" class="no-line-break">
+                <p class="no-line-break">PARA PERSONAS MAYORES DE 52 AÑOS BENEFICIARIAS DE LOS SUBSIDIOS POR DESEMPLEO . . . . . . . . . . . . . . . . . . . . . . . pág. 8 </p>
+                <br>
+                <input type="checkbox" id="opcion5" name="opcion5" class="no-line-break">
+                <p class="no-line-break">PARA PERSONAS PARTICIPANTES EN EL PROGRAMA FOMENTO DEL EMPLEO AGRARIO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . pág. 9 </p>
+                <br>
         <p> y cumple los requisitos exigidos en la norma regulatoria.
-        </div>
-                
     </div>
 
     <div style="position: absolute; bottom: 0; width: 100%;">
@@ -618,105 +597,110 @@
         </tr>
     </table>
 
-    <!-- TEMPORAL: Marcado con bonificación de cuotas a la seguridad social -->
-<div class="mt-4 borde-redondeado">
-    <input type="checkbox" id="formacion1" name="formacion1" class="no-line-break" checked>
-    <h1 class="no-line-break">PARA LA FORMACIÓN EN ALTERNANCIA ORDINARIO</h1>
+    <div class="mt-4 borde-redondeado">
+        <input type="checkbox" id="formacion1" name="formacion1" class="no-line-break" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
+        <h1 class="no-line-break">PARA LA FORMACIÓN EN ALTERNANCIA ORDINARIO</h1>
 
-    <div class="mt-2">
-        <table style="width: 100%;">
-            <tr>
-                <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
-                    <input type="radio" id="opcion1" name="radio" class="no-line-break">
-                    <p class="no-line-break">SIN BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL</p>
-                    <hr style="margin: 0; padding-right: 0;">
-                </td>
-                <td style="width: 27%; border: none;">
-                    <table style="width: 100%; border: none; margin: 0; padding: 0;">
-                        <tr>
-                            <td style="border: none; text-align: right; padding: 0;">
-                                <p style="margin: 0;">CÓDIGO CONTRATO</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="border: none; padding: 0;">
-                                <div class="border-div">
-                                    <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break">
-                                    TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">421</span></p>
-                                    <p style="text-align: left;"><input type="radio" id="opcion2" name="tiempo" class="no-line-break">
-                                    TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">521</span></p>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </div>
-    
-    <div class="mt-2">
-        <table style="width: 100%;">
-            <tr>
-                <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
-                    <input type="radio" id="opcion2" name="radio" class="no-line-break" checked>
-                    <p class="no-line-break">CON BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL (1)</p>
-                    <hr style="margin: 0; padding-right: 0;">
-                </td>
-                <td style="width: 27%; border: none;">
-                    <table style="width: 100%; border: none; margin: 0; padding: 0;">
-                        <tr>
-                            <td style="border: none; text-align: right; padding: 0;">
-                                <p style="margin: 0;">CÓDIGO CONTRATO</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="border: none; padding: 0;">
-                                <div class="border-div">
-                                    <p style="text-align: left;"><input type="radio" id="opcion3" name="tiempo" class="no-line-break" checked>
-                                    TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">450</span></p>
-                                    <p style="text-align: left;"><input type="radio" id="opcion4" name="tiempo" class="no-line-break">
-                                    TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">550</span></p>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </div>
+        <div class="mt-2">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
+                        <input type="radio" id="opcion1" name="radio" class="no-line-break" {{ $trainingContract->youth_guarantee == 0 && $trainingContract->disabled == 0 ? 'checked' : '' }}>
+                        <p class="no-line-break">SIN BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL</p>
+                        <hr style="margin: 0; padding-right: 0;">
+                    </td>
+                    <td style="width: 27%; border: none;">
+                        <table style="width: 100%; border: none; margin: 0; padding: 0;">
+                            <tr>
+                                <td style="border: none; text-align: right; padding: 0;">
+                                    <p style="margin: 0;">CÓDIGO CONTRATO</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: none; padding: 0;">
+                                    <div class="border-div">
+                                        <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break" {{ $trainingContract->youth_guarantee == 0 && $trainingContract->disabled == 0 ? 'checked' : '' }}>
+                                        TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">421</span></p>
+                                        <p style="text-align: left;"><input type="radio" id="opcion2" name="tiempo" class="no-line-break">
+                                        TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">521</span></p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="mt-2">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
+                        <input type="radio" id="opcion1" name="radio" class="no-line-break" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
+                        <p class="no-line-break">CON BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL (1)</p>
+                        <hr style="margin: 0; padding-right: 0;">
+                    </td>
+                    <td style="width: 27%; border: none;">
+                        <table style="width: 100%; border: none; margin: 0; padding: 0;">
+                            <tr>
+                                <td style="border: none; text-align: right; padding: 0;">
+                                    <p style="margin: 0;">CÓDIGO CONTRATO</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: none; padding: 0;">
+                                    <div class="border-div">
+                                        <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break" {{ $trainingContract->youth_guarantee == 1 ? 'checked' : '' }}>
+                                        TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">450</span></p>
+                                        <p style="text-align: left;"><input type="radio" id="opcion2" name="tiempo" class="no-line-break">
+                                        TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">550</span></p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
-    <div class="mt-2">
-        <table style="width: 100%;">
-            <tr>
-                <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
-                    <input type="radio" id="opcion3" name="radio" class="no-line-break">
-                    <p class="no-line-break">CON BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL PARA PERSONAS CON DISCAPACIDAD (2)</p>
-                    <hr style="margin: 0; padding-right: 0;">
-                </td>
-                <td style="width: 27%; border: none;">
-                    <table style="width: 100%; border: none; margin: 0; padding: 0;">
-                        <tr>
-                            <td style="border: none; text-align: right; padding: 0;">
-                                <p style="margin: 0;">CÓDIGO CONTRATO</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="border: none; padding: 0;">
-                                <div class="border-div">
-                                    <p style="text-align: left;"><input type="radio" id="opcion5" name="tiempo" class="no-line-break">
-                                    TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">450</span></p>
-                                    <p style="text-align: left;"><input type="radio" id="opcion6" name="tiempo" class="no-line-break">
-                                    TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">550</span></p>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </div>
-</div>
+        <div class="mt-2">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
+                        <input type="radio" id="opcion1" name="radio" class="no-line-break" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
+                        <p class="no-line-break">CON BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL PARA PERSONAS CON DISCAPACIDAD (2)</p>
+                        <hr style="margin: 0; padding-right: 0;">
+                    </td>
+                    <td style="width: 27%; border: none;">
+                        <table style="width: 100%; border: none; margin: 0; padding: 0;">
+                            <tr>
+                                <td style="border: none; text-align: right; padding: 0;">
+                                    <p style="margin: 0;">CÓDIGO CONTRATO</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="border: none; padding: 0;">
+                                    <div class="border-div">
+                                        <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break" {{ $trainingContract->disabled == 1 ? 'checked' : '' }}>
+                                        TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">450</span></p>
+                                        <p style="text-align: left;"><input type="radio" id="opcion2" name="tiempo" class="no-line-break">
+                                        TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">550</span></p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
+        <br>
+        <ul class="no-bullets small-text">
+            <hr>
+            <li>(1) Este contrato dará derecho a la bonificación establecida en el artículo 23 del Real Decreto-ley 1/2023, de 10 de enero.</li>
+            <li>(2) Este contrato dará derecho a la bonificación establecida en la disposición adicional vigésima del Estatuto de los Trabajadores.</li>
+        </ul>
+    </div>
 
     <div style="position: absolute; bottom: 0; width: 100%;">
         <table>
@@ -1200,32 +1184,14 @@
         </span></p>
 
         <p>Y para que conste, se extiende este contrato por triplicado ejemplar en el lugar y fecha a continuación indicados, firmando las partes interesadas.</p>
+
         @php
-    // Verificar si $trainingContract->beginning está definido y tiene el formato correcto
-    if (isset($trainingContract->beginning) && preg_match('/\d{4}-\d{2}-\d{2}/', $trainingContract->beginning)) {
-        // Convertir la cadena de fecha en un objeto DateTime
-        $beginningDate = DateTime::createFromFormat('Y-m-d', $trainingContract->beginning);
+            $nombre_mes = now()->translatedFormat('F');
+            $dia = now()->format('d');
+            $anio = now()->format('Y');
+        @endphp
 
-        // Formatear la fecha al español
-        $formatter = new IntlDateFormatter('es_ES', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-        $formatter->setPattern('d \'de\' MMMM \'de\' Y');
-        $fechaFormateada = $formatter->format($beginningDate);
-
-        // Separar el día, mes y año de la fecha formateada
-        $fechaPartes = explode(' ', $fechaFormateada);
-        $dia = $fechaPartes[0];
-        $nombre_mes = $fechaPartes[2];
-        $anio = $fechaPartes[4];
-    } else {
-        // Proporcionar valores por defecto si $trainingContract->beginning no está definido o no tiene el formato correcto
-        $nombre_mes = 'mes desconocido';
-        $dia = '00';
-        $anio = '0000';
-    }
-@endphp
-
-<p>En <span class="dots">{{$trainingContract->company->population}} </span> a <span class="dots">{{$dia}} </span> de <span class="dots">{{$nombre_mes}}</span> de <span class="dots">{{$anio}}</span></p>
-
+        <p>En <span class="dots">{{$trainingContract->company->population}} </span> a <span class="dots">{{$dia}} </span> de <span class="dots">{{$nombre_mes}}</span> de <span class="dots">{{$anio}}</span></p>
    
 
         <div style="height:250px">

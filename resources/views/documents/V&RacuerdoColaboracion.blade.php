@@ -7,6 +7,16 @@
     <title>ANEXO AL CONTRATO DE TRABAJO DE FORMACIÓN EN ALTERNANCIA</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/acuerdo.css">
+
+    <style>
+        .center-logo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+    </style>
+
 </head>
 <body>
 
@@ -133,8 +143,10 @@
             <p>Fecha de inicio: <u>{{$trainingContract->beginning}}</u></p>
             <p>Puesto de trabajo u ocupación: <u>{{$trainingContract->occupation->name}} </u> Cód. CNO <u>{{$trainingContract->occupation->cno}} </u></p>
             <p>Provincia del centro de trabajo: <u>{{$trainingContract->province->name}} </u> Horas de contrato, según convenio: <u>{{$trainingContract->annually_day_hours}} </u> </p>
-            <p>Convenio aplicable <u> {{ $trainingContract->applicableAgreement ? $trainingContract->applicableAgreement->name : '' }}  {{ $trainingContract->applicableAgreement ? "({$trainingContract->applicableAgreement->agreementType->type})" : '' }} </u></p>
+            <p>Convenio aplicable <u> {{ $trainingContract->company->agreement ?? '' }} </u></p>
+    
         </div>
+
     </div>
     <div style="page-break-after: always;"></div>
 
@@ -340,8 +352,9 @@
 <div style="page-break-after: always;"></div>
 
 
-    <div class="col-md-12 d-flex justify-content-center">
-        <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
+    <div class="col-md-12 d-flex justify-content-center center-logo">
+    <img src="img-acuerdo/Logo V&R grande transparente.png" alt="logo" class="img-fluid fixed-height-img-logo">
+
     </div>
     <h1>
         4. ITINERARIO FORMATIVO INDIVIDUAL
@@ -358,7 +371,7 @@
                 <div class="mx-2 my-2">
                     <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
                     <p>
-                        Formación a impartir: Código <u>{{ $e->training_action->code ?? ''}}</u>  Denominación: <u>{{ $e->training_action->name }}</u> 
+                    Formación a impartir: Código <u>{{ $e->training_action->code ?? '' }}</u>  Denominación: <u>{{ $e->training_action->name ?? 'N/A' }}</u>
                     </p>
                     <p>
                         Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>{{ $e->training_action->webPlatform->code ?? '' }}</u>
@@ -530,13 +543,14 @@
                 continuación indicados, firmando las partes.
             </p>
             @php
-                $nombre_mes = now()->translatedFormat('F');
-                $dia = now()->format('d');
-                $anio = now()->format('Y');
+                $fechaInicio = \Carbon\Carbon::parse($trainingContract->beginning);
+                $nombre_mes = $fechaInicio->translatedFormat('F');
+                $dia = $fechaInicio->format('d');
+                $anio = $fechaInicio->format('Y');
             @endphp
-            
+
             <p>
-                En <u>{{$trainingContract->company->population}}</u>  a <u>{{ $dia }}</u> de <u>{{ $nombre_mes }}</u> de 2024
+                En <u>{{$trainingContract->company->population}}</u> a <u>{{ $dia }}</u> de <u>{{ $nombre_mes }}</u> de <u>{{ $anio }}</u>
             </p>
             <div style="margin: 20px;">
                 <table width="100%" style="margin=10px;">
@@ -582,21 +596,21 @@
 
 
     <!-- PROTECCIÓN DE DATOS -->
-
-        <h1>
-            6. PROTECCIÓN DE DATOS
-        </h1>
-        <div class="col-md-12 mx-2 my-2">
-            <p>MV & JAR Consultores, S.L. es el Responsable del tratamiento de los datos personales proporcionados y le informa que
-                estos datos serán tratados de conformidad con lo dispuesto en el Reglamento (UE) 2016/679 de 27 de abril de 2016 (GDPR),
-                con la finalidad de mantener una relación de servicios de formación y conservarlos mientras exista un interés mutuo para
-                mantener el fin del tratamiento y cuando ya no sea necesario para tal fin, se suprimirán con medidas de seguridad
-                adecuadas para garantizar la seudonimización de los datos o la destrucción total de los mismos. Los datos podrán ser
-                comunicados a terceros para la prestación del servicio o por obligación legal. Asimismo, se informa que puede ejercer los
-                derechos de acceso, rectificación, portabilidad, supresión, limitación y oposición dirigiéndose a MV & JAR Consultores, S.L.
-                en C/ Real Fernando, local 4, - 11540 Sanlúcar de Barrameda (Cádiz). E-mail: info@vrconsultores.es y el de reclamación a
-                www.agpd.es.
-            </p>
-        </div>
+    <div style="page-break-before: always;"></div>
+    <h1>
+        6. PROTECCIÓN DE DATOS
+    </h1>
+    <div class="col-md-12 mx-2 my-2">
+        <p>MV & JAR Consultores, S.L. es el Responsable del tratamiento de los datos personales proporcionados y le informa que
+            estos datos serán tratados de conformidad con lo dispuesto en el Reglamento (UE) 2016/679 de 27 de abril de 2016 (GDPR),
+            con la finalidad de mantener una relación de servicios de formación y conservarlos mientras exista un interés mutuo para
+            mantener el fin del tratamiento y cuando ya no sea necesario para tal fin, se suprimirán con medidas de seguridad
+            adecuadas para garantizar la seudonimización de los datos o la destrucción total de los mismos. Los datos podrán ser
+            comunicados a terceros para la prestación del servicio o por obligación legal. Asimismo, se informa que puede ejercer los
+            derechos de acceso, rectificación, portabilidad, supresión, limitación y oposición dirigiéndose a MV & JAR Consultores, S.L.
+            en C/ Real Fernando, local 4, - 11540 Sanlúcar de Barrameda (Cádiz). E-mail: info@vrconsultores.es y el de reclamación a
+            www.agpd.es.
+        </p>
+    </div>
 </body>
 </html>

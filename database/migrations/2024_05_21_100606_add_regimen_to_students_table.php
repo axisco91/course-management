@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateAgreementTypesTable extends Migration
+class AddRegimenToStudentsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,8 @@ class CreateAgreementTypesTable extends Migration
      */
     public function up()
     {
-        Schema::create('agreement_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('type');
-            $table->text('description');
-            $table->timestamps();
+        Schema::table('students', function (Blueprint $table) {
+            $table->string('regimen')->nullable();        
         });
     }
 
@@ -28,6 +25,8 @@ class CreateAgreementTypesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('agreement_types');
+        Schema::table('students', function (Blueprint $table) {
+            $table->dropColumn('regimen');
+        });
     }
 }

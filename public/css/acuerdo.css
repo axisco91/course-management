@@ -1,5 +1,7 @@
 body {
     font-family: 'Calibri', sans-serif !important;
+    text-align: justify !important;
+    margin-right: 20px; 
 }
 
 h1 {

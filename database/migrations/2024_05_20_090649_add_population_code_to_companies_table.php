@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddColumnsToExcludedDaysTable extends Migration
+class AddPopulationCodeToCompaniesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddColumnsToExcludedDaysTable extends Migration
      */
     public function up()
     {
-        Schema::table('excluded_days', function (Blueprint $table) {
-            $table->tinyInteger('general')->nullable();
+        Schema::table('companies', function (Blueprint $table) {
+            $table->string('population_code')->nullable();
         });
     }
 
@@ -25,8 +25,8 @@ class AddColumnsToExcludedDaysTable extends Migration
      */
     public function down()
     {
-        Schema::table('excluded_days', function (Blueprint $table) {
-            $table->dropColumn('general');
+        Schema::table('companies', function (Blueprint $table) {
+            $table->dropColumn('population_code');
         });
     }
 }

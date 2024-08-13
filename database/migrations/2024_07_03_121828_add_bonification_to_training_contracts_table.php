@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class RenameInactiveToActiveInStudentsTable extends Migration
+class AddBonificationToTrainingContractsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class RenameInactiveToActiveInStudentsTable extends Migration
      */
     public function up()
     {
-        Schema::table('students', function (Blueprint $table) {
-            $table->renameColumn('inactive', 'active');
+        Schema::table('training_contracts', function (Blueprint $table) {
+            $table->boolean('bonification')->default(false)->after('daily_hours_2');
         });
     }
 
@@ -25,8 +25,8 @@ class RenameInactiveToActiveInStudentsTable extends Migration
      */
     public function down()
     {
-        Schema::table('students', function (Blueprint $table) {
-            $table->renameColumn('active', 'inactive');
+        Schema::table('training_contracts', function (Blueprint $table) {
+            $table->dropColumn('bonification');
         });
     }
 }

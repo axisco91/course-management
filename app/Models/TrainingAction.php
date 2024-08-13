@@ -12,7 +12,7 @@ class TrainingAction extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'formative_action','action_type_id','professional_family_id','professional_area_id','modality_id','training_action_level_id','training_action_group_id','tutoring_id','course_z','course_avz','active','in_catalog','face_to_face_hours','teletraining_hours','total_hours','price','objectives','content','user', 'password','web_platform_id','observations','number_activities','number_units','provider_id', 'specialty', 'course_origin_id', 'code'];
+    protected $fillable = ['name', 'formative_action','action_type_id','professional_family_id','professional_area_id','modality_id','training_action_level_id','training_action_group_id','tutoring_id','course_z','course_avz','active','in_catalog','face_to_face_hours','teletraining_hours','total_hours','price','objectives','content','user', 'password','web_platform_id','observations','number_activities','number_units','provider_id', 'specialty', 'course_origin_id', 'code', 'training_tutor', 'training_tutor_dni'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

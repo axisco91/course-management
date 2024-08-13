@@ -15,7 +15,7 @@ class TrainingContractElement extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days', 'order', 'course_id'];
+    protected $fillable = ['certification_id', 'training_action_id', 'training_contract_id', 'beginning', 'end', 'total_days', 'order', 'course_id', 'training_tutor', 'training_tutor_dni'];
 
     public function training_contract(){
         return $this->belongsTo(TrainingContract::class);
@@ -53,60 +53,60 @@ class TrainingContractElement extends Model
         return $training_contract_elements;
     }
 
-public static function createTrainingContractElement($training_contract_id, $element_id, $type){
-        
-    $hours = 0;
-    $training_contract_element = null;
-    $training_contract = TrainingContract::find($training_contract_id);
-
-    // El inicio es siempre el inicio de la formación del contrato de formación
-    $beginning = new Carbon($training_contract->beginning_formation);
-
-    $end = $beginning->copy();
-    if ($type == 'certification_id'){
-        $training_contract_element = TrainingContractElement::where('certification_id', $element_id)
-            ->where('training_contract_id', $training_contract_id)->first();
-        if (!$training_contract_element){
-            $certification = Certification::find($element_id);
-            $hours = $certification['total_hours'];
-
-            $training_contract_element = TrainingContractElement::create([
-                'training_contract_id' => $training_contract_id,
-                'certification_id' => $element_id,
-                'beginning' => $beginning,
-                'end' => $end
-            ]);
-        }
-    } // Cierra el bloque if ($type == 'certification_id')
-
-    else if ($type == 'training_action_id'){
-        $training_contract_element = TrainingContractElement::where('training_action_id', $element_id)
-            ->where('training_contract_id', $training_contract_id)->first();
-        if (!$training_contract_element){
-            $training_action = TrainingAction::find($element_id);
-            $hours = $training_action['total_hours'];
-
-            $training_contract_element = TrainingContractElement::create([
-                'training_contract_id' => $training_contract_id,
-                'training_action_id' => $element_id,
-                'beginning' => $beginning,
-                'end' => $end
-            ]);
-
-            $beginning = new \DateTime($training_contract_element->beginning);
-            $end = new \DateTime($training_contract_element->end);
-            $total_days = $beginning->diff($end)->days;
-        
-            $training_contract_element->total_days = $total_days;
-            $training_contract_element->save();
-        
-            $training_contract->update([
-                'formation_hours' => $training_contract['formation_hours'] + $hours
-            ]);
-            return $training_contract_element;
+    public static function createTrainingContractElement($training_contract_id, $element_id, $type){
+        $hours = 0;
+        $training_contract_element = null;
+        $training_contract = TrainingContract::find($training_contract_id);
+    
+        // El inicio es siempre el inicio de la formación del contrato de formación
+        $beginning = new Carbon($training_contract->beginning_formation);
+        $end = $beginning->copy();
+    
+        if ($type == 'certification_id'){
+            $training_contract_element = TrainingContractElement::where('certification_id', $element_id)
+                ->where('training_contract_id', $training_contract_id)->first();
+            if (!$training_contract_element){
+                $certification = Certification::find($element_id);
+                $hours = $certification['total_hours'];
+    
+                $training_contract_element = TrainingContractElement::create([
+                    'training_contract_id' => $training_contract_id,
+                    'certification_id' => $element_id,
+                    'beginning' => $beginning,
+                    'end' => $end
+                ]);
+            }
+        } else if ($type == 'training_action_id'){
+            $training_contract_element = TrainingContractElement::where('training_action_id', $element_id)
+                ->where('training_contract_id', $training_contract_id)->first();
+            if (!$training_contract_element){
+                $training_action = TrainingAction::find($element_id);
+                $hours = $training_action['total_hours'];
+    
+                // Aquí se añaden los valores predeterminados de training_tutor y training_tutor_dni
+                $training_contract_element = TrainingContractElement::create([
+                    'training_contract_id' => $training_contract_id,
+                    'training_action_id' => $element_id,
+                    'beginning' => $beginning,
+                    'end' => $end,
+                    'training_tutor' => $training_action->training_tutor,
+                    'training_tutor_dni' => $training_action->training_tutor_dni
+                ]);
+    
+                $beginning = new \DateTime($training_contract_element->beginning);
+                $end = new \DateTime($training_contract_element->end);
+                $total_days = $beginning->diff($end)->days;
+            
+                $training_contract_element->total_days = $total_days;
+                $training_contract_element->save();
+            
+                $training_contract->update([
+                    'formation_hours' => $training_contract['formation_hours'] + $hours
+                ]);
+                return $training_contract_element;
+            }
         }
     }
-}
 
     public static function deleteTrainingContractElement($id){
         $training_contract_element = TrainingContractElement::find($id);

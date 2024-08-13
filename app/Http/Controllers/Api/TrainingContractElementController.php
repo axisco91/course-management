@@ -168,18 +168,41 @@ class TrainingContractElementController extends BaseController
 
     public function orderTrainingContractElements(Request $request) {
         try {
+            // Registrar el inicio del método y los datos recibidos
+            Log::info('Entrando en orderTrainingContractElements', ['request' => $request->all()]);
+            
             if ($request->elementListChange) {
+                // Registrar los datos específicos de elementListChange
+                Log::info('Datos de elementListChange recibidos', ['elementListChange' => $request->elementListChange]);
+                
                 TrainingContractElement::orderTrainingContractElement($request->elementListChange);
+                
+                // Registrar que el ordenamiento se realizó correctamente
+                Log::info('Ordenamiento realizado con éxito');
+                
                 return response()->json([
                     'status' => 200,
                 ]);
+            } else {
+                // Registrar que no se recibió elementListChange
+                Log::warning('No se recibió elementListChange en la solicitud');
+                
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'No se recibió elementListChange'
+                ]);
             }
         } catch (\Exception $e) {
+            // Registrar el error con su mensaje
+            Log::error('Error en orderTrainingContractElements', ['exception' => $e->getMessage()]);
+            
             return response()->json([
                 'message' => $e->getMessage()
             ]);
         }
     }
+    
+    
 
     public function show($id) {
         try {
@@ -218,6 +241,34 @@ class TrainingContractElementController extends BaseController
             return response()->json(['status' => 200, 'elements' => $elements]);
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'error' => 'Error fetching training contract elements']);
+        }
+    }
+
+    public function editTutorInfo($id, Request $request) {
+        try {
+            $element = TrainingContractElement::find($id);
+            if (!$element) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Training Contract Element not found'
+                ]);
+            }
+    
+            $element->update([
+                'training_tutor' => $request->input('training_tutor'),
+                'training_tutor_dni' => $request->input('training_tutor_dni')
+            ]);
+    
+            return response()->json([
+                'status' => 200,
+                'element' => TrainingContractElement::info()->where('training_contract_elements.id', $element->id)->first(),
+                'message' => 'Tutor information updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'message' => $e->getMessage()
+            ]);
         }
     }
 }

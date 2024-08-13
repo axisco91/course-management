@@ -13,14 +13,14 @@
     <table>
         <tr>
             <td width="55%"  style="border: none; text-align:left;">
-                <img src="img-contrato/mtes.png" alt="mtes" class="img-fluid fixed-height-img-mtes">
+                <img src="AVZ/mtes.PNG" alt="mtes" class="img-fluid fixed-height-img-mtes">
             </td>
             <td width="45%"  style="border: none;">
                 <div class="col-md-12">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe">
+                    <img src="AVZ/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe">
                 </div>
                 <div class="col-md-12">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue">
+                    <img src="AVZ/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue">
                 </div>
             </td>
         </tr>
@@ -201,8 +201,8 @@
             <td width="30%" class="left-align">
                 <p class="no-margin-bottom"> Nº AFILIACIÓN SEGURIDAD SOCIAL</p>
                 <p class="empty-paragraph">
-                    @foreach(preg_split('/\s*/', $trainingContract->student->social_security_number) as $number)
-                        @if(!empty($number))
+                    @foreach(str_split($trainingContract->student->social_security_number) as $number)
+                        @if(!empty($number) || $number === '0')
                             <span style="border: 1px solid black; padding: 1px 4px; margin: -2px;">{{ $number }}</span>
                         @endif
                     @endforeach
@@ -359,7 +359,7 @@
     <!-- SEGUNDA PAGINA -->
     <div class="row">
         <div class="col-md-8">
-            <img src="img-contrato/mtes.png" alt="mtes" class="img-fluid fixed-height-img-mtes2">
+            <img src="AVZ/mtes.PNG" alt="mtes" class="img-fluid fixed-height-img-mtes2">
         </div>
     </div>
     <h3 class="no-line-break">CUARTA: </h3>
@@ -390,7 +390,7 @@
     <h3 class="no-line-break">SEGUNDA: </h3>
     <p class="no-line-break">la jornada total será de (11) <span class="dots">{{$trainingContract->annually_day_hours}}</span> horas <span class="dots">anual </span>	De ellas, el número de horas dedicadas a la actividad formativa
     será de <span class="dots"> {{$trainingContract->bonus_hours_first_year}} </span> horas, que representan un <span class="dots">{{$trainingContract->percentage_first_year}} </span> por ciento de la jornada máxima prevista en el convenio colectivo de
-    <span class="dots">{{ $trainingContract->applicableAgreement ? $trainingContract->applicableAgreement->name : '' }} {{ $trainingContract->applicableAgreement ? "({$trainingContract->applicableAgreement->code})" : '' }}</span>
+    <span class="dots">{{$trainingContract->company->agreement ?? ''}}</span>
     <br>El tiempo efectivo de trabajo se prestará en el horario (12)<br>
     <span class="dots">
 
@@ -470,7 +470,7 @@
         <table>
             <tr>
                 <td width="48%" style="border: none; text-align:left;">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                    <img src="AVZ/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue2">
                 </td>
                 <td width="4%" style="border: none; text-align:center;">
                     @php
@@ -479,7 +479,7 @@
                     @endphp
                 </td>
                 <td width="48%" style="border: none; text-align:right;">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                    <img src="AVZ/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe2">
                 </td>
             </tr>
         </table>
@@ -491,7 +491,7 @@
 
     <div class="row">
         <div class="col-md-8">
-            <img src="img-contrato/mtes.png" alt="mtes" class="img-fluid fixed-height-img-mtes2">
+            <img src="AVZ/mtes.PNG" alt="mtes" class="img-fluid fixed-height-img-mtes2">
         </div>
     </div>
 
@@ -527,7 +527,7 @@
         <table>
             <tr>
                 <td width="48%" style="border: none; text-align:left;">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                    <img src="AVZ/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue2">
                 </td>
                 <td width="4%" style="border: none; text-align:center;">
                     <td width="4%" style="border: none; text-align:center;">
@@ -538,7 +538,7 @@
                     </td>
                 </td>
                 <td width="48%" style="border: none; text-align:right;">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                    <img src="AVZ/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe2">
                 </td>
             </tr>
         </table>
@@ -552,7 +552,7 @@
     <table>
         <tr>
             <td style="text-align: center; border: none;">
-                <img src="img-contrato/mtesescudo.png" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
+                <img src="AVZ/mtesescudo.PNG" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
             </td>
         </tr>
     </table>
@@ -592,7 +592,7 @@
         <table>
             <tr>
                 <td width="48%" style="border: none; text-align:left;">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                    <img src="AVZ/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue2">
                 </td>
                 <td width="4%" style="border: none; text-align:center;">
                     @php
@@ -601,7 +601,7 @@
                     @endphp
                 </td>
                 <td width="48%" style="border: none; text-align:right;">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                    <img src="AVZ/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe2">
                 </td>
             </tr>
         </table>
@@ -613,12 +613,13 @@
     <table>
         <tr>
             <td style="text-align: center; border: none;">
-                <img src="img-contrato/mtesescudo.png" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
+                <img src="AVZ/mtesescudo.PNG" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
             </td>
         </tr>
     </table>
 
-    <!-- TEMPORAL: Marcado con bonificación de cuotas a la seguridad social -->
+   <!-- TEMPORAL: Marcado con bonificación de cuotas a la seguridad social -->
+<!-- TEMPORAL: Marcado con bonificación de cuotas a la seguridad social -->
 <div class="mt-4 borde-redondeado">
     <input type="checkbox" id="formacion1" name="formacion1" class="no-line-break" checked>
     <h1 class="no-line-break">PARA LA FORMACIÓN EN ALTERNANCIA ORDINARIO</h1>
@@ -627,7 +628,8 @@
         <table style="width: 100%;">
             <tr>
                 <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
-                    <input type="radio" id="opcion1" name="radio" class="no-line-break">
+                    <input type="radio" id="opcion1" name="radio" class="no-line-break" 
+                           @if(!$trainingContract->bonification) checked @endif>
                     <p class="no-line-break">SIN BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL</p>
                     <hr style="margin: 0; padding-right: 0;">
                 </td>
@@ -641,10 +643,15 @@
                         <tr>
                             <td style="border: none; padding: 0;">
                                 <div class="border-div">
-                                    <p style="text-align: left;"><input type="radio" id="opcion1" name="tiempo" class="no-line-break">
-                                    TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">421</span></p>
-                                    <p style="text-align: left;"><input type="radio" id="opcion2" name="tiempo" class="no-line-break">
-                                    TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">521</span></p>
+                                    <p style="text-align: left;">
+                                        <input type="radio" id="tiempo1" name="tiempo" class="no-line-break"
+                                               @if(!$trainingContract->bonification) checked @endif>
+                                        TIEMPO COMPLETO <span class="dots" style="float: right; margin-right: 10px;">421</span>
+                                    </p>
+                                    <p style="text-align: left;">
+                                        <input type="radio" id="tiempo2" name="tiempo" class="no-line-break">
+                                        TIEMPO PARCIAL <span class="dots" style="float: right; margin-right: 10px;">521</span>
+                                    </p>
                                 </div>
                             </td>
                         </tr>
@@ -658,7 +665,8 @@
         <table style="width: 100%;">
             <tr>
                 <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
-                    <input type="radio" id="opcion2" name="radio" class="no-line-break" checked>
+                    <input type="radio" id="opcion2" name="radio" class="no-line-break" 
+                           @if($trainingContract->bonification && !$trainingContract->disabled) checked @endif>
                     <p class="no-line-break">CON BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL (1)</p>
                     <hr style="margin: 0; padding-right: 0;">
                 </td>
@@ -672,10 +680,15 @@
                         <tr>
                             <td style="border: none; padding: 0;">
                                 <div class="border-div">
-                                    <p style="text-align: left;"><input type="radio" id="opcion3" name="tiempo" class="no-line-break" checked>
-                                    TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">450</span></p>
-                                    <p style="text-align: left;"><input type="radio" id="opcion4" name="tiempo" class="no-line-break">
-                                    TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">550</span></p>
+                                    <p style="text-align: left;">
+                                        <input type="radio" id="tiempo3" name="tiempo" class="no-line-break"
+                                               @if($trainingContract->bonification && !$trainingContract->disabled) checked @endif>
+                                        TIEMPO COMPLETO <span class="dots" style="float: right; margin-right: 10px;">450</span>
+                                    </p>
+                                    <p style="text-align: left;">
+                                        <input type="radio" id="tiempo4" name="tiempo" class="no-line-break">
+                                        TIEMPO PARCIAL <span class="dots" style="float: right; margin-right: 10px;">550</span>
+                                    </p>
                                 </div>
                             </td>
                         </tr>
@@ -689,7 +702,8 @@
         <table style="width: 100%;">
             <tr>
                 <td style="width: 73%; border: none; vertical-align: middle;" class="left-align">
-                    <input type="radio" id="opcion3" name="radio" class="no-line-break">
+                    <input type="radio" id="opcion3" name="radio" class="no-line-break" 
+                           @if($trainingContract->bonification && $trainingContract->disabled) checked @endif>
                     <p class="no-line-break">CON BONIFICACIÓN DE CUOTAS A LA SEGURIDAD SOCIAL PARA PERSONAS CON DISCAPACIDAD (2)</p>
                     <hr style="margin: 0; padding-right: 0;">
                 </td>
@@ -703,10 +717,15 @@
                         <tr>
                             <td style="border: none; padding: 0;">
                                 <div class="border-div">
-                                    <p style="text-align: left;"><input type="radio" id="opcion5" name="tiempo" class="no-line-break">
-                                    TIEMPO COMPLETO   <span class="dots" style="float: right; margin-right: 10px;">450</span></p>
-                                    <p style="text-align: left;"><input type="radio" id="opcion6" name="tiempo" class="no-line-break">
-                                    TIEMPO PARCIAL   <span class="dots" style="float: right; margin-right: 10px;">550</span></p>
+                                    <p style="text-align: left;">
+                                        <input type="radio" id="tiempo5" name="tiempo" class="no-line-break"
+                                               @if($trainingContract->bonification && $trainingContract->disabled) checked @endif>
+                                        TIEMPO COMPLETO <span class="dots" style="float: right; margin-right: 10px;">450</span>
+                                    </p>
+                                    <p style="text-align: left;">
+                                        <input type="radio" id="tiempo6" name="tiempo" class="no-line-break">
+                                        TIEMPO PARCIAL <span class="dots" style="float: right; margin-right: 10px;">550</span>
+                                    </p>
                                 </div>
                             </td>
                         </tr>
@@ -718,11 +737,12 @@
 </div>
 
 
+
     <div style="position: absolute; bottom: 0; width: 100%;">
         <table>
             <tr>
                 <td width="48%" style="border: none; text-align:left;">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                    <img src="AVZ/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue2">
                 </td>
                 <td width="4%" style="border: none; text-align:center;">
                     @php
@@ -731,7 +751,7 @@
                     @endphp
                 </td>
                 <td width="48%" style="border: none; text-align:right;">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                    <img src="AVZ/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe2">
                 </td>
             </tr>
         </table>
@@ -743,7 +763,7 @@
     <table>
         <tr>
             <td style="text-align: center; border: none;">
-                <img src="img-contrato/mtesescudo.png" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
+                <img src="AVZ/mtesescudo.PNG" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
             </td>
         </tr>
     </table>
@@ -867,7 +887,7 @@
         <table>
             <tr>
                 <td width="48%" style="border: none; text-align:left;">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                    <img src="AVZ/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue2">
                 </td>
                 <td width="4%" style="border: none; text-align:center;">
                     @php
@@ -876,7 +896,7 @@
                     @endphp
                 </td>
                 <td width="48%" style="border: none; text-align:right;">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                    <img src="AVZ/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe2">
                 </td>
             </tr>
         </table>
@@ -888,7 +908,7 @@
     <table>
         <tr>
             <td style="text-align: center; border: none;">
-                <img src="img-contrato/mtesescudo.png" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
+                <img src="AVZ/mtesescudo.PNG" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
             </td>
         </tr>
     </table>
@@ -961,7 +981,7 @@
         <table>
             <tr>
                 <td width="48%" style="border: none; text-align:left;">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                    <img src="AVZ/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue2">
                 </td>
                 <td width="4%" style="border: none; text-align:center;">
                     @php
@@ -970,7 +990,7 @@
                     @endphp
                 </td>
                 <td width="48%" style="border: none; text-align:right;">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                    <img src="AVZ/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe2">
                 </td>
             </tr>
         </table>
@@ -982,7 +1002,7 @@
     <table>
         <tr>
             <td style="text-align: center; border: none;">
-                <img src="img-contrato/mtesescudo.png" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
+                <img src="AVZ/mtesescudo.PNG" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
             </td>
         </tr>
     </table>
@@ -1046,7 +1066,7 @@
         <table>
             <tr>
                 <td width="48%" style="border: none; text-align:left;">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                    <img src="AVZ/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue2">
                 </td>
                 <td width="4%" style="border: none; text-align:center;">
                     @php
@@ -1055,7 +1075,7 @@
                     @endphp
                 </td>
                 <td width="48%" style="border: none; text-align:right;">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                    <img src="AVZ/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe2">
                 </td>
             </tr>
         </table>
@@ -1067,7 +1087,7 @@
     <table>
         <tr>
             <td style="text-align: center; border: none;">
-                <img src="img-contrato/mtesescudo.png" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
+                <img src="AVZ/mtesescudo.PNG" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
             </td>
         </tr>
     </table>
@@ -1142,7 +1162,7 @@
         <table>
             <tr>
                 <td width="48%" style="border: none; text-align:left;">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                    <img src="AVZ/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue2">
                 </td>
                 <td width="4%" style="border: none; text-align:center;">
                     @php
@@ -1151,7 +1171,7 @@
                     @endphp
                 </td>
                 <td width="48%" style="border: none; text-align:right;">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                    <img src="AVZ/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe2">
                 </td>
             </tr>
         </table>
@@ -1162,7 +1182,7 @@
     <table>
         <tr>
             <td style="text-align: center; border: none;">
-                <img src="img-contrato/mtesescudo.png" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
+                <img src="AVZ/mtesescudo.PNG" alt="mtesescudo" class="img-fluid fixed-height-img-mtes3">
             </td>
         </tr>
     </table>
@@ -1251,7 +1271,7 @@
         <table>
             <tr>
                 <td width="48%" style="border: none; text-align:left;">
-                    <img src="img-contrato/ue.png" alt="ue" class="img-fluid fixed-height-img-ue2">
+                    <img src="AVZ/ue.PNG" alt="ue" class="img-fluid fixed-height-img-ue2">
                 </td>
                 <td width="4%" style="border: none; text-align:center;">
                     @php
@@ -1260,7 +1280,7 @@
                     @endphp
                 </td>
                 <td width="48%" style="border: none; text-align:right;">
-                    <img src="img-contrato/sepe.png" alt="sepe" class="img-fluid fixed-height-img-sepe2">
+                    <img src="AVZ/sepe.PNG" alt="sepe" class="img-fluid fixed-height-img-sepe2">
                 </td>
             </tr>
         </table>
