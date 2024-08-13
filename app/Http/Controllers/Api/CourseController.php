@@ -5,6 +5,7 @@ use App\Models\Course;
 use App\Models\Registration;
 use App\Models\Student;
 use App\Models\User;
+use App\Models\Bill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -83,20 +84,25 @@ class CourseController extends BaseController
 
     public function update($id, Request $request){
         try {
-            $course = Course::updateCourse($id, $request);
+            \Log::info('Updating course: ' . $id);
+            \Log::info('Received data: ' . json_encode($request->all()));
+            
+            $course = Course::updateCourse($id, $request->all());
+            
+            \Log::info('Updated course: ' . json_encode($course));
         } catch (\Exception $e){
+            \Log::error('Error updating course: ' . $e->getMessage());
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
+    
         return response()->json([
             'status' => 200,
             'course' => Course::withCourseData($course->id)->Where('courses.id', $course->id)->first()
         ]);
     }
-
     public function show($id){
         $course = Course::withCourseData()
             ->where('courses.id', $id)->first();
@@ -167,7 +173,8 @@ class CourseController extends BaseController
      * @param  int  $id  El ID del curso.
      * @return \Illuminate\Http\JsonResponse Una respuesta JSON con el estado y el mensaje.
      */
-    public function resetTracingsIfCancelled($id) {
+    public function resetTracingsIfCancelled($id)
+    {
         Log::info('Resetting tracings for course: ' . $id);
         $course = Course::find($id);
         if ($course) {
@@ -176,6 +183,11 @@ class CourseController extends BaseController
             if ($course->course_status_id === 4) {
                 Log::info('Course status is cancelled. Resetting tracings...');
                 $course->resetChoresAndFutureTracings();
+                
+                // Add this new log
+                $remainingBills = Bill::where('course_id', $id)->count();
+                Log::info("After resetting, {$remainingBills} bills remain for course {$id}");
+    
                 Log::info('Tracings reset successfully');
                 return response()->json([
                     'status' => 200,

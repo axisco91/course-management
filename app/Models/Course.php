@@ -170,14 +170,26 @@ class Course extends Model
     }
 
     public static function updateCourse($id, $data){
-
-        $course_info = Course::courseDates(Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d'));
-        $anulado = CourseStatus::where('name', 'ANULADO')->first();
-        if ($data['canceled'] == 1) {
+        \Log::info('Updating course: ' . $id);
+        \Log::info('Received data: ' . json_encode($data));
+    
+        $course_info = Course::courseDates(
+            Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'),
+            Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d')
+        );
+    
+        // Si se proporciona course_status_id en la solicitud, úsalo
+        if (isset($data['course_status_id'])) {
+            $course_info['course_status_id'] = $data['course_status_id'];
+            \Log::info('Using provided course_status_id: ' . $data['course_status_id']);
+        } elseif (isset($data['canceled']) && $data['canceled'] == 1) {
+            $anulado = CourseStatus::where('name', 'ANULADO')->first();
             $course_info['course_status_id'] = $anulado->id;
+            \Log::info('Course marked as canceled. Setting status to ANULADO (ID: ' . $anulado->id . ')');
         }
+    
         $course = Course::find($id);
-        $course->update([
+        $updatedData = [
             'name' => $data['name'],
             'training_action_id' => $data['training_action_id'],
             'group' => $data['group'],
@@ -207,7 +219,12 @@ class Course extends Model
             'sunday' => $data['sunday'],
             'outsourced' => $data['outsourced'],
             'reactivated' => $data['reactivated']
-        ]);
+        ];
+    
+        $course->update($updatedData);
+    
+        \Log::info('Course updated. New data: ' . json_encode($course->fresh()));
+    
         return $course;
     }
 
@@ -347,35 +364,45 @@ class Course extends Model
      * 
      * @return void
      */
-    public function resetChoresAndFutureTracings() {
+    public function resetChoresAndFutureTracings()
+    {
         $today = Carbon::today();
-        if ($this->beginning > $today) {
-            // Delete bills
-            Bill::where('course_id', $this->id)->delete();
-        }
-        if ($this->welcome_date >= $today) {
-            $this->welcome_date = null;
-        }
-        if ($this->quarter_date >= $today) {
-            $this->quarter_date = null;
-        }
-        if ($this->half_date >= $today) {
-            $this->half_date = null;
-        }
-        if ($this->three_quarters_date >= $today) {
-            $this->three_quarters_date = null;
-        }
-        if ($this->final_date >= $today) {
-            $this->final_date = null;
-        }
-        
-        // Delete chores
-        $this->chores()->delete();
+        Log::info("Resetting chores and future tracings for course ID: {$this->id}");
+        Log::info("Course beginning date: {$this->beginning}, Today: {$today}");
 
-        //Delete profits
-        $this->profitabilities()->delete();
-    
+        if ($this->beginning > $today) {
+            Log::info("Course beginning is in the future. Deleting bills.");
+            $deletedBills = Bill::where('course_id', $this->id)->delete();
+            Log::info("Deleted {$deletedBills} bills for course {$this->id}");
+        } else {
+            Log::info("Course beginning is not in the future. No bills deleted.");
+        }
+
+        // Log the current tracing dates
+        Log::info("Current tracing dates: welcome_date: {$this->welcome_date}, quarter_date: {$this->quarter_date}, half_date: {$this->half_date}, three_quarters_date: {$this->three_quarters_date}, final_date: {$this->final_date}");
+
+        $datesToReset = ['welcome_date', 'quarter_date', 'half_date', 'three_quarters_date', 'final_date'];
+        foreach ($datesToReset as $dateField) {
+            if ($this->$dateField >= $today) {
+                Log::info("Resetting {$dateField} from {$this->$dateField} to null");
+                $this->$dateField = null;
+            } else {
+                Log::info("{$dateField} is in the past ({$this->$dateField}). Not resetting.");
+            }
+        }
+
+        // Delete chores
+        $deletedChores = $this->chores()->delete();
+        Log::info("Deleted {$deletedChores} chores for course {$this->id}");
+
+        // Delete profits
+        $deletedProfits = $this->profitabilities()->delete();
+        Log::info("Deleted {$deletedProfits} profitabilities for course {$this->id}");
+
         $this->save();
-        Log::info('Tracings reset successfully');
+        Log::info("Course {$this->id} saved with updated tracing dates");
+
+        // Log the updated tracing dates
+        Log::info("Updated tracing dates: welcome_date: {$this->welcome_date}, quarter_date: {$this->quarter_date}, half_date: {$this->half_date}, three_quarters_date: {$this->three_quarters_date}, final_date: {$this->final_date}");
     }
 }

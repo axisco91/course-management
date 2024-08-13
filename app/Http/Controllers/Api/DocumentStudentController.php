@@ -50,22 +50,22 @@ class DocumentStudentController extends BaseController
         $this->documentStudentService = $documentStudentService;
     }
 
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         try {
             $contractId = $request->training_contract_id;
             $documents = Document::select('documents.*', 'document_students.signed as signed', 'document_students.date_signed as date_signed', 'document_students.key as student_key')
-                ->leftjoin('document_students', function ($join) use ($contractId) {
+                ->leftJoin('document_students', function ($join) use ($contractId) {
                     $join->on('document_students.document_id', '=', 'documents.id')
                         ->where('document_students.training_contract_id', '=', $contractId);
                 })
                 ->join('document_types', 'document_types.id', '=', 'documents.document_type_id')
                 ->where('document_types.name', 'Contratos')
                 ->get();
-            return $documents;
+            return response()->json($documents);
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
+            Log::error('Error in index method: ' . $e->getMessage());
+            return response()->json(['message' => 'Error retrieving documents'], 500);
         }
     }
 
@@ -158,76 +158,46 @@ class DocumentStudentController extends BaseController
         }
     }
 
-    public function send(Request $request) {
+    public function send(Request $request)
+    {
         Log::info('send method called with request: ', $request->all());
 
-        $student = Student::where('id', $request->student_id)->first();
-        if ($student) {
+        try {
+            $student = Student::findOrFail($request->student_id);
             Log::info('Student found with id: ' . $request->student_id);
 
-            $documentStudent = DocumentStudent::where('document_id', $request->document_id)
-                ->where('student_id', $request->student_id);
+            $documentStudent = DocumentStudent::firstOrNew([
+                'document_id' => $request->document_id,
+                'student_id' => $request->student_id,
+                'training_contract_id' => $request->training_contract_id
+            ]);
 
-            if ($request->training_contract_id) {
-                $documentStudent = $documentStudent->where('training_contract_id', $request->training_contract_id);
-            }
+            if (!$documentStudent->exists) {
+                $document = Document::findOrFail($request->document_id);
+                Log::info('Document found with id: ' . $request->document_id);
 
-            $documentStudent = $documentStudent->first();
-            if ($documentStudent) {
-                Log::info('DocumentStudent found with id: ' . $documentStudent->id);
-            } else {
-                Log::info('No DocumentStudent found, creating new one');
-
-                $document = Document::where('id', $request->document_id)->first();
-                if ($document) {
-                    Log::info('Document found with id: ' . $request->document_id);
-                } else {
-                    Log::error('No Document found with id: ' . $request->document_id);
-                    return response()->json([
-                        'status' => 400,
-                        'message' => 'No Document found with id: ' . $request->document_id
-                    ]);
-                }
-
-                $data = [
-                    'document_id' => $document->id,
-                    'student_id' => $request->student_id,
-                    'training_contract_id' => isset($request->training_contract_id) ? $request->training_contract_id : null,
+                $documentStudent->fill([
                     'name' => $document->name . '_' . $student->name . '_' . $student->surname,
                     'document_name' => 'pdf/' . $document->name . '_' . $student->name . '_' . $student->surname . '.pdf'
-                ];
-                $documentStudent = $this->documentStudentService->create($data);
+                ])->save();
             }
-            try {
-                Mail::getSwiftMailer()
-                    ->getTransport()
-                    ->setUsername('zona@avzformacion.com')
-                    ->setPassword('Avz.2021');
-                Mail::to($student->email)->send(new SignDocument($documentStudent->name, $documentStudent->key));
-                Log::info('Mail sent to: ' . $student->email);
-                return response()->json([
-                    'status' => 200
-                ]);
-            } catch (Exception $e) {
-                Log::error('Error sending mail: ', $e->getMessage());
-                return response()->json([
-                    'status' => 400,
-                    'message' => $e->getMessage()
-                ]);
-            }
+
+            Mail::to($student->email)->send(new SignDocument($documentStudent->name, $documentStudent->key));
+            Log::info('Mail sent to: ' . $student->email);
+
+            return response()->json(['status' => 200]);
+        } catch (\Exception $e) {
+            Log::error('Error in send method: ' . $e->getMessage());
+            return response()->json(['status' => 400, 'message' => 'Error al enviar correo: ' . $e->getMessage()], 400);
         }
-        Log::error('No Student found with id: ' . $request->student_id);
-        return response()->json([
-            'status' => 400,
-            'message' => 'Error al enviar correo'
-        ]);
     }
 
-    public function studentViewPdf($key, $viewName, TrainingContract $trainingContract) {
+    public function studentViewPdf($key, $viewName, TrainingContract $trainingContract)
+    {
         Log::info('studentViewPdf method called with key: ' . $key);
 
-        $documentStudent = DocumentStudent::where('key', $key)->first();
-        if ($documentStudent) {
+        try {
+            $documentStudent = DocumentStudent::where('key', $key)->firstOrFail();
             Log::info('DocumentStudent found with key: ' . $key);
 
             if ($documentStudent->date_signed) {
@@ -239,47 +209,9 @@ class DocumentStudentController extends BaseController
                 ]);
             }
 
-            $student = Student::find($documentStudent->student_id);
-            Log::info('Student found with id: ' . $documentStudent->student_id);
+            $data = $this->prepareDataForPdf($trainingContract);
 
-            $trainingContract->load('provider');
-            $occupation = Occupation::find($trainingContract->occupation_id);
-            $company = Company::find($trainingContract->company_id);
-            $applicableAgreement = ApplicableAgreement::find($trainingContract->applicable_agreement_id);
-            $agreementType = AgreementType::find($applicableAgreement->agreement_type_id);
-            $student = Student::find($trainingContract->student_id);
-            $student->levelStudy = LevelStudy::find($student->level_study_id);
-            $company->companyActivity = CompanyActivity::find($company->company_activity_id);
-            $province = Province::find($trainingContract->province_id);
-            $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
-            $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
-            $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
-
-            $daysWeek = 0;
-            if ($trainingContract->monday == 1) $daysWeek++;
-            if ($trainingContract->tuesday == 1) $daysWeek++;
-            if ($trainingContract->wednesday == 1) $daysWeek++;
-            if ($trainingContract->thursday == 1) $daysWeek++;
-            if ($trainingContract->friday == 1) $daysWeek++;
-            if ($trainingContract->saturday == 1) $daysWeek++;
-            if ($trainingContract->sunday == 1) $daysWeek++;
-            $fechaActual = Date::now()->format('d/m/Y');
-
-            $pdf = PDF::loadView($viewName, [
-                'occupation' => $occupation,
-                'trainingContract' => $trainingContract,
-                'company' => $company,
-                'student' => $student,
-                'ocupation' => $occupation,
-                'province' => $province,
-                'elements' => $trainingElements,
-                'applicableAgreement' => $applicableAgreement,
-                'agreementType' => $agreementType,
-                'fechaActual' => $fechaActual,
-                'bonus' => $bonus,
-                'monthlyFormationHours' => $monthlyFormationHours,
-                'sumaHoras' => 0
-            ]);
+            $pdf = PDF::loadView($viewName, $data);
             Log::info('PDF generated from view');
 
             Storage::disk('public')->put($documentStudent->document_name, $pdf->output());
@@ -289,26 +221,27 @@ class DocumentStudentController extends BaseController
                 'status' => 200,
                 'pdfUrl' => url('storage/' . $documentStudent->document_name),
             ]);
-        } else {
-            Log::info('No DocumentStudent found with key: ' . $key);
+        } catch (\Exception $e) {
+            Log::error('Error in studentViewPdf method: ' . $e->getMessage());
             return response()->json([
-                'status' => 404,
-                'message' => 'No existe documento'
-            ]);
+                'status' => 500,
+                'message' => 'Error generando o guardando el PDF: ' . $e->getMessage()
+            ], 500);
         }
     }
 
     public function signPdf(Request $request)
     {
-        $documentStudent = DocumentStudent::where('key', $request->key)->first();
-        if ($request->key) {
-            $existingPdfPath = 'public/' . '' . $documentStudent->document_name;
+        try {
+            $documentStudent = DocumentStudent::where('key', $request->key)->firstOrFail();
+            $existingPdfPath = 'public/' . $documentStudent->document_name;
+
             if (Storage::exists($existingPdfPath)) {
                 Storage::delete($existingPdfPath);
             }
-            $image = $request->image;
-            $document = Document::find($documentStudent->document_id);
-            $pdf = PDF::loadView($document->blade, compact('image'));
+
+            $document = Document::findOrFail($documentStudent->document_id);
+            $pdf = PDF::loadView($document->blade, ['image' => $request->image]);
 
             Storage::disk('public')->put($documentStudent->document_name, $pdf->output());
 
@@ -322,111 +255,152 @@ class DocumentStudentController extends BaseController
                 'pdfUrl' => url('storage/' . $documentStudent->document_name),
                 'signed' => true
             ]);
-        } else {
+        } catch (\Exception $e) {
+            Log::error('Error in signPdf method: ' . $e->getMessage());
             return response()->json([
-                'status' => 404,
-                'message' => 'No existe documento'
-            ]);
+                'status' => 500,
+                'message' => 'Error al firmar el PDF: ' . $e->getMessage()
+            ], 500);
         }
     }
 
-    public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait') {
-        $trainingContract->load('provider', 'occupation', 'company', 'company.companyActivity', 'applicableAgreement.agreementType', 'student.levelStudy', 'province', 'trainingContractExcludedDays');
-    
-        $trainingElements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
+    private function prepareDataForPdf(TrainingContract $trainingContract)
+    {
+        $trainingContract->load([
+            'provider', 
+            'occupation', 
+            'company', 
+            'company.companyActivity', 
+            'applicableAgreement.agreementType', 
+            'student.levelStudy', 
+            'province', 
+            'trainingContractExcludedDays'
+        ]);
+
+        $elements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
         $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
         $companyType = CompanyType::find($trainingContract->company->company_type_id);
-    
-        $dias = [];
-        $daysWeek = 0;
-        if ($trainingContract->monday == 1) {
-            $daysWeek++;
-            $dias[] = 'L';
-        }
-        if ($trainingContract->tuesday == 1) {
-            $daysWeek++;
-            $dias[] = 'M';
-        }
-        if ($trainingContract->wednesday == 1) {
-            $daysWeek++;
-            $dias[] = 'X';
-        }
-        if ($trainingContract->thursday == 1) {
-            $daysWeek++;
-            $dias[] = 'J';
-        }
-        if ($trainingContract->friday == 1) {
-            $daysWeek++;
-            $dias[] = 'V';
-        }
-        if ($trainingContract->saturday == 1) {
-            $daysWeek++;
-            $dias[] = 'S';
-        }
-        if ($trainingContract->sunday == 1) {
-            $daysWeek++;
-            $dias[] = 'D';
-        }
-        $fechaActual = Date::now()->format('d/m/Y');
-    
-        // Filtrar los días excluidos con excluded_day_type_id = 1 y agrupar por grupos consecutivos
-        $excludedDays = $trainingContract->trainingContractExcludedDays->filter(function($day) {
-            return $day->excluded_day_type_id == 1;
-        })->groupBy(function($day) {
-            return \Carbon\Carbon::parse($day->day)->format('Y-m');
-        })->map(function($days) {
-            return [
-                'start_date' => $days->min('day'),
-                'end_date' => $days->max('day')
-            ];
-        });
-    
-        ini_set('max_execution_time', 180); // PARA LOS CFA QUE SON MUY LARGOS, 60 segundos (tiempo por defecto) no es suficiente
-    
-        $htmlContent = view($viewName, [
-            'trainingContract' => $trainingContract,
-            'elements' => $trainingElements,
-            'fechaActual' => $fechaActual,
-            'bonus' => $bonus,
-            'monthlyFormationHours' => $monthlyFormationHours,
-            'sumaHoras' => 0,
-            'dias' => $dias,
-            'companyType' => $companyType,
-            'daysWeek' => $daysWeek,
-            'excludedDays' => $excludedDays // Pasar los días excluidos a la vista
-        ])->render();
-    
-        $htmlContent = $this->adjustImagePaths($htmlContent);
-    
-        $pdf = PDF::loadHTML($htmlContent);
-    
-        $pdf->setPaper('a4', $orientation);
-        return $pdf->download('test.pdf');
-    }
-    
 
-    public function generatePdf($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
+        $dias = $this->calculateWorkingDays($trainingContract);
+        $fechaActual = Date::now()->format('d/m/Y');
+
+        $excludedDays = $this->getExcludedDays($trainingContract);
+
+        return [
+            'trainingContract' => $trainingContract,
+            'elements' => $elements,
+            'monthlyFormationHours' => $monthlyFormationHours,
+            'bonus' => $bonus,
+            'companyType' => $companyType,
+            'dias' => $dias,
+            'fechaActual' => $fechaActual,
+            'excludedDays' => $excludedDays,
+            'occupation' => $trainingContract->occupation,
+            'company' => $trainingContract->company,
+            'student' => $trainingContract->student,
+            'province' => $trainingContract->province,
+            'applicableAgreement' => $trainingContract->applicableAgreement,
+            'agreementType' => $trainingContract->applicableAgreement->agreementType ?? null,
+            'sumaHoras' => 0,
+        ];
+    }
+
+    private function calculateWorkingDays(TrainingContract $trainingContract)
+    {
+        $dias = [];
+        $daysOfWeek = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+        $contractDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+        foreach ($contractDays as $index => $day) {
+            if ($trainingContract->{$day} == 1) {
+                $dias[] = $daysOfWeek[$index];
+            }
+        }
+
+        return $dias;
+    }
+
+
+    private function getExcludedDays(TrainingContract $trainingContract)
+    {
+        return $trainingContract->trainingContractExcludedDays
+            ->filter(function($day) {
+                return $day->excluded_day_type_id == 1;
+            })
+            ->groupBy(function($day) {
+                return \Carbon\Carbon::parse($day->day)->format('Y-m');
+            })
+            ->map(function($days) {
+                return [
+                    'start_date' => $days->min('day'),
+                    'end_date' => $days->max('day')
+                ];
+            });
+    }
+    public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait')
+    {
+        ini_set('memory_limit', '512M');
+        ini_set('max_execution_time', 300);
+
+        try {
+            $data = $this->prepareDataForPdf($trainingContract);
+            
+            // Verifica si todas las variables necesarias están presentes
+            Log::info('Data prepared for PDF:', array_keys($data));
+            
+            $htmlContent = view($viewName, $data)->render();
+            $htmlContent = $this->adjustImagePaths($htmlContent);
+
+            $pdf = PDF::loadHTML($htmlContent);
+            $pdf->setPaper('a4', $orientation);
+
+            return $pdf->download('test.pdf');
+        } catch (\Exception $e) {
+            Log::error('Error in testPdf method: ' . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Error generando el PDF de prueba: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function generatePdf($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait')
+    {
+        try {
+            $this->updateBillNumber($trainingContractBill);
+
+            $data = $this->prepareDataForBill($trainingContractBill);
+
+            $pdf = PDF::loadView($viewName, $data);
+            $pdf->setPaper('a4', $orientation);
+
+            return $pdf;
+        } catch (\Exception $e) {
+            Log::error('Error in generatePdf method: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function updateBillNumber(TrainingContractBill $trainingContractBill)
+    {
         if (is_null($trainingContractBill->number)) {
-            DB::beginTransaction();
-            try {
+            DB::transaction(function () use ($trainingContractBill) {
                 $lastBill = TrainingContractBill::lockForUpdate()->orderBy('number', 'desc')->first();
                 $number = $lastBill ? $lastBill->number + 1 : 1;
                 $trainingContractBill->number = $number;
                 $trainingContractBill->save();
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollback();
-                throw $e;
-            }
+            });
         }
 
         if ($trainingContractBill->invoiced == 0) {
             $trainingContractBill->invoiced = 1;
             $trainingContractBill->save();
         }
+    }
 
-        Log::info('metodoLlamado' . $trainingContractBill);
+    private function prepareDataForBill(TrainingContractBill $trainingContractBill)
+    {
         $trainingContractBill->load('provider');
         $trainingContract = TrainingContract::find($trainingContractBill->training_contract_id);
         $trainingContractSeries = TrainingContractSeries::find($trainingContractBill->series_id);
@@ -435,26 +409,23 @@ class DocumentStudentController extends BaseController
         $student = Student::find($trainingContract->student_id);
         $trainingContractBonus = TrainingContractBonus::find($trainingContractBill->training_contract_bonus_id);
 
-        $pdf = PDF::loadView($viewName, [
-            'occupation' => $occupation,
-            'trainingContractBill' => $trainingContractBill,
-            'trainingContract' => $trainingContract,
-            'company' => $company,
-            'student' => $student,
-            'trainingContractSeries' => $trainingContractSeries,
-            'trainingContractBonus' => $trainingContractBonus
-        ]);
-
-        $pdf->setPaper('a4', $orientation);
-
-        return $pdf;
+        return compact('trainingContractBill', 'trainingContract', 'trainingContractSeries', 'occupation', 'company', 'student', 'trainingContractBonus');
     }
 
-    public function testPdfFactura($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait') {
-        $pdf = $this->generatePdf($viewName, $trainingContractBill, $orientation);
-
-        return $pdf->download('test.pdf');
+    public function testPdfFactura($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait')
+    {
+        try {
+            $pdf = $this->generatePdf($viewName, $trainingContractBill, $orientation);
+            return $pdf->download('test.pdf');
+        } catch (\Exception $e) {
+            Log::error('Error in testPdfFactura method: ' . $e->getMessage());
+            return response()->json([
+                'status' => 500,
+                'message' => 'Error generando el PDF de factura de prueba: ' . $e->getMessage()
+            ], 500);
+        }
     }
+
 
     public function generateInvoices(Request $request) {
         ini_set('max_execution_time', 300); // Aumenta el tiempo máximo de ejecución si es necesario
@@ -571,7 +542,8 @@ class DocumentStudentController extends BaseController
         ]);
     }
 
-    public function adjustImagePaths($htmlContent) {
+    private function adjustImagePaths($htmlContent)
+    {
         $search = [
             'src="img-contrato/',
             'href="css/'
@@ -585,3 +557,4 @@ class DocumentStudentController extends BaseController
         return str_replace($search, $replace, $htmlContent);
     }
 }
+

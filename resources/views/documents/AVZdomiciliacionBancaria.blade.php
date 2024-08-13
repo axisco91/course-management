@@ -155,7 +155,7 @@
 
             <!-- CLAUSULAS -->
             <article class="mt-12">
-                <div class="border-top-dotted" style="margin-bottom: 30px">
+                <div class="border-top-dotted" style="margin-bottom: 20px">
                     <p class="text-sm mt-4 font-semibold" style="font-size: 0.55rem; line-height: 1;">
                         como titular  de  la  cuenta  de  cargo ,  en  mi  condición  de  cliente  de  Avz  Formación  S.L.,  y haciendo  uso  de  la  facultad  conferida por els
                         artículo 23.1, en  relación  con  los  artículos  33 ,  34  y  37 ,  de  la  Ley  16 /2009 ,  de Servicios  de  pago ,  consiento  y autorizo a Avz 

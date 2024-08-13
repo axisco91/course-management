@@ -371,7 +371,7 @@
                 <div class="mx-2 my-2">
                     <h3>DATOS CENTRO/S IMPARTIDORES DE LA ACTIVIDAD FORMATIVA</h3>
                     <p>
-                        Formación a impartir: Código <u>{{ $e->training_action->code ?? ''}}</u>  Denominación: <u>{{ $e->training_action->name }}</u> 
+                    Formación a impartir: Código <u>{{ $e->training_action->code ?? '' }}</u>  Denominación: <u>{{ $e->training_action->name ?? 'N/A' }}</u>
                     </p>
                     <p>
                         Centro Acreditado/Inscrito.Código de centro en Registro Estatal de centros de Formación <u>{{ $e->training_action->webPlatform->code ?? '' }}</u>

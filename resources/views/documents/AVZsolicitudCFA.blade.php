@@ -84,30 +84,30 @@
 
                 <table class="border border-2 border-black mt-2" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="px-1">Nombre de la asesoría {{$trainingContract->advisor->name ?? ''}}  </td>
-                        <td class="border-left border-2 border-black px-1"> CIF {{$trainingContract->company->advisor->nif}}  </td>
+                        <td class="px-1">Nombre de la asesoría {{$trainingContract->company->advisor->name ?? ''}}  </td>
+                        <td class="border-left border-2 border-black px-1"> CIF {{$trainingContract->company->advisor->nif ?? ''}}  </td>
                     </tr>
                 </table>
 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-right border-left px-1">Persona de contacto  {{$trainingContract->company->advisor->legal_representative}} </td>
-                        <td class="border-right px-1"> Email  {{$trainingContract->company->advisor->email}}  </td>
+                        <td class="border-right border-left px-1">Persona de contacto  {{$trainingContract->company->advisor->contact_1 ?? ''}} </td>
+                        <td class="border-right px-1"> Email  {{$trainingContract->company->advisor->email ?? ''}}  </td>
                     </tr>
                 </table>
                 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-left border-right px-1">Dirección  {{$trainingContract->company->advisor->address}}  </td>
-                        <td class="border-right px-1"> CP   {{$trainingContract->company->advisor->post_code}} </td>
+                        <td class="border-left border-right px-1">Dirección  {{$trainingContract->company->advisor->address ?? ''}}  </td>
+                        <td class="border-right px-1"> CP   {{$trainingContract->company->advisor->post_code ?? ''}} </td>
                     </tr>
                 </table>
                 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="border-left border-right px-1">Localidad   {{$trainingContract->company->advisor->population}} </td>
+                        <td class="border-left border-right px-1">Localidad   {{$trainingContract->company->advisor->population ?? ''}} </td>
                         <td class="border-right px-1"> Provincia   {{$trainingContract->province->name}} </td>
-                        <td class="border-right px-1"> Teléfono  {{$trainingContract->company->advisor->telephone}} </td>
+                        <td class="border-right px-1"> Teléfono  {{$trainingContract->company->advisor->telephone ?? ''}} </td>
                         <td class="border-right px-1"> Fax   </td>
                     </tr>
                 </table>
@@ -124,14 +124,14 @@
 
                 <table class="border border-2 border-black mt-2" style="width: 100%;">
                     <tr class="p-2">
-                        <td class="px-1">Nombre comercial   </td>
+                        <td class="px-1">Nombre comercial {{$trainingContract->company->name}}   </td>
                     </tr>
                 </table>
 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
                         <td class="border-left border-right px-1">Razón Social   {{$trainingContract->company->name}}</td>
-                        <td class="border-right px-1">CIF/NIF   {{$trainingContract->company->nif}} </td>
+                        <td class="border-right px-1">CIF/NIF   {{$trainingContract->company->nif ?? ''}} </td>
                     </tr>
                 </table>
 
@@ -139,7 +139,7 @@
                     <tr class="p-2">
                         <td class="border-left border-right px-1">Dirección   {{$trainingContract->company->address}}</td>
                         <td class="border-right px-1"> CP   {{$trainingContract->company->post_code}} </td>
-                        <td class="border-right px-1"> Teléfono   {{$trainingContract->company->telephone}} </td>
+                        <td class="border-right px-1"> Teléfono   {{$trainingContract->company->telephone ?? ''}} </td>
                     </tr>
                 </table>
 
@@ -223,7 +223,7 @@
 
                 <table class="border border-2 border-black" style="width: 100%">
                     <tr>
-                        <td class="border-left border-right px-1">Email <span class="text-xs text-naranja">(4)</span>   {{$trainingContract->student->email}}</td>
+                        <td class="border-left border-right px-1">Email <span class="text-xs text-naranja">(4)</span>   {{$trainingContract->student->email ?? ''}}</td>
                         <td class="border-right px-1">Estudios Terminados <span class="text-xs text-naranja">(5)</span>   {{$trainingContract->student->levelStudy->name}}</td>
                     </tr>
                 </table>
@@ -251,17 +251,46 @@
                         <td class="font-semibold ps-2">DATOS DEL CONTRATO PARA LA FORMACIÓN EN ALTERNANCIA</td>
                     </tr>
                 </table>
-
                 <table class="border border-2 border-black mt-2" style="width: 100%;">
                     <tr>
-                        <td class="border-right px-1">Duración <span class="text-xs text-naranja">(7)</span>   {{$trainingContract->formation_hours}} </td>
-                        <td class="border-right px-1">Fecha de inicio <span class="text-xs text-naranja">(8)</span>   {{$trainingContract->beginning_formation}} </td>
+                        <td class="border-right px-1">Duración <span class="text-xs text-naranja">(7)</span> 
+                     
+                        @php
+                                $start = \Carbon\Carbon::parse($trainingContract->beginning);
+                                $end = \Carbon\Carbon::parse($trainingContract->end);
+                                $totalDays = $end->diffInDays($start) + 1; // Incluimos el día final
+                                $totalHours = ($totalDays / 365) * $trainingContract->annually_day_hours;
+
+                                $hoursPerYear = $trainingContract->annually_day_hours;
+                                $hoursPerMonth = $hoursPerYear / 12;
+
+                                $years = floor($totalHours / $hoursPerYear);
+                                $remainingHours = $totalHours % $hoursPerYear;
+                                $months = round($remainingHours / $hoursPerMonth);
+
+                                // Si los meses llegan a 12, incrementamos un año
+                                if ($months == 12) {
+                                    $years++;
+                                    $months = 0;
+                                }
+
+                                $duration = [];
+                                if ($years > 0) {
+                                    $duration[] = $years . ' ' . ($years == 1 ? 'año' : 'años');
+                                }
+                                if ($months > 0) {
+                                    $duration[] = $months . ' ' . ($months == 1 ? 'mes' : 'meses');
+                                }
+
+                                echo implode(', ', $duration) ;
+                            @endphp
+                        </td>
+                        <td class="border-right px-1">Fecha de inicio <span class="text-xs text-naranja">(8)</span> {{$trainingContract->beginning_formation}}</td>
                         <td class="border-right px-1">¿Bonificado? <span class="text-xs text-naranja">(9)</span></td>
-                        <td class="border-right px-1">SI  <input type="checkbox"></td>
-                        <td class="border-right px-1">NO  <input type="checkbox"></td>
+                        <td class="border-right px-1">SI <input type="checkbox" {{ $trainingContract->bonification ? 'checked' : '' }}></td>
+                        <td class="border-right px-1">NO <input type="checkbox" {{ !$trainingContract->bonification ? 'checked' : '' }}></td>
                     </tr>
                 </table>
-
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr>
                         <td class="border-left border-right px-1">Ocupación <span class="text-xs text-naranja">(10)</span>   {{$trainingContract->occupation->name}} </td>
@@ -284,10 +313,24 @@
 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr>
-                        <td class="border-left border-right px-1">Vacaciones <span class="text-xs text-naranja">(15)</span></td>
+                        <td class="border-left border-right px-1">
+                            Vacaciones <span class="text-xs text-naranja">(15)</span>
+                            <div>
+                                @php
+                                $vacationPeriods = [];
+                                foreach($excludedDays as $excludedDay) {
+                                    $start = \Carbon\Carbon::parse($excludedDay['start_date'])->format('d/m/Y');
+                                    $end = \Carbon\Carbon::parse($excludedDay['end_date'])->format('d/m/Y');
+                                    $vacationPeriods[] = "$start-$end";
+                                }
+                                echo implode(', ', $vacationPeriods);
+                                @endphp
+                            </div>
+                        </td>
                         <td class="border-right px-1">Periodo de prueba<span class="text-xs text-naranja">(16)</span></td>
                     </tr>
                 </table>
+
 
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr>
