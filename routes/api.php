@@ -386,16 +386,16 @@ Route::middleware('auth:sanctum')->group( function () {
         });
     });
 
-    /**
-     * Categoría de profesional
-     */
-    Route::prefix('professional-categories')->group(function() {
-        Route::controller(ProfessionalCategoryController::class)->group(function(){
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
-        });
-    });
+    // /**
+    //  * Categoría de profesional
+    //  */
+    // Route::prefix('professional-categories')->group(function() {
+    //     Route::controller(ProfessionalCategoryController::class)->group(function(){
+    //         Route::post('create', 'create');
+    //         Route::post('edit/{id}', 'edit');
+    //         Route::get('destroy/{id}', 'destroy');
+    //     });
+    // });
 
     /**
      * Familia profesional
@@ -1135,6 +1135,9 @@ Route::prefix('professional-categories')->group(function() {
     Route::controller(ProfessionalCategoryController::class)->group(function(){
         Route::get('', 'professionalCategories');
         Route::get('get/{id}', 'getProfessionalCategories');
+        Route::post('create', 'create');
+        Route::put('edit/{id}', 'edit');
+        Route::delete('destroy/{id}', 'destroy');
     });
 });
 
