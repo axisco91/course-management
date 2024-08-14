@@ -341,8 +341,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('level-studies')->group(function() {
         Route::controller(LevelStudyController::class)->group(function(){
             Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getLevelStudy');
         });
     });
@@ -1017,7 +1017,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('exams-tutorials')->group(function() {
         Route::controller(ExamTutorialController::class)->group(function(){
             Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
+            Route::put('edit/{id}', 'edit');
             Route::get('destroy/{id}', 'destroy');
             Route::get('{id}', 'getExamTutorial');
         });
