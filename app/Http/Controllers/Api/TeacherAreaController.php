@@ -11,9 +11,14 @@ class TeacherAreaController extends BaseController
 {
     public function teacherAreas() {
         try {
-            return TeacherArea::getTeacherAreas();
+            $teacherAreas = TeacherArea::getTeacherAreas();
+            return response()->json([
+                'status' => 200,
+                'teacher_areas' => $teacherAreas
+            ]);
         } catch (\Exception $e) {
             return response()->json([
+                'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
