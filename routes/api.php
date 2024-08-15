@@ -366,10 +366,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('teacher-areas')->group(function() {
         Route::controller(TeacherAreaController::class)->group(function(){
             Route::get('', 'teacherAreas');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingActionLevel');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
