@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Api;
 use App\Models\Certification;
 use App\Models\CertificationElement;
@@ -11,14 +10,13 @@ use Illuminate\Support\Facades\Validator;
 
 class CertificationElementController extends BaseController
 {
-
-    public function getElements($id) {
+    public function index($id) {
         return response()->json([
             'elements' => CertificationElement::getCertificationElements($id)
         ]);
     }
 
-    public function getElement($id) {
+    public function show($id) {
         return response()->json([
             'elements' => CertificationElement::getCertificationElement($id)
         ]);

@@ -179,10 +179,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('action-types')->group(function() {
         Route::controller(ActionTypeController::class)->group(function(){
             Route::get('', 'getActionTypes');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getActionType');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -275,10 +275,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('incidence-types')->group(function() {
         Route::controller(IncidenceTypeController::class)->group(function(){
             Route::get('', 'getIncidenceTypes');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getIncidenceType');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -288,10 +288,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('training-action-levels')->group(function() {
         Route::controller(TrainingActionLevelController::class)->group(function(){
             Route::get('', 'getTrainingActionLevels');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingActionLevel');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -301,10 +301,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('training-action-groups')->group(function() {
         Route::controller(TrainingActionGroupController::class)->group(function(){
             Route::get('', 'trainingActionGroups');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingActionGroup');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -380,8 +380,8 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::controller(ProfessionalAreaController::class)->group(function(){
             Route::get('', 'professionalAreas');
             Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getProfessionalArea');
         });
     });
@@ -403,10 +403,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('professional-families')->group(function() {
         Route::controller(ProfessionalFamilyController::class)->group(function(){
             Route::get('', 'professionalFamilies');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getProfessionalFamily');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -416,10 +416,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('modalities')->group(function() {
         Route::controller(ModalityController::class)->group(function(){
             Route::get('', 'modalities');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getModality');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -429,10 +429,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('payments')->group(function() {
         Route::controller(PaymentController::class)->group(function(){
             Route::get('', 'getPayments');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getPayment');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -442,10 +442,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('providers')->group(function() {
         Route::controller(ProviderController::class)->group(function(){
             Route::get('', 'providers');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getProvider');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
             Route::get('training-actions/{id}', 'getTrainingActions');
         });
     });
@@ -456,10 +456,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('centers')->group(function() {
         Route::controller(CenterController::class)->group(function(){
             Route::get('', 'getCenters');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCenter');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -469,10 +469,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('tutorings')->group(function() {
         Route::controller(TutoringController::class)->group(function(){
             Route::get('', 'tutorings');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'tutoring');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -493,10 +493,10 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('company-types')->group(function() {
         Route::controller(CompanyTypeController::class)->group(function(){
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCompanyType');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -590,10 +590,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('certifications')->group(function() {
         Route::controller(CertificationController::class)->group(function(){
             Route::get('', 'certifications');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCertification');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
+            //ESTAS RUTAS NO ESTAN EN EL CONTROLADOR ?!
             Route::get('elements/{id}', 'getElements');
             Route::post('add-Element/{id}', 'addElement');
             Route::post('remove-element/{id}', 'removeElement');
@@ -608,8 +609,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('certification-elements')->group(function() {
         Route::controller(CertificationElementController::class)->group(function(){
             Route::post('create/{id}', 'create');
-            Route::get('destroy/{id}', 'destroy');
-            Route::get('elements/{id}', 'getElements');
+            Route::delete('destroy/{id}', 'destroy');
+            Route::get('elements/{id}', 'index');
+            Route::get('element/{id}', 'show');
             Route::get('units/{id}', 'getUnits');
             Route::get('modules/{id}', 'getModules');
         });
@@ -621,13 +623,13 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('modules')->group(function() {
         Route::controller(ModuleController::class)->group(function(){
             Route::get('', 'modules');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getModule');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
             Route::get('units/{id}', 'getUnits');
             Route::post('add-unit/{id}', 'addUnit');
-            Route::post('remove-unit/{id}', 'removeUnit');
+            Route::delete('remove-unit/{id}', 'removeUnit');
             Route::get('not-used-units/{id}', 'getNotUsedUnits');
         });
     });
@@ -638,10 +640,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('training-units')->group(function() {
         Route::controller(TrainingUnitController::class)->group(function(){
             Route::get('', 'trainingUnits');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingUnit');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -784,10 +786,10 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('cnaes')->group(function() {
         Route::controller(CnaeController::class)->group(function(){
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getCnae');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -882,10 +884,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('web-platforms')->group(function() {
         Route::controller(WebPlatformController::class)->group(function(){
             Route::get('', 'webPlatforms');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getWebPlatform');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -1053,10 +1055,10 @@ Route::middleware('auth:sanctum')->group( function () {
      Route::prefix('training-contract-series')->group(function() {
         Route::controller(TrainingContractSeriesController::class)->group(function(){
             Route::get('', 'index');
-            Route::get('{id}', 'show');
-            Route::post('', 'store');
-            Route::put('{id}', 'update');
-            Route::delete('{id}', 'delete');
+            Route::get('get/{id}', 'get');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
