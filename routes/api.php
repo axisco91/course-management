@@ -163,11 +163,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('documents')->group(function() {
         Route::controller(DocumentController::class)->group(function(){
             Route::get('', 'index');
-            Route::post('create', 'store');
-            Route::post('edit/{id}', 'update');
-            Route::get('destroy/{id}', 'destroy');
-            Route::get('get/{id}', 'show');
             Route::get('get_student_documents', 'getStudentDocuments');
+            Route::get('get/{id}', 'show');
+            Route::post('create', 'store');
+            Route::put('edit/{id}', 'update');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -314,11 +314,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('training-contract-statuses')->group(function() {
         Route::controller(TrainingContractStatusController::class)->group(function(){
             Route::get('', 'getTrainingContractStatuses');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getTrainingContractStatus');
-            Route::get('register', 'registers');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
+            Route::get('register', 'registers');//?? Creo que esto no existe en el controlador
         });
     });
 
@@ -328,10 +328,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('on-leave-types')->group(function() {
         Route::controller(OnLeaveController::class)->group(function(){
             Route::get('', 'getOnLeaveTypes');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getOnLeaveType');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -799,10 +799,10 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('occupations')->group(function() {
         Route::controller(OccupationController::class)->group(function(){
             Route::get('', 'getOccupations');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getOccupation');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -897,11 +897,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('populations')->group(function() {
         Route::controller(PopulationController::class)->group(function(){
             Route::get('', 'populations');
-            Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'getPopulation');
             Route::get('populations-with-festivals', 'populationsWithFestivals');
+            Route::post('create', 'create');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -911,11 +911,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('communities')->group(function() {
         Route::controller(CommunityController::class)->group(function(){
             Route::get('', 'index');
-            Route::post('create', 'store');
-            Route::post('edit/{id}', 'update');
-            Route::get('destroy/{id}', 'destroy');
             Route::get('get/{id}', 'show');
             Route::get('communities-with-festivals', 'communitiesWithFestivals');
+            Route::post('create', 'store');
+            Route::put('edit/{id}', 'update');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -972,8 +972,8 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::controller(NacionalFestivalController::class)->group(function(){
             Route::get('', 'getNacionalFestivals');
             Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -996,8 +996,8 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::controller(PopulationFestivalController::class)->group(function(){
             Route::get('', 'getPopulationFestivals');
             Route::post('create', 'create');
-            Route::post('edit/{id}', 'edit');
-            Route::get('destroy/{id}', 'destroy');
+            Route::put('edit/{id}', 'edit');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -1008,8 +1008,8 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::controller(CommunityFestivalController::class)->group(function(){
             Route::get('', 'index');
             Route::post('create', 'store');
-            Route::post('edit/{id}', 'update');
-            Route::get('destroy/{id}', 'destroy');
+            Route::put('edit/{id}', 'update');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
@@ -1094,8 +1094,8 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('', 'index');
             Route::get('get/{id}', 'show');
             Route::post('create', 'create');
-            Route::post('edit/{id}', 'update');
-            Route::get('destroy/{id}', 'destroy');
+            Route::put('edit/{id}', 'update');
+            Route::delete('destroy/{id}', 'destroy');
         });
     });
 
