@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddColumnsToExcludedDaysTable extends Migration
+class AddBonificationToTrainingContractsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddColumnsToExcludedDaysTable extends Migration
      */
     public function up()
     {
-        Schema::table('excluded_days', function (Blueprint $table) {
-            $table->tinyInteger('general')->nullable();
+        Schema::table('training_contracts', function (Blueprint $table) {
+            $table->boolean('bonification')->default(false)->after('daily_hours_2');
         });
     }
 
@@ -25,8 +25,8 @@ class AddColumnsToExcludedDaysTable extends Migration
      */
     public function down()
     {
-        Schema::table('excluded_days', function (Blueprint $table) {
-            $table->dropColumn('general');
+        Schema::table('training_contracts', function (Blueprint $table) {
+            $table->dropColumn('bonification');
         });
     }
 }

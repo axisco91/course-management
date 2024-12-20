@@ -115,6 +115,29 @@
         .no-border-right {
             border-right: none !important;
         }
+        .occupation-cell {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            font-size: 14px;
+            }
+
+            @media screen and (max-width: 600px) {
+            .occupation-cell {
+                font-size: 12px;
+            }
+        }
+        .cno-cell {
+        white-space: nowrap;
+        overflow: visible; /* Permite que los caracteres del CNO se muestren completamente */
+        }
+        .cno-char {
+            border: 1px solid black;
+            padding: 1px 4px;
+            margin: -2px;
+            display: inline-block;
+        }
 
         </style>
     </head>
@@ -200,13 +223,13 @@
                                 <td style="width: 25%">Tutor/a de la empresa - D./Dña.</td>
                                 <td class="border-bottom ms-2" style="width: 18.5%">{{$trainingContract->company_tutor}}</td>
                                 <td style="width: 15%" class="ms-2">Horas mensuales</td>
-                                <td class="border-bottom ms-2" style="width: 11.5%">{{--$sumaHoras--}}</td>
+                                <td class="border-bottom ms-2" style="width: 11.5%">40</td>
                                 <td style="width: 8%" class="ms-2">NIF/NIE</td>
                                 <td class="border-bottom ms-2" style="width: 17%">{{$trainingContract->company_tutor_dni}}</td>
                             </tr>
                         </table>
                         
-                        <input class="no-line-break mb-0 ms-1" type="checkbox" {{$trainingContract->company->companyType->name == "Autónomo" ? 'checked' : ''}}><span class="ms-2 no-line-break"> Empresa con menos de 5 trabajadores</span>
+                        <input class="no-line-break mb-0 ms-1" type="checkbox" {{$trainingContract->company->average_template <= 5 ? 'checked' : ''}}><span class="ms-2 no-line-break"> Empresa con menos de 5 trabajadores</span>
                     </div>
                 </div>                
             </article>
@@ -225,7 +248,7 @@
                                 <td class="border-bottom" style="width: 7%">{{ \Carbon\Carbon::parse($trainingContract->student->date_of_birth)->format('d/m/Y') }}</td>
                             </tr>
                         </table>
-                        <input class="no-line-break mb-0" type="checkbox"><p class="ms-2 mb-0 no-line-break">Reúne requisitos de acceso a la Formación de este contrato.</p><br>
+                        <input class="no-line-break mb-0" type="checkbox" checked><p class="ms-2 mb-0 no-line-break">Reúne requisitos de acceso a la Formación de este contrato.</p><br>
                         <input class="no-line-break mb-0" type="checkbox" {{$trainingContract->youth_guarantee == 1 ? 'checked' : ''}}> 
                         <p class="ms-2 mb-0 no-line-break">Inscrito/a en el Sistema Nacional de Garantía Juvenil.</p><br>
                         <input class="no-line-break mb-0" type="checkbox" {{$trainingContract->disabled == 1 ? 'checked' : ''}}>
@@ -262,17 +285,16 @@
                         <table style="width: 100%">
                             <tr>
                                 <td style="width: 25%">Puesto de trabajo u ocupación</td>
-                                <td class="border-bottom">{{$trainingContract->occupation->name}}</td>
+                                <td class="border-bottom occupation-cell">{{$trainingContract->occupation->name}}</td>
                                 <td style="width: 10%">Cód. CNO</td>
-                                <td class="border-left border-top border-bottom" style="width: 20%">
-                                    @php
-                                        $cnoArray = str_split($trainingContract->occupation->cno);
-                                    @endphp
-
-                                    @foreach($cnoArray as $char)
-                                        <span class="border-right" style="padding-top: 7px; padding-bottom: 3.5px; padding-right: 3.1px; padding-left: 3px">{{ $char }}</span>
+                                <p class="empty-paragraph " style="font-size: 0.7rem">
+                                    @foreach(str_split($trainingContract->occupation->cno) as $char)
+                                        @if(!empty($char) || $char === '0')
+                                            <span style="border: 1px solid black; padding: 1px 4px; margin: -2px;">{{ $char }}</span>
+                                        @endif
                                     @endforeach
-                                </td>
+                                </p>
+                            </td>
                             </tr>
                         </table>
                         <table style="width: 100%">
@@ -280,15 +302,35 @@
                                 <td style="width: 25%">Provincia del centro de trabajo</td>
                                 <td class="border-bottom">{{$trainingContract->province->name ?? ''}}</td>
                                 <td style="width: 22%">Horas del contrato: Año 1.º</td>
-                                <td class="border-bottom" style="width: 8%">{{$trainingContract->formative_hours_first_year}}</td>
-                                <td  style="width: 8%">Año 2.º</td>
-                                <td class="border-bottom" style="width: 8%">{{$trainingContract->formative_hours_second_year}}</td>
+                                <td class="border-bottom" style="width: 8%">{{$trainingContract->annually_day_hours}}</td>
+                                <td style="width: 8%">Año 2.º</td>
+                                <td class="border-bottom" style="width: 8%">
+                                    @php
+                                    $start = \Carbon\Carbon::parse($trainingContract->beginning);
+                                        $end = \Carbon\Carbon::parse($trainingContract->end);
+
+                                        // Calculamos la duración total en días
+                                        $totalDays = $end->diffInDays($start) + 1; // +1 para incluir el último día
+
+                                        // Calculamos las horas totales del contrato
+                                        $totalHours = ($totalDays / 365) * $trainingContract->annually_day_hours;
+
+                                        // Calculamos las horas del segundo año
+                                        if ($totalDays > 365) {
+                                            $secondYearDays = $totalDays - 365;
+                                            $secondYearHours = round(($secondYearDays / 365) * $trainingContract->annually_day_hours);
+                                            echo $secondYearHours;
+                                        } else {
+                                            echo '';
+                                        }
+                                    @endphp
+                                </td>
                             </tr>
                         </table>
                         <table style="width: 100%" class="mb-2">
                             <tr>
                                 <td style="width: 18%">Convenio aplicable</td>
-                                <td class="border-bottom" style="width: 85%">{{$trainingContract->applicableAgreement->name ?? ''}}</td>
+                                <td class="border-bottom" style="width: 85%">{{$trainingContract->company->agreement ?? ''}}</td>
                             </tr>
                         </table>
                     </div>
@@ -669,7 +711,7 @@
                                 <td style="width: 13%">Nombre Centro</td>
                                 <td class="border-bottom">AVZ FORMACION, SL</td>
                                 <td style="width: 12%">CIF/NIF/NIE</td>
-                                <td class="border-bottom" style="width: 15%">B16826638L</td>
+                                <td class="border-bottom" style="width: 15%">B16826638</td>
                             </tr>
                         </table>
 
@@ -683,7 +725,7 @@
                         <table class="ms-3" style="width: 95%">
                             <tr>
                                 <td style="width: 9%">Dirección</td>
-                                <td class="border-bottom">C\ EL PESO 35, 3º D</td>
+                                <td class="border-bottom">C\ Ballesteros nº 17</td>
                                 <td style="width: 5%">CP</td>
                                 <td class="border-bottom">14900</td>
                                 <td style="width: 9%">Municipio</td>
@@ -795,7 +837,7 @@
                         almacenamiento  web . Los datos  proporcionados  se conservarán  mientras  se mantenga  la relación  profesional  o durante  los años 
                         necesarios  para cumplir con las obligaciones  legales. Sin perjuicio de ello se le informa de que usted podrá ejercitar los derechos  de 
                         acceso , rectificación , supresión  (derecho  al olvido ), limitación  en el tratamiento  , portabilidad  y oposición  enviando  una solicitud  por 
-                        escrito , acompañada  de  una  fotocopia  de  su  DNI  a la siguiente  dirección  : C.El Peso  35 , 3ºD, Lucena  (Córdoba ) CP  14900  o 
+                        escrito , acompañada  de  una  fotocopia  de  su  DNI  a la siguiente  dirección  : C. Ballesteros nº 17, Lucena  (Córdoba ) CP  14900  o 
                         telemáticamente a través del siguiente correo electrónico: info@avzformacion.com
                     </p>
                 </div>
@@ -803,7 +845,7 @@
                 <div>
                     <p class="font-bold mb-0">Datos a efectos de notificación</p>
                     <p class="mt-1 mb-0"> 
-                        Dirección <span class="underline">C/PEDRO ANGULO 6</span> 
+                        Dirección <span class="underline">C/BALLESTEROS 17</span> 
                         CP <span class="underline">14900</span>
                     </p>
                     <p class="mt-1"> 

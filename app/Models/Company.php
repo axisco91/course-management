@@ -37,7 +37,8 @@ class Company extends Model
         'active',
         'collaborator_id',
         'potential',
-        'population_code'];
+        'population_code',
+        'agreement',];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

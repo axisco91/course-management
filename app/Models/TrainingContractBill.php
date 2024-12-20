@@ -1,22 +1,19 @@
 <?php
-
 namespace App\Models;
 
-use App\Helpers\GeneralHelpers;
-use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class TrainingContractBill extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = true;
 
-    protected $fillable = ['number',
+    protected $fillable = [
+        'number',
         'training_contract_id',
         'training_contract_bonus_id',
         'company_id',
@@ -31,29 +28,21 @@ class TrainingContractBill extends Model
         'series_id',
     ];
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
     public function company()
     {
         return $this->hasOne('App\Models\Company', 'id', 'company_id');
     }
+
     public function provider()
     {
         return $this->hasOne('App\Models\Provider', 'id', 'company_id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
     public function training_contract()
     {
         return $this->hasOne('App\Models\TrainingContract', 'id', 'training_contract_id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
     public function training_contract_bonus()
     {
         return $this->hasOne('App\Models\TrainingContractBonus', 'id', 'training_contract_bonus_id');
@@ -63,6 +52,7 @@ class TrainingContractBill extends Model
     {
         return $this->belongsTo('App\Models\TrainingContractSeries', 'series_id', 'id');
     }
+
     public function student()
     {
         return $this->hasOneThrough(
@@ -74,7 +64,9 @@ class TrainingContractBill extends Model
             'student_id' // Clave local en la tabla intermedia (TrainingContract)
         );
     }
-    public function scopeGetTrainingContractBills($query){
+
+    public function scopeGetTrainingContractBills($query)
+    {
         return $query->select('training_contract_bills.*',
             'companies.name as company',
             'companies.id as company_id',
@@ -83,21 +75,17 @@ class TrainingContractBill extends Model
             DB::raw("CONCAT(students.name,' ', students.surname) as student"),
             DB::raw("(CASE WHEN training_contract_bills.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
             DB::raw("(CASE WHEN training_contract_bills.charged='1' THEN 'Si' ELSE 'No' END) as charge"))
-            ->leftjoin('companies', 'companies.id', '=', 'training_contract_bills.company_id')
-            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_bills.training_contract_id')
-            ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id');
+            ->leftJoin('companies', 'companies.id', '=', 'training_contract_bills.company_id')
+            ->leftJoin('training_contracts', 'training_contracts.id', '=', 'training_contract_bills.training_contract_id')
+            ->leftJoin('students', 'students.id', '=', 'training_contracts.student_id');
     }
 
-    public static function createBill($bonus) {
-        $id = TrainingContractBill::orderBy('id', 'desc')->first();
+    public static function createBill($bonus)
+    {
         $training_contract = TrainingContract::where('id', $bonus['training_contract_id'])->first();
-        if ($id){
-            $number = $id['id'] + 1;
-        } else {
-            $number = 1;
-        }
+
         $bill = TrainingContractBill::create([
-            'number' => $number,
+            'number' => null,  // No se genera el número aquí
             'training_contract_bonus_id' => $bonus->id,
             'training_contract_id' => $training_contract['id'],
             'company_id' => $training_contract['company_id'],
@@ -116,9 +104,8 @@ class TrainingContractBill extends Model
         return $bill;
     }
 
-   
-    public static function updateBill($id, $data) {
-       
+    public static function updateBill($id, $data)
+    {
         $bill = TrainingContractBill::find($id);
         $bill->update([
             'collection_date' => $data['collection_date'] ? Carbon::createFromFormat('d-m-Y', $data['collection_date'])->format('Y-m-d') : null,
@@ -126,7 +113,7 @@ class TrainingContractBill extends Model
             'invoiced' => $data['invoiced'],
             'series_id' => $data['series_id']
         ]);
-    
+
         return $bill->fresh();
     }
 }

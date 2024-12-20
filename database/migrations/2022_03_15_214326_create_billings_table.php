@@ -29,7 +29,7 @@ class CreateBillingsTable extends Migration
             $table->date('communication_start_date')->nullable();
             $table->date('communication_end_date')->nullable();
             $table->tinyInteger('invoiced')->default(0);
-            $table->string('billing_number')->nullable()->unique();
+            $table->string('billing_number')->nullable();
             $table->date('billing_date')->nullable();
             $table->date('collection_date')->nullable();
             $table->tinyInteger('bonus_status')->default(0);

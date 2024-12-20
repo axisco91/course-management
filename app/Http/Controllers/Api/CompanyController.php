@@ -13,6 +13,7 @@ use App\Services\CompanyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class CompanyController extends BaseController
 {
@@ -199,10 +200,19 @@ class CompanyController extends BaseController
     public function store(CompanyRequests $request){
         try {
             $data = $request->all();
+    
+            // Verifica que el campo 'agreement' está presente en los datos recibidos
+            if (isset($data['agreement'])) {
+                Log::info('Agreement received: ' . $data['agreement']);
+            } else {
+                Log::warning('Agreement not received');
+            }
+    
             $element = $this->companyService->create($data);
             $company = Company::company()
                 ->where('companies.id', $element->id)
                 ->first();
+    
             $student = Student::where('company_id', $company['id'])->first();
             if ($student) {
                 $company['used'] = true;
@@ -219,18 +229,21 @@ class CompanyController extends BaseController
                     }
                 }
             }
+    
             $advisor = Advisor::where('company_id', $company['id'])->first();
             if ($advisor) {
                 $company['is_advisor'] = true;
             } else {
                 $company['is_advisor'] = false;
             }
+    
             $provider = Provider::where('company_id', $company['id'])->first();
             if ($provider) {
                 $company['is_provider'] = true;
             } else {
                 $company['is_provider'] = false;
             }
+    
             if ($company['potential'] === 1) {
                 $company['status'] = 'Potencial';
             } else if ($company['active'] === 0) {
@@ -238,6 +251,7 @@ class CompanyController extends BaseController
             } else {
                 $company['status'] = 'Activo';
             }
+    
             return response()->json([
                 'status' => 200,
                 'company' => $company
@@ -249,6 +263,8 @@ class CompanyController extends BaseController
             ]);
         }
     }
+    
+    
 
     /**
      * Editar empresa
@@ -259,16 +275,26 @@ class CompanyController extends BaseController
     public function update($id, CompanyRequests $request){
         try {
             $data = $request->all();
+    
+            // Verifica que el campo 'agreement' está presente en los datos recibidos
+            if (isset($data['agreement'])) {
+                Log::info('Agreement received: ' . $data['agreement']);
+            } else {
+                Log::warning('Agreement not received');
+            }
+    
             $company = Company::find($id);
             $element = $this->companyService->update($company, $data);
             $company = Company::company()
                 ->where('companies.id', $element->id)
                 ->first();
+    
             $advisor = Advisor::where('company_id', $company->id)->first();
             if ($advisor) {
                 $data['company_id'] = $company->id;
                 $this->advisorService->updateAdvisorCompany($advisor, $data);
             }
+    
             $student = Student::where('company_id', $company['id'])->first();
             if ($student) {
                 $company['used'] = true;
@@ -285,18 +311,21 @@ class CompanyController extends BaseController
                     }
                 }
             }
+    
             $advisor = Advisor::where('company_id', $company['id'])->first();
             if ($advisor) {
                 $company['is_advisor'] = true;
             } else {
                 $company['is_advisor'] = false;
             }
+    
             $provider = Provider::where('company_id', $company['id'])->first();
             if ($provider) {
                 $company['is_provider'] = true;
             } else {
                 $company['is_provider'] = false;
             }
+    
             if ($company['potential'] === 1) {
                 $company['status'] = 'Potencial';
             } else if ($company['active'] === 0) {
@@ -304,6 +333,7 @@ class CompanyController extends BaseController
             } else {
                 $company['status'] = 'Activo';
             }
+    
             return response()->json([
                 'status' => 200,
                 'company' => $company
@@ -315,6 +345,8 @@ class CompanyController extends BaseController
             ]);
         }
     }
+    
+    
 
     /**
      * Eliminar empresa

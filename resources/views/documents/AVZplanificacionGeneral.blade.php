@@ -57,14 +57,20 @@
                 <p><strong>PLANIFICACIÓN DE LA ACTIVIDAD FORMATIVA Y DE LA EVALUACIÓN FINAL – Alumno/a: </strong> {{$trainingContract->student->name}} {{$trainingContract->student->surname}} – {{$trainingContract->student->dni}}</p>
                 <p class="font-semibold mt-3">Fecha de inicio del contrato: {{$trainingContract->beginning}}. Fecha de fin del contrato: {{$trainingContract->end}}</p>
                 <p class="font-semibold mt-3">Fecha de inicio actividad formativa: {{$trainingContract->beginning_formation}}. Fecha de fin actividad formativa: {{$trainingContract->end_formation}}.</p>
-                <p class="font-semibold mt-3">(En esta planificación se contempla como periodo de vacaciones del trabajador del 01/04/23 al 16/04/23,
-                    01/08/23 al 14/08/23 y del 01/08/24 al 30/08/24)</p>
+                <p class="font-semibold mt-3">
+                    (En esta planificación se contempla como periodo de vacaciones del trabajador 
+                    @foreach($excludedDays as $index => $excludedDay)
+                        @if($index > 0),@endif
+                        del {{ \Carbon\Carbon::parse($excludedDay['start_date'])->format('d/m/Y') }} al {{ \Carbon\Carbon::parse($excludedDay['end_date'])->format('d/m/Y') }}
+                    @endforeach
+                </p>
             </article>
+
 
             <table class="mx-auto border border-2 border-dark2 mt-3">
                 <tbody>
                     <tr class="border-bottom border-2 border-dark">
-                        <td colspan="8" class="font-semibold ps-3 text-start">ESPECIALIDADES SEPE: AGENTE COMERCIAL</td>
+                        <td colspan="8" class="font-semibold ps-3 text-start">ESPECIALIDADES SEPE: {{$trainingContract->occupation->name}} ({{$trainingContract->occupation->cno}})</td>
                     </tr>
                     <tr class="border-bottom border-2 border-dark bg-color text-white text-center">
                         <td colspan="2" class="border-right border-2 border-dark font-semibold">MÓDULOS PROFESIONALES/FORMATIVO</td>

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
-use App\Models\TrainingContractSeries; 
+use App\Models\TrainingContractSeries;
 use App\Http\Controllers\Controller;
 
 class TrainingContractSeriesController extends Controller
@@ -19,29 +19,34 @@ class TrainingContractSeriesController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        $series = TrainingContractSeries::create($request->all());
-        return response()->json($series, 201);
-    }
-
-    /**
      * Display the specified resource.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function get($id)
     {
-        return $series;
+        $series = TrainingContractSeries::findOrFail($id);
+        return response()->json([
+            'status' => 200,
+            'series' => $series
+        ]);
     }
 
-    
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function create(Request $request)
+    {
+        $series = TrainingContractSeries::create($request->all());
+        return response()->json([
+            'status' => 201,
+            'series' => $series
+        ], 201);
+    }
 
     /**
      * Update the specified resource in storage.
@@ -50,9 +55,10 @@ class TrainingContractSeriesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function edit(Request $request, $id)
     {
-        $series -> update($request->all());
+        $series = TrainingContractSeries::findOrFail($id);
+        $series->update($request->all());
         return response()->json([
             'status' => 200,
             'series' => $series
@@ -65,12 +71,13 @@ class TrainingContractSeriesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function delete($id)
+    public function destroy($id)
     {
         $series = TrainingContractSeries::findOrFail($id);
         $series->delete();
         return response()->json([
-            'status' => 200
+            'status' => 200,
+            'message' => 'Series deleted successfully'
         ]);
     }
 }
