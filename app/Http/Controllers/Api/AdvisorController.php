@@ -35,7 +35,6 @@ class AdvisorController extends BaseController
             if ($user->teacher_id) {
                 $advisors = $advisors->leftjoin('billings', 'billings.advisor_id', '=', 'advisors.id')
                     ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
-                    ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
                     ->where('courses.teacher_id', $user->teacher_id);
             }
 
@@ -296,5 +295,20 @@ class AdvisorController extends BaseController
     public function indexWithCommissions() {
         $advisors = Advisor::with('commissions')->get();
         return response()->json($advisors);
+    }
+
+    public function createAdvisorUser($id, Request $request) {
+        try {
+            $advisor = Advisor::find($id);
+            if ($advisor) {
+                $this->advisorService->advisorUser($advisor);
+                return response()->json([
+                    'status' => 200,
+                    'advisor' => $advisor
+                ]);
+            }
+        } catch (\Exception $exception) {
+            return response()->json([]);
+        }
     }
 }

@@ -50,8 +50,8 @@ class ActionTypeController extends BaseController
             ->where('id', $id)
             ->first();
         if ($actionType) {
-            $training_action = TrainingAction::where('action_type_id', $actionType['id'])->first();
-            if ($training_action){
+            $trainingAction = TrainingAction::where('action_type_id', $actionType['id'])->first();
+            if ($trainingAction){
                 $actionType['used'] = true;
             } else{
                 $actionType['used'] = false;
@@ -80,8 +80,8 @@ class ActionTypeController extends BaseController
                 ->where('id', $element->id)
                 ->first();
             if ($actionType) {
-                $training_action = TrainingAction::where('action_type_id', $actionType['id'])->first();
-                if ($training_action){
+                $trainingAction = TrainingAction::where('action_type_id', $actionType['id'])->first();
+                if ($trainingAction){
                     $actionType['used'] = true;
                 } else{
                     $actionType['used'] = false;
@@ -114,8 +114,8 @@ class ActionTypeController extends BaseController
                 ->where('id', $element->id)
                 ->first();
             if ($actionType) {
-                $training_action = TrainingAction::where('action_type_id', $actionType['id'])->first();
-                if ($training_action){
+                $trainingAction = TrainingAction::where('action_type_id', $actionType['id'])->first();
+                if ($trainingAction){
                     $actionType['used'] = true;
                 } else{
                     $actionType['used'] = false;

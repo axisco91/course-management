@@ -43,14 +43,14 @@ class TrainingContractFestival extends Model
 
     /**
      * Metodo para crear los festivales
-     * @param $training_contract
+     * @param $trainingContract
      * @param $id
      * @param $type
      * @param $start
      * @param $end
      * @return bool
      */
-    public static function createTrainingContractFestivals($training_contract, $id, $type, $start, $end){
+    public static function createTrainingContractFestivals($trainingContract, $id, $type, $start, $end){
         if ($type == 'province') {
             $festivals = ProvinceFestival::where('province_id', $id);
         } else if ($type == 'population') {
@@ -73,38 +73,38 @@ class TrainingContractFestival extends Model
         if ($festivals){
             foreach ($festivals as $festival){
                 if ($type == 'province') {
-                    $training_contract_festival = TrainingContractFestival::where('province_festival_id', $festival->id)
-                        ->where('training_contract_id', $training_contract)->first();
+                    $trainingContract_festival = TrainingContractFestival::where('province_festival_id', $festival->id)
+                        ->where('training_contract_id', $trainingContract)->first();
                 } else if ($type == 'population') {
-                    $training_contract_festival = TrainingContractFestival::where('population_festival_id', $festival->id)
-                        ->where('training_contract_id', $training_contract)->first();
+                    $trainingContract_festival = TrainingContractFestival::where('population_festival_id', $festival->id)
+                        ->where('training_contract_id', $trainingContract)->first();
                 } else if ($type == 'nacional') {
-                    $training_contract_festival = TrainingContractFestival::where('nacional_festival_id', $festival->id)
-                        ->where('training_contract_id', $training_contract)->first();
+                    $trainingContract_festival = TrainingContractFestival::where('nacional_festival_id', $festival->id)
+                        ->where('training_contract_id', $trainingContract)->first();
                 } else if ($type == 'community') {
-                    $training_contract_festival = TrainingContractFestival::where('community_festival_id', $festival->id)
-                        ->where('training_contract_id', $training_contract)->first();
+                    $trainingContract_festival = TrainingContractFestival::where('community_festival_id', $festival->id)
+                        ->where('training_contract_id', $trainingContract)->first();
                 }
 
-                if (!$training_contract_festival){
+                if (!$trainingContract_festival){
                     if ($type == 'province') {
                         TrainingContractFestival::create([
-                            'training_contract_id' => $training_contract,
+                            'training_contract_id' => $trainingContract,
                             'province_festival_id' => $festival->id
                         ]);
                     } else if ($type == 'population') {
                         TrainingContractFestival::create([
-                            'training_contract_id' => $training_contract,
+                            'training_contract_id' => $trainingContract,
                             'population_festival_id' => $festival->id
                         ]);
                     } else if ($type == 'nacional') {
                         TrainingContractFestival::create([
-                            'training_contract_id' => $training_contract,
+                            'training_contract_id' => $trainingContract,
                             'nacional_festival_id' => $festival->id
                         ]);
                     } else if ($type == 'community') {
                         TrainingContractFestival::create([
-                            'training_contract_id' => $training_contract,
+                            'training_contract_id' => $trainingContract,
                             'community_festival_id' => $festival->id
                         ]);
                     }
@@ -114,7 +114,7 @@ class TrainingContractFestival extends Model
         return true;
     }
 
-    public function scopeExistDay($query, $day, $training_contract_id){
+    public function scopeExistDay($query, $day, $trainingContractId){
         $query->select('training_contract_festivals.*')
             ->leftJoin('nacional_festivals', 'nacional_festivals.id', '=', 'training_contract_festivals.nacional_festival_id')
             ->leftJoin('province_festivals', 'province_festivals.id', '=', 'training_contract_festivals.province_festival_id')
@@ -137,6 +137,6 @@ class TrainingContractFestival extends Model
                         $query->whereNotNull('community_festivals.id')
                             ->where('community_festivals.day', '=', $day);
                     });
-            })->where('training_contract_festivals.training_contract_id', $training_contract_id);
+            })->where('training_contract_festivals.training_contract_id', $trainingContractId);
     }
 }

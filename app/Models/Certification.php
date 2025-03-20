@@ -84,11 +84,11 @@ class Certification extends Model
     }
 
     public static function getCertificationsNotinTrainingContract($id){
-        $training_contracts_certifications = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
+        $trainingContracts_certifications = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
             ->whereNotNull('certification_id')
             ->pluck('certification_id');
         $certifications = Certification::select('certifications.*', 'certifications.id as value', DB::raw("CONCAT(certifications.name,' (', certifications.total_hours,' horas)') as label"))
-            ->whereNotIn('id', $training_contracts_certifications)
+            ->whereNotIn('id', $trainingContracts_certifications)
             ->where('active', 1)->get();
         return $certifications;
     }

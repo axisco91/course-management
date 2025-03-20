@@ -28,7 +28,7 @@ class PotentialTrainingContract extends Mailable
      */
     public function build()
     {
-        return $this->subject('Correo recibir formación de VR Consultores')
+        return $this->subject('Correo recibir formación de AVZ Formación')
             ->view('emails.potential_training_contract');
     }
 }

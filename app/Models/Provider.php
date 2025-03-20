@@ -44,8 +44,8 @@ class Provider extends Model
             ->orderBy('providers.name', 'desc')
             ->get();
         foreach($providers as $provider) {
-            $training_action = TrainingAction::where('provider_id', $provider->id)->first();
-            if ($training_action) {
+            $trainingAction = TrainingAction::where('provider_id', $provider->id)->first();
+            if ($trainingAction) {
                 $provider['used'] = true;
             } else {
                 $provider['used'] = false;
@@ -63,8 +63,8 @@ class Provider extends Model
             ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id')
             ->where('providers.id', $id)
             ->first();
-        $training_action = TrainingAction::where('provider_id', $provider->id)->first();
-        if ($training_action) {
+        $trainingAction = TrainingAction::where('provider_id', $provider->id)->first();
+        if ($trainingAction) {
             $provider['used'] = true;
         } else {
             $provider['used'] = false;

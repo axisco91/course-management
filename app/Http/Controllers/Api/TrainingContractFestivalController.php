@@ -23,11 +23,11 @@ class TrainingContractFestivalController extends BaseController
 
     public function create(Request $request){
         try {
-            $training_contract = TrainingContract::where('id', $request['training_contract_id'])->first();
-            TrainingContractFestival::createTrainingContractFestivals($request['training_contract_id'], $request['id'], $request['type'], $training_contract->beginning_formation, $training_contract->end_formation);
+            $trainingContract = TrainingContract::where('id', $request['training_contract_id'])->first();
+            TrainingContractFestival::createTrainingContractFestivals($request['training_contract_id'], $request['id'], $request['type'], $trainingContract->beginning_formation, $trainingContract->end_formation);
             return response()->json([
                 'status' => 200,
-                'training_contract_festivals' =>  TrainingContractFestival::festivals()->where('training_contract_id', $training_contract->id)->get()
+                'training_contract_festivals' =>  TrainingContractFestival::festivals()->where('training_contract_id', $trainingContract->id)->get()
             ]);
         } catch (\Exception $e) {
             return response()->json([

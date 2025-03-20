@@ -21,6 +21,9 @@ class CourseController extends BaseController
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
                 $query->where('teacher_id', $user->teacher_id);
+            } else if ($user->advisor_id) {
+                $query->leftjoin('billings', 'billings.course_id', '=', 'courses.id')
+                    ->where('advisor_id', $user->advisor_id);
             }
 
             if ($request->formative_action) {
@@ -65,7 +68,6 @@ class CourseController extends BaseController
         }
     }
 
-
     public function store(Request $request){
         try {
             $course = Course::createCourse($request);
@@ -86,9 +88,9 @@ class CourseController extends BaseController
         try {
             \Log::info('Updating course: ' . $id);
             \Log::info('Received data: ' . json_encode($request->all()));
-            
+
             $course = Course::updateCourse($id, $request->all());
-            
+
             \Log::info('Updated course: ' . json_encode($course));
         } catch (\Exception $e){
             \Log::error('Error updating course: ' . $e->getMessage());
@@ -97,7 +99,7 @@ class CourseController extends BaseController
                 'message' => $e->getMessage()
             ]);
         }
-    
+
         return response()->json([
             'status' => 200,
             'course' => Course::withCourseData($course->id)->Where('courses.id', $course->id)->first()
@@ -160,16 +162,16 @@ class CourseController extends BaseController
             ]);
         }
     }
-    
+
     /**
      * Este método restablece las fechas de seguimiento futuras (tracings), y elimina las tareas (chores) y facturas (bills) asociadas a un curso si el curso está cancelado.
-     * 
+     *
      * Primero, busca el curso por su ID. Si el curso no se encuentra, devuelve una respuesta con un estado 404 y un mensaje indicando que el curso no se encontró.
-     * 
+     *
      * Si el curso se encuentra, verifica si el estado del curso es 'anulado' (course_status_id === 4). Si el curso no está anulado, devuelve una respuesta con un estado 400 y un mensaje indicando que el curso no está cancelado.
-     * 
+     *
      * Si el curso está cancelado, llama al método resetChoresAndFutureTracings del curso para restablecer las fechas de seguimiento futuras y eliminar las tareas y facturas asociadas. Luego, devuelve una respuesta con un estado 200 y un mensaje indicando que los seguimientos futuros se restablecieron con éxito.
-     * 
+     *
      * @param  int  $id  El ID del curso.
      * @return \Illuminate\Http\JsonResponse Una respuesta JSON con el estado y el mensaje.
      */
@@ -183,11 +185,11 @@ class CourseController extends BaseController
             if ($course->course_status_id === 4) {
                 Log::info('Course status is cancelled. Resetting tracings...');
                 $course->resetChoresAndFutureTracings();
-                
+
                 // Add this new log
                 $remainingBills = Bill::where('course_id', $id)->count();
                 Log::info("After resetting, {$remainingBills} bills remain for course {$id}");
-    
+
                 Log::info('Tracings reset successfully');
                 return response()->json([
                     'status' => 200,

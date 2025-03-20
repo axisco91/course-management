@@ -267,18 +267,19 @@ class DocumentStudentController extends BaseController
     private function prepareDataForPdf(TrainingContract $trainingContract)
     {
         $trainingContract->load([
-            'provider', 
-            'occupation', 
-            'company', 
-            'company.companyActivity', 
-            'applicableAgreement.agreementType', 
-            'student.levelStudy', 
-            'province', 
+            'provider',
+            'occupation',
+            'company',
+            'company.companyActivity',
+            'applicableAgreement.agreementType',
+            'student.levelStudy',
+            'province',
             'trainingContractExcludedDays'
         ]);
 
         $elements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
-        $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)->getData()->monthly_formation_hours;
+        $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)['monthly_formation_hours'];
+
         $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
         $companyType = CompanyType::find($trainingContract->company->company_type_id);
 
@@ -345,10 +346,10 @@ class DocumentStudentController extends BaseController
 
         try {
             $data = $this->prepareDataForPdf($trainingContract);
-            
+
             // Verifica si todas las variables necesarias están presentes
             Log::info('Data prepared for PDF:', array_keys($data));
-            
+
             $htmlContent = view($viewName, $data)->render();
             $htmlContent = $this->adjustImagePaths($htmlContent);
 
@@ -373,6 +374,11 @@ class DocumentStudentController extends BaseController
             $data = $this->prepareDataForBill($trainingContractBill);
 
             $pdf = PDF::loadView($viewName, $data);
+
+            if ($viewName === 'documents.AVZcertificadoBonificaciones') {
+                $pdf->setOption('footer-html', view('pdf.footer')->render());
+            }
+
             $pdf->setPaper('a4', $orientation);
 
             return $pdf;
@@ -409,7 +415,25 @@ class DocumentStudentController extends BaseController
         $student = Student::find($trainingContract->student_id);
         $trainingContractBonus = TrainingContractBonus::find($trainingContractBill->training_contract_bonus_id);
 
-        return compact('trainingContractBill', 'trainingContract', 'trainingContractSeries', 'occupation', 'company', 'student', 'trainingContractBonus');
+        $dias = [];
+        $elements = null;
+        if ($trainingContract) {
+            $elements = TrainingContractElement::where('training_contract_id', $trainingContract->id)->get();
+
+            if ($trainingContract->monday)    $dias[] = "Lunes";
+            if ($trainingContract->tuesday)   $dias[] = "Martes";
+            if ($trainingContract->wednesday) $dias[] = "Miércoles";
+            if ($trainingContract->thursday)  $dias[] = "Jueves";
+            if ($trainingContract->friday)    $dias[] = "Viernes";
+            if ($trainingContract->saturday)  $dias[] = "Sábado";
+            if ($trainingContract->sunday)    $dias[] = "Domingo";
+        }
+
+        $fechaActual = \Carbon\Carbon::now()->format('d-m-Y');
+
+        $bonus = TrainingContractBonus::where('training_contract_id', $trainingContract->id)->get();
+
+        return compact('trainingContractBill', 'trainingContract', 'trainingContractSeries', 'occupation', 'company', 'student', 'trainingContractBonus', 'elements', 'dias', 'fechaActual', 'bonus');
     }
 
     public function testPdfFactura($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait')

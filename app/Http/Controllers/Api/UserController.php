@@ -3,12 +3,20 @@
 namespace App\Http\Controllers\Api;
 use App\Models\TrainingActionLevel;
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends BaseController
 {
+    private $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     /**
      * Obtenemos usuarios
      * @return \Illuminate\Http\JsonResponse
@@ -60,7 +68,8 @@ class UserController extends BaseController
 
     public function create(Request $request){
         try {
-            $user = User::createUser($request);
+            $data = $request->all();
+            $user = $this->userService->create($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -78,7 +87,6 @@ class UserController extends BaseController
     public function edit($id, Request $request){
         try {
             $user = User::updateUser($id, $request);
-            $user = User::find($id);
             if ($request->file('image')) {
                 $file = $request->file('image');
                 $filename = substr(str_shuffle(MD5(microtime())), 0, 10).substr(str_shuffle(MD5($user->name.'-'.$user->surname)), 0, 10).'.'.$file->getClientOriginalExtension();
@@ -132,7 +140,7 @@ class UserController extends BaseController
             'status' => 200
         ]);
     }
-    
+
     public function indexWithCommissions() {
         $users = User::with('commissions')->get();
         return response()->json($users);

@@ -17,9 +17,9 @@ class TrainingContractsExcludedDay extends Model
     protected $fillable = ['training_contract_id','excluded_day_type_id', 'day', 'description', 'group', 'valid'];
 
     public static function createExcludedDay($data){
-        $training_contract = TrainingContract::where('id', $data['training_contract_id'])->first();
+        $trainingContract = TrainingContract::where('id', $data['training_contract_id'])->first();
         // vemos otros grupos para obtener el número de grupo más alto
-        $other_groups = TrainingContractsExcludedDay::where('training_contract_id', $training_contract->id)
+        $other_groups = TrainingContractsExcludedDay::where('training_contract_id', $trainingContract->id)
             ->orderBy('group', 'desc')
             ->first();
         $start = Carbon::parse($data['beginning']);
@@ -30,49 +30,49 @@ class TrainingContractsExcludedDay extends Model
         }
         $count = 0;
         while ($start <= $end) {
-            $festival = TrainingContractFestival::existDay($start, $training_contract->id)->first();
+            $festival = TrainingContractFestival::existDay($start, $trainingContract->id)->first();
             if (!$festival) {
                 $working_day = false;
                 switch($start->dayOfWeek){
                     case 0:
-                        if ($training_contract->sunday == 1){
+                        if ($trainingContract->sunday == 1){
                             $working_day = true;
                         }
                         break;
                     case 1:
-                        if ($training_contract->monday == 1){
+                        if ($trainingContract->monday == 1){
                             $working_day = true;
                         }
                         break;
                     case 2:
-                        if ($training_contract->tuesday == 1){
+                        if ($trainingContract->tuesday == 1){
                             $working_day = true;
                         }
                         break;
                     case 3:
-                        if ($training_contract->wednesday == 1){
+                        if ($trainingContract->wednesday == 1){
                             $working_day = true;
                         }
                         break;
                     case 4:
-                        if ($training_contract->thursday == 1){
+                        if ($trainingContract->thursday == 1){
                             $working_day = true;
                         }
                         break;
                     case 5:
-                        if ($training_contract->friday == 1){
+                        if ($trainingContract->friday == 1){
                             $working_day = true;
                         }
                         break;
                     case 6:
-                        if ($training_contract->saturday == 1){
+                        if ($trainingContract->saturday == 1){
                             $working_day = true;
                         }
                         break;
                 }
             }
             if ($working_day) {
-                $excluded_day = TrainingContractsExcludedDay::where('training_contract_id', $training_contract->id)
+                $excluded_day = TrainingContractsExcludedDay::where('training_contract_id', $trainingContract->id)
                     ->where('day', $start)->first();
                 if ($excluded_day) {
                     $excluded_day->update([
@@ -82,7 +82,7 @@ class TrainingContractsExcludedDay extends Model
                 } else {
                     TrainingContractsExcludedDay::create([
                         'day' => $start->toDateString(),
-                        'training_contract_id' => $training_contract->id,
+                        'training_contract_id' => $trainingContract->id,
                         'excluded_day_type_id' => $data['excluded_day_type_id'],
                         'group' => $group,
                         'valid' => 1
@@ -91,7 +91,7 @@ class TrainingContractsExcludedDay extends Model
             } else if ($start->toDateString() === Carbon::parse($data['beginning'])->toDateString() || $start->toDateString() === $end->toDateString()) {
                 TrainingContractsExcludedDay::create([
                     'day' => $start->toDateString(),
-                    'training_contract_id' => $training_contract->id,
+                    'training_contract_id' => $trainingContract->id,
                     'excluded_day_type_id' => $data['excluded_day_type_id'],
                     'group' => $group,
                     'valid' => 0
@@ -104,36 +104,36 @@ class TrainingContractsExcludedDay extends Model
         return true;
     }
 
-    public static function nonWorkingDay($training_contract_id, $date){
-        $training_contract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $training_contract_id)->where('day', $date)
+    public static function nonWorkingDay($trainingContractId, $date){
+        $trainingContract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $trainingContractId)->where('day', $date)
             ->where('valid', 1)
             ->first();
-    
+
         // Usar el método existDay del modelo TrainingContractFestival
-        $training_contract_festival = TrainingContractFestival::existDay($date, $training_contract_id)->first();
-    
-        
-    
-        if ($training_contract_excluded || $training_contract_festival){
+        $trainingContract_festival = TrainingContractFestival::existDay($date, $trainingContractId)->first();
+
+
+
+        if ($trainingContract_excluded || $trainingContract_festival){
             return true;
         }
-    
-        $training_contract = TrainingContract::where('id', $training_contract_id)->first();
-    
-       
-    
+
+        $trainingContract = TrainingContract::where('id', $trainingContractId)->first();
+
+
+
         // Verificar si el día es un día laborable según el contrato de formación
         $dayOfWeek = Carbon::parse($date)->dayOfWeek;
         $workingDays = [
-            $training_contract->sunday, // 0: Sunday
-            $training_contract->monday, // 1: Monday
-            $training_contract->tuesday, // 2: Tuesday
-            $training_contract->wednesday, // 3: Wednesday
-            $training_contract->thursday, // 4: Thursday
-            $training_contract->friday, // 5: Friday
-            $training_contract->saturday, // 6: Saturday
+            $trainingContract->sunday, // 0: Sunday
+            $trainingContract->monday, // 1: Monday
+            $trainingContract->tuesday, // 2: Tuesday
+            $trainingContract->wednesday, // 3: Wednesday
+            $trainingContract->thursday, // 4: Thursday
+            $trainingContract->friday, // 5: Friday
+            $trainingContract->saturday, // 6: Saturday
         ];
-    
+
         return $workingDays[$dayOfWeek] == 0; // Devuelve true si el día no es un día laborable
     }
 

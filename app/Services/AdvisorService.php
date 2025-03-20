@@ -4,9 +4,21 @@ namespace App\Services;
 
 use App\Models\Advisor;
 use App\Models\Company;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class AdvisorService
 {
+    private $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     /**
      * Función para crear una asesoría
      * @param array $data
@@ -135,5 +147,49 @@ class AdvisorService
         return $advisor;
     }
 
+    public function advisorUser(Advisor $advisor){
+        try {
+            if (!$advisor->user_id) {
+                DB::beginTransaction();
 
+                $email = explode(';', $advisor->email)[0] ?? $advisor->email;
+
+                $role = Role::where('name', 'Asesoría')->first();
+
+                $password = Str::random(8);
+
+                $data = [
+                    'name' => 'Asesoría',
+                    'surname' => $advisor->name,
+                    'username' => $advisor->nif,
+                    'email' =>$email,
+                    'password' => Hash::make($password),
+                    'has_commission' => 1,
+                    'commission' => $advisor->commission,
+                    'active' => 1,
+                    'teacher_id' => null,
+                    'roles' => $role->id,
+                    'advisor_id' => $advisor->id
+                ];
+
+                $user = $this->userService->create($data);
+
+                $advisor->update([
+                    'user_id' => $user->id,
+                ]);
+
+                Mail::getSwiftMailer()
+                    ->getTransport()
+                    ->setUsername('zona@avzformacion.com')
+                    ->setPassword('Avz.2021');
+                Mail::to($email)->send(new \App\Mail\SendAdvisorUser($advisor->nif, $password));
+
+                db::commit();
+                return $advisor;
+            }
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+    }
 }

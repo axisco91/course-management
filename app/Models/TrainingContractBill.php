@@ -82,14 +82,14 @@ class TrainingContractBill extends Model
 
     public static function createBill($bonus)
     {
-        $training_contract = TrainingContract::where('id', $bonus['training_contract_id'])->first();
+        $trainingContract = TrainingContract::where('id', $bonus['training_contract_id'])->first();
 
         $bill = TrainingContractBill::create([
             'number' => null,  // No se genera el número aquí
             'training_contract_bonus_id' => $bonus->id,
-            'training_contract_id' => $training_contract['id'],
-            'company_id' => $training_contract['company_id'],
-            'series_id' => $training_contract['series_id'],
+            'training_contract_id' => $trainingContract['id'],
+            'company_id' => $trainingContract['company_id'],
+            'series_id' => $trainingContract['series_id'],
             'modality' => 'TELEFORMACIÓN/PRESENCIAL',
             'collection_date' => null,
             'month' => $bonus->month,

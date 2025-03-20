@@ -21,7 +21,7 @@ use App\Services\UserCommissionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
-class BillController extends BaseController
+class  BillController extends BaseController
 {
     private $billService;
     private $advisorCommissionService;
@@ -74,7 +74,7 @@ class BillController extends BaseController
                 }
             }
 
-            $bills = $bills->orderBy('courses.beginning', 'desc')->get();
+            $bills = $bills->groupBy('billings.id')->orderBy('courses.beginning', 'desc')->get();
             return $bills;
         } catch (\Exception $e) {
             return response()->json([

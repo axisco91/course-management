@@ -16,7 +16,7 @@ class UpdateNumberAndAddModalityToTrainingContractBillTable extends Migration
         Schema::table('training_contract_bills', function (Blueprint $table) {
             // Hacer que la columna 'number' sea nullable
             $table->integer('number')->nullable()->change();
-            
+
             // Crear la columna 'modality' y hacer que sea nullable
             $table->string('modality')->nullable();
         });
@@ -32,7 +32,7 @@ class UpdateNumberAndAddModalityToTrainingContractBillTable extends Migration
         Schema::table('training_contract_bills', function (Blueprint $table) {
             // Revertir el cambio y hacer que la columna 'number' no sea nullable
             $table->integer('number')->nullable(false)->change();
-            
+
             // Eliminar la columna 'modality'
             $table->dropColumn('modality');
         });

@@ -4,11 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\TrainingContractExcludedDay;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use App\Services\TrainingContractService;
-use Illuminate\Support\Facades\Log;
 
 
 class TrainingContractElement extends Model
@@ -23,9 +20,9 @@ class TrainingContractElement extends Model
     public function training_action(){
         return $this->belongsTo(TrainingAction::class);
     }
-    
-    public static function getTrainingContractElements($training_contract_id){
-        $training_contract_elements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+
+    public static function getTrainingContractElements($trainingContractId){
+        $trainingContractElements = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
             'training_contracts.number_cfa as cfa',
             'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
         'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
@@ -33,13 +30,13 @@ class TrainingContractElement extends Model
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
-            ->where('training_contract_id', $training_contract_id)->orderBy('order', 'asc')->get();
-        return $training_contract_elements;
+            ->where('training_contract_id', $trainingContractId)->orderBy('order', 'asc')->get();
+        return $trainingContractElements;
     }
-    
+
     public static function getAllTrainingContractElements(){
 
-        $training_contract_elements = TrainingContractElement::with('training_contract', 'training_contract.student')
+        $trainingContractElements = TrainingContractElement::with('training_contract', 'training_contract.student')
             ->select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
                 'training_contracts.number_cfa as cfa',
                 'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
@@ -50,80 +47,43 @@ class TrainingContractElement extends Model
             ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
             ->orderBy('order', 'asc')->get();
 
-        return $training_contract_elements;
+        return $trainingContractElements;
     }
 
-    public static function createTrainingContractElement($training_contract_id, $element_id, $type){
-        $hours = 0;
-        $training_contract_element = null;
-        $training_contract = TrainingContract::find($training_contract_id);
-    
-        // El inicio es siempre el inicio de la formación del contrato de formación
-        $beginning = new Carbon($training_contract->beginning_formation);
-        $end = $beginning->copy();
-    
-        if ($type == 'certification_id'){
-            $training_contract_element = TrainingContractElement::where('certification_id', $element_id)
-                ->where('training_contract_id', $training_contract_id)->first();
-            if (!$training_contract_element){
-                $certification = Certification::find($element_id);
-                $hours = $certification['total_hours'];
-    
-                $training_contract_element = TrainingContractElement::create([
-                    'training_contract_id' => $training_contract_id,
-                    'certification_id' => $element_id,
-                    'beginning' => $beginning,
-                    'end' => $end
-                ]);
-            }
-        } else if ($type == 'training_action_id'){
-            $training_contract_element = TrainingContractElement::where('training_action_id', $element_id)
-                ->where('training_contract_id', $training_contract_id)->first();
-            if (!$training_contract_element){
-                $training_action = TrainingAction::find($element_id);
-                $hours = $training_action['total_hours'];
-    
-                // Aquí se añaden los valores predeterminados de training_tutor y training_tutor_dni
-                $training_contract_element = TrainingContractElement::create([
-                    'training_contract_id' => $training_contract_id,
-                    'training_action_id' => $element_id,
-                    'beginning' => $beginning,
-                    'end' => $end,
-                    'training_tutor' => $training_action->training_tutor,
-                    'training_tutor_dni' => $training_action->training_tutor_dni
-                ]);
-    
-                $beginning = new \DateTime($training_contract_element->beginning);
-                $end = new \DateTime($training_contract_element->end);
-                $total_days = $beginning->diff($end)->days;
-            
-                $training_contract_element->total_days = $total_days;
-                $training_contract_element->save();
-            
-                $training_contract->update([
-                    'formation_hours' => $training_contract['formation_hours'] + $hours
-                ]);
-                return $training_contract_element;
-            }
-        }
+    public static function getActiveTrainingContractElements(){
+
+        $trainingContractElements = TrainingContractElement::with('training_contract', 'training_contract.student')
+            ->select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+                'training_contracts.number_cfa as cfa',
+                'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
+                'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
+                'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
+            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
+            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
+            ->leftjoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id')
+            ->whereNotIn('training_contract_statuses.name', ['BAJA', 'BAJA IT'])
+            ->orderBy('order', 'asc')->get();
+
+        return $trainingContractElements;
     }
 
     public static function deleteTrainingContractElement($id){
-        $training_contract_element = TrainingContractElement::find($id);
-        $training_contract = TrainingContract::find($training_contract_element->training_contract_id);
+        $trainingContractElement = TrainingContractElement::find($id);
+        $trainingContract = TrainingContract::find($trainingContractElement->training_contract_id);
         $hours = 0;
-        if ($training_contract){
-            if ($training_contract_element){
-                if ($training_contract_element->training_action_id) {
-                    $training_action = TrainingAction::find($training_contract_element->training_action_id);
-                    $hours = $training_action['total_hours'];
-                } else if($training_contract_element->certification_id) {
-                    $certification = Certification::find($training_contract_element->certification_id);
+        if ($trainingContract){
+            if ($trainingContractElement){
+                if ($trainingContractElement->training_action_id) {
+                    $trainingAction = TrainingAction::find($trainingContractElement->training_action_id);
+                    $hours = $trainingAction['total_hours'];
+                } else if($trainingContractElement->certification_id) {
+                    $certification = Certification::find($trainingContractElement->certification_id);
                     $hours = $certification['total_hours'];
                 }
-                $training_contract_element->delete();
+                $trainingContractElement->delete();
             }
-            $training_contract->update([
+            $trainingContract->update([
                 'formation_hours' => - $hours
             ]);
         }
@@ -134,7 +94,7 @@ class TrainingContractElement extends Model
             'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
             DB::raw("CONCAT(students.name,' ',students.surname) as student"), 'companies.name as company', 'students.dni as dni',
             'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
-            'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
+            'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours', 'training_actions.course_z as course_z')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
@@ -145,19 +105,19 @@ class TrainingContractElement extends Model
     }
 
     public static function getTrainingContractElement($id){
-        $training_contract_element = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
-            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours')
+        $trainingContractElement = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours', 'training_actions.course_z as course_z')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->where('training_contract_elements.id', $id)->first();
-        return $training_contract_element;
+        return $trainingContractElement;
     }
 
     public static function orderTrainingContractElement($data) {
         $cont = 1;
         foreach ($data as $element) {
-            $training_contract_element = TrainingContractElement::find($element['id']);
-            $training_contract_element->update([
+            $trainingContractElement = TrainingContractElement::find($element['id']);
+            $trainingContractElement->update([
                 'order' => $cont
             ]);
             $cont++;
@@ -169,7 +129,7 @@ class TrainingContractElement extends Model
             'training_contracts.number_cfa as cfa',
             'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
             'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
-            'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
+            'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours', 'training_actions.course_z as course_z',  'training_actions.course_origin_id')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
             ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id');
@@ -180,5 +140,5 @@ class TrainingContractElement extends Model
             ->orderBy('order', 'asc');
     }
 
-    
+
 }

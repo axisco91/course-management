@@ -19,8 +19,8 @@ class CourseOrigin extends Model
             ->get();
 
         foreach ($origins as $origin){
-            $training_action = TrainingAction::where('course_origin_id', $origin['id'])->first();
-            if ($training_action){
+            $trainingAction = TrainingAction::where('course_origin_id', $origin['id'])->first();
+            if ($trainingAction){
                 $origin['used'] = true;
             } else{
                 $origin['used'] = false;
@@ -34,8 +34,8 @@ class CourseOrigin extends Model
             ->where('id', $id)
             ->first();
 
-        $training_action = TrainingAction::where('course_origin_id', $origin['id'])->first();
-        if ($training_action){
+        $trainingAction = TrainingAction::where('course_origin_id', $origin['id'])->first();
+        if ($trainingAction){
             $origin['used'] = true;
         } else{
             $origin['used'] = false;

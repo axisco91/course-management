@@ -24,45 +24,45 @@ class TrainingActionLevel extends Model
     }
 
     public static function getTrainingActionLevels(){
-        $training_action_levels = TrainingActionLevel::
+        $trainingAction_levels = TrainingActionLevel::
         select('*', 'id as value', 'name as label')
             ->get();
-        foreach ($training_action_levels as $training_action_level){
-            $training_action = TrainingAction::where('training_action_level_id', $training_action_level['id'])->first();
-            if ($training_action){
-                $training_action_level['used'] = true;
+        foreach ($trainingAction_levels as $trainingAction_level){
+            $trainingAction = TrainingAction::where('training_action_level_id', $trainingAction_level['id'])->first();
+            if ($trainingAction){
+                $trainingAction_level['used'] = true;
             } else {
-                $training_action_level['used'] = false;
+                $trainingAction_level['used'] = false;
             }
         }
-        return $training_action_levels;
+        return $trainingAction_levels;
     }
 
     public static function getTrainingActionLevel($id){
-        $training_action_level = TrainingActionLevel::
+        $trainingAction_level = TrainingActionLevel::
         select('*', 'id as value', 'name as label')
             ->where('id', $id)->first();
-        $training_action = TrainingAction::where('training_action_level_id', $training_action_level['id'])->first();
-        if ($training_action){
-            $training_action_level['used'] = true;
+        $trainingAction = TrainingAction::where('training_action_level_id', $trainingAction_level['id'])->first();
+        if ($trainingAction){
+            $trainingAction_level['used'] = true;
         } else {
-            $training_action_level['used'] = false;
+            $trainingAction_level['used'] = false;
         }
-        return $training_action_level;
+        return $trainingAction_level;
     }
 
     public static function createTrainingActionLevel($data){
-        $training_action_level = TrainingActionLevel::create([
+        $trainingAction_level = TrainingActionLevel::create([
             'name' => $data['name']
         ]);
-        return $training_action_level;
+        return $trainingAction_level;
     }
 
     public static function updateTrainingActionLevel($id, $data){
-        $training_action_level = TrainingActionLevel::find($id);
-        $training_action_level->update([
+        $trainingAction_level = TrainingActionLevel::find($id);
+        $trainingAction_level->update([
             'name' => $data['name']
         ]);
-        return $training_action_level;
+        return $trainingAction_level;
     }
 }

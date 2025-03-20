@@ -40,33 +40,33 @@ class CertificationElement extends Model
         return $certification_element;
     }
 
-    public static function createCertificationElement($certification_id, $element_id, $type){
+    public static function createCertificationElement($certification_id, $elementId, $type){
         $hours = 0;
         $face_to_face_hours = 0;
         $teletraining_hours = 0;
         $certification_element = null;
         if ($type == 'training_unit_id'){
-            $certification_element = CertificationElement::where('training_unit_id', $element_id)
+            $certification_element = CertificationElement::where('training_unit_id', $elementId)
                 ->where('certification_id', $certification_id)->first();
             if (!$certification_element){
                 $certification_element = CertificationElement::create([
                     'certification_id' => $certification_id,
-                    'training_unit_id' => $element_id
+                    'training_unit_id' => $elementId
                 ]);
-                $training_unit = TrainingUnit::find($element_id);
+                $training_unit = TrainingUnit::find($elementId);
                 $hours = $training_unit['total_hours'];
                 $face_to_face_hours = $training_unit['face_to_face_hours'];
                 $teletraining_hours = $training_unit['teletraining_hours'];
             }
         } else if ($type == 'module_id'){
-            $certification_element = CertificationElement::where('module_id', $element_id)
+            $certification_element = CertificationElement::where('module_id', $elementId)
                 ->where('certification_id', $certification_id)->first();
             if (!$certification_element){
                 $certification_element = CertificationElement::create([
                     'certification_id' => $certification_id,
-                    'module_id' => $element_id,
+                    'module_id' => $elementId,
                 ]);
-                $module = Module::find($element_id);
+                $module = Module::find($elementId);
                 $hours = $module['total_hours'];
                 $face_to_face_hours = $module['face_to_Face_hours'];
                 $teletraining_hours = $module['teletraining_hours'];

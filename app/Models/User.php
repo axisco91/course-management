@@ -40,7 +40,8 @@ class User extends Authenticatable
         'commission',
         'profile_photo_path',
         'active',
-        'teacher_id'
+        'teacher_id',
+        'advisor_id'
     ];
 
     /**
@@ -98,30 +99,14 @@ class User extends Authenticatable
     ];
 
     public function scopeGetUser($query) {
-        return $query->select('*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
-            'users.id as value');
+        return $query->select('users.*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
+            'users.id as value', DB::raw("CONCAT(teachers.name,' ',teachers.surname) as teacher"))
+            ->leftjoin('teachers', 'teachers.id', '=', 'users.teacher_id');
     }
 
     public function commissions()
     {
         return $this->hasMany(UserCommission::class);
-    }
-
-    public static function createUser($data){
-        $user = User::create([
-            'name' => $data['name'],
-            'surname' => $data['surname'],
-            'username' => $data['username'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'has_commission' => $data['has_commission'],
-            'commission' => $data['commission'] ? $data['commission'] : 0.0,
-            'active' => $data['active'],
-            'teacher_id' => $data['commission'] ? $data['commission'] : null,
-        ]);
-        $roles = [$data['roles']];
-        $user->syncRoles($roles);
-        return $user;
     }
 
     public static function updateUser($id, $data){
@@ -132,9 +117,9 @@ class User extends Authenticatable
             'username' => $data['username'],
             'email' => $data['email'],
             'has_commission' => $data['has_commission'],
-            'commission' => $data['commission'] ? $data['commission'] : 0.0,
+            'commission' => $data['commission'] ?? 0.0,
             'active' => $data['active'],
-            'teacher_id' => $data['teacher_id'] ? $data['teacher_id'] : null,
+            'teacher_id' => $data['teacher_id'] ?? null,
         ]);
         $roles = [$data['roles']];
         $user->syncRoles($roles[0]);

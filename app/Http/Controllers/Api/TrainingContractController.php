@@ -17,6 +17,7 @@ use App\Models\TrainingContractFestival;
 use App\Models\TrainingContractsExcludedDay;
 use App\Models\User;
 use App\Services\RegistrationService;
+use App\Services\TrainingContractElementService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,11 +28,15 @@ use App\Services\TrainingContractService;
 
 class TrainingContractController extends BaseController
 {
-    private $registrationService;
+    private RegistrationService $registrationService;
+    private TrainingContractElementService $trainingContractElementService;
+    private TrainingContractService $trainingContractService;
 
-    public function __construct(RegistrationService $registrationService)
+    public function __construct(RegistrationService $registrationService, TrainingContractElementService $trainingContractElementService, TrainingContractService $trainingContractService)
     {
         $this->registrationService = $registrationService;
+        $this->trainingContractElementService = $trainingContractElementService;
+        $this->trainingContractService = $trainingContractService;
     }
 
     /**
@@ -73,14 +78,14 @@ class TrainingContractController extends BaseController
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request){ 
+    public function store(Request $request){
        ;
         try {
-            $contract = TrainingContract::createTrainingContract($request);
+            $contract = TrainingContract::createTrainingContract($request->all());
             if ($request->has('clone_id')) {
                 $trainingContractElements = TrainingContractElement::trainingContracts($request->clone_id)->get();
                 foreach ($trainingContractElements as $trainingContractElement) {
-                    TrainingContractElement::create([
+                    $data = [
                         'training_contract_id' => $contract->id,
                         'certification_id' => $trainingContractElement->certification_id,
                         'training_action_id' => $trainingContractElement->training_action_id,
@@ -89,7 +94,8 @@ class TrainingContractController extends BaseController
                         'end' => $trainingContractElement->end,
                         'order' => $trainingContractElement->order,
                         'course_id' => $trainingContractElement->course_id
-                    ]);
+                    ];
+                    $this->trainingContractElementService->create($data);
                 }
                 $exams_tutorials = ExamTutorial::where('training_contract_id', $request->clone_id)
                     ->get();
@@ -157,7 +163,7 @@ class TrainingContractController extends BaseController
      */
     public function update($id, Request $request){
         try {
-            TrainingContract::updateTrainingContract($id, $request);
+            TrainingContract::updateTrainingContract($id, $request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -293,6 +299,12 @@ class TrainingContractController extends BaseController
             $record = TrainingContract::findOrFail($id);
             $hoursData = $record->calculateHours($id);
 
+            $user = User::find(Auth::id());
+
+            if ($user->advisor_id) {
+                $record->where('advisor_id', $user->advisor_id);
+            }
+
             // Devuelve una respuesta HTTP con los datos calculados
             return response()->json([
                 'status' => 200,
@@ -321,25 +333,26 @@ class TrainingContractController extends BaseController
      */
     public function register($id) {
         try {
-            $training_contract_element = TrainingContractElement::where('id', $id)
+            $trainingContractElement = TrainingContractElement::where('id', $id)
                 ->first();
-            if ($training_contract_element && $training_contract_element->course_id == null) {
-                $training_contract = TrainingContract::find($training_contract_element->training_contract_id);
-                if ($training_contract) {
-                    if ($training_contract_element->training_action_id) {
-                        $training_action = TrainingAction::find($training_contract_element->training_action_id);
+            $trainingAction = null;
+            if ($trainingContractElement && $trainingContractElement->course_id == null) {
+                $trainingContract = TrainingContract::find($trainingContractElement->training_contract_id);
+                if ($trainingContract) {
+                    if ($trainingContractElement->training_action_id) {
+                        $trainingAction = TrainingAction::find($trainingContractElement->training_action_id);
 
                     } else {
-                        $certification = Certification::find($training_contract_element->certification_id);
+                        $certification = Certification::find($trainingContractElement->certification_id);
                         if ($certification) {
                             if ($certification->training_action_id) {
-                                $training_action = TrainingAction::find($certification->training_action_id);
+                                $trainingAction = TrainingAction::find($certification->training_action_id);
                             } else {
-                                $training_action = TrainingAction::where('name', $certification->name)
+                                $trainingAction = TrainingAction::where('name', $certification->name)
                                     ->first();
-                                if ($training_action) {
+                                if ($trainingAction) {
                                     $certification->update([
-                                        'training_action_id' => $training_action->id
+                                        'training_action_id' => $trainingAction->id
                                     ]);
                                 } else {
                                     $data = [
@@ -351,32 +364,32 @@ class TrainingContractController extends BaseController
                                         'specialty' => 0,
                                         'in_catalog' => 1
                                     ];
-                                    $training_action = TrainingAction::create($data);
+                                    $trainingAction = TrainingAction::create($data);
                                     $certification->update([
-                                        'training_action_id' => $training_action->id
+                                        'training_action_id' => $trainingAction->id
                                     ]);
                                 }
                             }
                         }
                     }
-                    if ($training_action) {
-                        $course_data = Course::setName($training_action->id, null);
+                    if ($trainingAction) {
+                        $course_data = Course::setName($trainingAction->id, null);
                         $course_type = CourseType::where('name', 'CFA')
                             ->first();
                         $courseData = [
-                            'name' => $training_action->formative_action.' - '.$training_action->name,
-                            'training_action_id' => $training_action->id,
+                            'name' => $trainingAction->formative_action.' - '.$trainingAction->name,
+                            'training_action_id' => $trainingAction->id,
                             'group' => $course_data['group'],
                             'teacher_id' => null,
-                            'beginning' => Carbon::createFromFormat('Y-m-d', $training_contract_element->beginning)->format('d-m-Y'),
-                            'end' => Carbon::createFromFormat('Y-m-d', $training_contract_element->end)->format('d-m-Y'),
+                            'beginning' => Carbon::createFromFormat('Y-m-d', $trainingContractElement->beginning)->format('d-m-Y'),
+                            'end' => Carbon::createFromFormat('Y-m-d', $trainingContractElement->end)->format('d-m-Y'),
                             'morning_schedule' => null,
                             'afternoon_schedule' => null,
                             'formation_center_id' => null,
                             'delivery_center_id' => null,
                             'course_observation' => null,
-                            'welcome_date' => Carbon::createFromFormat('Y-m-d', $training_contract_element->beginning)->format('d-m-Y'),
-                            'final_date' => Carbon::createFromFormat('Y-m-d', $training_contract_element->end)->format('d-m-Y'),
+                            'welcome_date' => Carbon::createFromFormat('Y-m-d', $trainingContractElement->beginning)->format('d-m-Y'),
+                            'final_date' => Carbon::createFromFormat('Y-m-d', $trainingContractElement->end)->format('d-m-Y'),
                             'price' => 0,
                             'nebrija' => 0,
                             'monday' => 0,
@@ -394,7 +407,7 @@ class TrainingContractController extends BaseController
                         $course = Course::createCourse($courseData);
                         $advisor_id = null;
                         $collaborator_id = null;
-                        $company = Company::find($training_contract->company_id);
+                        $company = Company::find($trainingContract->company_id);
                         $advisor = Advisor::find($company->advisor_id);
                         $advisor_percentage = null;
                         $collaborator_percentage = null;
@@ -422,8 +435,8 @@ class TrainingContractController extends BaseController
                         }
                         $data = [
                             'course_id' => $course->id,
-                            'company_id' => $training_contract->company_id,
-                            'student_id' => $training_contract->student_id,
+                            'company_id' => $trainingContract->company_id,
+                            'student_id' => $trainingContract->student_id,
                             'advisor_id' => $advisor_id,
                             'collaborator_id' => $collaborator_id,
                             'price' => 0,
@@ -431,9 +444,10 @@ class TrainingContractController extends BaseController
                             'is_bonus' => 0
                         ];
                         $this->registrationService->create($data);
-                        $training_contract_element->update([
+                        $data = [
                             'course_id' => $course->id
-                        ]);
+                        ];
+                        $this->trainingContractElementService->addCourse($trainingContractElement, $data);
                     }
                 }
             }
@@ -457,43 +471,43 @@ class TrainingContractController extends BaseController
     }
     /**
      * Calcula las fechas de finalización del contrato y de la formación
-     * @param $training_contract_id
+     * @param $trainingContractId
      * @param $daily_hours_1
      * @param $daily_hours_2
      * @return \Illuminate\Http\JsonResponse
      */
-    public function calculateEndDates($training_contract_id, $daily_hours_1, $daily_hours_2)
+    public function calculateEndDates($trainingContractId, $daily_hours_1, $daily_hours_2)
     {
-        $record = TrainingContract::findOrFail($training_contract_id);
+        $record = TrainingContract::findOrFail($trainingContractId);
 
-        Log::info("Calculating end dates for Training Contract ID: {$training_contract_id}");
+        Log::info("Calculating end dates for Training Contract ID: {$trainingContractId}");
 
         $formative_hours_first_year = $record->formative_hours_first_year;
         $formative_hours_second_year = $record->formative_hours_second_year;
         $date = Carbon::parse($record->beginning_formation);
-        
+
         Log::info('formative_hours_first_year: ' . $formative_hours_first_year);
 
-        $total_days_needed = 0;
+        $totalDays_needed = 0;
         $actual_days_counted = 0;
 
         // Calculamos los días totales para el primer año
         if ($daily_hours_1 > 0) {
-            $total_days_needed += ceil($formative_hours_first_year / $daily_hours_1);
+            $totalDays_needed += ceil($formative_hours_first_year / $daily_hours_1);
         }
 
         // Calculamos los días totale spara el segundo año, si aplica
         if ($formative_hours_second_year > 0 && $daily_hours_2 > 0) {
-            $total_days_needed += ceil($formative_hours_second_year / $daily_hours_2);
+            $totalDays_needed += ceil($formative_hours_second_year / $daily_hours_2);
         }
-        Log::info("Total days needed: {$total_days_needed}");
+        Log::info("Total days needed: {$totalDays_needed}");
 
         // Incrementamos día a día comprobando festivos y excluidos
-        while ($actual_days_counted < $total_days_needed) {
+        while ($actual_days_counted < $totalDays_needed) {
             $date->addDay();
 
             // Comprobación si el día actual está excluido y/o festivo
-            if (!$date->isWeekend() && !TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $date->toDateString()) && !TrainingContractFestival::existDay($date, $record->id)->first()) {
+            if (!$date->isWeekend() && !TrainingContractsExcludedDay::nonWorkingDay($trainingContractId, $date->toDateString()) && !TrainingContractFestival::existDay($date, $record->id)->first()) {
                 $actual_days_counted++;
                 Log::info("Counted day: {$date->toDateString()}, total counted days: {$actual_days_counted}");
 
@@ -514,7 +528,7 @@ class TrainingContractController extends BaseController
             'end_formation' => $date->toDateString(),
         ]);
     }
-    
+
     /**
      * Obtiene las horas de formación mensuales
      * @param $id
@@ -525,6 +539,46 @@ class TrainingContractController extends BaseController
         return $trainingContract->calculateMonthlyFormationHours($id);
     }
 
-    
+    public function updateAdditionalClause($id, Request $request){
+        try {
+            $trainingContract = TrainingContract::find($id);
+            if ($trainingContract) {
+                $data = $request->all();
+                $trainingContract = $this->trainingContractService->updateDocumentClause($trainingContract, $data);
+                return response()->json([
+                    'status' => 200,
+                    'training_contract' => TrainingContract::getTrainingContracts()
+                        ->where('training_contracts.id', $trainingContract->id)
+                        ->first()
+                ]);
+            }
+        } catch (\Exception $e){
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function getTrainingContractActions($id) {
+        try {
+            $actions = TrainingContractElement::where('training_contract_id', $id)
+                ->whereNotNull('training_action_id')
+                ->get()
+                ->pluck('training_action_id')
+                ->toArray();
+
+            $trainingActions = TrainingAction::select('*', DB::raw("CONCAT(training_actions.name) as label"))
+                ->whereIn('training_actions.id', $actions)
+                ->get();
+
+            return $trainingActions;
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }
 

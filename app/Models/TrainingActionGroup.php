@@ -22,25 +22,25 @@ class TrainingActionGroup extends Model
     }
 
     public static function getTrainingActionGroups(){
-        $training_action_groups = TrainingActionGroup::
+        $trainingAction_groups = TrainingActionGroup::
         select('*', 'id as value', 'name as label')
             ->get();
-        foreach ($training_action_groups as $training_action_group){
-            $training_action = TrainingAction::where('training_action_group_id', $training_action_group['id'])->first();
-            if ($training_action){
-                $training_action_group['used'] = true;
+        foreach ($trainingAction_groups as $trainingAction_group){
+            $trainingAction = TrainingAction::where('training_action_group_id', $trainingAction_group['id'])->first();
+            if ($trainingAction){
+                $trainingAction_group['used'] = true;
             } else {
-                $training_action_group['used'] = false;
+                $trainingAction_group['used'] = false;
             }
         }
-        return $training_action_groups;
+        return $trainingAction_groups;
     }
 
     public static function getTrainingActionGroup($id){
         $group = TrainingActionGroup::select('*', 'id as value', 'name as label')
             ->where('id', $id)->first();
-        $training_action = TrainingAction::where('training_action_group_id', $group['id'])->first();
-        if ($training_action){
+        $trainingAction = TrainingAction::where('training_action_group_id', $group['id'])->first();
+        if ($trainingAction){
             $group['used'] = true;
         } else {
             $group['used'] = false;
@@ -49,18 +49,18 @@ class TrainingActionGroup extends Model
     }
 
     public static function createTrainingActionGroup($data){
-        $training_action_group = TrainingActionGroup::create([
+        $trainingAction_group = TrainingActionGroup::create([
             'name' => $data['name']
         ]);
-        return $training_action_group;
+        return $trainingAction_group;
     }
 
     public static function updateTrainingActionGroup($id, $data){
-        $training_action_group = TrainingActionGroup::find($id);
-        $training_action_group->update([
+        $trainingAction_group = TrainingActionGroup::find($id);
+        $trainingAction_group->update([
             'name' => $data['name']
         ]);
-        return $training_action_group;
+        return $trainingAction_group;
     }
 
 }

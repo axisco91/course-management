@@ -43,7 +43,8 @@ class Bill extends Model
     }
 
     public function scopeBill($query) {
-        return $query->select('billings.*',
+        return $query->select(
+            'billings.*',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
             'training_actions.formative_action as training_action',
             'courses.group as group',
@@ -57,15 +58,21 @@ class Bill extends Model
             DB::raw("(CASE WHEN billings.is_bonus='1' THEN 'Bonificada' ELSE 'No bonificada' END) as type"),
             DB::raw("(CASE WHEN billings.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
             DB::raw("(CASE WHEN billings.charged='1' THEN 'Si' ELSE 'No' END) as charge"),
-            DB::raw("(CASE WHEN billings.bonus_status='1' THEN 'Enviado' ELSE 'Pendiente' END) as bonus_status_name"))
-            ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
-            ->leftjoin('companies', 'companies.id', '=', 'billings.company_id')
-            ->leftjoin('payments', 'payments.id', '=', 'billings.payment_id')
-            ->leftjoin('students', 'students.id', '=', 'billings.student_id')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
-            ->leftjoin('advisors', 'advisors.id', '=', 'billings.advisor_id')
-            ->leftjoin('users', 'users.id', '=', 'billings.collaborator_id')
-            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id');
+            DB::raw("(CASE WHEN billings.bonus_status='1' THEN 'Enviado' ELSE 'Pendiente' END) as bonus_status_name"),
+            'advisor_commission_types.percentage' // ✅ Select the percentage field
+        )
+            ->leftJoin('courses', 'courses.id', '=', 'billings.course_id')
+            ->leftJoin('companies', 'companies.id', '=', 'billings.company_id')
+            ->leftJoin('payments', 'payments.id', '=', 'billings.payment_id')
+            ->leftJoin('students', 'students.id', '=', 'billings.student_id')
+            ->leftJoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->leftJoin('advisors', 'advisors.id', '=', 'billings.advisor_id')
+            ->leftJoin('users', 'users.id', '=', 'billings.collaborator_id')
+            ->leftJoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->leftJoin('advisor_commission_types', function($join) {
+                $join->on('advisor_commission_types.advisor_id', '=', 'advisors.id')
+                    ->orderBy('advisor_commission_types.id', 'desc'); // ✅ Gets the latest commission
+            });
     }
 
     /*

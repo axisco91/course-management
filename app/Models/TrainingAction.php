@@ -129,29 +129,29 @@ class TrainingAction extends Model
     }
 
     public static function getTrainingActionsNotInModule($module_id){
-        $training_actions = TrainingAction::leftjoin('training_actions_modules', 'training_actions_modules.training_action_id', 'training_actions.id')
+        $trainingActions = TrainingAction::leftjoin('training_actions_modules', 'training_actions_modules.training_action_id', 'training_actions.id')
             ->where('training_actions_modules.module_id', $module_id)->get();
         $not_in_module = TrainingAction::where('active', 1)->get();
-        $not_in_module = $not_in_module->whereNotIn('id', $training_actions->pluck('training_actions.id'));
+        $not_in_module = $not_in_module->whereNotIn('id', $trainingActions->pluck('training_actions.id'));
         return $not_in_module;
     }
 
     public static function getTrainingActionsNotInCertification($certification_id){
-        $training_actions = TrainingAction::leftjoin('certification_elements', 'certification_elements.training_action_id', 'training_actions.id')
+        $trainingActions = TrainingAction::leftjoin('certification_elements', 'certification_elements.training_action_id', 'training_actions.id')
             ->where('certification_elements.certification_id', $certification_id)->get();
         $not_in_certification = TrainingAction::where('active', 1)->get();
-        $not_in_certification = $not_in_certification->whereNotIn('id', $training_actions->pluck('modules.id'));
+        $not_in_certification = $not_in_certification->whereNotIn('id', $trainingActions->pluck('modules.id'));
         return $not_in_certification;
     }
 
     public static function getSpecialties($id){
-        $training_contracts_specialties = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
+        $trainingContracts_specialties = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
             ->whereNotNull('training_action_id')
             ->pluck('training_action_id');
-        $training_actions = TrainingAction::select('training_actions.*', 'training_actions.id as value', DB::raw("CONCAT(training_actions.name,' (', training_actions.total_hours,' horas)') as label"))
+        $trainingActions = TrainingAction::select('training_actions.*', 'training_actions.id as value', DB::raw("CONCAT(training_actions.name,' (', training_actions.total_hours,' horas)') as label"))
             ->where('active', 1)
             ->where('specialty', 1)
-            ->whereNotIn('id', $training_contracts_specialties)->get();
-        return $training_actions;
+            ->whereNotIn('id', $trainingContracts_specialties)->get();
+        return $trainingActions;
     }
 }

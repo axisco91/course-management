@@ -26,8 +26,8 @@ class ProfessionalArea extends Model
         select('*', 'id as value', 'name as label')
             ->get();
         foreach ($professional_areas as $professional_area){
-            $training_action = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
-            if ($training_action){
+            $trainingAction = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
+            if ($trainingAction){
                 $professional_area['used'] = true;
             } else {
                 $professional_area['used'] = false;
@@ -40,8 +40,8 @@ class ProfessionalArea extends Model
         $professional_area = ProfessionalArea::
         select('*', 'id as value', 'name as label')
             ->where('id', $id)->first();
-        $training_action = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
-        if ($training_action){
+        $trainingAction = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
+        if ($trainingAction){
             $professional_area['used'] = true;
         } else {
             $professional_area['used'] = false;

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d8412e4a4e12ce65cde053f7365410c4",
+    "content-hash": "6249ae7613f6f4d5a841d96de07ae490",
     "packages": [
         {
             "name": "asantibanez/livewire-calendar",
@@ -205,17 +205,17 @@
             },
             "type": "library",
             "extra": {
-                "branch-alias": {
-                    "dev-master": "2.0-dev"
-                },
                 "laravel": {
+                    "aliases": {
+                        "PDF": "Barryvdh\\DomPDF\\Facade\\Pdf",
+                        "Pdf": "Barryvdh\\DomPDF\\Facade\\Pdf"
+                    },
                     "providers": [
                         "Barryvdh\\DomPDF\\ServiceProvider"
-                    ],
-                    "aliases": {
-                        "Pdf": "Barryvdh\\DomPDF\\Facade\\Pdf",
-                        "PDF": "Barryvdh\\DomPDF\\Facade\\Pdf"
-                    }
+                    ]
+                },
+                "branch-alias": {
+                    "dev-master": "2.0-dev"
                 }
             },
             "autoload": {
@@ -10365,5 +10365,5 @@
         "php": "^8.2"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }

@@ -54,7 +54,7 @@ p,ul,ol,li {
 }
 
 .no-bullets {
-    list-style-type: none; 
+    list-style-type: none;
     padding-left: 0;
 }
 hr {
@@ -95,6 +95,22 @@ hr {
 
 .fondo-azul {
     background-color: #f1f4ff;
+}
+
+.aditional-fondo-azul {
+    background-color: #f1f4ff; /* Light background for clarity */
+    height: 240px; /* Fixed height to always reserve the same amount of space */
+    display: block; /* Makes the span behave like a block element */
+    padding: 20px; /* Optional: Add some inner spacing for better aesthetics */
+    box-sizing: border-box; /* Ensure padding is included in the height */
+    text-align: justify; /* Keep the text aligned neatly */
+    overflow: hidden; /* Prevent content from exceeding the fixed height */
+}
+
+p.text-left {
+    margin: 0; /* Removes top/bottom margins for the <p> */
+    padding: 0; /* Removes extra padding */
+    text-align: left; /* Ensures everything aligns to the left */
 }
 
 .borde-redondeado {
@@ -151,11 +167,11 @@ td{
     padding-bottom: 0;
     padding-right: 4px;
     padding-left: 5px;
-    vertical-align: top;    
+    vertical-align: top;
 }
 
 hr {
-    margin-top: 2px; 
+    margin-top: 2px;
     margin-bottom: 2px;
 }
 

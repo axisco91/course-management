@@ -103,7 +103,7 @@ class TrainingContract extends Model
         $bonusYearOne = $data['bonus_hours_first_year'] ? $data['bonus_hours_first_year'] : 0;
         $bonusYearTwo = $data['bonus_hours_second_year'] ? $data['bonus_hours_second_year'] : 0;
 
-        $training_contract = TrainingContract::create([
+        $trainingContract = TrainingContract::create([
             'number_cfa' => $number_cfa,
             'company_id' => $data['company_id'],
             'student_id' => $data['student_id'],
@@ -150,8 +150,11 @@ class TrainingContract extends Model
             'daily_hours_2' => $data['daily_hours_2'],
             'bonification' => $data['bonification'] ?? false,
         ]);
-        $training_contract->excludedDays()->sync($data['excluded_day_id']);
-        return $training_contract;
+        if (isset($data['excluded_day_id'])) {
+            $trainingContract->excludedDays()->sync($data['excluded_day_id']);
+        }
+
+        return $trainingContract;
     }
 
     /**
@@ -165,8 +168,8 @@ class TrainingContract extends Model
         $bonusYearOne = $data['bonus_hours_first_year'] ? $data['bonus_hours_first_year'] : 0;
         $bonusYearTwo = $data['bonus_hours_second_year'] ? $data['bonus_hours_second_year'] : 0;
 
-        $training_contract = TrainingContract::find($id);
-        $training_contract->update([
+        $trainingContract = TrainingContract::find($id);
+        $trainingContract->update([
             'company_id' => $data['company_id'],
             'student_id' => $data['student_id'],
             'company_tutor' => $data['company_tutor'],
@@ -178,7 +181,7 @@ class TrainingContract extends Model
             'end' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
             'beginning_formation' => $data['beginning_formation'] ? Carbon::createFromFormat('d-m-Y', $data['beginning_formation'])->format('Y-m-d') : null,
             'end_formation' => $data['end_formation'] ? Carbon::createFromFormat('d-m-Y', $data['end_formation'])->format('Y-m-d') : null,
-            'formation_hours' => $data['formation_hours'],
+           // 'formation_hours' => $data['formation_hours'],
             'annually_day_hours' => $data['annually_day_hours'],
             'bonus_hours_first_year' =>  $bonusYearOne,
             'bonus_hours_second_year' => $bonusYearTwo,
@@ -211,11 +214,11 @@ class TrainingContract extends Model
             'observations' => $data['observations'],
             'daily_hours_1' => $data['daily_hours_1'],
             'daily_hours_2' => $data['daily_hours_2'],
-            'bonification' => $data['bonification'] ?? $training_contract->bonification,
+            'bonification' => $data['bonification'] ?? $trainingContract->bonification,
         ]);
-        return $training_contract;
+        return $trainingContract;
     }
-    
+
     public function calculateHours()
     {
         $service = app(TrainingContractService::class);

@@ -24,8 +24,8 @@ class BonusController extends BaseController
         $data = [
             'name' =>$request->name
         ];
-        $training_action = TrainingActionLevel::updateTrainingActionLevel($id, $data);
-        if ($training_action){
+        $trainingAction = TrainingActionLevel::updateTrainingActionLevel($id, $data);
+        if ($trainingAction){
             return 1;
         } else {
             return 0;

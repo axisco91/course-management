@@ -58,7 +58,7 @@ class Course extends Model
         return $this->hasMany('App\Models\Chore', 'course_id', 'id');
     }
 
-    
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
@@ -103,29 +103,36 @@ class Course extends Model
     }
 
     public function scopeWithCourseData($query)
-{
-    return $query
-        ->select('courses.*',
-            'course_types.name as course_type',
-            DB::raw("CONCAT(teachers.name,' ', teachers.surname) as teacher"),
-            'fc.name as formation_center',
-            'dc.name as delivery_center',
-            'course_statuses.name as course_status',
-            DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
-            DB::raw("CONCAT(training_actions.formative_action,' - ',training_actions.name) as training_action"),
-            'training_actions.formative_action as formative_action',
-            'training_actions.total_hours as total_hours', // Agregado total_hours
-            DB::raw("(SELECT GROUP_CONCAT(registrations.company_id) FROM registrations
-               WHERE registrations.course_id = courses.id) as company_ids")
-        )
-        ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
-        ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
-        ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
-        ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
-        ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
-        ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
-        ->orderBy('courses.beginning', 'desc');
-}
+    {
+        return $query
+            ->select(
+                'courses.*',
+                'course_types.name as course_type',
+                DB::raw("CONCAT(teachers.name,' ', teachers.surname) as teacher"),
+                'fc.name as formation_center',
+                'dc.name as delivery_center',
+                'course_statuses.name as course_status',
+                DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
+                DB::raw("CONCAT(training_actions.formative_action,' - ',training_actions.name) as training_action"),
+                'training_actions.formative_action as formative_action',
+                'training_actions.total_hours as total_hours', // Agregado total_hours
+                DB::raw("(SELECT GROUP_CONCAT(DISTINCT registrations.company_id) FROM registrations
+               WHERE registrations.course_id = courses.id) as company_ids"),
+                DB::raw("(SELECT GROUP_CONCAT(DISTINCT CONCAT(students.name, ' ', students.surname)) FROM students
+               INNER JOIN registrations ON registrations.student_id = students.id
+               WHERE registrations.course_id = courses.id) as student_names"),
+                DB::raw("(SELECT GROUP_CONCAT(DISTINCT companies.name) FROM companies
+               INNER JOIN registrations ON registrations.company_id = companies.id
+               WHERE registrations.course_id = courses.id) as company_names")
+            )
+            ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
+            ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
+            ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
+            ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
+            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->orderBy('courses.beginning', 'desc');
+    }
 
 
     public static function createCourse($data){
@@ -172,12 +179,12 @@ class Course extends Model
     public static function updateCourse($id, $data){
         \Log::info('Updating course: ' . $id);
         \Log::info('Received data: ' . json_encode($data));
-    
+
         $course_info = Course::courseDates(
             Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'),
             Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d')
         );
-    
+
         // Si se proporciona course_status_id en la solicitud, úsalo
         if (isset($data['course_status_id'])) {
             $course_info['course_status_id'] = $data['course_status_id'];
@@ -187,7 +194,7 @@ class Course extends Model
             $course_info['course_status_id'] = $anulado->id;
             \Log::info('Course marked as canceled. Setting status to ANULADO (ID: ' . $anulado->id . ')');
         }
-    
+
         $course = Course::find($id);
         $updatedData = [
             'name' => $data['name'],
@@ -220,25 +227,25 @@ class Course extends Model
             'outsourced' => $data['outsourced'],
             'reactivated' => $data['reactivated']
         ];
-    
+
         $course->update($updatedData);
-    
+
         \Log::info('Course updated. New data: ' . json_encode($course->fresh()));
-    
+
         return $course;
     }
 
-    public static function setName($training_action_id, $id){
-        if ($training_action_id > 0){
-            $training_action = TrainingAction::find($training_action_id);
-            if ($training_action_id < 10){
-                $name = '00'.$training_action_id;
-            } else if ($training_action_id < 100){
-                $name = '0'.$training_action_id;
+    public static function setName($trainingAction_id, $id){
+        if ($trainingAction_id > 0){
+            $trainingAction = TrainingAction::find($trainingAction_id);
+            if ($trainingAction_id < 10){
+                $name = '00'.$trainingAction_id;
+            } else if ($trainingAction_id < 100){
+                $name = '0'.$trainingAction_id;
             } else {
-                $name = $training_action_id;
+                $name = $trainingAction_id;
             }
-            $num_courses = Course::where( 'training_action_id',$training_action['id'])
+            $num_courses = Course::where( 'training_action_id',$trainingAction['id'])
                 ->orderby('group', 'desc')->first();
             if ($num_courses) {
                 $cont = intval($num_courses->group);
@@ -257,19 +264,19 @@ class Course extends Model
             }
             $price = '';
             if ($id == null){
-                $price = $training_action['price'];
+                $price = $trainingAction['price'];
             }
         }
 
         return [
-            'name' => $name.' / '. $group .' - '.$training_action['name'],
+            'name' => $name.' / '. $group .' - '.$trainingAction['name'],
             'group' => $group,
             'price' => $price
         ];
     }
 
-    public static function numbercourses($training_action_id){
-        $num = Course::where('training_action_id', $training_action_id)->get();
+    public static function numbercourses($trainingAction_id){
+        $num = Course::where('training_action_id', $trainingAction_id)->get();
 
         return $num;
     }
@@ -355,13 +362,13 @@ class Course extends Model
 
     /**
      * Este método restablece las fechas de seguimiento futuras (tracings) y elimina las tareas (chores) y facturas (bills) asociadas al curso.
-     * 
+     *
      * - Las fechas de seguimiento futuras se restablecen a null si son mayores o iguales a la fecha actual.
      * - Las facturas asociadas al curso se eliminan si la fecha de inicio del curso es posterior a la fecha actual.
      * - Todas las tareas asociadas al curso se eliminan, independientemente de la fecha.
-     * 
+     *
      * Después de realizar estas operaciones, el curso se guarda en la base de datos con las nuevas fechas y sin las tareas y facturas asociadas.
-     * 
+     *
      * @return void
      */
     public function resetChoresAndFutureTracings()

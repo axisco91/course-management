@@ -5,17 +5,17 @@ namespace App\Console\Commands;
 use App\Helpers\CourseStatusHelper;
 use App\Models\Course;
 use App\Models\CourseStatus;
+use App\Models\TrainingContractElement;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
 
-class updateCoursesStatus extends Command
+class updateElementTutor extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'updateCoursesStatus';
+    protected $signature = 'updateElementTutor';
 
     /**
      * The console command description.
@@ -42,18 +42,13 @@ class updateCoursesStatus extends Command
     public function handle()
     {
 
-        $courses = Course::all();
+        $trainingContractElements = TrainingContractElement::all();
 
-        foreach ($courses as $course){
-            $anulado = CourseStatus::where('name', 'ANULADO')->first();
-            if ($anulado->id != $course->course_status_id) {
-                $course_status_id = CourseStatusHelper::updateCourseStatus($course->beginning, $course->end);
-            }
+        foreach ($trainingContractElements as $trainingContractElement){
 
-            $course->update([
-                'course_status_id' => $course_status_id
-            ]);
         }
+
+
 
         return 0;
     }

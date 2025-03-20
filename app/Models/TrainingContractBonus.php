@@ -112,11 +112,11 @@ class TrainingContractBonus extends Model
     }
 
     public static function createBonus($data){
-        $training_contract = TrainingContract::find($data['training_contract_id']);
+        $trainingContract = TrainingContract::find($data['training_contract_id']);
         $bonus = TrainingContractBonus::create([
-            'training_contract_id' => $training_contract->id,
-            'advisor_id' => $training_contract->advisor_id,
-            'collaborator_id' => $training_contract->collaborator_id,
+            'training_contract_id' => $trainingContract->id,
+            'advisor_id' => $trainingContract->advisor_id,
+            'collaborator_id' => $trainingContract->collaborator_id,
             'month' => $data['month'],
             'year' => $data['year'],
             'start' => Carbon::parse($data['start'])->toDateString(),
@@ -129,11 +129,11 @@ class TrainingContractBonus extends Model
     }
 
     public static function updateBonus($id, $data){
-        $training_contract = TrainingContract::find($data['training_contract_id']);
+        $trainingContract = TrainingContract::find($data['training_contract_id']);
         $bonus = TrainingContractBonus::find($id);
         $bonus->update([
-            'advisor_id' => $training_contract->advisor_id,
-            'collaborator_id' => $training_contract->collaborator_id,
+            'advisor_id' => $trainingContract->advisor_id,
+            'collaborator_id' => $trainingContract->collaborator_id,
             'month' => $data['month'],
             'year' => $data['year'],
             'start' => Carbon::parse($data['start'])->toDateString(),

@@ -26,8 +26,8 @@ class WebPlatform extends Model
         select('*', 'id as value', 'name as label')
             ->get();
         foreach ($web_platforms as $web_platform){
-            $training_action = TrainingAction::where('web_platform_id', $web_platform['id'])->first();
-            if ($training_action){
+            $trainingAction = TrainingAction::where('web_platform_id', $web_platform['id'])->first();
+            if ($trainingAction){
                 $web_platform['used'] = true;
             } else {
                 $web_platform['used'] = false;
@@ -41,8 +41,8 @@ class WebPlatform extends Model
         select('*', 'id as value', 'name as label')
             ->where('id', $id)
             ->first();
-        $training_action = TrainingAction::where('web_platform_id', $web_platform['id'])->first();
-        if ($training_action){
+        $trainingAction = TrainingAction::where('web_platform_id', $web_platform['id'])->first();
+        if ($trainingAction){
             $web_platform['used'] = true;
         } else {
             $web_platform['used'] = false;

@@ -7,6 +7,28 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/certificado.css">
 </head>
+<style>
+    @page {
+        size: A4;
+        margin: 20mm 10mm 30mm 10mm; /* Adjust bottom margin */
+    }
+
+    @page {
+        @bottom-center {
+            content: element(footer);
+        }
+    }
+
+    #footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 12px;
+        padding: 10px;
+    }
+</style>
+
 <body>
     <!-- PRIMERA PÁGINA -->
 
@@ -63,13 +85,13 @@
     <div class="col-md-12 m-3">
         <p style="font-size: x-small;">(*) Las cantidades expresadas en este documento son orientativas pudiendo variar en función de los periodos de no formación que deriven de vacaciones o bajas de cualquier índole, en cuyo caso recibirá un nuevo informe a tal efecto.</p>
     </div>
-    
+
     @php
         $nombre_mes = now()->translatedFormat('F');
         $dia = now()->format('d');
         $anio = now()->format('Y');
     @endphp
-    
+
     @php
     // Dividir la fecha en sus componentes
     $fdate_parts = explode('-', $trainingContract->beginning_formation ?? '0000-00-00');
@@ -101,6 +123,23 @@
         <p>Fdo. Antonio J. Jiménez Agraz</p>
     </div>
 </div>
+    <br>
+    <br>
+    <br>
+    <div id="footer">
+        <table style="border-collapse: collapse; width: 100%;">
+            <tr>
+                <td width="70%" style="padding: 0; border: none;">
+                    <p class="pie-fondo" style="margin: 0; padding-left: 0;">
+                        info@avzformacion.com - 957 923 473 - 644 680 310
+                    </p>
+                </td>
+                <td width="30%" style="padding: 0; border: none;" class="text-center">
+                    <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
+                </td>
+            </tr>
+        </table>
+    </div>
 <div style="page-break-after: always;"></div>
 <div class="mt-2">
     <div class="col-md-12 text-right">
@@ -121,7 +160,7 @@
 </div>
 
 <div class="mt-2">
-   
+
     <div class="col-md-12">
         <p><b>Tenga en cuenta que para poderse aplicar esta bonificación adicional el tutor de empresa ha debido realizar las siguientes funciones:</b></p>
         <p class="sin-margin-bottom">a) Realizar la comunicación con el centro de formación a través del tutor del centro de formación.</p>
@@ -165,7 +204,7 @@
                             for ($i = 2; $i <= $diaInicio; $i++) {
                                 if ($start % 4 == 0 && $start > 1) {
                                     $start -= 2;
-                                } else { 
+                                } else {
                                     if ($start > 1) {
                                         $start -= 1;
                                     }
@@ -195,7 +234,7 @@
                         }
                     }
                 @endphp
-            
+
                     <tr>
                         <td class="no-vertical-padding">{{$mesNombre}}</td>
                         <td class="no-vertical-padding">{{$e->start}}</td>
@@ -215,17 +254,19 @@
 
 </div>
 <br>
-<footer>
-    <table class="mt-2" style="border-collapse: collapse; width: 100%;">
+<div id="footer">
+    <table style="border-collapse: collapse; width: 100%;">
         <tr>
             <td width="70%" style="padding: 0; border: none;">
-                <p class="pie-fondo" style="margin: 0; padding-left: 0;">info@avzformacion.com - 957 923 473 - 644 680 310</p>
+                <p class="pie-fondo" style="margin: 0; padding-left: 0;">
+                    info@avzformacion.com - 957 923 473 - 644 680 310
+                </p>
             </td>
             <td width="30%" style="padding: 0; border: none;" class="text-center">
                 <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
             </td>
         </tr>
     </table>
- </footer>
+</div>
 </body>
 </html>

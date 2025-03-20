@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\StudentService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -140,7 +141,7 @@ class Student extends Model
             ->where('registrations.billing_id', $id);
     }
 
-    
+
     public function scopeGetRegistrated($query, $courseId){
     return $query->select('students.*', 'registrations.is_bonus', 'companies.name as company_name',
         'registrations.id as registration_id', 'registrations.price',
@@ -157,5 +158,11 @@ class Student extends Model
         return $query->select('students.*', 'students.id as value', DB::raw("CONCAT(students.name,' ',students.surname) as label"))
             ->where('active', 1)
             ->whereNotIn('id', $registations);
+    }
+
+    public static function import($data)
+    {
+        $students = app(StudentService::class);
+        return $students->import($data);
     }
 }

@@ -20,33 +20,33 @@ class TrainingContractIncidence extends Model
     ];
 
     public static function getTrainingContractIncidences($id){
-        $training_contract_incidences = TrainingContractIncidence::select('training_contract_incidences.*',
+        $trainingContract_incidences = TrainingContractIncidence::select('training_contract_incidences.*',
             'incidence_types.name as incidence_type',
             'users.name as user_name', 'users.surname as user_surname',
             DB::raw("CONCAT(users.name,' ',users.surname) as user"))
             ->leftjoin('incidence_types', 'incidence_types.id', '=', 'training_contract_incidences.incidence_type_id')
             ->leftjoin('users', 'users.id', '=', 'training_contract_incidences.user_id')
             ->where('training_contract_id', $id)->get();
-        foreach ($training_contract_incidences as $training_contract_incidence) {
-            $training_contract_incidence['created'] = Carbon::createFromFormat('Y-m-d H:i:s', $training_contract_incidence['created_at'])->format('d/m/Y');
+        foreach ($trainingContract_incidences as $trainingContract_incidence) {
+            $trainingContract_incidence['created'] = Carbon::createFromFormat('Y-m-d H:i:s', $trainingContract_incidence['created_at'])->format('d/m/Y');
         }
-        return $training_contract_incidences;
+        return $trainingContract_incidences;
     }
 
     public static function getTrainingContractIncidence($id){
-        $training_contract_incidence = TrainingContractIncidence::select('training_contract_incidences.*',
+        $trainingContract_incidence = TrainingContractIncidence::select('training_contract_incidences.*',
             'incidence_types.name as incidence_type',
             'users.name as user_name', 'users.surname as user_surname',
             DB::raw("CONCAT(users.name,' ',users.surname) as user"))
             ->leftjoin('incidence_types', 'incidence_types.id', '=', 'training_contract_incidences.incidence_type_id')
             ->leftjoin('users', 'users.id', '=', 'training_contract_incidences.user_id')
             ->where('training_contract_incidences.id', $id)->first();
-        $training_contract_incidence['created'] = Carbon::createFromFormat('Y-m-d H:i:s', $training_contract_incidence['created_at'])->format('d/m/Y');
-        return $training_contract_incidence;
+        $trainingContract_incidence['created'] = Carbon::createFromFormat('Y-m-d H:i:s', $trainingContract_incidence['created_at'])->format('d/m/Y');
+        return $trainingContract_incidence;
     }
 
     public static function createTrainingContractIncidence($data){
-        $training_contract_incidence = TrainingContractIncidence::create([
+        $trainingContract_incidence = TrainingContractIncidence::create([
                'affair' => $data['affair'],
                 'incidence_type_id' => $data['incidence_type_id'],
                 'notes' => $data['notes'],
@@ -55,12 +55,12 @@ class TrainingContractIncidence extends Model
         ]
         );
 
-        return $training_contract_incidence;
+        return $trainingContract_incidence;
     }
 
     public static function updateTrainingContractIncidence($id, $data){
-        $training_contract_incidence = TrainingContractIncidence::find($id);
-        $training_contract_incidence->update([
+        $trainingContract_incidence = TrainingContractIncidence::find($id);
+        $trainingContract_incidence->update([
             'affair' => $data['affair'],
             'incidence_type_id' => $data['incidence_type_id'],
             'notes' => $data['notes'],
@@ -68,6 +68,6 @@ class TrainingContractIncidence extends Model
             'user_id' => $data['user_id']
         ]);
 
-        return $training_contract_incidence;
+        return $trainingContract_incidence;
     }
 }

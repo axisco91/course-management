@@ -31,7 +31,7 @@ class PotentialPrivateStudent extends Mailable
     public function build()
     {
 
-        return $this->subject('Correo recibir formación de VR Consultores')
+        return $this->subject('Registro nuevo alumno en AVZ Formación')
             ->view('emails.potential_private_student');
     }
 }

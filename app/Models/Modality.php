@@ -26,8 +26,8 @@ class Modality extends Model
         select('*', 'id as value', 'name as label')
             ->get();
         foreach ($modalities as $modality){
-            $training_action = TrainingAction::where('modality_id', $modality['id'])->first();
-            if ($training_action){
+            $trainingAction = TrainingAction::where('modality_id', $modality['id'])->first();
+            if ($trainingAction){
                 $modality['used'] = true;
             } else {
                 $modality['used'] = false;
@@ -39,8 +39,8 @@ class Modality extends Model
     public static function getModality($id){
         $modality = Modality::select('*', 'id as value', 'name as label')
             ->where('id', $id)->first();
-        $training_action = TrainingAction::where('modality_id', $modality['id'])->first();
-        if ($training_action){
+        $trainingAction = TrainingAction::where('modality_id', $modality['id'])->first();
+        if ($trainingAction){
             $modality['used'] = true;
         } else {
             $modality['used'] = false;

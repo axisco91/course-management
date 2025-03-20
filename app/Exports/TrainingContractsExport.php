@@ -26,7 +26,7 @@ class TrainingContractsExport implements FromCollection, WithHeadings
      */
     public function collection()
     {
-        $training_actions = TrainingAction::select('formative_action', 'training_actions.name', 'action_types.name as action_name',
+        $trainingActions = TrainingAction::select('formative_action', 'training_actions.name', 'action_types.name as action_name',
         'professional_families.name as family_name', 'professional_areas.name as area_name', 'modalities.name as modality_name',
         'training_action_levels.name as level_name', 'training_action_groups.name as group_name', 'tutorings.name as tutoring_name',
             \DB::raw('(CASE
@@ -58,21 +58,21 @@ class TrainingContractsExport implements FromCollection, WithHeadings
         ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
 
         if ($this->professional_family_id){
-            $training_actions = $training_actions->Where('training_actions.professional_family_id', $this->professional_family_id);
+            $trainingActions = $trainingActions->Where('training_actions.professional_family_id', $this->professional_family_id);
         }
         if ($this->professional_area_id){
-            $training_actions = $training_actions->Where('training_actions.professional_area_id', $this->professional_area_id);
+            $trainingActions = $trainingActions->Where('training_actions.professional_area_id', $this->professional_area_id);
         }
         if ($this->modality_id){
-            $training_actions = $training_actions->Where('training_actions.modality_id', $this->modality_id);
+            $trainingActions = $trainingActions->Where('training_actions.modality_id', $this->modality_id);
         }
         if ($this->provider_id){
-            $training_actions = $training_actions->Where('training_actions.provider_id', $this->provider_id);
+            $trainingActions = $trainingActions->Where('training_actions.provider_id', $this->provider_id);
         }
 
-        $training_actions = $training_actions->get();
+        $trainingActions = $trainingActions->get();
 
-        return collect($training_actions);
+        return collect($trainingActions);
     }
 
     public function headings(): array

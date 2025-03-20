@@ -12,27 +12,34 @@ use Exception;
 
 class TrainingContractService
 {
+    public function updateDocumentClause(TrainingContract $trainingContract, array $data) {
+        $trainingContract->update([
+            'document_additional_clause' => $data['document_additional_clause'],
+        ]);
+        return $trainingContract;
+    }
+
     /**
      * Calcula las horas formativas y actualiza los datos del contrato de formación.
      *
-     * @param int $training_contract_id El ID del contrato de formación.
+     * @param int $trainingContractId El ID del contrato de formación.
      * @return array Un arreglo con los datos actualizados del contrato de formación.
      * @throws Exception Si no hay días laborables en el período del primer año.
      */
-    public function calculateHours($training_contract_id)
+    public function calculateHours($trainingContractId)
     {
-        Log::info('calculateHours llamado', ['training_contract_id' => $training_contract_id]);
-        $record = TrainingContract::findOrFail($training_contract_id);
+        Log::info('calculateHours llamado', ['training_contract_id' => $trainingContractId]);
+        $record = TrainingContract::findOrFail($trainingContractId);
         Log::info('Registro recuperado', ['record' => $record->toArray()]);
-    
+
         $beginning_formation_carbon = Carbon::parse($record->beginning_formation);
-        $total_hours = $this->calculateTotalHours($training_contract_id);
-    
+        $total_hours = $this->calculateTotalHours($trainingContractId);
+
         $bonus_hours_first_year = $record->bonus_hours_first_year;
         $bonus_hours_second_year = $record->bonus_hours_second_year;
-    
+
         Log::info('Horas de bonificación', ['bonus_hours_first_year' => $bonus_hours_first_year, 'bonus_hours_second_year' => $bonus_hours_second_year]);
-    
+
         $initial_end_formation = $record->end_formation;
 
         // Revisar si existe una fecha de finalización
@@ -46,25 +53,25 @@ class TrainingContractService
         $this->updateRecordWithResult($record, $result);
 
         // Actualizar las fechas de los elementos relacionados
-        $updated_elements = $this->updateDates($training_contract_id, $result['daily_hours_1'], $result['daily_hours_2'], $record->end_formation);
+        $updated_elements = $this->updateDates($trainingContractId, $result['daily_hours_1'], $result['daily_hours_2'], $record->end_formation);
 
         // Manejar la actualización del último elemento
         $this->handleLastElementUpdate($record, $updated_elements, $initial_end_formation);
 
         Log::info('Fin de calculateHours', $result);
-    
+
         return array_merge($result, ['updated_elements' => $updated_elements]);
     }
 
     /**
      * Calcula el total de horas de un contrato de formación basado en sus elementos.
      *
-     * @param int $training_contract_id El ID del contrato de formación.
+     * @param int $trainingContractId El ID del contrato de formación.
      * @return float El total de horas.
      */
-    private function calculateTotalHours($training_contract_id)
+    private function calculateTotalHours($trainingContractId)
     {
-        return TrainingContractElement::where('training_contract_id', $training_contract_id)
+        return TrainingContractElement::where('training_contract_id', $trainingContractId)
             ->with('training_action')
             ->get()
             ->sum(function ($element) {
@@ -87,14 +94,14 @@ class TrainingContractService
     {
         $date = Carbon::parse($record->beginning_formation);
         $end_date = Carbon::parse($record->end_formation);
-    
-        list($cont_days_first_year, $cont_days_second_year, $total_days) = $this->calculateWorkingDays($date, $end_date, $beginning_formation_carbon, $record);
-    
+
+        list($cont_days_first_year, $cont_days_second_year, $totalDays) = $this->calculateWorkingDays($date, $end_date, $beginning_formation_carbon, $record);
+
         if ($cont_days_first_year == 0) {
             throw new Exception("No hay días laborables en el período del primer año");
         }
 
-        return $this->distributeHours($total_hours, $bonus_hours_first_year, $bonus_hours_second_year, $cont_days_first_year, $cont_days_second_year, $total_days);
+        return $this->distributeHours($total_hours, $bonus_hours_first_year, $bonus_hours_second_year, $cont_days_first_year, $cont_days_second_year, $totalDays);
     }
 
     /**
@@ -110,10 +117,10 @@ class TrainingContractService
     private function calculateWithoutEndDate($record, $beginning_formation_carbon, $total_hours, $bonus_hours_first_year, $bonus_hours_second_year)
     {
         $date = Carbon::parse($record->beginning_formation);
-        
-        list($calculated_end_date, $cont_days_first_year, $cont_days_second_year, $total_days) = $this->calculateEndDate($date, $total_hours, $beginning_formation_carbon, $record);
-    
-        $result = $this->distributeHours($total_hours, $bonus_hours_first_year, $bonus_hours_second_year, $cont_days_first_year, $cont_days_second_year, $total_days);
+
+        list($calculated_end_date, $cont_days_first_year, $cont_days_second_year, $totalDays) = $this->calculateEndDate($date, $total_hours, $beginning_formation_carbon, $record);
+
+        $result = $this->distributeHours($total_hours, $bonus_hours_first_year, $bonus_hours_second_year, $cont_days_first_year, $cont_days_second_year, $totalDays);
         $result['end_formation'] = $calculated_end_date->toDateString();
 
         return $result;
@@ -127,13 +134,13 @@ class TrainingContractService
      * @param float $bonus_hours_second_year Las horas de bonificación del segundo año.
      * @param int $cont_days_first_year Los días laborables del primer año.
      * @param int $cont_days_second_year Los días laborables del segundo año.
-     * @param int $total_days El total de días laborables.
+     * @param int $totalDays El total de días laborables.
      * @return array Los resultados del cálculo de horas distribuidas.
      */
-    private function distributeHours($total_hours, $bonus_hours_first_year, $bonus_hours_second_year, $cont_days_first_year, $cont_days_second_year, $total_days)
+    private function distributeHours($total_hours, $bonus_hours_first_year, $bonus_hours_second_year, $cont_days_first_year, $cont_days_second_year, $totalDays)
     {
         $total_bonus_hours = $bonus_hours_first_year + $bonus_hours_second_year;
-    
+
         if ($total_hours > $total_bonus_hours) {
             $exceso_horas = $total_hours - $total_bonus_hours;
             if ($cont_days_second_year == 0) {
@@ -158,7 +165,7 @@ class TrainingContractService
             'daily_hours_2' => $daily_hours_2,
             'cont_days_first_year' => $cont_days_first_year,
             'cont_days_second_year' => $cont_days_second_year,
-            'total_days' => $total_days
+            'total_days' => $totalDays
         ];
     }
 
@@ -175,7 +182,7 @@ class TrainingContractService
     {
         $cont_days_first_year = 0;
         $cont_days_second_year = 0;
-        $total_days = 0;
+        $totalDays = 0;
 
         for ($date = $start_date; $date->lte($end_date); $date->addDay()) {
             if ($this->isWorkingDay($date, $record)) {
@@ -184,11 +191,11 @@ class TrainingContractService
                 } else {
                     $cont_days_second_year++;
                 }
-                $total_days++;
+                $totalDays++;
             }
         }
 
-        return [$cont_days_first_year, $cont_days_second_year, $total_days];
+        return [$cont_days_first_year, $cont_days_second_year, $totalDays];
     }
 
     /**
@@ -204,7 +211,7 @@ class TrainingContractService
     {
         $cont_days_first_year = 0;
         $cont_days_second_year = 0;
-        $total_days = 0;
+        $totalDays = 0;
         $current_hours = 0;
 
         $date = $start_date->copy();
@@ -215,51 +222,58 @@ class TrainingContractService
                 } else {
                     $cont_days_second_year++;
                 }
-                $total_days++;
+                $totalDays++;
                 $current_hours += $this->getDailyHours($date, $beginning_formation_carbon, $record->daily_hours_1, $record->daily_hours_2);
             }
             $date->addDay();
         }
 
-        return [$date->subDay(), $cont_days_first_year, $cont_days_second_year, $total_days];
+        return [$date->subDay(), $cont_days_first_year, $cont_days_second_year, $totalDays];
     }
 
     /**
      * Actualiza las fechas de los elementos de formación de acuerdo con las horas diarias calculadas.
      *
-     * @param int $training_contract_id El ID del contrato de formación.
+     * @param int $trainingContractId El ID del contrato de formación.
      * @param float $daily_hours_1 Las horas diarias del primer año.
      * @param float $daily_hours_2 Las horas diarias del segundo año.
      * @param string|null $end_formation La fecha de finalización de la formación (opcional).
      * @return \Illuminate\Support\Collection La colección de elementos actualizados.
      */
-    private function updateDates($training_contract_id, $daily_hours_1, $daily_hours_2, $end_formation = null)
+    private function updateDates($trainingContractId, $daily_hours_1, $daily_hours_2, $end_formation = null)
     {
-        $training_contract = TrainingContract::find($training_contract_id);
+        $trainingContract = TrainingContract::find($trainingContractId);
         $updated_elements = collect();
         $end_formation_carbon = $end_formation ? Carbon::parse($end_formation) : null;
 
-        $training_contract_elements = TrainingContractElement::with('training_action')
-            ->where('training_contract_id', $training_contract_id)
+        $trainingContractElements = TrainingContractElement::with('training_action')
+            ->where('training_contract_id', $trainingContractId)
             ->orderBy('order', 'asc')
             ->get();
 
-        Log::info('Total de elementos recuperados', ['count' => $training_contract_elements->count()]);
+        Log::info('Total de elementos recuperados', ['count' => $trainingContractElements->count()]);
 
-        if ($training_contract_elements->isEmpty()) {
-            return $this->handleEmptyElements($training_contract);
+        if ($trainingContractElements->isEmpty()) {
+            return $this->handleEmptyElements($trainingContract);
         }
 
-        $beginning = new Carbon($training_contract->beginning_formation);
+        $beginning = new Carbon($trainingContract->beginning_formation);
         $first_year_end = $beginning->copy()->addYear()->subDay();
 
-        foreach ($training_contract_elements as $element) {
-            if ($element->course_id !== null) {
+        foreach ($trainingContractElements as $element) {
+            $past = false;
+            if ($element->beginning){
+                if (Carbon::parse($element->beginning)->isPast()) {
+                    $past = true;
+                }
+            }
+            if ($element->course_id !== null || $past) {
                 $updated_elements->push($element);
+                $beginning = new Carbon($element->end);
                 continue;
             }
 
-            list($beginning, $end) = $this->calculateElementDates($element, $beginning, $first_year_end, $daily_hours_1, $daily_hours_2, $end_formation_carbon, $training_contract_id);
+            list($beginning, $end) = $this->calculateElementDates($element, $beginning, $first_year_end, $daily_hours_1, $daily_hours_2, $end_formation_carbon, $trainingContractId);
 
             $element->update([
                 'beginning' => $beginning->toDateString(),
@@ -269,7 +283,7 @@ class TrainingContractService
             $updated_elements->push($element);
 
             $beginning = $end->copy()->addDay();
-            while ($this->isNonWorkingDay($beginning, $training_contract_id)) {
+            while ($this->isNonWorkingDay($beginning, $trainingContractId)) {
                 $beginning->addDay();
             }
 
@@ -284,16 +298,16 @@ class TrainingContractService
     /**
      * Maneja la actualización de los elementos cuando no hay elementos de formación disponibles.
      *
-     * @param TrainingContract $training_contract El contrato de formación.
+     * @param TrainingContract $trainingContract El contrato de formación.
      * @return array Arreglo vacío ya que no hay elementos para actualizar.
      */
-    private function handleEmptyElements($training_contract)
+    private function handleEmptyElements($trainingContract)
     {
-        $formation_hours = $training_contract->calculateFormationHours();
-        $daily_hours_1 = $training_contract->formative_hours_first_year != 0 ? $training_contract->formative_hours_first_year / $training_contract->total_days : 0;
-        $daily_hours_2 = $training_contract->formative_hours_second_year != 0 ? $training_contract->formative_hours_second_year / $training_contract->total_days : 0;
+        $formation_hours = $trainingContract->calculateFormationHours();
+        $daily_hours_1 = $trainingContract->formative_hours_first_year != 0 ? $trainingContract->formative_hours_first_year / $trainingContract->total_days : 0;
+        $daily_hours_2 = $trainingContract->formative_hours_second_year != 0 ? $trainingContract->formative_hours_second_year / $trainingContract->total_days : 0;
 
-        $training_contract->update([
+        $trainingContract->update([
             'daily_hours_1' => $daily_hours_1,
             'daily_hours_2' => $daily_hours_2,
             'formation_hours' => $formation_hours,
@@ -311,10 +325,10 @@ class TrainingContractService
      * @param float $daily_hours_1 Las horas diarias del primer año.
      * @param float $daily_hours_2 Las horas diarias del segundo año.
      * @param Carbon|null $end_formation_carbon La fecha de finalización de la formación (opcional).
-     * @param int $training_contract_id El ID del contrato de formación.
+     * @param int $trainingContractId El ID del contrato de formación.
      * @return array Arreglo con la fecha de inicio y fin del elemento.
      */
-    private function calculateElementDates($element, $beginning, $first_year_end, $daily_hours_1, $daily_hours_2, $end_formation_carbon, $training_contract_id)
+    private function  calculateElementDates($element, $beginning, $first_year_end, $daily_hours_1, $daily_hours_2, $end_formation_carbon, $trainingContractId)
     {
         $hours = $element->training_action ? $element->training_action->total_hours : 0;
         $current_daily_hours = $beginning->lte($first_year_end) ? $daily_hours_1 : $daily_hours_2;
@@ -324,7 +338,7 @@ class TrainingContractService
         for ($i = 0; $i < $days_to_add; $i++) {
             do {
                 $end->addDay();
-            } while ($this->isNonWorkingDay($end, $training_contract_id));
+            } while ($this->isNonWorkingDay($end, $trainingContractId));
 
             if ($end->gt($end_formation_carbon)) {
                 $end = $end_formation_carbon;
@@ -332,7 +346,7 @@ class TrainingContractService
             }
         }
 
-        while ($this->isNonWorkingDay($end, $training_contract_id)) {
+        while ($this->isNonWorkingDay($end, $trainingContractId)) {
             $end->subDay();
         }
 
@@ -364,13 +378,13 @@ class TrainingContractService
      * Determina si un día específico es no laborable según el contrato de formación.
      *
      * @param Carbon $date La fecha a verificar.
-     * @param int $training_contract_id El ID del contrato de formación.
+     * @param int $trainingContractId El ID del contrato de formación.
      * @return bool Retorna true si es un día no laborable, de lo contrario false.
      */
-    private function isNonWorkingDay($date, $training_contract_id)
+    private function isNonWorkingDay($date, $trainingContractId)
     {
-        return TrainingContractsExcludedDay::nonWorkingDay($training_contract_id, $date->toDateString()) || 
-               TrainingContractFestival::existDay($date, $training_contract_id)->first();
+        return TrainingContractsExcludedDay::nonWorkingDay($trainingContractId, $date->toDateString()) ||
+               TrainingContractFestival::existDay($date, $trainingContractId)->first();
     }
 
     /**
@@ -410,12 +424,12 @@ class TrainingContractService
     /**
      * Calcula las horas de formación mensuales según el contrato de formación.
      *
-     * @param int $training_contract_id El ID del contrato de formación.
+     * @param int $trainingContractId El ID del contrato de formación.
      * @return array Un arreglo con el estado y las horas de formación mensuales.
      */
-    public function calculateMonthlyFormationHours($training_contract_id)
+    public function calculateMonthlyFormationHours($trainingContractId)
     {
-        $record = TrainingContract::findOrFail($training_contract_id);
+        $record = TrainingContract::findOrFail($trainingContractId);
 
         $beginning_date = Carbon::parse($record->beginning_formation);
         $end_date = Carbon::parse($record->end_formation);
@@ -502,13 +516,13 @@ class TrainingContractService
     /**
      * Obtiene el total de horas formativas de un contrato de formación.
      *
-     * @param int $training_contract_id El ID del contrato de formación.
+     * @param int $trainingContractId El ID del contrato de formación.
      * @return float El total de horas formativas.
      */
-    public function getTotalHours($training_contract_id)
+    public function getTotalHours($trainingContractId)
     {
-        $training_contract = TrainingContract::findOrFail($training_contract_id);
-        $total_hours = $training_contract->formative_hours_first_year + $training_contract->formative_hours_second_year;
+        $trainingContract = TrainingContract::findOrFail($trainingContractId);
+        $total_hours = $trainingContract->formative_hours_first_year + $trainingContract->formative_hours_second_year;
         Log::info('Horas totales calculadas', ['total_hours' => $total_hours]);
         return $total_hours;
     }

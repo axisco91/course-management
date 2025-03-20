@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\MoodleHelpers;
 use App\Models\Course;
+use App\Models\CourseStatus;
 use App\Models\Student;
 use App\Models\Tracing;
 use App\Models\User;
@@ -24,7 +26,7 @@ class TracingController extends BaseController
      * Obtener los seguimientos
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request) 
+    public function index(Request $request)
     {
         try {
             $start = \Illuminate\Support\Carbon::now();
@@ -33,12 +35,12 @@ class TracingController extends BaseController
                 $number_days = 7;
             $start = $start->addDays($number_days);
             $tracings = Tracing::tracing();
-    
+
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
                  $tracings = $tracings->where('courses.teacher_id', $user->teacher_id);
             }
-    
+
             if ($request->course) {
                 $tracings = $tracings->where('courses.id', $request->course);
             }
@@ -62,16 +64,20 @@ class TracingController extends BaseController
             if ($request->end) {
                 $tracings = $tracings->where('courses.beginning', '<=', $request->end);
             }
-    
-   
-    
+
+            if (isset($request['status'])) {
+                $courseStatus = CourseStatus::where('name', $request['status'])->first();
+
+                if ($courseStatus) {
+                    $tracings->where('course_statuses.id', '!=', $courseStatus->id);
+                }
+            }
+
             $tracings = $tracings->orderBy('tracings.id', 'desc')->get();
-    
-       
-    
+
             foreach ($tracings as $tracing) {
                 // Debug: Log each tracing's course_status_id
-    
+
                 if ($tracing->final_test === 0) {
                     $tracing['final_test_name'] = 'Pendiente';
                 } else if ($tracing->final_test === 1) {
@@ -86,21 +92,21 @@ class TracingController extends BaseController
                 } else if ($tracing->questionnaire === 2) {
                     $tracing['questionnaire_name'] = 'No realizado';
                 }
-    
+
                 // Attempt to get course_status_id from the tracing object
                 $tracing['course_status_id'] = $tracing->course_status_id;
-    
+
                 // If it's still null, try to fetch it directly from the Course model
                 if ($tracing['course_status_id'] === null) {
                     $course = Course::find($tracing->course_id);
                     $tracing['course_status_id'] = $course ? $course->course_status_id : null;
                 }
-    
-            
+
+
             }
-    
-         
-    
+
+
+
             return $tracings;
         } catch (\Exception $e) {
             \Log::error("Error in index method: " . $e->getMessage());
@@ -116,23 +122,48 @@ class TracingController extends BaseController
             ->where('tracings.id', $id)
             ->first();
         if ($tracing) {
-            if ($tracing->final_test === 0) {
-                $tracing['final_test_name'] = 'Pendiente';
-            } else if ($tracing->final_test === 1) {
-                $tracing['final_test_name'] = 'Realizado';
-            } else if ($tracing->final_test === 2) {
-                $tracing['final_test_name'] = 'No realizado';
-            }
-            if ($tracing->questionnaire === 0) {
-                $tracing['questionnaire_name'] = 'Pendiente';
-            } else if ($tracing->questionnaire === 1) {
-                $tracing['questionnaire_name'] = 'Realizado';
-            } else if ($tracing->questionnaire === 2) {
-                $tracing['questionnaire_name'] = 'No realizado';
-            }
             $course = Course::where('id', $tracing->course_id)->first();
             $student = Student::where('id', $tracing->student_id)->first();
+
+            $parts = explode(' - ', $course->name);
+            $code = trim($parts[0]);
             $tracing['name'] = $course->group.'/'. $course->name .' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
+
+            $moodleCourse = MoodleHelpers::getCourseByShortname($code.'/'.$course->group);
+
+            if (!empty($moodleCourse)) {
+                $courseData = MoodleHelpers::getActivityCount($moodleCourse[0]['id']);
+                $tracing['number_activities'] = $courseData['assignmentCount'];
+                $tracing['number_units'] = $courseData['normalScormCount'];
+             //   $tracing['number_questions'] = $courseData['questionCount'];
+
+                $endTime = Carbon::createFromTimestamp($tracing->end);
+                $currentTime = Carbon::now();
+
+                $courseData = MoodleHelpers::getStudentCourseDetails($moodleCourse[0]['id'], $student->user);
+                $tracing['performed_activities'] = $courseData['finishedActivities'];
+                $tracing['last_connection'] = $courseData['lastAccess'];
+                $tracing['performed_units'] = $courseData['unitsViewed'];
+                $tracing['performed_hours'] = $courseData['totalTime'];
+                $tracing['final_test'] = $courseData['evaluationFinalDone'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
+                $tracing['questionnaire'] = $courseData['cuestionar'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
+
+                if ($tracing->final_test === 0) {
+                    $tracing['final_test_name'] = 'Pendiente';
+                } else if ($tracing->final_test === 1) {
+                    $tracing['final_test_name'] = 'Realizado';
+                } else if ($tracing->final_test === 2) {
+                    $tracing['final_test_name'] = 'No realizado';
+                }
+                if ($tracing->questionnaire === 0) {
+                    $tracing['questionnaire_name'] = 'Pendiente';
+                } else if ($tracing->questionnaire === 1) {
+                    $tracing['questionnaire_name'] = 'Realizado';
+                } else if ($tracing->questionnaire === 2) {
+                    $tracing['questionnaire_name'] = 'No realizado';
+                }
+            }
+
             return response()->json([
                 'status' => 200,
                 'tracing' => $tracing

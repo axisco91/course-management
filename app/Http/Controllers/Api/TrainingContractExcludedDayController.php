@@ -41,11 +41,11 @@ class TrainingContractExcludedDayController extends BaseController
 
     public function createGroup(Request $request){
 
-        $training_contract = TrainingContract::find($request['training_contract_id']);
+        $trainingContract = TrainingContract::find($request['training_contract_id']);
         if ($request['type'] === 'general') {
-            TrainingContractsExcludedDay::addGeneralDays($request['training_contract_id'], $training_contract->beginning, $training_contract->end);
+            TrainingContractsExcludedDay::addGeneralDays($request['training_contract_id'], $trainingContract->beginning, $trainingContract->end);
         } else {
-            TrainingContractsExcludedDay::createTrainingContractExcludedDay($request['training_contract_id'], $request['id'], $request['type'], $training_contract->beginning, $training_contract->end);
+            TrainingContractsExcludedDay::createTrainingContractExcludedDay($request['training_contract_id'], $request['id'], $request['type'], $trainingContract->beginning, $trainingContract->end);
         }
         return response()->json([
             'status' => 200,

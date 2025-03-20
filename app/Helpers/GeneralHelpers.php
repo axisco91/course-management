@@ -14,4 +14,21 @@ class GeneralHelpers
         return $number;
     }
 
+    public static function seconds_to_human_readable($seconds) {
+        $hours = floor($seconds / 3600);
+        $minutes = floor(($seconds % 3600) / 60);
+        $remaining_seconds = $seconds % 60;
+
+        $formatted_time = '';
+        if ($hours > 0) {
+            $formatted_time .= $hours . ' h ';
+        }
+        if ($minutes > 0) {
+            $formatted_time .= $minutes . ' m ';
+        }
+        if ($remaining_seconds > 0 || $formatted_time === '') {
+            $formatted_time .= $remaining_seconds . ' s';
+        }
+        return trim($formatted_time);
+    }
 }

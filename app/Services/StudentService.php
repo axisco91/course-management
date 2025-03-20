@@ -89,4 +89,21 @@ class StudentService
         ]);
         return $student;
     }
+
+    public function import($students) {
+        foreach ($students as $student) {
+            Student::create([
+                'name' => $student['name'],
+                'surname' => $student['surname1'].' '.$student['surname2'],
+                'dni' => $student['dni'],
+                'telephone' => $student['phone'],
+                'email' => $student['email'],
+                'company_id' => $student['company_id'],
+                'user' => $student['dni'],
+                'password' => $student['password'],
+                'disable' => 0,
+                'active' => 1,
+            ]);
+        }
+    }
 }

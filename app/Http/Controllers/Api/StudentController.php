@@ -366,4 +366,12 @@ class StudentController extends BaseController
             ]);
         }
     }
+
+    public function import(Request $request) {
+        $students = json_decode($request->input('students'), true);
+
+        Student::import($students);
+
+        return $students;
+    }
 }
