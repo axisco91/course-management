@@ -33,7 +33,8 @@ class ProfitabilityService
             'collaborator_percentage' => $data['collaborator_percentage'],
             'advisor_commission ' => $advisor_commission,
             'collaborator_commission ' => $collaborator_commission,
-            'number_students' => 1
+            'number_students' => 1,
+            'main_company_id' => $data['main_company_id'],
         ]);
     }
 

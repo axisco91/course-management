@@ -4,7 +4,8 @@ namespace App\Services;
 
 use App\Models\UserCommissionType;
 
-class UserCommissionTypeService
+class
+UserCommissionTypeService
 {
     /**
      * Función para crear una comisión de una asesoría
@@ -16,7 +17,8 @@ class UserCommissionTypeService
         return UserCommissionType::create([
             'user_id' => $data['user_id'],
             'commission_type_id' => $data['commission_type_id'],
-            'percentage' => $data['percentage']
+            'percentage' => $data['percentage'],
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 

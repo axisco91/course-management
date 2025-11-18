@@ -1,33 +1,27 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Http\Requests\DocumentRequests;
-use App\Models\Course;
 use App\Models\Document;
 use App\Models\DocumentStudent;
-use App\Models\TrainingAction;
-use App\Services\DocumentService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DocumentController extends BaseController
 {
-    private $documentService;
-
-    public function __construct(DocumentService $documentService)
-    {
-        $this->documentService = $documentService;
-    }
-
     /**
      * Obtenemos los documentos
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request) {
         try {
-            $documents = Document::select('documents.*')
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            return Document::select('documents.*')
                 ->join('document_types', 'document_types.id', '=', 'documents.document_type_id')
+                ->FilterMainCompanyId($mainCompanyId)
                 ->get();
-            return $documents;
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -41,7 +35,11 @@ class DocumentController extends BaseController
      */
     public function getStudentDocuments(Request $request) {
         try {
-            return Document::where('document_type_id', $request->document_type_id)->get();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            return Document::where('document_type_id', $request->document_type_id)
+                ->FilterMainCompanyId($mainCompanyId)
+                ->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -56,11 +54,20 @@ class DocumentController extends BaseController
      */
     public function store(DocumentRequests $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $data = $request->all();
-            $document = $this->documentService->create($data);
+            $data['main_company_id'] = $mainCompanyId;
+
+            $document = Document::createWithService($data);
+
             $document = Document::where('id', $document->id)
                 ->first();
-            $documentUser = DocumentStudent::where('document_id', $document->id)->first();
+
+            $documentUser = DocumentStudent::where('document_id', $document->id)
+                ->FilterMainCompanyId($mainCompanyId)
+                ->first();
+
             if ($documentUser) {
                 $document['used'] = true;
             } else {
@@ -80,18 +87,25 @@ class DocumentController extends BaseController
 
     public function update($id, DocumentRequests $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $data = $request->all();
-            $document = Document::find($id);
+            $document = Document::where('id', $id)
+                ->FilterMainCompanyId($mainCompanyId)
+                ->first();
+
             if ($document) {
-                $document = $this->documentService->update($document, $data);
-                $document = Document::where('id', $document->id)
+                $document = $document->updateWithService($document, $data);
+
+                $documentUser = DocumentStudent::where('document_id', $document->id)
+                    ->FilterMainCompanyId($mainCompanyId)
                     ->first();
-                $documentUser = DocumentStudent::where('document_id', $document->id)->first();
                 if ($documentUser) {
                     $document['used'] = true;
                 } else {
                     $document['used'] = false;
                 }
+
                 return response()->json([
                     'status' => 200,
                     'document' => $document
@@ -106,14 +120,17 @@ class DocumentController extends BaseController
     }
 
     /**
-     * Obtenemos la acción formativa
+     * Obtenemos el documento
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id){
+    public function show($id,Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
         $document = Document::select('documents.*', 'document_types.name as document_type')
             ->join('document_types', 'document_types.id', '=', 'documents.document_type_id')
             ->where('documents.id', $id)
+            ->FilterMainCompanyId($mainCompanyId)
             ->first();
 
         if ($document) {
@@ -124,18 +141,31 @@ class DocumentController extends BaseController
         }
         return response()->json([
             'status' => 400,
-            'message' => 'Acción Formativa no existe'
+                'message' => 'Documento no existe'
         ]);
     }
 
     /**
-     * Eliminar acciones formativas
+     * Eliminar documento
      * @param $id
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $document = Document::where('id', $id)
+                    ->FilterMainCompanyId($mainCompanyId)
+                    ->first();
+
+                if (!$document) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Documento no existe'
+                    ]);
+                }
+
                 Document::destroy($id);
                 return response()->json([
                     'status' => 200

@@ -38,8 +38,8 @@ class CompanyService
             'potential' => $data['potential'],
             'regimen' =>$data['regimen'],
             'population_code' => $data['population_code'],
-            'agreement' => $data['agreement']
-
+            'agreement' => $data['agreement'],
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 
@@ -69,11 +69,27 @@ class CompanyService
             'advisor_id' => $data['advisor_id'],
             'collaborator_id' => $data['collaborator_id'],
             'active' => $data['active'],
-            'potential' => $data['potential'],
-            'regimen' =>$data['regimen'],
-            'population_code' => $data['population_code'],
-            'agreement' => $data['agreement']
+            'potential' => $data['potential']
         ]);
+
+        if (isset($data['regimen'])) {
+            $company->update([
+                'regimen' => $data['regimen']
+            ]);
+        }
+
+        if (isset($data['population_code'])) {
+            $company->update([
+                'population_code' => $data['population_code']
+            ]);
+        }
+
+        if (isset($data['agreement'])) {
+            $company->update([
+                'agreement' => $data['agreement']
+            ]);
+        }
+
         return $company;
     }
 }

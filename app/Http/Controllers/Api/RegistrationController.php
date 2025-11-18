@@ -1,48 +1,31 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\Advisor;
-use App\Models\AdvisorCommission;
 use App\Models\Bill;
-use App\Models\CommissionType;
 use App\Models\Company;
-use App\Models\Course;
-use App\Models\CourseOrigin;
-use App\Models\CourseType;
 use App\Models\Profitability;
 use App\Models\Registration;
 use App\Models\Student;
-use App\Models\TrainingAction;
 use App\Models\User;
-use App\Services\AdvisorCommissionService;
-use App\Services\BillService;
-use App\Services\ProfitabilityService;
-use App\Services\RegistrationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class RegistrationController extends BaseController
 {
-    private $registrationService;
-    private $billService;
-    private $profitabilityService;
-    private $advisorCommissionService;
-
-    public function __construct(RegistrationService $registrationService, BillService $billService, ProfitabilityService $profitabilityService, AdvisorCommissionService  $advisorCommissionService)
-    {
-        $this->registrationService = $registrationService;
-        $this->billService = $billService;
-        $this->profitabilityService = $profitabilityService;
-        $this->advisorCommissionService = $advisorCommissionService;
-    }
 
     /**
      * Obtenemos los alumnos matriculados
      * @param $id
      * @return mixed
      */
-    public function getRegistrations($id) {
-        return Student::getRegistrated($id)
+    public function getRegistrations($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return Student::getRegistrated($id, $mainCompanyId)
             ->get();
     }
 
@@ -51,8 +34,10 @@ class RegistrationController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function getNotRegistered($id) {
-        return Student::getUnregistrated($id)
+    public function getNotRegistered($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return Student::getUnregistrated($id, $mainCompanyId)
             ->get();
     }
 
@@ -63,12 +48,31 @@ class RegistrationController extends BaseController
      */
     public function create(Request $request){
         try {
-            $student = Student::find($request['student_id']);
+            DB::beginTransaction();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $student = Student::where('id', $request['student_id'])
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$student) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Alumno no encontrado',
+                ]);
+            }
             // Obtenemos los datos de asesorías y colaboradores
             $advisor_id = null;
             $collaborator_id = null;
-            $company = Company::find($student['company_id']);
-            $advisor = Advisor::find($company->advisor_id);
+            $company = Company::where('id', $student['company_id'])
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            $advisor = Advisor::where('id', $company->advisor_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
             $advisor_percentage = null;
             $collaborator_percentage = null;
             if ($advisor) {
@@ -88,7 +92,10 @@ class RegistrationController extends BaseController
                 }
             }
             if ($collaborator_id){
-                $user = User::find($collaborator_id);
+                $user = User::where('id', $collaborator_id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
                 if ($user){
                     $collaborator_percentage = $user['commission'];
                 }
@@ -96,7 +103,10 @@ class RegistrationController extends BaseController
             // Vemos si ya existe una factura sino creamos otro
             $bill = Bill::where('course_id', $request->course_id)
                 ->where('company_id', $company->id)
-                ->where('is_bonus', $request->is_bonus)->first();
+                ->where('is_bonus', $request->is_bonus)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
             $billData = [
                 'course_id' => $request['course_id'],
                 'company_id' => $student['company_id'],
@@ -105,58 +115,14 @@ class RegistrationController extends BaseController
                 'student_id' => $student['id'],
                 'advisor_id' => $advisor_id,
                 'collaborator_id' => $collaborator_id,
-                'company_name' => $company['name']
+                'company_name' => $company['name'],
+                'main_company_id' => $mainCompanyId,
             ];
+
             if ($bill && $company['name'] != 'SIN EMPRESA'){
-                $bill = $this->billService->updateBillingRegistrations($bill, $billData);
+                $bill->updateBillingRegistrations($billData);
             } else {
-                $bill = $this->billService->createBillingRegistrations($billData);
-            }
-
-            // Para crear las comisiones primero tenemos que asegurar que tiene una asesoría
-            if ($advisor_id) {
-                $advisorCommission = AdvisorCommission::where('commissionable_id', $bill->id)
-                    ->where('commissionable_type', 'App\Models\Bill')
-                    ->where('advisor_id', $advisor_id)
-                    ->first();
-
-                // Buscamos el curso de que pertenece esta matriculación
-                $course = Course::where('id' , $request['course_id'])
-                    ->first();
-                if ($course) {
-                    $commissionType = null;
-                    // Obtenemos la acción formativa para ver que origen tiene
-                    $trainingAction = TrainingAction::find($course->training_action_id);
-                    if ($trainingAction->course_origin_id) {
-                        // Vemos si existe un tipo de comisión con el nombre de origen
-                        $courseOrigin = CourseOrigin::find($trainingAction->course_origin_id);
-                        $commissionType = CommissionType::where('name', $courseOrigin->name)
-                            ->first();
-                    }
-                    // Si no existe ya miramos el tipo de curso para crear la comisión
-                    if (!$commissionType) {
-                        $courseType = CourseType::find($course->course_type_id);
-                        $commissionType = CommissionType::where('name', $courseType->name)
-                            ->first();
-                    }
-                    if ($commissionType) {
-                        $commissionData = [
-                            'advisor_id' => $advisor_id,
-                            'course_id' => $request['course_id'],
-                            'commissionable_id' => $bill->id,
-                            'commissionable_type' => 'App\Models\Bill',
-                            'commission_type_id' => $commissionType->id,
-                            'percentage' => $commissionType->percentage,
-                            'amount' => ($commissionType->percentage / 100) * $bill->billing,
-                            'bill_amount' => $bill->billing
-                        ];
-                        if ($advisorCommission) {
-                            $this->advisorCommissionService->update($advisorCommission, $commissionData);
-                        } else {
-                            $this->advisorCommissionService->create($commissionData);
-                        }
-                    }
-                }
+                $bill = Bill::createBillingRegistrations($billData);
             }
 
             // Vemos si existe la rentabilidad sino creamos otra
@@ -168,21 +134,25 @@ class RegistrationController extends BaseController
                 'total' => $request['price'],
                 'advisor_percentage' => $advisor_percentage,
                 'collaborator_percentage' => $collaborator_percentage,
-                'is_bonus' => $request['is_bonus']
+                'is_bonus' => $request['is_bonus'],
+                'main_company_id' => $mainCompanyId,
             ];
             if ($request->is_bonus) {
                 $profitabilityData['student_id'] = null;
                 $profitability = Profitability::select('profitabilities.*')->leftjoin('registrations', 'registrations.profitability_id', '=', 'profitabilities.id')
                     ->where('profitabilities.course_id', $request->course_id)
                     ->where('profitabilities.company_id', $request->company_id)
-                    ->where('registrations.is_bonus', $request->is_bonus)->first();
+                    ->where('registrations.is_bonus', $request->is_bonus)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
                 if ($profitability) {
-                    $profitability = $this->profitabilityService->updateRegistration($profitability, $profitabilityData);
+                    $profitability->updateRegistration($profitabilityData);
                 } else {
-                    $profitability = $this->profitabilityService->create($profitabilityData);
+                    $profitability = Profitability::createWithService($profitabilityData);
                 }
             } else {
-                $profitability = $this->profitabilityService->create($profitabilityData);
+                $profitability = Profitability::createWithService($profitabilityData);
             }
 
             // Creamos la matriculación junto con los datos de tareas y seguimiento
@@ -195,18 +165,21 @@ class RegistrationController extends BaseController
                 'price' => $request['price'],
                 'profitability_id' => $profitability['id'],
                 'is_bonus' => $request['is_bonus'],
-                'billing_id' => $bill->id
+                'billing_id' => $bill->id,
+                'main_company_id' => $mainCompanyId,
             ];
-            $registration = $this->registrationService->create($data);
+            $registration = Registration::createWithService($data);
+
             $student['registration_id'] = $registration->id;
 
         } catch (\Exception $e){
+            DB::rollBack();
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
+        DB::commit();
         return response()->json([
             'status' => 200,
             'registration' => $registration,
@@ -219,14 +192,19 @@ class RegistrationController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getRegistration($id){
-        $registration = Registration::find($id);
+    public function getRegistration($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $registration = Registration::where('id', $id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
+
             if ($registration) {
             Log::info($registration);
             return response()->json([
                 'status' => 200,
                 'registration' => $registration
-                
+
             ]);
         }
         return response()->json([
@@ -240,12 +218,27 @@ class RegistrationController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
-                $registration = Registration::find($id);
-                $student = Student::find($registration['student_id']);
-                $this->registrationService->destroy($registration);
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $registration = Registration::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+                if (!$registration) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Matriculación no existe'
+                    ]);
+                }
+
+                $student = Student::where('id', $registration['student_id'])
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                $registration->destroyRegistration();
+
                 return response()->json([
                     'status' => 200,
                     'student' => $student
@@ -263,9 +256,14 @@ class RegistrationController extends BaseController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getAllRegistrations() {
+    public function getAllRegistrations(Request $request) {
         try {
-            $registrations = Registration::with('course')->get();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $registrations = Registration::with('course')
+                ->FilterMainCompany($mainCompanyId)
+                ->get();
+
             return response()->json([
                 'status' => 200,
                 'registrations' => $registrations
@@ -287,12 +285,17 @@ class RegistrationController extends BaseController
     public function update(Request $request, $id)
     {
         try {
-            $registration = Registration::findOrFail($id);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $registration = Registration::where('id', $id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
+
             $registration->update($request->all());
-    
-            
-            $registration->load('company'); 
-    
+
+
+            $registration->load('company');
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Registration updated successfully',
@@ -306,5 +309,4 @@ class RegistrationController extends BaseController
             ], 500);
         }
     }
-
 }

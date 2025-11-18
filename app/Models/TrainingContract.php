@@ -4,9 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Services\TrainingContractService;
 
 class TrainingContract extends Model
@@ -67,7 +65,7 @@ class TrainingContract extends Model
         return $this->belongsTo(Province::class);
     }
 
-    public function scopeGetTrainingContracts($query)
+    public function scopeGetTrainingContracts($query, $mainCompanyId)
     {
         return $query->select(
             'training_contracts.*',
@@ -91,138 +89,18 @@ class TrainingContract extends Model
             ->leftjoin('on_leave_types', 'on_leave_types.id', '=', 'training_contracts.on_leave_type_id')
             ->leftjoin('advisors', 'advisors.id', '=', 'training_contracts.advisor_id')
             ->leftjoin('users', 'users.id', '=', 'training_contracts.collaborator_id')
-            ->leftjoin('occupations', 'occupations.id', '=', 'training_contracts.occupation_id');
+            ->leftjoin('occupations', 'occupations.id', '=', 'training_contracts.occupation_id')
+            ->where('training_contracts.main_company_id', $mainCompanyId);
     }
 
-    public static function createTrainingContract($data)
-    {
-        $training = TrainingContract::orderBy('id', 'desc')->first();
-        $id = $training ? $training->id + 1 : 1;
-        $number_cfa = str_pad($id, 4, '0', STR_PAD_LEFT);
-
-        $bonusYearOne = $data['bonus_hours_first_year'] ? $data['bonus_hours_first_year'] : 0;
-        $bonusYearTwo = $data['bonus_hours_second_year'] ? $data['bonus_hours_second_year'] : 0;
-
-        $trainingContract = TrainingContract::create([
-            'number_cfa' => $number_cfa,
-            'company_id' => $data['company_id'],
-            'student_id' => $data['student_id'],
-            'company_tutor' => $data['company_tutor'],
-            'company_tutor_dni' => $data['company_tutor_dni'],
-            'occupation_id' => $data['occupation_id'],
-            'center_of_work' => $data['center_of_work'],
-            'province_id' => $data['province_id'],
-            'beginning' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
-            'end' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
-            'beginning_formation' => $data['beginning_formation'] ? Carbon::createFromFormat('d-m-Y', $data['beginning_formation'])->format('Y-m-d') : null,
-            'end_formation' => $data['end_formation'] ? Carbon::createFromFormat('d-m-Y', $data['end_formation'])->format('Y-m-d') : null,
-            'annually_day_hours' => $data['annually_day_hours'],
-            'bonus_hours_first_year' =>  $bonusYearOne,
-            'bonus_hours_second_year' => $bonusYearTwo,
-            'training_schedule' => $data['training_schedule'],
-            'working_hours' => $data['working_hours'],
-            'complete_schedule' => $data['complete_schedule'],
-            'training_contract_status_id' => $data['training_contract_status_id'],
-            'on_leave_type_id' => $data['on_leave_type_id'],
-            'on_leave_date' => $data['on_leave_date'] ? Carbon::createFromFormat('d-m-Y', $data['on_leave_date'])->format('Y-m-d') : null,
-            'advisor_id' => $data['advisor_id'],
-            'collaborator_id' => $data['collaborator_id'],
-            'percentage_first_year' => $data['percentage_first_year'],
-            'percentage_second_year' => $data['percentage_second_year'],
-            'formative_hours_first_year' => $data['formative_hours_first_year'] ? $data['formative_hours_first_year'] : 0,
-            'formative_hours_second_year' => $data['formative_hours_second_year'] ? $data['formative_hours_second_year'] : 0,
-            'provider_id' => $data['provider_id'],
-            'disabled' => $data['disabled'],
-            'youth_guarantee' => $data['youth_guarantee'],
-            'social_exclusion' => $data['social_exclusion'],
-            'specialty' => $data['specialty'],
-            'professional_certificate' => $data['professional_certificate'],
-            'monday' => $data['monday'],
-            'tuesday' => $data['tuesday'],
-            'wednesday' => $data['wednesday'],
-            'thursday' => $data['thursday'],
-            'friday' => $data['friday'],
-            'saturday' => $data['saturday'],
-            'sunday' => $data['sunday'],
-            'total_hours' => $bonusYearOne + $bonusYearTwo,
-            'observations' => $data['observations'],
-            'daily_hours_1' => $data['daily_hours_1'],
-            'daily_hours_2' => $data['daily_hours_2'],
-            'bonification' => $data['bonification'] ?? false,
-        ]);
-        if (isset($data['excluded_day_id'])) {
-            $trainingContract->excludedDays()->sync($data['excluded_day_id']);
-        }
-
-        return $trainingContract;
-    }
-
-    /**
-     * Actualizamos los contratos de formación
-     * @param $id
-     * @param $data
-     * @return mixed
-     */
-    public static function updateTrainingContract($id, $data)
-    {
-        $bonusYearOne = $data['bonus_hours_first_year'] ? $data['bonus_hours_first_year'] : 0;
-        $bonusYearTwo = $data['bonus_hours_second_year'] ? $data['bonus_hours_second_year'] : 0;
-
-        $trainingContract = TrainingContract::find($id);
-        $trainingContract->update([
-            'company_id' => $data['company_id'],
-            'student_id' => $data['student_id'],
-            'company_tutor' => $data['company_tutor'],
-            'company_tutor_dni' => $data['company_tutor_dni'],
-            'occupation_id' => $data['occupation_id'],
-            'center_of_work' => $data['center_of_work'],
-            'province_id' => $data['province_id'],
-            'beginning' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
-            'end' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
-            'beginning_formation' => $data['beginning_formation'] ? Carbon::createFromFormat('d-m-Y', $data['beginning_formation'])->format('Y-m-d') : null,
-            'end_formation' => $data['end_formation'] ? Carbon::createFromFormat('d-m-Y', $data['end_formation'])->format('Y-m-d') : null,
-           // 'formation_hours' => $data['formation_hours'],
-            'annually_day_hours' => $data['annually_day_hours'],
-            'bonus_hours_first_year' =>  $bonusYearOne,
-            'bonus_hours_second_year' => $bonusYearTwo,
-            'training_schedule' => $data['training_schedule'],
-            'working_hours' => $data['working_hours'],
-            'complete_schedule' => $data['complete_schedule'],
-            'training_contract_status_id' => $data['training_contract_status_id'],
-            'on_leave_type_id' => $data['on_leave_type_id'],
-            'on_leave_date' => $data['on_leave_date'] ? Carbon::createFromFormat('d-m-Y', $data['on_leave_date'])->format('Y-m-d') : null,
-            'advisor_id' => $data['advisor_id'],
-            'collaborator_id' => $data['collaborator_id'],
-            'percentage_first_year' => $data['percentage_first_year'],
-            'percentage_second_year' => $data['percentage_second_year'],
-            'formative_hours_first_year' => $data['formative_hours_first_year'] ? $data['formative_hours_first_year'] : 0,
-            'formative_hours_second_year' => $data['formative_hours_second_year'] ? $data['formative_hours_second_year'] : 0,
-            'provider_id' => $data['provider_id'],
-            'disabled' => $data['disabled'],
-            'youth_guarantee' => $data['youth_guarantee'],
-            'social_exclusion' => $data['social_exclusion'],
-            'specialty' => $data['specialty'],
-            'professional_certificate' => $data['professional_certificate'],
-            'monday' => $data['monday'],
-            'tuesday' => $data['tuesday'],
-            'wednesday' => $data['wednesday'],
-            'thursday' => $data['thursday'],
-            'friday' => $data['friday'],
-            'saturday' => $data['saturday'],
-            'sunday' => $data['sunday'],
-            'total_hours' => $bonusYearOne + $bonusYearTwo,
-            'observations' => $data['observations'],
-            'daily_hours_1' => $data['daily_hours_1'],
-            'daily_hours_2' => $data['daily_hours_2'],
-            'bonification' => $data['bonification'] ?? $trainingContract->bonification,
-        ]);
-        return $trainingContract;
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('training_contracts.main_company_id', $mainCompanyId);
     }
 
     public function calculateHours()
     {
         $service = app(TrainingContractService::class);
-        return $service->calculateHours($this->id);
+        return $service->calculateHours($this);
     }
 
     public function calculateMonthlyFormationHours()
@@ -235,5 +113,21 @@ class TrainingContract extends Model
     {
         $service = app(TrainingContractService::class);
         return $service->updateContractDates($this, $total_hours, $bonus_hours_first_year, $bonus_hours_second_year, $daily_hours_1, $daily_hours_2);
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(TrainingContractService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(TrainingContractService::class);
+        return $service->update($this, $data);
+    }
+
+    public function updateDocumentClause($data){
+        $service = app(TrainingContractService::class);
+        return $service->updateDocumentClause($this, $data);
     }
 }

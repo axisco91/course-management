@@ -197,6 +197,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('', 'store');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
+            Route::get('send-email/{id}', 'sendEmail');
             Route::get('convert-advisor/{id}', 'convertAdvisor');
             Route::get('check-nif/{nif}', 'checkNif');
             Route::get('active', 'getActiveAdvisors');
@@ -718,8 +719,17 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     /**
-     * CFA
+     * Calendario
      */
+    Route::prefix('calendar')->group(function() {
+        Route::controller(\App\Http\Controllers\Api\CalendarController::class)->group(function(){
+            Route::get('', 'index');
+        });
+    });
+
+    /**
+     * CFA
+//     */
     Route::prefix('training-contracts')->group(function() {
         Route::controller(TrainingContractController::class)->group(function(){
             Route::get('', 'index');
@@ -758,12 +768,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('registrations')->group(function() {
         Route::controller(RegistrationController::class)->group(function(){
             Route::post('', 'create');
-            Route::put('{id}', 'edit');
+            Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::get('get-registered/{id}', 'getRegistrations');
             Route::get('get-not-registered/{id}', 'getNotRegistered');
             Route::get('get-all', 'getAllRegistrations');
-            Route::put('update/{id}', 'update');
             Route::get('{id}', 'getRegistration');
         });
     });
@@ -1072,7 +1081,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('advisor-commissions')->group(function() {
         Route::controller(AdvisorCommissionController::class)->group(function(){
             Route::get('get/{id}', 'show');
-            Route::post('{id}', 'update');
+            Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::get('{id}', 'index');
         });
@@ -1108,7 +1117,7 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('user-commission-types')->group(function() {
         Route::controller(UserCommissionTypeController::class)->group(function(){
-            Route::post('update', 'update');
+            Route::post('', 'update');
             Route::get('{id}', 'index');
         });
     });
@@ -1131,6 +1140,26 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('', 'index');
         });
     });
+
+    /**
+     * Documentos
+     */
+    Route::prefix('document-students')->group(function() {
+        Route::controller(DocumentStudentController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('/test-pdf/{viewName}/{trainingContract}/{orientation?}', 'testPDF');
+        });
+    });
+
+    Route::prefix('liquidations')->group(function() {
+        Route::controller(LiquidationController::class)->group(function(){
+            Route::get('', 'index');
+            Route::get('{id}', 'show');
+            Route::post('', 'create');
+            Route::put('{id}', 'edit');
+            Route::delete('{id}', 'destroy');
+        });
+    });
 });
 
 
@@ -1141,16 +1170,6 @@ Route::prefix('professional-categories')->group(function() {
     Route::controller(ProfessionalCategoryController::class)->group(function(){
         Route::get('', 'professionalCategories');
         Route::get('{id}', 'getProfessionalCategories');
-        Route::post('', 'create');
-        Route::put('{id}', 'edit');
-        Route::delete('{id}', 'destroy');
-    });
-});
-
-Route::prefix('liquidations')->group(function() {
-    Route::controller(LiquidationController::class)->group(function(){
-        Route::get('', 'index');
-        Route::get('{id}', 'show');
         Route::post('', 'create');
         Route::put('{id}', 'edit');
         Route::delete('{id}', 'destroy');
@@ -1228,17 +1247,15 @@ Route::prefix('cnaes')->group(function() {
  */
 Route::prefix('document-students')->group(function() {
     Route::controller(DocumentStudentController::class)->group(function(){
-        Route::get('', 'index');
         Route::post('', 'store');
         Route::delete('{id}', 'destroy');
         Route::get('send', 'send');
         Route::get('/studentViewPdf/{key}/{viewName}/{trainingContract}', 'DocumentStudentController@studentViewPdf');
         Route::post('sign-pdf', 'signPDF');
-        Route::get('/test-pdf/{viewName}/{trainingContract}/{orientation?}', 'testPDF');
         Route::get('/test-pdf-factura/{viewName}/{trainingContractBill}/{orientation?}', 'testPdfFactura');
         Route::post('generate-invoices', 'generateInvoices');
         Route::post('{id}', 'update');
-        Route::get('{id}', 'show');
+       // Route::get('{id}', 'show');
     });
 });
 

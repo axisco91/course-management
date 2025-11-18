@@ -1,27 +1,21 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Helpers\MoodleHelpers;
 use App\Models\Course;
 use App\Models\CourseStatus;
 use App\Models\Student;
 use App\Models\Tracing;
+use App\Models\TrainingAction;
 use App\Models\User;
-use App\Services\TracingService;
+use App\Models\WebPlatform;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TracingController extends BaseController
 {
-
-    private $tracingService;
-
-    public function __construct(TracingService $tracingService)
-    {
-        $this->tracingService = $tracingService;
-    }
-
     /**
      * Obtener los seguimientos
      * @return \Illuminate\Http\JsonResponse
@@ -29,14 +23,18 @@ class TracingController extends BaseController
     public function index(Request $request)
     {
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $start = \Illuminate\Support\Carbon::now();
             $number_days = 5;
             if ($start->dayOfWeek >= 2)
                 $number_days = 7;
             $start = $start->addDays($number_days);
-            $tracings = Tracing::tracing();
+            $tracings = Tracing::tracing($mainCompanyId);
 
-            $user = User::find(Auth::id());
+            $user = User::where('id', Auth::id())
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
             if ($user->teacher_id) {
                  $tracings = $tracings->where('courses.teacher_id', $user->teacher_id);
             }
@@ -105,8 +103,6 @@ class TracingController extends BaseController
 
             }
 
-
-
             return $tracings;
         } catch (\Exception $e) {
             \Log::error("Error in index method: " . $e->getMessage());
@@ -117,50 +113,68 @@ class TracingController extends BaseController
         }
     }
 
-    public function show($id){
-        $tracing = Tracing::tracing()
+    public function show($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $tracing = Tracing::tracing($mainCompanyId)
             ->where('tracings.id', $id)
             ->first();
+
         if ($tracing) {
-            $course = Course::where('id', $tracing->course_id)->first();
-            $student = Student::where('id', $tracing->student_id)->first();
+            $course = Course::where('id', $tracing->course_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            $student = Student::where('id', $tracing->student_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
 
             $parts = explode(' - ', $course->name);
             $code = trim($parts[0]);
             $tracing['name'] = $course->group.'/'. $course->name .' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
 
-            $moodleCourse = MoodleHelpers::getCourseByShortname($code.'/'.$course->group);
+            $trainingAction = TrainingAction::where('id', $course->training_action_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
 
-            if (!empty($moodleCourse)) {
-                $courseData = MoodleHelpers::getActivityCount($moodleCourse[0]['id']);
-                $tracing['number_activities'] = $courseData['assignmentCount'];
-                $tracing['number_units'] = $courseData['normalScormCount'];
-             //   $tracing['number_questions'] = $courseData['questionCount'];
+            if ($trainingAction->web_platform_id) {
+                $webPlatform = WebPlatform::where('id', $trainingAction->web_platform_id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
 
-                $endTime = Carbon::createFromTimestamp($tracing->end);
-                $currentTime = Carbon::now();
+                $moodleCourse = MoodleHelpers::getCourseByShortname($code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
 
-                $courseData = MoodleHelpers::getStudentCourseDetails($moodleCourse[0]['id'], $student->user);
-                $tracing['performed_activities'] = $courseData['finishedActivities'];
-                $tracing['last_connection'] = $courseData['lastAccess'];
-                $tracing['performed_units'] = $courseData['unitsViewed'];
-                $tracing['performed_hours'] = $courseData['totalTime'];
-                $tracing['final_test'] = $courseData['evaluationFinalDone'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
-                $tracing['questionnaire'] = $courseData['cuestionar'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
+                if (!empty($moodleCourse)) {
+                    $courseData = MoodleHelpers::getActivityCount($moodleCourse['id'], $webPlatform->url, $webPlatform->token);
+                    $tracing['number_activities'] = $courseData['assignmentCount'];
+                    $tracing['number_units'] = $courseData['normalScormCount'];
+                    //   $tracing['number_questions'] = $courseData['questionCount'];
 
-                if ($tracing->final_test === 0) {
-                    $tracing['final_test_name'] = 'Pendiente';
-                } else if ($tracing->final_test === 1) {
-                    $tracing['final_test_name'] = 'Realizado';
-                } else if ($tracing->final_test === 2) {
-                    $tracing['final_test_name'] = 'No realizado';
-                }
-                if ($tracing->questionnaire === 0) {
-                    $tracing['questionnaire_name'] = 'Pendiente';
-                } else if ($tracing->questionnaire === 1) {
-                    $tracing['questionnaire_name'] = 'Realizado';
-                } else if ($tracing->questionnaire === 2) {
-                    $tracing['questionnaire_name'] = 'No realizado';
+                    $endTime = Carbon::createFromTimestamp($tracing->end);
+                    $currentTime = Carbon::now();
+
+                    $courseData = MoodleHelpers::getStudentCourseDetails($moodleCourse['id'], $student->user, $webPlatform->url, $webPlatform->token);
+                    $tracing['performed_activities'] = $courseData['finishedActivities'];
+                    $tracing['last_connection'] = $courseData['lastAccess'];
+                    $tracing['performed_units'] = $courseData['unitsViewed'];
+                    $tracing['performed_hours'] = $courseData['totalTime'];
+                    $tracing['final_test'] = $courseData['evaluationFinalDone'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
+                    $tracing['questionnaire'] = $courseData['cuestionar'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
+
+                    if ($tracing->final_test === 0) {
+                        $tracing['final_test_name'] = 'Pendiente';
+                    } else if ($tracing->final_test === 1) {
+                        $tracing['final_test_name'] = 'Realizado';
+                    } else if ($tracing->final_test === 2) {
+                        $tracing['final_test_name'] = 'No realizado';
+                    }
+                    if ($tracing->questionnaire === 0) {
+                        $tracing['questionnaire_name'] = 'Pendiente';
+                    } else if ($tracing->questionnaire === 1) {
+                        $tracing['questionnaire_name'] = 'Realizado';
+                    } else if ($tracing->questionnaire === 2) {
+                        $tracing['questionnaire_name'] = 'No realizado';
+                    }
                 }
             }
 
@@ -228,12 +242,24 @@ class TracingController extends BaseController
      */
     public function update($id, Request $request){
         try {
-            $tracing = Tracing::find($id);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $tracing = Tracing::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$tracing) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Seguimiento no encontrado'
+                ]);
+            }
+
             $data = $request->all();
-            $element = $this->tracingService->update($tracing, $data);
-            $tracing = Tracing::tracing()
+            $element = $tracing->updateWithService($data);
+            $tracing = Tracing::tracing($mainCompanyId)
                 ->where('tracings.id', $element->id)
                 ->first();
+
             if ($tracing) {
                 if ($tracing->final_test === 0) {
                     $tracing['final_test_name'] = 'Pendiente';
@@ -249,8 +275,13 @@ class TracingController extends BaseController
                 } else if ($tracing->questionnaire === 2) {
                     $tracing['questionnaire_name'] = 'No realizado';
                 }
-                $course = Course::where('id', $tracing->course_id)->first();
-                $student = Student::where('id', $tracing->student_id)->first();
+                $course = Course::where('id', $tracing->course_id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+                $student = Student::where('id', $tracing->student_id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
                 $tracing['name'] = $course->group . '/' . $course->name . ' - ' . $student->name . ' ' . Carbon::parse($course->beginning)->format('d/m/Y') . ' - ' . Carbon::parse($course->end)->format('d/m/Y');
             }
             return response()->json([
@@ -270,9 +301,22 @@ class TracingController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $tracing = Tracing::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if (!$tracing) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Seguimiento no encontrado'
+                    ]);
+                }
+
                 Tracing::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -293,7 +337,8 @@ class TracingController extends BaseController
      */
     public function tracingsCSV(Request $request){
         try {
-            $tracings = Tracing::tracing();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $tracings = Tracing::tracing($mainCompanyId);
             if ($request->course) {
                 $tracings = $tracings->where('courses.id', $request->course);
             }

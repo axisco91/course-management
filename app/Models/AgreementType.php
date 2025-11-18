@@ -12,5 +12,7 @@ class AgreementType extends Model
     protected $fillable = [
         'type',
         'description',
+        'applicable_agreement_id',
+        'main_company_id'
     ];
 }

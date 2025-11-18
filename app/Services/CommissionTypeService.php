@@ -15,7 +15,8 @@ class CommissionTypeService
     {
         return CommissionType::create([
             'name' => $data['name'],
-            'percentage' => $data['percentage']
+            'percentage' => $data['percentage'],
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 

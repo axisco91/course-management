@@ -2,37 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Requests\TrainingActionRequests;
-use App\Mail\PotentialPrivateStudent as PotentialPrivateEmail;
+use App\Helpers\GeneralHelpers;
 use App\Mail\SignDocument;
-use App\Models\Course;
 use App\Models\Document;
 use App\Models\DocumentStudent;
 use App\Models\Student;
-use App\Models\TrainingAction;
-use App\Models\User;
-use App\Services\DocumentService;
-use App\Services\DocumentStudentService;
-use App\Services\TrainingActionService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use Mockery\Exception;
 use Barryvdh\DomPDF\Facade\Pdf;
-use setasign\Fpdi\Fpdi;
 use Illuminate\Support\Facades\Log;
 use App\Models\TrainingContract;
 use App\Models\Occupation;
 use App\Models\Company;
-use App\Models\CompanyActivity;
-use App\Models\LevelStudy;
-use App\Models\Province;
 use App\Models\TrainingContractElement;
-use App\Models\WebPlatform;
-use App\Models\ApplicableAgreement;
-use App\Models\AgreementType;
 use App\Models\TrainingContractBonus;
 use App\Models\CompanyType;
 use App\Models\TrainingContractSeries;
@@ -40,19 +23,16 @@ use App\Models\TrainingContractBill;
 use ZipArchive;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DocumentStudentController extends BaseController
 {
-    private $documentStudentService;
-
-    public function __construct(DocumentStudentService $documentStudentService)
-    {
-        $this->documentStudentService = $documentStudentService;
-    }
-
     public function index(Request $request)
     {
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $contractId = $request->training_contract_id;
             $documents = Document::select('documents.*', 'document_students.signed as signed', 'document_students.date_signed as date_signed', 'document_students.key as student_key')
                 ->leftJoin('document_students', function ($join) use ($contractId) {
@@ -61,6 +41,7 @@ class DocumentStudentController extends BaseController
                 })
                 ->join('document_types', 'document_types.id', '=', 'documents.document_type_id')
                 ->where('document_types.name', 'Contratos')
+                ->FilterMainCompany($mainCompanyId)
                 ->get();
             return response()->json($documents);
         } catch (\Exception $e) {
@@ -69,135 +50,57 @@ class DocumentStudentController extends BaseController
         }
     }
 
-    public function store(TrainingActionRequests $request){
-        try {
-            $data = $request->all();
-            $element = $this->trainingActionService->create($data);
-            $trainingAction = TrainingAction::trainingAction()
-                ->where('training_actions.id', $element->id)
-                ->first();
-            $course = Course::where('training_action_id', $trainingAction->id)->first();
-            if ($course) {
-                $trainingAction['used'] = true;
-            } else {
-                $trainingAction['used'] = false;
-            }
-            return response()->json([
-                'status' => 200,
-                'training_action' => $trainingAction
-            ]);
-        } catch (\Exception $e){
-            return response()->json([
-                'status' => 400,
-                'message' => $e->getMessage()
-            ]);
-        }
-    }
-
-    public function update($id, TrainingActionRequests $request){
-        try {
-            $data = $request->all();
-            $trainingAction = TrainingAction::find($id);
-            $element = $this->trainingActionService->update($trainingAction, $data);
-            $trainingAction = TrainingAction::trainingAction()
-                ->where('training_actions.id', $element->id)
-                ->first();
-            $course = Course::where('training_action_id', $trainingAction->id)->first();
-            if ($course) {
-                $trainingAction['used'] = true;
-            } else {
-                $trainingAction['used'] = false;
-            }
-            return response()->json([
-                'status' => 200,
-                'training_action' => $trainingAction
-            ]);
-        } catch (\Exception $e){
-            return response()->json([
-                'status' => 400,
-                'message' => $e->getMessage()
-            ]);
-        }
-    }
-
-    public function show($id){
-        $trainingAction = TrainingAction::trainingAction()
-            ->where('training_actions.id', $id)
-            ->first();
-        $course = Course::where('training_action_id', $trainingAction->id)->first();
-        if ($course) {
-            $trainingAction['used'] = true;
-        } else {
-            $trainingAction['used'] = false;
-        }
-        if ($trainingAction) {
-            return response()->json([
-                'status' => 200,
-                'training_action' => $trainingAction
-            ]);
-        }
-        return response()->json([
-            'status' => 400,
-            'message' => 'Acción Formativa no existe'
-        ]);
-    }
-
-    public function destroy($id){
-        if ($id) {
-            try {
-                TrainingAction::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'status' => 400,
-                    'message' => $e->getMessage()
-                ]);
-            }
-        }
-    }
-
     public function send(Request $request)
     {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
         Log::info('send method called with request: ', $request->all());
 
         try {
-            $student = Student::findOrFail($request->student_id);
-            Log::info('Student found with id: ' . $request->student_id);
+            $student = Student::where('id', $request->student_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->firstOrFail();
 
-            $documentStudent = DocumentStudent::firstOrNew([
-                'document_id' => $request->document_id,
-                'student_id' => $request->student_id,
-                'training_contract_id' => $request->training_contract_id
-            ]);
+            if ($student) {
+                Log::info('Student found with id: ' . $request->student_id);
 
-            if (!$documentStudent->exists) {
-                $document = Document::findOrFail($request->document_id);
-                Log::info('Document found with id: ' . $request->document_id);
+                $documentStudent = DocumentStudent::firstOrNew([
+                    'document_id' => $request->document_id,
+                    'student_id' => $request->student_id,
+                    'training_contract_id' => $request->training_contract_id,
+                    'main_company_id' => $mainCompanyId,
+                ]);
 
-                $documentStudent->fill([
-                    'name' => $document->name . '_' . $student->name . '_' . $student->surname,
-                    'document_name' => 'pdf/' . $document->name . '_' . $student->name . '_' . $student->surname . '.pdf'
-                ])->save();
+                if (!$documentStudent->exists) {
+                    $document = Document::findOrFail($request->document_id);
+                    Log::info('Document found with id: ' . $request->document_id);
+
+                    $documentStudent->fill([
+                        'name' => $document->name . '_' . $student->name . '_' . $student->surname,
+                        'document_name' => 'pdf/' . $document->name . '_' . $student->name . '_' . $student->surname . '.pdf'
+                    ])->save();
+                }
+
+                Mail::to($student->email)->send(new SignDocument($documentStudent->name, $documentStudent->key));
+                Log::info('Mail sent to: ' . $student->email);
+
+                return response()->json(['status' => 200]);
             }
-
-            Mail::to($student->email)->send(new SignDocument($documentStudent->name, $documentStudent->key));
-            Log::info('Mail sent to: ' . $student->email);
-
-            return response()->json(['status' => 200]);
         } catch (\Exception $e) {
             Log::error('Error in send method: ' . $e->getMessage());
             return response()->json(['status' => 400, 'message' => 'Error al enviar correo: ' . $e->getMessage()], 400);
         }
     }
 
-    public function studentViewPdf($key, $viewName, TrainingContract $trainingContract)
+    public function studentViewPdf($key, $viewName, TrainingContract $trainingContract, Request $request)
     {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
         Log::info('studentViewPdf method called with key: ' . $key);
 
         try {
-            $documentStudent = DocumentStudent::where('key', $key)->firstOrFail();
+            $documentStudent = DocumentStudent::where('key', $key)
+                ->FilterMainCompany($mainCompanyId)
+                ->firstOrFail();
+
             Log::info('DocumentStudent found with key: ' . $key);
 
             if ($documentStudent->date_signed) {
@@ -209,7 +112,7 @@ class DocumentStudentController extends BaseController
                 ]);
             }
 
-            $data = $this->prepareDataForPdf($trainingContract);
+            $data = $this->prepareDataForPdf($trainingContract, $mainCompanyId);
 
             $pdf = PDF::loadView($viewName, $data);
             Log::info('PDF generated from view');
@@ -233,7 +136,11 @@ class DocumentStudentController extends BaseController
     public function signPdf(Request $request)
     {
         try {
-            $documentStudent = DocumentStudent::where('key', $request->key)->firstOrFail();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $documentStudent = DocumentStudent::where('key', $request->key)
+                ->FilterMainCompany($mainCompanyId)
+                ->firstOrFail();
             $existingPdfPath = 'public/' . $documentStudent->document_name;
 
             if (Storage::exists($existingPdfPath)) {
@@ -264,7 +171,7 @@ class DocumentStudentController extends BaseController
         }
     }
 
-    private function prepareDataForPdf(TrainingContract $trainingContract)
+    private function prepareDataForPdf(TrainingContract $trainingContract, $mainCompanyId)
     {
         $trainingContract->load([
             'provider',
@@ -277,10 +184,10 @@ class DocumentStudentController extends BaseController
             'trainingContractExcludedDays'
         ]);
 
-        $elements = TrainingContractElement::getTrainingContractElements($trainingContract->id);
+        $elements = TrainingContractElement::getTrainingContractElements($trainingContract->id, $mainCompanyId);
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)['monthly_formation_hours'];
 
-        $bonus = TrainingContractBonus::getBonuses($trainingContract->id);
+        $bonus = TrainingContractBonus::getBonuses($trainingContract->id, $mainCompanyId);
         $companyType = CompanyType::find($trainingContract->company->company_type_id);
 
         $dias = $this->calculateWorkingDays($trainingContract);
@@ -339,13 +246,15 @@ class DocumentStudentController extends BaseController
                 ];
             });
     }
-    public function testPdf($viewName, TrainingContract $trainingContract, $orientation = 'portrait')
+    public function testPdf(Request $request, $viewName, TrainingContract $trainingContract, $orientation = 'portrait')
     {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
         ini_set('memory_limit', '512M');
         ini_set('max_execution_time', 300);
 
         try {
-            $data = $this->prepareDataForPdf($trainingContract);
+            $data = $this->prepareDataForPdf($trainingContract, $mainCompanyId);
 
             // Verifica si todas las variables necesarias están presentes
             Log::info('Data prepared for PDF:', array_keys($data));
@@ -366,12 +275,13 @@ class DocumentStudentController extends BaseController
         }
     }
 
-    public function generatePdf($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait')
+    public function generatePdf($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait', Request $request)
     {
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $this->updateBillNumber($trainingContractBill);
 
-            $data = $this->prepareDataForBill($trainingContractBill);
+            $data = $this->prepareDataForBill($trainingContractBill, $mainCompanyId);
 
             $pdf = PDF::loadView($viewName, $data);
 
@@ -405,7 +315,7 @@ class DocumentStudentController extends BaseController
         }
     }
 
-    private function prepareDataForBill(TrainingContractBill $trainingContractBill)
+    private function prepareDataForBill(TrainingContractBill $trainingContractBill, $mainCompanyId)
     {
         $trainingContractBill->load('provider');
         $trainingContract = TrainingContract::find($trainingContractBill->training_contract_id);
@@ -418,7 +328,9 @@ class DocumentStudentController extends BaseController
         $dias = [];
         $elements = null;
         if ($trainingContract) {
-            $elements = TrainingContractElement::where('training_contract_id', $trainingContract->id)->get();
+            $elements = TrainingContractElement::where('training_contract_id', $trainingContract->id)
+                ->FilterMainCompany($mainCompanyId)
+                ->get();
 
             if ($trainingContract->monday)    $dias[] = "Lunes";
             if ($trainingContract->tuesday)   $dias[] = "Martes";
@@ -431,15 +343,17 @@ class DocumentStudentController extends BaseController
 
         $fechaActual = \Carbon\Carbon::now()->format('d-m-Y');
 
-        $bonus = TrainingContractBonus::where('training_contract_id', $trainingContract->id)->get();
+        $bonus = TrainingContractBonus::where('training_contract_id', $trainingContract->id)
+            ->FilterMainCompany($mainCompanyId)
+            ->get();
 
         return compact('trainingContractBill', 'trainingContract', 'trainingContractSeries', 'occupation', 'company', 'student', 'trainingContractBonus', 'elements', 'dias', 'fechaActual', 'bonus');
     }
 
-    public function testPdfFactura($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait')
+    public function testPdfFactura($viewName, TrainingContractBill $trainingContractBill, $orientation = 'portrait', Request $request)
     {
         try {
-            $pdf = $this->generatePdf($viewName, $trainingContractBill, $orientation);
+            $pdf = $this->generatePdf($viewName, $trainingContractBill, $orientation, $request);
             return $pdf->download('test.pdf');
         } catch (\Exception $e) {
             Log::error('Error in testPdfFactura method: ' . $e->getMessage());
@@ -452,6 +366,7 @@ class DocumentStudentController extends BaseController
 
 
     public function generateInvoices(Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
         ini_set('max_execution_time', 300); // Aumenta el tiempo máximo de ejecución si es necesario
 
         $zip = new ZipArchive;
@@ -466,6 +381,7 @@ class DocumentStudentController extends BaseController
 
         do {
             $bills = TrainingContractBill::whereIn('id', $billIds)
+                ->FilterMainCompany($mainCompanyId)
                 ->orderBy('year', 'asc')
                 ->orderBy('month', 'asc')
                 ->orderBy('training_contract_id', 'asc')

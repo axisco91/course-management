@@ -1,16 +1,17 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\TrainingUnit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class TrainingUnitController extends BaseController
 {
-    public function trainingUnits() {
+    public function trainingUnits(Request $request) {
         try {
-            return TrainingUnit::getTrainingUnits();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            return TrainingUnit::getTrainingUnits($mainCompanyId);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -20,7 +21,11 @@ class TrainingUnitController extends BaseController
 
     public function create(Request $request){
         try {
-            $training_unit = TrainingUnit::createTrainingUnit($request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $data = $request->all();
+            $data['main_company_id'] = $mainCompanyId;
+
+            $training_unit = TrainingUnit::creatWithService($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -30,32 +35,57 @@ class TrainingUnitController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'training_unit' => TrainingUnit::getTrainingUnit($training_unit->id)
+            'training_unit' => TrainingUnit::getTrainingUnit($training_unit->id, $mainCompanyId)
         ]);
     }
 
     public function edit($id, Request $request){
         try {
-            $training_unit = TrainingUnit::updateTrainingUnit($id, $request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $trainingUnit = TrainingUnit::where('id', $id)
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
+            if (!$trainingUnit) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Unidad no encontrada'
+                ]);
+            }
+
+            $trainingUnit->updateWithService($request);
+
+            return response()->json([
+                'status' => 200,
+                'training_unit' => TrainingUnit::getTrainingUnit($trainingUnit->id, $mainCompanyId)
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'training_unit' => TrainingUnit::getTrainingUnit($training_unit->id)
-        ]);
     }
 
-    public function getTrainingUnit($id){
-        $training_unit = TrainingUnit::find($id);
-        if ($training_unit) {
+    public function getTrainingUnit($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $trainingUnit = TrainingUnit::where('id', $id)
+            ->where('main_company_id', $mainCompanyId)
+            ->first();
+
+        if (!$trainingUnit) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Unidad no encontrada'
+            ]);
+        }
+
+        if ($trainingUnit) {
             return response()->json([
                 'status' => 200,
-                'training_unit' => $training_unit
+                'training_unit' => $trainingUnit
             ]);
         }
         return response()->json([
@@ -64,9 +94,22 @@ class TrainingUnitController extends BaseController
         ]);
     }
 
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $trainingUnit = TrainingUnit::where('id', $id)
+                    ->where('main_company_id', $mainCompanyId)
+                    ->first();
+
+                if (!$trainingUnit) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Unidad no encontrada'
+                    ]);
+                }
+
                 TrainingUnit::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -80,7 +123,8 @@ class TrainingUnitController extends BaseController
         }
     }
 
-    public function count(){
-        return TrainingUnit::count();
+    public function count(Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        return TrainingUnit::FilterMainCompany($mainCompanyId)->count();
     }
 }

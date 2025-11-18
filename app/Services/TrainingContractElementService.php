@@ -45,7 +45,8 @@ class TrainingContractElementService
             'order' => $data['order'] ?? null,
             'course_id' => $data['course_id'] ?? null,
             'training_tutor' => $tutorName,
-            'training_tutor_dni' => $tutorDNI
+            'training_tutor_dni' => $tutorDNI,
+            'main_company_id' => $data['main_company_id'],
         ]);
     }
 
@@ -91,10 +92,10 @@ class TrainingContractElementService
                     'certification_id' => $elementId,
                 //    'beginning' => $beginning,
                 //    'end' => $end,
-                    'order' => $highestOrder+1
+                    'order' => $highestOrder+1,
+                    'main_company_id' => $data['main_company_id'],
                 ];
-                $this->create($elementData);
-                return $trainingContractElement;
+                return $this->create($elementData);
             }
         } else if ($type == 'training_action_id') {
             $trainingContractElement = TrainingContractElement::where('training_action_id', $elementId)
@@ -111,7 +112,8 @@ class TrainingContractElementService
                   //  'end' => $end,
                     'training_tutor' => $trainingAction->training_tutor,
                     'training_tutor_dni' => $trainingAction->training_tutor_dni,
-                    'order' => $highestOrder+1
+                    'order' => $highestOrder+1,
+                    'main_company_id' => $data['main_company_id']
                 ];
                 $trainingContractElement = $this->create($elementData);
             }
@@ -124,7 +126,6 @@ class TrainingContractElementService
             $trainingContractElement->total_days = $totalDays;
             $trainingContractElement->save();
         }
-
 
         $trainingContract->update([
             'formation_hours' => $trainingContract['formation_hours'] + $hours
@@ -140,6 +141,29 @@ class TrainingContractElementService
             'training_tutor' => $data['training_tutor'],
             'training_tutor_dni' => $data['training_tutor_dni']
         ]);
+        return $trainingContractElement;
+    }
+
+    /**
+     * Función para editar las fechas
+     */
+    public function updateDates(TrainingContractElement $trainingContractElement, array $data) {
+        $beginning = $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null;
+        $end = $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null;
+        $trainingContractElement->update([
+            'beginning' => $beginning,
+            'end' =>  $end,
+        ]);
+
+        if ($trainingContractElement->course_id && $beginning && $end) {
+            $course = Course::find($trainingContractElement->course_id);
+
+            if ($course) {
+                $course->courseDates($beginning, $end);
+                $course->updateDatesWithService($data);
+            }
+        }
+
         return $trainingContractElement;
     }
 

@@ -2,20 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\AdvisorCommission;
+use App\Helpers\GeneralHelpers;
 use App\Models\CommissionType;
-use App\Services\AdvisorCommissionService;
-use App\Services\CommissionTypeService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CommissionTypeController extends BaseController
 {
-    private $commissionTypeService;
-
-    public function __construct(CommissionTypeService $commissionTypeService)
-    {
-        $this->commissionTypeService = $commissionTypeService;
-    }
 
     /**
      * Obtener tipo comisiones
@@ -23,7 +16,8 @@ class CommissionTypeController extends BaseController
      */
     public function index(Request $request) {
         try {
-            $commissionTypes = CommissionType::all();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $commissionTypes = CommissionType::FilterMainCompany($mainCompanyId)->get();
 
             return $commissionTypes;
         } catch (\Exception $e) {
@@ -40,8 +34,11 @@ class CommissionTypeController extends BaseController
      */
     public function create(Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-            $commissionType = $this->commissionTypeService->create($data);
+            $data['main_company_id'] = $mainCompanyId;
+
+            $commissionType = CommissionType::createWithService($data);
             return response()->json([
                 'status' => 200,
                 'commission_type' => $commissionType
@@ -62,9 +59,19 @@ class CommissionTypeController extends BaseController
      */
     public function update($id, Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-            $commissionType = CommissionType::find($id);
-            $commissionType = $this->commissionTypeService->update($commissionType, $data);
+            $commissionType = CommissionType::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+            if (!$commissionType){
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Tipo no encontrado'
+                ]);
+            }
+
+            $commissionType = $commissionType->updateWithService($data);
             return response()->json([
                 'status' => 200,
                 'commission_type' => $commissionType
@@ -82,8 +89,12 @@ class CommissionTypeController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function show($id){
-        $commissionType = CommissionType::find($id);
+    public function show($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $commissionType = CommissionType::where('id', $id)
+            ->FilterMainCompany($mainCompanyId);
+
         if ($commissionType) {
             return response()->json([
                 'status' => 200,
@@ -101,9 +112,21 @@ class CommissionTypeController extends BaseController
      * @param $id
      * @return int|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $commissiontype = CommissionType::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if (!$commissiontype){
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Tipo no encontrado'
+                    ]);
+                }
                 CommissionType::destroy($id);
                 return response()->json([
                     'status' => 200

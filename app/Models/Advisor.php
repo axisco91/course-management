@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AdvisorService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ class Advisor extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3', 'nif', 'company_type_id', 'company_activity_id', 'email', 'telephone', 'legal_representative', 'dni_legal_representative', 'cnae_id', 'iban', 'sepa', 'b2b', 'address', 'post_code', 'population_id', 'province_id', 'population', 'active', 'collaborator_id', 'user_id'];
+    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3', 'nif', 'company_type_id', 'company_activity_id', 'email', 'telephone', 'legal_representative', 'dni_legal_representative', 'cnae_id', 'iban', 'sepa', 'b2b', 'address', 'post_code', 'population_id', 'province_id', 'population', 'active', 'collaborator_id', 'user_id', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -46,7 +47,7 @@ class Advisor extends Model
         return $this->hasMany(AdvisorCommission::class);
     }
 
-    public function scopeGetAdvisor($query) {
+    public function scopeGetAdvisor($query, $mainCompanyId) {
         return $query->select('advisors.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province', 'advisors.id as value', 'advisors.name as label', 'companies.quote as quote', 'companies.average_template as average_template', 'users.id as collaborator_id',
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"))
@@ -55,7 +56,12 @@ class Advisor extends Model
             ->leftjoin('cnaes', 'cnaes.id', '=', 'advisors.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'advisors.province_id')
             ->leftjoin('companies', 'companies.id', '=', 'advisors.company_id')
-            ->leftjoin('users', 'users.id', '=', 'advisors.collaborator_id');
+            ->leftjoin('users', 'users.id', '=', 'advisors.collaborator_id')
+            ->where('advisors.main_company_id', $mainCompanyId);
+    }
+
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('advisors.main_company_id', $mainCompanyId);
     }
 
     public static function findNif($nif, $id = null){
@@ -65,5 +71,32 @@ class Advisor extends Model
         }
         $advisor = $advisor->first();
         return $advisor;
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(AdvisorService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(AdvisorService::class);
+        return $service->update($this, $data);
+    }
+
+    public static function convertAdvisor($id)
+    {
+        $service = app(AdvisorService::class);
+        return $service->convertAdvisor($id);
+    }
+
+    public function advisorUser(){
+        $service = app(AdvisorService::class);
+        return $service->advisorUser($this);
+    }
+
+    public function sendEmail(){
+        $service = app(AdvisorService::class);
+        return $service->sendEmail($this);
     }
 }

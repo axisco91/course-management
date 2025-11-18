@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Helpers\GeneralHelpers;
+use App\Services\ProfitabilityService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -16,10 +16,10 @@ class Profitability extends Model
     protected $table = 'profitabilities';
 
     protected $fillable = [
-        'course_id', 'company_id', 'student_id', 'price', 'license', 'teacher', 
-        'management', 'nebrija_title', 'discount', 'collaborator_commission', 
-        'advisor_commission', 'total', 'benefits', 'observations', 
-        'advisor_percentage', 'collaborator_percentage', 'number_students'
+        'course_id', 'company_id', 'student_id', 'price', 'license', 'teacher',
+        'management', 'nebrija_title', 'discount', 'collaborator_commission',
+        'advisor_commission', 'total', 'benefits', 'observations',
+        'advisor_percentage', 'collaborator_percentage', 'number_students', 'main_company_id'
     ];
 
     // Define the relationship with the Course model
@@ -50,7 +50,7 @@ class Profitability extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public function scopeProfitability($query) {
+    public function scopeProfitability($query, $mainCompanyId) {
         return $query->select('profitabilities.*',
             'companies.name as company_name',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
@@ -64,13 +64,20 @@ class Profitability extends Model
             ->leftJoin('students', 'students.id', '=', 'profitabilities.student_id')
             ->leftJoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
             ->leftJoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
+            ->where('profitabilities.main_company_id', $mainCompanyId)
             ->groupBy('profitabilities.id', 'companies.name', 'courses.group', 'training_actions.formative_action', 'training_actions.name', 'courses.beginning', 'students.name', 'students.surname')
             ->orderBy('courses.group'); // Added orderBy for better control
     }
 
-    public static function getProfitabilityYear($year)
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('profitabilities.main_company_id', $mainCompanyId);
+    }
+
+    public static function getProfitabilityYear($year, $mainCompanyId)
     {
-        $profitabilities = Profitability::whereYear('created_at', $year)->get();
+        $profitabilities = Profitability::whereYear('created_at', $year)
+            ->where('profitabilities.main_company_id', $mainCompanyId)
+            ->get();
         $total = 0;
         foreach ($profitabilities as $profitability) {
             $total += $profitability['benefits'];
@@ -78,13 +85,15 @@ class Profitability extends Model
         return $total;
     }
 
-    public static function getBenefitsPerMonth($year)
+    public static function getBenefitsPerMonth($year, $mainCompanyId)
     {
         $total_months = [];
         for ($i = 1; $i <= 12; $i++) {
             $total = 0;
             $profitabilities = Profitability::whereYear('created_at', $year)
-                ->whereMonth('created_at', $i)->get();
+                ->whereMonth('created_at', $i)
+                ->where('profitabilities.main_company_id', $mainCompanyId)
+                ->get();
             foreach ($profitabilities as $profitability) {
                 $total += $profitability['benefits'];
             }
@@ -93,18 +102,36 @@ class Profitability extends Model
         return $total_months;
     }
 
-    public static function getExpensesPerMonth($year)
+    public static function getExpensesPerMonth($year, $mainCompanyId)
     {
         $total_months = [];
         for ($i = 1; $i <= 12; $i++) {
             $total = 0;
             $profitabilities = Profitability::whereYear('created_at', $year)
-                ->whereMonth('created_at', $i)->get();
+                ->whereMonth('created_at', $i)
+                ->where('profitabilities.main_company_id', $mainCompanyId)
+                ->get();
             foreach ($profitabilities as $profitability) {
                 $total += $profitability['total'];
             }
             $total_months[] = -$total;
         }
         return $total_months;
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(ProfitabilityService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(ProfitabilityService::class);
+        return $service->update($this, $data);
+    }
+
+    public function updateRegistration($data){
+        $service = app(ProfitabilityService::class);
+        return $service->updateRegistration($this, $data);
     }
 }

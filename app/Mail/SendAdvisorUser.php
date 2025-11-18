@@ -32,7 +32,7 @@ class SendAdvisorUser extends Mailable
     public function build()
     {
         return $this->subject('Alta plataforma Zona Formación')
-            ->view('emails.potential_training_contract')
+            ->view('emails.advisor_user')
             ->with([
                 'username' => $this->username, // Rename to avoid conflicts
                 'password' => $this->password

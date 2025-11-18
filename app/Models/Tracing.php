@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TracingService;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,7 @@ class Tracing extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['course_id','company_id','student_id','performed_activities','performed_hours','performed_units','follow_up_date','final_test','questionnaire','welcome_message','quarter_message','half_message','three_quarters_message','final_message','observation', 'welcome_date_sent', 'quarter_date_sent', 'half_date_sent', 'three_quarters_date_sent', 'final_date_sent', 'last_connection', 'training_contract_element_id'];
+    protected $fillable = ['course_id','company_id','student_id','performed_activities','performed_hours','performed_units','follow_up_date','final_test','questionnaire','welcome_message','quarter_message','half_message','three_quarters_message','final_message','observation', 'welcome_date_sent', 'quarter_date_sent', 'half_date_sent', 'three_quarters_date_sent', 'final_date_sent', 'last_connection', 'training_contract_element_id', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -47,7 +48,7 @@ class Tracing extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public function scopeTracing($query) {
+    public function scopeTracing($query, $mainCompanyId) {
         return $query->select('tracings.*',
         DB::raw("CONCAT(training_actions.formative_action, ' / ', courses.group, ' ', training_actions.name) as course"),
             'companies.name as company',
@@ -70,7 +71,22 @@ class Tracing extends Model
             ->leftjoin('companies', 'companies.id', '=', 'tracings.company_id')
             ->leftjoin('students', 'students.id', '=', 'tracings.student_id')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
-            ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id');
+            ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
+            ->where('tracings.main_company_id', $mainCompanyId);
     }
-   
+
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('tracings.main_company_id', $mainCompanyId);
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(TracingService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(TracingService::class);
+        return $service->update($this, $data);
+    }
 }

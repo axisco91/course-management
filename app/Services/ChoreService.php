@@ -18,7 +18,8 @@ class ChoreService
         return Chore::create([
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
-            'student_id' => $data['student_id']
+            'student_id' => $data['student_id'],
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 

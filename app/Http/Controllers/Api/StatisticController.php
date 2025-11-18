@@ -1,19 +1,20 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-use App\Models\ActionType;
+use App\Helpers\GeneralHelpers;
 use App\Models\Chore;
 use App\Models\Course;
 use App\Models\Registration;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class StatisticController extends BaseController
 {
-    public function totalRegistrations() {
+    public function totalRegistrations(Request $request) {
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $data = [];
             $now = Carbon::now();
             $cont = 1;
@@ -23,12 +24,12 @@ class StatisticController extends BaseController
                 $start = Carbon::parse($now->year . '-' . $date->month . '-01')->toDateString();
                 $limit = Carbon::parse($now->year . '-' . $date->month . '-01')->endOfMonth()->toDateString();
 
-                $registrations = Registration::countRegistrations($start, $limit);
+                $registrations = Registration::countRegistrations($start, $limit, $mainCompanyId);
                 $data[] = $registrations;
                 $cont++;
             }
             return response()->json([
-                'registrations' => Registration::totalRegistrations(),
+                'registrations' => Registration::totalRegistrations($mainCompanyId),
                 'series' => [['data' => $data,
                 'name' => 'Matriculaciones']]
             ]);
@@ -39,9 +40,11 @@ class StatisticController extends BaseController
         }
     }
 
-    public function getChoresWelcomeMessages(){
+    public function getChoresWelcomeMessages(Request $request) {
         try {
-            return Chore::getChoresSendWelcome();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            return Chore::getChoresSendWelcome($mainCompanyId);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -49,9 +52,11 @@ class StatisticController extends BaseController
         }
     }
 
-    public function getNumberCourses(){
+    public function getNumberCourses(Request $request) {
         try {
-            return Course::getNumberCourses(Carbon::now()->year);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            return Course::getNumberCourses(Carbon::now()->year, $mainCompanyId);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -59,9 +64,11 @@ class StatisticController extends BaseController
         }
     }
 
-    public function getNumberCoursesPerMonth(){
+    public function getNumberCoursesPerMonth(Request $request) {
         try {
-            return Course::getNumberCoursesPerMonth(Carbon::now()->year);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            return Course::getNumberCoursesPerMonth(Carbon::now()->year, $mainCompanyId);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()

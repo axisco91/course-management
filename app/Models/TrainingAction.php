@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TrainingActionService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ class TrainingAction extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'formative_action','action_type_id','professional_family_id','professional_area_id','modality_id','training_action_level_id','training_action_group_id','tutoring_id','course_z','course_avz','active','in_catalog','face_to_face_hours','teletraining_hours','total_hours','price','objectives','content','user', 'password','web_platform_id','observations','number_activities','number_units','provider_id', 'specialty', 'course_origin_id', 'code', 'training_tutor', 'training_tutor_dni'];
+    protected $fillable = ['name', 'formative_action','action_type_id','professional_family_id','professional_area_id','modality_id','training_action_level_id','training_action_group_id','tutoring_id','course_z','course_avz','active','in_catalog','face_to_face_hours','teletraining_hours','total_hours','price','objectives','content','user', 'password','web_platform_id','observations','number_activities','number_units','provider_id', 'specialty', 'course_origin_id', 'code', 'training_tutor', 'training_tutor_dni', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -86,12 +87,13 @@ class TrainingAction extends Model
         return $this->hasOne('App\Models\WebPlatform', 'id', 'web_platform_id');
     }
 
-    public function scopeActive($query) {
+    public function scopeActive($query, $mainCompanyId) {
         return $query->select('id as value', DB::raw("CONCAT(formative_action,' - ',name) as label"))
-            ->where('active', 1);
+            ->where('active', 1)
+            ->where('main_company_id', $mainCompanyId);
     }
 
-    public function scopeTrainingAction($query) {
+    public function scopeTrainingAction($query, $mainCompanyId) {
         return $query->select('training_actions.*',
             'action_types.name as action_type',
             'professional_families.name as professional_family',
@@ -118,40 +120,72 @@ class TrainingAction extends Model
             ->leftjoin('training_action_groups', 'training_action_groups.id', '=', 'training_actions.training_action_group_id')
             ->leftjoin('tutorings', 'tutorings.id', '=', 'training_actions.tutoring_id')
             ->leftjoin('web_platforms', 'web_platforms.id', '=', 'training_actions.web_platform_id')
-            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id');
+            ->leftjoin('providers', 'providers.id', '=', 'training_actions.provider_id')
+            ->where('training_actions.main_company_id', $mainCompanyId);
     }
 
-    public static function getProviderTrainingActions($id)
+    public static function getProviderTrainingActions($id, $mainCompanyId)
     {
-        $training_acions = TrainingAction::where('provider_id', $id)->get();
+        $training_acions = TrainingAction::where('provider_id', $id)
+            ->where('main_company_id', $mainCompanyId)
+            ->get();
 
         return $training_acions;
     }
 
-    public static function getTrainingActionsNotInModule($module_id){
+    public static function getTrainingActionsNotInModule($module_id, $mainCompanyId){
         $trainingActions = TrainingAction::leftjoin('training_actions_modules', 'training_actions_modules.training_action_id', 'training_actions.id')
-            ->where('training_actions_modules.module_id', $module_id)->get();
-        $not_in_module = TrainingAction::where('active', 1)->get();
-        $not_in_module = $not_in_module->whereNotIn('id', $trainingActions->pluck('training_actions.id'));
+            ->where('training_actions_modules.module_id', $module_id)
+            ->where('training_actions.main_company_id', $mainCompanyId)
+            ->get();
+        $not_in_module = TrainingAction::where('active', 1)
+            ->where('main_company_id', $mainCompanyId)
+            ->get();
+        $not_in_module = $not_in_module->whereNotIn('id', $trainingActions
+            ->where('main_company_id', $mainCompanyId)
+            ->pluck('training_actions.id'));
         return $not_in_module;
     }
 
-    public static function getTrainingActionsNotInCertification($certification_id){
+    public static function getTrainingActionsNotInCertification($certification_id, $mainCompanyId){
         $trainingActions = TrainingAction::leftjoin('certification_elements', 'certification_elements.training_action_id', 'training_actions.id')
-            ->where('certification_elements.certification_id', $certification_id)->get();
-        $not_in_certification = TrainingAction::where('active', 1)->get();
-        $not_in_certification = $not_in_certification->whereNotIn('id', $trainingActions->pluck('modules.id'));
+            ->where('certification_elements.certification_id', $certification_id)
+            ->where('training_actions.main_company_id', $mainCompanyId)
+            ->get();
+        $not_in_certification = TrainingAction::where('active', 1)
+            ->where('main_company_id', $mainCompanyId)
+            ->get();
+        $not_in_certification = $not_in_certification->whereNotIn('id', $trainingActions
+            ->where('main_company_id', $mainCompanyId)
+            ->pluck('modules.id'));
         return $not_in_certification;
     }
 
-    public static function getSpecialties($id){
+    public static function getSpecialties($id, $mainCompanyId){
         $trainingContracts_specialties = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
             ->whereNotNull('training_action_id')
+            ->where('main_company_id', $mainCompanyId)
             ->pluck('training_action_id');
         $trainingActions = TrainingAction::select('training_actions.*', 'training_actions.id as value', DB::raw("CONCAT(training_actions.name,' (', training_actions.total_hours,' horas)') as label"))
             ->where('active', 1)
             ->where('specialty', 1)
+            ->where('main_company_id', $mainCompanyId)
             ->whereNotIn('id', $trainingContracts_specialties)->get();
         return $trainingActions;
+    }
+
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('training_actions.main_company_id', $mainCompanyId);
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(TrainingActionService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(TrainingActionService::class);
+        return $service->update($this, $data);
     }
 }

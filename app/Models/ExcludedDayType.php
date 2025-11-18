@@ -11,5 +11,5 @@ class ExcludedDayType extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'main_company_id'];
 }

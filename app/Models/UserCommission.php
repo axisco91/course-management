@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\UserCommissionService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -21,10 +22,11 @@ class UserCommission extends Model
         'commission_type_id',
         'percentage',
         'amount',
-        'bill_amount'
+        'bill_amount',
+        'main_company_id'
     ];
 
-    public function scopeCommissions($query) {
+    public function scopeCommissions($query, $mainCompanyId) {
         return $query->select(
             'user_commissions.*',
             'commission_types.id as commission_type_id',
@@ -35,7 +37,22 @@ class UserCommission extends Model
             ->leftJoin('commission_types', 'commission_types.id', '=', 'user_commissions.commission_type_id')
             ->leftJoin('courses', 'courses.id', '=', 'user_commissions.course_id')
             ->leftJoin('training_contracts', 'training_contracts.id', '=', 'user_commissions.training_contract_id')
-            ->leftJoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');
+            ->leftJoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->where('user_commissions.main_company_id', $mainCompanyId);
     }
 
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('training_contracts_excluded_days.main_company_id', $mainCompanyId);
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(UserCommissionService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(UserCommissionService::class);
+        return $service->update($this, $data);
+    }
 }

@@ -26,6 +26,7 @@ class DocumentService
             'route' => isset($data['route']) ? $data['route'] : null,
             'key' => $generatedKey,
             'signature' => isset($data['signature']) ? $data['signature'] : 0,
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 

@@ -1,16 +1,20 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\Company;
 use App\Models\Provider;
 use App\Models\TrainingAction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProviderController extends BaseController
 {
-    public function providers() {
+    public function providers(Request $request) {
         try {
-            return Provider::getProviders();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            return Provider::getProviders($mainCompanyId);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -20,43 +24,76 @@ class ProviderController extends BaseController
 
     public function create(Request $request){
         try {
-            $company = Company::createCompany($request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $data = $request->all();
+            $data['main_company_id'] = $mainCompanyId;
+
+            $company = Company::createWithService($data);
             if ($company) {
-                $request['company_id'] = $company->id;
+                $data['company_id'] = $company->id;
             }
-            $provider = Provider::createProvider($request);
+            $provider = Provider::createWithService($data);
+
+            return response()->json([
+                'status' => 200,
+                'provider' => Provider::getProvider($provider->id, $mainCompanyId),
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'provider' => Provider::getProvider($provider->id)
-        ]);
     }
 
     public function edit($id, Request $request){
         try {
-            Company::updateCompany($request->company_id, $request);
-            $provider = Provider::updateProvider($id, $request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $company = Company::where('id', $request->company_id)
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
+            if (!$company) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Empresa no encontrada'
+                ]);
+            }
+
+            $company->updateWithService($request);
+
+            $provider = Provider::where('id', $id)
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
+            if (!$provider) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Proveedor no encontrada'
+                ]);
+            }
+
+            $provider->updateWithService($id, $request);
+
+            return response()->json([
+                'status' => 200,
+                'provider' => Provider::getProvider($provider->id, $mainCompanyId),
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'provider' => Provider::getProvider($provider->id)
-        ]);
     }
 
-    public function getProvider($id){
-        $provider = Provider::getProvider($id);
+    public function getProvider($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $provider = Provider::getProvider($id, $mainCompanyId);
+
         if ($provider) {
             return response()->json([
                 'status' => 200,
@@ -69,9 +106,22 @@ class ProviderController extends BaseController
         ]);
     }
 
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $provider = Provider::where('id', $id)
+                    ->where('main_company_id', $mainCompanyId)
+                    ->first();
+
+                if (!$provider) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Proveedor no encontrada'
+                    ]);
+                }
+
                 Provider::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -85,11 +135,15 @@ class ProviderController extends BaseController
         }
     }
 
-    public function getTrainingActions($id){
-        return TrainingAction::getProviderTrainingActions($id);
+    public function getTrainingActions($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return TrainingAction::getProviderTrainingActions($id, $mainCompanyId);
     }
 
-    public function count(){
-        return Provider::count();
+    public function count(Request $request ){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return Provider::FilterMainCompany($mainCompanyId)->count();
     }
 }

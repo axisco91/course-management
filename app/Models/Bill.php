@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Helpers\GeneralHelpers;
+use App\Services\BillService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -16,7 +17,7 @@ class Bill extends Model
 
     protected $table = 'billings';
 
-    protected $fillable = ['course_id','company_id','number_students','billing','bonus','total_training_activity','expenses','only_organizing_entity','salary_costs','payment_id','communication_start_date','communication_end_date','invoiced','billing_number','billing_date','collection_date','bonus_status','company_bonus','observation', 'is_bonus', 'student_id', 'advisor_id', 'charged', 'collaborator_id', 'remitted'];
+    protected $fillable = ['course_id','company_id','number_students','billing','bonus','total_training_activity','expenses','only_organizing_entity','salary_costs','payment_id','communication_start_date','communication_end_date','invoiced','billing_number','billing_date','collection_date','bonus_status','company_bonus','observation', 'is_bonus', 'student_id', 'advisor_id', 'charged', 'collaborator_id', 'remitted', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -42,7 +43,7 @@ class Bill extends Model
         return $this->hasOne('App\Models\Payment', 'id', 'payment_id');
     }
 
-    public function scopeBill($query) {
+    public function scopeBill($query, $mainCompanyId) {
         return $query->select(
             'billings.*',
             DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
@@ -72,7 +73,12 @@ class Bill extends Model
             ->leftJoin('advisor_commission_types', function($join) {
                 $join->on('advisor_commission_types.advisor_id', '=', 'advisors.id')
                     ->orderBy('advisor_commission_types.id', 'desc'); // ✅ Gets the latest commission
-            });
+            })
+        ->where('billings.main_company_id', $mainCompanyId);
+    }
+
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('billings.main_company_id', $mainCompanyId);
     }
 
     /*
@@ -92,5 +98,27 @@ class Bill extends Model
         foreach ($registrations as $registration) {
             Chore::billingDateChore($registration->chore_id, $date, $status);
         }
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(BillService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(BillService::class);
+        return $service->update($this, $data);
+    }
+
+    public static function createBillingRegistrations($data)
+    {
+        $service = app(BillService::class);
+        return $service->createBillingRegistrations($data);
+    }
+
+    public function updateBillingRegistrations($data){
+        $service = app(BillService::class);
+        return $service->updateBillingRegistrations($this, $data);
     }
 }

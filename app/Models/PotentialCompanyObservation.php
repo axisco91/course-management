@@ -12,7 +12,7 @@ class PotentialCompanyObservation extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['potential_company_id','observation'];
+    protected $fillable = ['potential_company_id','observation', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

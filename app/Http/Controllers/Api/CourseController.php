@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\Course;
 use App\Models\Registration;
 use App\Models\Student;
@@ -8,15 +9,14 @@ use App\Models\User;
 use App\Models\Bill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
 class CourseController extends BaseController
 {
     public function index(Request $request) {
         try {
-            $query = Course::withCourseData();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $query = Course::withCourseData($mainCompanyId);
 
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
@@ -70,26 +70,43 @@ class CourseController extends BaseController
 
     public function store(Request $request){
         try {
-            $course = Course::createCourse($request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $data = $request->all();
+            $data['main_company_id'] = $mainCompanyId;
+
+            $course = Course::createWithService($data);
+
+            $course = Course::withCourseData($mainCompanyId)->Where('courses.id', $course->id)->first();
+
+            return response()->json([
+                'status' => 200,
+                'course' => $course
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'course' => Course::withCourseData($course->id)->Where('courses.id', $course->id)->first()
-        ]);
     }
 
     public function update($id, Request $request){
         try {
-            \Log::info('Updating course: ' . $id);
-            \Log::info('Received data: ' . json_encode($request->all()));
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            $course = Course::updateCourse($id, $request->all());
+            $course = Course::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$course) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Curso no encontrado'
+                ]);
+            }
+
+            $course = $course->updateWithService($request->all());
 
             \Log::info('Updated course: ' . json_encode($course));
         } catch (\Exception $e){
@@ -102,28 +119,45 @@ class CourseController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'course' => Course::withCourseData($course->id)->Where('courses.id', $course->id)->first()
+            'course' => Course::withCourseData($mainCompanyId)->Where('courses.id', $course->id)->first()
         ]);
     }
-    public function show($id){
-        $course = Course::withCourseData()
-            ->where('courses.id', $id)->first();
+    public function show($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        if ($course) {
+        $course = Course::withCourseData($mainCompanyId)
+            ->where('courses.id', $id)
+            ->first();
+
+        if (!$course) {
             return response()->json([
-                'status' => 200,
-                'course' => $course
+                'status' => 404,
+                'message' => 'Curso no encontrado'
             ]);
         }
+
         return response()->json([
-            'status' => 400,
-            'message' => 'Curso no existe'
+            'status' => 200,
+            'course' => $course
         ]);
     }
 
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $course = Course::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if (!$course) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Curso no encontrado'
+                    ]);
+                }
+
                 Course::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -138,29 +172,23 @@ class CourseController extends BaseController
     }
 
     public function setData(Request $request) {
-        $course = Course::setName($request->training_action_id, $request->id);
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $course = Course::setName($request->id, $request->training_action_id, $mainCompanyId);
+
         return response()->json($course);
     }
 
-    public function getStudents($id){
-        return response()->json(Student::getRegistrated($id));
+    public function getStudents($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return response()->json(Student::getRegistrated($id, $mainCompanyId));
     }
 
-    public function count(){
-        return Course::count();
-    }
+    public function count(Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-    public function coursesCSV(Request $request){
-        try {
-            if ($request) {
-                return Course::getCourseCSV($request['formative_action'], $request['name'], $request['group'], $request['type'], $request['status'], $request['company']);
-            }
-            return Course::getCourseCSV();
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
-        }
+        return Course::FilterMainCompany($mainCompanyId)->count();
     }
 
     /**
@@ -175,10 +203,15 @@ class CourseController extends BaseController
      * @param  int  $id  El ID del curso.
      * @return \Illuminate\Http\JsonResponse Una respuesta JSON con el estado y el mensaje.
      */
-    public function resetTracingsIfCancelled($id)
+    public function resetTracingsIfCancelled($id, Request $request)
     {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
         Log::info('Resetting tracings for course: ' . $id);
-        $course = Course::find($id);
+        $course = Course::where('id', $id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
+
         if ($course) {
             Log::info('Course found: ' . $id);
             Log::info('Course status id: ' . $course->course_status_id);

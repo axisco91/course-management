@@ -14,7 +14,8 @@ class AdvisorCommissionType extends Model
     protected $fillable = [
         'advisor_id',
         'commission_type_id',
-        'percentage'
+        'percentage',
+        'main_company_id'
     ];
 
 }

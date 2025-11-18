@@ -2,23 +2,22 @@
 
 namespace App\Services;
 
-use App\Helpers\CalculationHelpers;
 use App\Helpers\GeneralHelpers;
+use App\Models\AdvisorCommission;
 use App\Models\Bill;
 use App\Models\Chore;
-use App\Models\Company;
+use App\Models\CommissionType;
+use App\Models\Course;
+use App\Models\CourseOrigin;
+use App\Models\CourseType;
+use App\Models\Liquidation;
 use App\Models\Registration;
+use App\Models\TrainingAction;
+use App\Models\UserCommission;
 use Illuminate\Support\Carbon;
 
 class BillService
 {
-
-    private $choreService;
-
-    public function __construct(ChoreService $choreService)
-    {
-        $this->choreService = $choreService;
-    }
 
     /**
      * Función para crear una factura
@@ -50,6 +49,7 @@ class BillService
             'collaborator_id' => $data['collaborator_id'],
             'active' => $data['active'],
             'potential' => $data['potential'],
+            'main_company_id' => $data['main_company_id'],
         ]);
     }
 
@@ -58,7 +58,6 @@ class BillService
      */
     public function update(Bill $bill, array $data) {
         $totalTrainingActivity = 0;
-
         if (isset($data['communication_start_date'])) {
             if ($bill->communication_start_date != $data['communication_start_date']){
                 $status = 0;
@@ -67,7 +66,8 @@ class BillService
                 }
                 $communicationData = [
                     'date' => $data['communication_start_date'],
-                    'status' => $status
+                    'status' => $status,
+                    'main_company_id' => $data['main_company_id'],
                 ];
                 $this->updateStartCommunicationDate($bill, $communicationData);
             }
@@ -80,9 +80,10 @@ class BillService
                 }
                 $communicationData = [
                     'date' => $data['communication_end_date'],
-                    'status' => $status
+                    'status' => $status,
+                    'main_company_id' => $data['main_company_id'],
                 ];
-                $this->updateCloseCommunicationDate($bill->id, $communicationData);
+                $this->updateCloseCommunicationDate($bill, $communicationData);
             }
         }
 
@@ -110,6 +111,7 @@ class BillService
             'charged' => $data['charged'],
             'remitted' => $data['remitted']
         ]);
+
         return $bill;
     }
 
@@ -125,13 +127,127 @@ class BillService
             'total_training_activity' => $total_training_activity,
             'expenses' => $expenses,
             'advisor_id' => $data['advisor_id'],
-            'collaborator_id' => $data['collaborator_id']
+            'collaborator_id' => $data['collaborator_id'],
+            'main_company_id' => $data['main_company_id']
         ]);
         if ($data['company_name'] == 'SIN EMPRESA'){
             $bill->update([
                 'student_id' => $data['student_id']
             ]);
         }
+
+        $course = Course::find($data['course_id']);
+
+        // Para crear las comisiones primero tenemos que asegurar que tiene una asesoría
+        if ($data['advisor_id']) {
+            $advisorCommission = AdvisorCommission::where('commissionable_id', $bill->id)
+                ->where('commissionable_type', 'App\Models\Bill')
+                ->where('advisor_id', $data['advisor_id'])
+                ->FilterMainCompany($data['main_company_id'])
+                ->first();
+
+            // Buscamos el curso de que pertenece esta matriculación
+            $course = Course::where('id' , $data['course_id'])
+                ->FilterMainCompany($data['main_company_id'])
+                ->first();
+            if ($course) {
+                $commissionType = null;
+                // Obtenemos la acción formativa para ver que origen tiene
+                $trainingAction = TrainingAction::where('id', $course->training_action_id)
+                    ->FilterMainCompany($data['main_company_id'])
+                    ->first();
+
+                $percentage = '';
+                $amount = '';
+                if ($trainingAction->course_origin_id) {
+                    // Vemos si existe un tipo de comisión con el nombre de origen
+                    $courseOrigin = CourseOrigin::find($trainingAction->course_origin_id);
+                    $commissionType = CommissionType::where('name', $courseOrigin->name)
+                        ->FilterMainCompany($data['main_company_id'])
+                        ->first();
+                }
+                // Si no existe ya miramos el tipo de curso para crear la comisión
+                if (!$commissionType) {
+                    $courseType = CourseType::where('id', $course->course_type_id)
+                        ->first();
+
+                    $commissionType = CommissionType::where('name', $courseType->name)
+                        ->FilterMainCompany($data['main_company_id'])
+                        ->first();
+                }
+                if ($commissionType) {
+                    $commissionData = [
+                        'advisor_id' => $data['advisor_id'],
+                        'course_id' => $data['course_id'],
+                        'commissionable_id' => $bill->id,
+                        'commissionable_type' => 'App\Models\Bill',
+                        'commission_type_id' => $commissionType->id,
+                        'percentage' => $commissionType->percentage,
+                        'amount' => ($commissionType->percentage / 100) * $bill->billing,
+                        'bill_amount' => $bill->billing,
+                        'main_company_id' => $data['main_company_id'],
+                    ];
+                    if ($advisorCommission) {
+                        $advisorCommission->updateCommission($advisorCommission, $commissionData);
+                    } else {
+                        $advisorCommission = AdvisorCommission::createCommission($commissionData);
+                    }
+
+                    $liquidation = Liquidation::GetAdvisorLiquidation($data['advisor_id'], $data['company_id'], $data['course_id'], $data['main_company_id'])
+                        ->first();
+
+                    $liquidationData = [
+                        'company_id' => $data['company_id'],
+                        'course_id' => $data['course_id'],
+                        'beginning' => $course->beginning,
+                        'end' => $course->end,
+                        'price' => $data['price'],
+                        'paid' => 0,
+                        'commission_percent' => $advisorCommission->percentage,
+                        'commission' => $advisorCommission->amount,
+                        'paid_date' => null,
+                        'invoice_date' => null,
+                        'advisor_id' => $data['advisor_id'],
+                        'bill_number' => '',
+                        'status' => 1,
+                        'main_company_id' => $data['main_company_id'],
+                    ];
+                    if ($liquidation) {
+                        $liquidation->updateCommission($commissionData);
+                    } else {
+                        Liquidation::createWithService($liquidationData);
+                    }
+                }
+            }
+        }
+
+        if ($data['collaborator_id']) {
+            $userCommission = UserCommission::where('user_id', $data['collaborator_id'])
+                ->where('course_id', $data['course_id'])
+                ->where('main_company_id', $data['main_company_id'])
+                ->first();
+
+           if ($userCommission) {
+               $liquidationData = [
+                   'company_id' => $data['company_id'],
+                   'course_id' => $data['course_id'],
+                   'beginning' => $course->beginning,
+                   'end' => $course->end,
+                   'price' => $data['price'],
+                   'paid' => 0,
+                   'commission_percent' => $userCommission->percentage,
+                   'commission' => $userCommission->amount,
+                   'paid_date' => null,
+                   'invoice_date' => null,
+                   'bill_number' => '',
+                   'status' => 1,
+                   'main_company_id' => $data['main_company_id'],
+               ];
+
+               Liquidation::createWithService($liquidationData);
+           }
+        }
+
         return $bill;
     }
 
@@ -164,14 +280,17 @@ class BillService
         $bill->update([
             'communication_start_date' => $data['date'] ? Carbon::createFromFormat('d-m-Y', $data['date'])->format('Y-m-d') : null,
         ]);
-        $registrations = Registration::billingRegistration($bill->id)->get();
+        $registrations = Registration::billingRegistration($bill->id, $data->main_company_id)
+            ->get();
         foreach ($registrations as $registration) {
-            $chore = Chore::find($registration->chore_id);
+            $chore = Chore::where('id', $registration->chore_id)
+                ->FilterMainCompany($bill->main_company_id)
+                ->first();
             $communicationData = [
                 'date' => $data['date'],
                 'status' => $data['status']
             ];
-            $this->choreService->updateCommunicationStartDate($chore, $communicationData);
+            $chore->updateCommunicationStartDate($communicationData);
         }
     }
 
@@ -182,19 +301,21 @@ class BillService
      * @param $status
      * @return void
      */
-    public function updateCloseCommunicationDate($id, $data){
-        $bill = Bill::find($id);
+    public function updateCloseCommunicationDate(Bill $bill, $data){
         $bill->update([
             'communication_end_date' => $data['date'] ? Carbon::createFromFormat('d-m-Y', $data['date'])->format('Y-m-d') : null
         ]);
-        $registrations = Registration::billingRegistration($id)->get();
+        $registrations = Registration::billingRegistration($bill->id, $data['main_company_id'])->get();
         foreach ($registrations as $registration) {
-            $chore = Chore::find($registration->chore_id);
+            $chore = Chore::where('id', $registration->chore_id)
+                ->FilterMainCompany($data['main_company_id'])
+                ->first();
+
             $communicationData = [
                 'date' => $data['date'],
                 'status' => $data['status']
             ];
-            $this->choreService->updateCommunicationEndDate($chore, $communicationData);
+            $chore->updateCommunicationEndDate($communicationData);
         }
     }
 }

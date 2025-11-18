@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 use App\Models\Community;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CommunityController extends BaseController
 {
     public function index() {
         try {
+            \Log::info(Community::select('communities.*', 'communities.id as value', 'communities.name as label')->get());
+
             return Community::select('communities.*', 'communities.id as value', 'communities.name as label')->get();
         } catch (\Exception $e) {
             return response()->json([
@@ -87,7 +90,10 @@ class CommunityController extends BaseController
 
     public function communitiesWithFestivals(Request $request) {
         try {
+            \Log::info('hi');
+            \Log::info(Community::communitiesWithFestivals($request->beginning, $request->end)->get());
             if ($request){
+
                 return Community::communitiesWithFestivals($request->beginning, $request->end)->get();
             }
         } catch (\Exception $e) {

@@ -12,7 +12,7 @@ class CourseOrigin extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'main_company_id'];
 
     public static function getCourseOrigins(){
         $origins = CourseOrigin::select('*', 'id as value', 'name as label')

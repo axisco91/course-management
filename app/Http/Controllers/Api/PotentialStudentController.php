@@ -1,19 +1,24 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Mail\PotentialPrivateStudent as PotentialPrivateStudent;
 use App\Mail\PotentialStudent as PotentialEmail;
+use App\Models\MainCompany;
 use App\Models\PotentialStudent;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Mockery\Exception;
 
 class PotentialStudentController extends BaseController
 {
-    public function getPotentialStudents() {
+    public function getPotentialStudents(Request $request) {
         try {
-            return PotentialStudent::getPotentialStudents();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            return PotentialStudent::getPotentialStudents($mainCompanyId);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -21,12 +26,14 @@ class PotentialStudentController extends BaseController
         }
     }
 
-    public function getPotentialStudent($id) {
-        $potential_student = PotentialStudent::getPotentialStudent($id);
-        if ($potential_student) {
+    public function getPotentialStudent($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $potentialStudent = PotentialStudent::getPotentialStudent($id, $mainCompanyId);
+        if ($potentialStudent) {
             return response()->json([
                 'status' => 200,
-                'student' => $potential_student
+                'student' => $potentialStudent
             ]);
         }
         return response()->json([
@@ -37,7 +44,12 @@ class PotentialStudentController extends BaseController
 
     public function create(Request $request){
         try {
-            $student = PotentialStudent::createPotentialStudent($request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $data = $request->all();
+            $data['main_company_id'] = $mainCompanyId;
+
+            $student = PotentialStudent::createWithService($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -53,6 +65,8 @@ class PotentialStudentController extends BaseController
 
     public function edit($id, Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $student = PotentialStudent::updateStudent($id, $request);
         } catch (\Exception $e){
             return response()->json([
@@ -67,9 +81,22 @@ class PotentialStudentController extends BaseController
         ]);
     }
 
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $potentialStudent = PotentialStudent::where('id', $id)
+                    ->FilterMainCompanyId($mainCompanyId)
+                    ->first();
+
+                if (!$potentialStudent) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Alumno potencial no encontrado'
+                    ]);
+                }
+
                 PotentialStudent::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -86,6 +113,10 @@ class PotentialStudentController extends BaseController
     public function sendEmail(Request $request){
         if ($request['email']){
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $mainCompany = MainCompany::find($mainCompanyId);
+
                 Mail::getSwiftMailer()
                     ->getTransport()
                     ->setUsername('zona@avzformacion.com')
@@ -110,6 +141,10 @@ class PotentialStudentController extends BaseController
     public function sendBonusEmail(Request $request){
         if ($request['email']){
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $mainCompany = MainCompany::find($mainCompanyId);
+
                 Mail::getSwiftMailer()
                     ->getTransport()
                     ->setUsername('zona@avzformacion.com')
@@ -132,7 +167,9 @@ class PotentialStudentController extends BaseController
     }
 
     public function checkDni(Request $request){
-        $dni = PotentialStudent::findDni($request['dni'], $request['id']);
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $dni = PotentialStudent::findDni($request['dni'], $mainCompanyId, $request['id']);
         if ($dni){
             return response()->json([
                 'exists' => true
@@ -144,17 +181,29 @@ class PotentialStudentController extends BaseController
         }
     }
 
-    public function count(){
-        return PotentialStudent::count();
+    public function count(Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return PotentialStudent::FilterMainCompany($mainCompanyId)->count();
     }
 
     public function convertStudent($id, Request $request) {
         try {
-            $student = Student::createStudent($request);
-            $potential_student = PotentialStudent::find($id);
-            $potential_student->update([
-                'converted' => 1
-            ]);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $potentialStudent = PotentialStudent::where('id', $id)
+                ->FilterMainCompanyId($mainCompanyId)
+                ->first();
+
+            if (!$potentialStudent) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Alumno potencial no encontrado'
+                ]);
+            }
+
+            Student::createWithService($request);
+            $potentialStudent->convertPotentialStudent();
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -164,7 +213,7 @@ class PotentialStudentController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'student' => $potential_student
+            'student' => $potentialStudent
         ]);
     }
 }

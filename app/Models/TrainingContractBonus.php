@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TrainingContractBonusService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,11 +21,15 @@ class TrainingContractBonus extends Model
         'end',
         'amount',
         'invoiced',
-        'hours'
+        'hours',
+        'main_company_id'
     ];
 
-    public static function getBonuses($id){
-        $bonuses = TrainingContractBonus::where('training_contract_id', $id)->get();
+    public static function getBonuses($id, $mainCompanyId){
+        $bonuses = TrainingContractBonus::where('training_contract_id', $id)
+            ->where('main_company_id', $mainCompanyId)
+            ->orderBy('start', 'asc')
+            ->get();
         foreach ($bonuses as $bonus) {
             switch ($bonus['month']) {
                 case 1:
@@ -68,8 +73,11 @@ class TrainingContractBonus extends Model
         return $bonuses;
     }
 
-    public static function getBonus($id){
-        $bonus = TrainingContractBonus::where('id', $id)->first();
+    public static function getBonus($id, $mainCompanyId){
+        $bonus = TrainingContractBonus::where('id', $id)
+            ->where('main_company_id', $mainCompanyId)
+            ->first();
+
         switch ($bonus['month']) {
             case 1:
                 $bonus['month_name'] = 'Enero';
@@ -146,15 +154,30 @@ class TrainingContractBonus extends Model
         return $bonus;
     }
 
-    public static function bonusesWithNoBills() {
+    public static function bonusesWithNoBills($mainCompanyId) {
         $endOfMonth = Carbon::now()->endOfMonth();
         $bonuses = TrainingContractBonus::whereNotIn('id', function ($query) {
             $query->select('training_contract_bonus_id')
                 ->from('training_contract_bills');
         })
             ->where('start', '<=', $endOfMonth->toDateString())
+            ->where('main_company_id', $mainCompanyId)
             ->get();
         return $bonuses;
     }
 
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('training_contract_bonuses.main_company_id', $mainCompanyId);
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(TrainingContractBonusService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(TrainingContractBonusService::class);
+        return $service->update($this, $data);
+    }
 }

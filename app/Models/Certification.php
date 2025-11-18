@@ -12,20 +12,25 @@ class Certification extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'total_hours', 'code', 'professional_family_id', 'professional_area_id', 'level', 'face_to_face_hours', 'teletraining_hours'];
+    protected $fillable = ['name', 'total_hours', 'code', 'professional_family_id', 'professional_area_id', 'level', 'face_to_face_hours', 'teletraining_hours', 'main_company_id'];
 
     public function trainingContracts()
     {
         return $this->belongsToMany(TrainingContract::class,'training_contract_elements');
     }
 
-    public static function getCertifications(){
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('certifications.main_company_id', $mainCompanyId);
+    }
+
+    public static function getCertifications($mainCompanyId){
         $certifications = Certification::select('certifications.*',
             'professional_families.name as family',
             'professional_areas.name as area'
         )
             ->leftjoin('professional_families', 'professional_families.id', '=', 'certifications.professional_family_id')
             ->leftjoin('professional_areas', 'professional_areas.id', '=', 'certifications.professional_area_id')
+            ->where('certifications.main_company_id', $mainCompanyId)
             ->get();
         foreach ($certifications as $certification) {
             $element = TrainingContractElement::where('certification_id', $certification->id)->first();
@@ -38,7 +43,7 @@ class Certification extends Model
         return $certifications;
     }
 
-    public static function getCertification($id){
+    public static function getCertification($id, $mainCompanyId){
         $certification = Certification::select('certifications.*',
             'professional_families.name as family',
             'professional_areas.name as area'
@@ -46,6 +51,7 @@ class Certification extends Model
             ->leftjoin('professional_families', 'professional_families.id', '=', 'certifications.professional_family_id')
             ->leftjoin('professional_areas', 'professional_areas.id', '=', 'certifications.professional_area_id')
             ->where('certifications.id', $id)
+            ->where('certifications.main_company_id', $mainCompanyId)
             ->first();
         $element = TrainingContractElement::where('certification_id', $certification->id)->first();
         if ($element) {
@@ -69,7 +75,10 @@ class Certification extends Model
     }
 
     public static function updateCertification($id, $data){
-        $certification = Certification::find($id);
+        $certification = Certification::where('id', $id)
+            ->FilterMainCompany($data['main_company_id'])
+            ->first();
+
         if ($certification){
             $certification->update([
                 'code' => $data['code'],
@@ -83,13 +92,16 @@ class Certification extends Model
         return $certification;
     }
 
-    public static function getCertificationsNotinTrainingContract($id){
+    public static function getCertificationsNotinTrainingContract($id, $mainCompanyId){
         $trainingContracts_certifications = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
             ->whereNotNull('certification_id')
+            ->where('training_contract_elements.main_company_id', $mainCompanyId)
             ->pluck('certification_id');
         $certifications = Certification::select('certifications.*', 'certifications.id as value', DB::raw("CONCAT(certifications.name,' (', certifications.total_hours,' horas)') as label"))
             ->whereNotIn('id', $trainingContracts_certifications)
-            ->where('active', 1)->get();
+            ->where('active', 1)
+            ->where('certifications.main_company_id', $mainCompanyId)
+            ->get();
         return $certifications;
     }
 

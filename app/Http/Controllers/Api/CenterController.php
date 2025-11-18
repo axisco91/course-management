@@ -1,32 +1,30 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\Center;
 use App\Models\Course;
-use App\Services\CenterService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class CenterController extends BaseController
 {
-    private $centerService;
-
-    public function __construct(CenterService $centerService)
-    {
-        $this->centerService = $centerService;
-    }
 
     /**
      * Obtener centros
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getCenters() {
+    public function getCenters(Request $request) {
         try {
-            $centers = Center::getCenter()->get();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $centers = Center::getCenter($mainCompanyId)->get();
             foreach ($centers as $center) {
                  $course = Course::orWhere('delivery_center_id', $center['id'])
-                     ->orWhere('formation_center_id', $center['id'])->first();
+                     ->orWhere('formation_center_id', $center['id'])
+                     ->FilterMainCompany($mainCompanyId)
+                     ->first();
+
                  if ($course){
                      $center['used'] = true;
                  } else {
@@ -41,13 +39,19 @@ class CenterController extends BaseController
         }
     }
 
-    public function getCenter($id){
-        $center = Center::getCenter()
+    public function getCenter($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $center = Center::getCenter($mainCompanyId)
             ->where('id', $id)
             ->first();
+
         if ($center) {
             $course = Course::orWhere('delivery_center_id', $center['id'])
-                ->orWhere('formation_center_id', $center['id'])->first();
+                ->orWhere('formation_center_id', $center['id'])
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
             if ($course){
                 $center['used'] = true;
             } else {
@@ -71,14 +75,22 @@ class CenterController extends BaseController
      */
     public function create(Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $data = $request->all();
-            $element = $this->centerService->create($data);
-            $center = Center::getCenter()
+            $data['main_company_id'] = $mainCompanyId;
+
+            $element = Center::createWithService($data);
+            $center = Center::getCenter($mainCompanyId)
                 ->where('id', $element->id)
                 ->first();
+
             if ($center) {
                 $course = Course::orWhere('delivery_center_id', $center['id'])
-                    ->orWhere('formation_center_id', $center['id'])->first();
+                    ->orWhere('formation_center_id', $center['id'])
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
                 if ($course){
                     $center['used'] = true;
                 } else {
@@ -105,15 +117,23 @@ class CenterController extends BaseController
      */
     public function edit($id, Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-            $center = Center::find($id);
-            $element = $this->centerService->update($center, $data);
-            $center = Center::getCenter()
+
+            $center = Center::where('centers.id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            $element = $center->updateWithService($data);
+            $center = Center::getCenter($mainCompanyId)
                 ->where('id', $element->id)
                 ->first();
+
             if ($center) {
                 $course = Course::orWhere('delivery_center_id', $center['id'])
-                    ->orWhere('formation_center_id', $center['id'])->first();
+                    ->orWhere('formation_center_id', $center['id'])
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
                 if ($course){
                     $center['used'] = true;
                 } else {
@@ -137,9 +157,20 @@ class CenterController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+                $center = Center::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId);
+
+                if (!$center) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Centro no existe'
+                    ]);
+                }
+
                 Center::destroy($id);
                 return response()->json([
                     'status' => 200

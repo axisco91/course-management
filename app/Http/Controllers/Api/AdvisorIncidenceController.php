@@ -1,27 +1,24 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\AdvisorIncidence;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class AdvisorIncidenceController extends BaseController
 {
-    /**
-     * Get Advisor Incidences
-     * @return mixed
-     */
-    public function getAdvisorIncidences(Request $request) {
-        return AdvisorIncidence::getAdvisorIncidences($request->advisor_id);
-    }
     /**
      * Get all incidences for a specific advisor
      * @param $advisor_id
      * @return \Illuminate\Http\Response
      */
-    public function getIncidencesForAdvisor($advisor_id) {
-        $incidences = AdvisorIncidence::where('advisor_id', $advisor_id)->get();
+    public function getIncidencesForAdvisor($advisor_id, Request $request) {
+
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $incidences = AdvisorIncidence::where('advisor_id', $advisor_id)
+            ->where('main_company_id', $mainCompanyId)
+            ->get();
 
         return response()->json($incidences);
     }
@@ -31,6 +28,8 @@ class AdvisorIncidenceController extends BaseController
      * @return mixed
      */
     public function create(Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
         $request->validate([
             'affair' => 'required',
             'advisor_id' => 'required',
@@ -43,9 +42,10 @@ class AdvisorIncidenceController extends BaseController
             'notes' => $request->notes,
             'user_id' => $request->user_id,
             'incidence_type_id' => $request->incidence_type_id,
+            'main_company_id' => $mainCompanyId
         ];
 
-        return AdvisorIncidence::createAdvisorIncidence($data);
+        return AdvisorIncidence::createWithService($data);
     }
 
     /**
@@ -82,7 +82,7 @@ class AdvisorIncidenceController extends BaseController
      * @return mixed
      */
     public function getTrainingActionLevel($id){
-        return TrainingActionLevel::find($id);
+        return AdvisorIncidence::find($id);
     }
 
     /**

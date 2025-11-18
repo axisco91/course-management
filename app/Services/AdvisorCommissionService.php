@@ -23,6 +23,7 @@ class AdvisorCommissionService
             'percentage' => isset($data['percentage']) ? $data['percentage'] : null,
             'amount' => isset($data['amount']) ? $data['amount'] : null,
             'bill_amount' => isset($data['bill_amount']) ? $data['bill_amount'] : null,
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 

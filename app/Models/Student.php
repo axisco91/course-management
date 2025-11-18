@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Services\StudentService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class Student extends Model
@@ -46,7 +45,8 @@ class Student extends Model
         'legal_guardian_dni',
         'population_code',
         'nationality_code',
-        'regimen'
+        'regimen',
+        'main_company_id'
     ];
 
     /**
@@ -113,7 +113,7 @@ class Student extends Model
         return $this->hasMany('App\Models\Tracing', 'student_id', 'id');
     }
 
-    public function scopeStudent($query){
+    public function scopeStudent($query, $mainCompanyId){
         return $query->select('students.*',
             'companies.name as company',
             'level_studies.name as level_study',
@@ -126,43 +126,66 @@ class Student extends Model
             ->leftjoin('level_studies', 'level_studies.id', '=', 'students.level_study_id')
             ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
-            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id');
+            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')
+            ->where('students.main_company_id', $mainCompanyId);
     }
 
-    public function scopeCompanyStudents($query, $id) {
+    public function scopeCompanyStudents($query, $id, $mainCompanyId) {
         return $query->where('company_id', $id)
-            ->where('active', 1);
+            ->where('active', 1)
+            ->where('main_company_id', $mainCompanyId);
     }
 
-    public function scopeBilledStudent($query, $id) {
+    public function scopeBilledStudent($query, $id, $mainCompanyId) {
         return $query->select('students.*', 'companies.name as company_name')
             ->join('registrations', 'registrations.student_id', '=', 'students.id')
             ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
-            ->where('registrations.billing_id', $id);
+            ->where('registrations.billing_id', $id)
+            ->where('students.main_company_id', $mainCompanyId);
     }
 
 
-    public function scopeGetRegistrated($query, $courseId){
+    public function scopeGetRegistrated($query, $courseId, $mainCompanyId) {
     return $query->select('students.*', 'registrations.is_bonus', 'companies.name as company_name',
         'registrations.id as registration_id', 'registrations.price',
         DB::raw("CONCAT(students.name,' ',students.surname) as student"))
         ->leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
         ->leftJoin('companies', 'registrations.company_id', '=', 'companies.id')
-        ->where('registrations.course_id', $courseId);
+        ->where('registrations.course_id', $courseId)
+        ->where('students.main_company_id', $mainCompanyId);
     }
 
 
-    public function scopeGetUnregistrated($query, $courseId){
-        $registations = Student::leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
-            ->where('registrations.course_id', '=', $courseId)->pluck('student_id');
+    public function scopeGetUnregistrated($query, $courseId, $mainCompanyId) {
+        $registrations = Student::leftJoin('registrations', 'students.id', '=', 'registrations.student_id')
+            ->where('registrations.course_id', '=', $courseId)
+            ->where('students.main_company_id', $mainCompanyId)
+            ->pluck('student_id');
+
         return $query->select('students.*', 'students.id as value', DB::raw("CONCAT(students.name,' ',students.surname) as label"))
             ->where('active', 1)
-            ->whereNotIn('id', $registations);
+            ->whereNotIn('id', $registrations)
+            ->where('students.main_company_id', $mainCompanyId);
+    }
+
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('students.main_company_id', $mainCompanyId);
     }
 
     public static function import($data)
     {
         $students = app(StudentService::class);
         return $students->import($data);
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(StudentService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(StudentService::class);
+        return $service->update($this, $data);
     }
 }

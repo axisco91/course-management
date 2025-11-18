@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\TrainingContract;
 use App\Models\AgreementType;
-    
+
 class ApplicableAgreement extends Model
 {
     use HasFactory;
@@ -20,7 +20,8 @@ class ApplicableAgreement extends Model
         'name',
         'code',
         'annually_hours',
-        'agreement_type_id',  // Futura clave foránea
+        'agreement_type_id',
+        'main_company_id'
     ];
 
     /**

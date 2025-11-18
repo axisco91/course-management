@@ -1,30 +1,25 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Http\Requests\TeacherRequests;
 use App\Models\Course;
 use App\Models\Teacher;
-use App\Services\TeacherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class TeacherController extends BaseController
 {
-    private $teacherService;
-
-    public function __construct(TeacherService $teacherService)
-    {
-        $this->teacherService = $teacherService;
-    }
-
     /**
      * Obtener docentes
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request) {
         try {
-            $teachers = Teacher::teacher();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $teachers = Teacher::teacher($mainCompanyId);
 
             if ($request->name) {
                 $teachers = $teachers->where('teachers.name', 'like', '%'.$request->name.'%');
@@ -49,7 +44,9 @@ class TeacherController extends BaseController
 
             if (count($teachers) > 0){
                 foreach ($teachers as $teacher) {
-                    $course = Course::where('teacher_id', $teacher->id)->first();
+                    $course = Course::where('teacher_id', $teacher->id)
+                        ->FilterMainCompany($mainCompanyId)
+                        ->first();
                     if ($course) {
                         $teacher['used'] = true;
                     } else {
@@ -70,9 +67,10 @@ class TeacherController extends BaseController
      * Obtener docentes activos
      * @return \Illuminate\Http\JsonResponse
      */
-    public function activeTeachers() {
+    public function activeTeachers(Request $request) {
         try {
-            $teachers = Teacher::teacher()
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $teachers = Teacher::teacher($mainCompanyId)
                 ->where('active', 1)
                 ->orderBy('teachers.name','asc')
                 ->get();
@@ -85,12 +83,14 @@ class TeacherController extends BaseController
     }
 
     // Obtain student
-    public function show($id){
-        $teacher = Teacher::teacher()
+    public function show($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $teacher = Teacher::teacher($mainCompanyId)
             ->where('teachers.id', $id)
             ->first();
         if ($teacher) {
             $course = Course::where('teacher_id', $teacher->id)
+                ->FilterMainCompany($mainCompanyId)
                 ->first();
             if ($course) {
                 $teacher['used'] = true;
@@ -112,13 +112,20 @@ class TeacherController extends BaseController
 
     public function store(TeacherRequests $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-            $element = $this->teacherService->create($data);
-            $teacher = Teacher::teacher()
+            $data['main_company_id'] = $mainCompanyId;
+
+            $element = Teacher::createWithService($data);
+
+            $teacher = Teacher::teacher($mainCompanyId)
                 ->where('teachers.id', $element->id)
                 ->first();
+
             $course = Course::where('teacher_id', $teacher->id)
+                ->FilterMainCompany($mainCompanyId)
                 ->first();
+
             if ($course) {
                 $teacher['used'] = true;
             } else {
@@ -126,9 +133,12 @@ class TeacherController extends BaseController
             }
 
             // Asociar las áreas formativas al profesor
-            $teacherAreaIds = $request->input('teacher_area_id');  // Los IDs de las áreas a las que está relacionado el profesor
-            foreach ($teacherAreaIds as $teacherAreaId) {
-                $teacher->teacherAreas()->attach($teacherAreaId);
+            $teacherAreaIds = $request['teacher_area_id'];  // Los IDs de las áreas a las que está relacionado el profesor
+
+            if ($teacherAreaIds) {
+                foreach ($teacherAreaIds as $teacherAreaId) {
+                    $teacher->teacherAreas()->attach($teacherAreaId);
+                }
             }
 
             $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
@@ -147,8 +157,13 @@ class TeacherController extends BaseController
     public function update($id, TeacherRequests $request)
     {
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-            $teacher = Teacher::find($id);
+
+            $teacher = Teacher::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
             if (!$teacher) {
                 Log::error("Teacher not found with id: $id");
                 return response()->json([
@@ -157,11 +172,12 @@ class TeacherController extends BaseController
                 ]);
             }
 
-            $element = $this->teacherService->update($teacher, $data);
-            $teacher = Teacher::teacher()
+            $element = $teacher->updateWithService($data);
+            $teacher = Teacher::teacher($mainCompanyId)
                 ->where('teachers.id', $element->id)
                 ->first();
             $course = Course::where('teacher_id', $teacher->id)
+                ->FilterMainCompany($mainCompanyId)
                 ->first();
             $teacher['used'] = $course ? true : false;
 
@@ -205,7 +221,10 @@ class TeacherController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      */
     public function checkDni(Request $request){
-        $teacher = Teacher::where('dni', $request->dni);
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $teacher = Teacher::where('dni', $request->dni)
+            ->FilterMainCompany($mainCompanyId);
+
         if ($request->id){
             $teacher = $teacher->where('id', '!=', $request->id);
         }
@@ -226,9 +245,11 @@ class TeacherController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function getTeachersCourses($id) {
-        $courses = Course::teacherCourses($id)
+    public function getTeachersCourses($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $courses = Course::teacherCourses($id, $mainCompanyId)
             ->get();
+
         if (count($courses) > 0) {
             foreach ($courses as $course){
                 $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
@@ -245,9 +266,23 @@ class TeacherController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request) {
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $teacher = Teacher::where($id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if (!$teacher) {
+                    Log::error("Teacher not found with id: $id");
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Teacher not found'
+                    ]);
+                }
+
                 Teacher::destroy($id);
                 return response()->json([
                     'status' => 200

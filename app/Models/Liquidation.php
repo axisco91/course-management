@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
+use App\Services\LiquidationService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,7 +12,7 @@ class Liquidation extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['company_id', 'course_id', 'beginning', 'end', 'price', 'paid', 'commision_percent', 'commision', 'paid_date', 'invoice_date', 'advisor_id', 'bill_number', 'status'];
+    protected $fillable = ['company_id', 'course_id', 'beginning', 'end', 'price', 'paid', 'commission_percent', 'commission', 'paid_date', 'invoice_date', 'advisor_id', 'bill_number', 'status', 'main_company_id'];
 
     public function course()
     {
@@ -29,8 +29,9 @@ class Liquidation extends Model
         return $this->hasOne('App\Models\Advisor', 'id', 'advisor_id');
     }
 
-    public static function getLiquidations(){
+    public static function getLiquidations($mainCompanyId){
         $liquidations = Liquidation::select('*')
+            ->where('liquidations.main_company_id', $mainCompanyId)
             ->with('course')
             ->with('company')
             ->with('advisor')
@@ -39,55 +40,45 @@ class Liquidation extends Model
         return $liquidations;
     }
 
-    public static function getLiquidation($id)
+    public static function getLiquidation($id, $mainCompanyId)
     {
         $liquidation = Liquidation::with([
-            'course' => function ($query) {
-                $query->withCourseData(); // Apply the scope to the course relationship
+            'course' => function ($query) use ($mainCompanyId) {
+                $query->withCourseData($mainCompanyId); // Apply the scope to the course relationship
             },
             'company',
             'advisor'
-        ])->where('id', $id)->first();
+        ])->where('id', $id)
+            ->where('liquidations.main_company_id', $mainCompanyId)
+            ->first();
 
         return $liquidation;
     }
 
-
-    public static function createLiquidation($data){
-        return Liquidation::create([
-            'company_id' => $data['company_id'],
-            'course_id' => $data['course_id'],
-            'beginning' => $data['beginning'],
-            'end' => $data['end'],
-            'price' => $data['price'],
-            'paid' => $data['paid'],
-            'commision_percent' => $data['commision_percent'],
-            'commision' => $data['commision'],
-            'paid_date' => $data['paid_date'] ?? Carbon::parse($data['paid_date'])->format('Y-m-d'),
-            'invoice_date' => $data['invoice_date'] ?? Carbon::parse($data['invoice_date'])->format('Y-m-d'),
-            'advisor_id' => $data['advisor_id'],
-            'bill_number' => $data['bill_number'],
-            'status' => $data['status'] ?? 1,
-        ]);
+    public function scopeGetAdvisorLiquidation($query, $advisorId, $companyId, $courseId, $mainCompanyId)
+    {
+        return $query->where('liquidations.advisor_id', $advisorId)
+                ->where('liquidations.company_id', $companyId)
+                ->where('liquidations.course_id', $courseId)
+                ->where('liquidations.main_company_id', $mainCompanyId);
     }
 
-    public static function updateLiquidation($id, $data){
-        $liquidation = Liquidation::find($id);
-         $liquidation->update([
-            'company_id' => $data['company_id'],
-            'course_id' => $data['course_id'],
-            'beginning' => $data['beginning'],
-            'end' => $data['end'],
-            'price' => $data['price'],
-            'paid' => $data['paid'],
-            'commision_percent' => $data['commision_percent'],
-            'commision' => $data['commision'],
-            'paid_date' => $data['paid_date'] ? Carbon::parse($data['paid_date'])->format('Y-m-d') : '',
-            'invoice_date' => $data['invoice_date'] ? Carbon::parse($data['invoice_date'])->format('Y-m-d') : '',
-            'advisor_id' => $data['advisor_id'],
-            'bill_number' => $data['bill_number'],
-            'status' => $data['status'] ?? 1,
-        ]);
-         return $liquidation;
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('liquidations.main_company_id', $mainCompanyId);
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(LiquidationService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(LiquidationService::class);
+        return $service->update($this, $data);
+    }
+    public function updateCommission($data){
+        $service = app(LiquidationService::class);
+        return $service->updateCommission($this, $data);
     }
 }

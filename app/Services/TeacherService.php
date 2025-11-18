@@ -30,7 +30,8 @@ class TeacherService
             'post_code' => $data['post_code'],
             'province_id' => $data['province_id'],
             'population' => $data['population'],
-            'active' => $data['active']
+            'active' => $data['active'],
+            'main_company_id' => $data['main_company_id'],
         ]);
         $teacher->teacherAreas()->sync($data['teacher_areas']);
         return $teacher;

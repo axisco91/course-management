@@ -10,9 +10,13 @@ class CertificationElement extends Model
 {
 	use HasFactory;
 
-    protected $fillable = ['certification_id', 'training_unit_id', 'module_id'];
+    protected $fillable = ['certification_id', 'training_unit_id', 'module_id', 'main_company_id'];
 
-    public static function getCertificationElements($certification_id){
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('certification_elements.main_company_id', $mainCompanyId);
+    }
+
+    public static function getCertificationElements($certificationId, $mainCompanyId) {
         $certification_elements = CertificationElement::select('certification_elements.*', DB::raw('IFNULL(training_units.formative_unit, modules.formative_module) AS formative_action'),DB::raw('IFNULL(training_units.name, modules.name) AS element'), 'training_units.name as training_unit_name',
             'training_units.exam_hours as training_unit_exam_hours', 'modules.exam_hours as module_exam_hours',
             'training_units.tutoring_hours as training_unit_tutoring_hours', 'modules.tutoring_hours as module_tutoring_hours',
@@ -22,11 +26,12 @@ class CertificationElement extends Model
             'training_units.formative_unit', 'modules.name as module_name', 'modules.formative_module', 'certification_elements.id as value')
             ->leftjoin('training_units', 'training_units.id', '=', 'certification_elements.training_unit_id')
             ->leftjoin('modules', 'modules.id', '=', 'certification_elements.module_id')
-            ->where('certification_elements.certification_id', $certification_id)->get();
+            ->where('certification_elements.certification_id', $certificationId)
+            ->where('certification_elements.main_company_id', $mainCompanyId)->get();
         return $certification_elements;
     }
 
-    public static function getCertificationElement($id){
+    public static function getCertificationElement($id, $mainCompanyId) {
         $certification_element = CertificationElement::select('certification_elements.*', DB::raw('IFNULL(training_units.formative_unit, modules.formative_module) AS formative_action'),DB::raw('IFNULL(training_units.name, modules.name) AS element'), 'training_units.name as training_unit_name',
             'training_units.exam_hours as training_unit_exam_hours', 'modules.exam_hours as module_exam_hours',
             'training_units.tutoring_hours as training_unit_tutoring_hours', 'modules.tutoring_hours as module_tutoring_hours',
@@ -36,22 +41,26 @@ class CertificationElement extends Model
             'training_units.formative_unit', 'modules.name as module_name', 'modules.formative_module', 'certification_elements.id as value')
             ->leftjoin('training_units', 'training_units.id', '=', 'certification_elements.training_unit_id')
             ->leftjoin('modules', 'modules.id', '=', 'certification_elements.module_id')
-            ->where('certification_elements.id', $id)->first();
+            ->where('certification_elements.id', $id)
+            ->where('certification_elements.main_company_id', $mainCompanyId)->first();
         return $certification_element;
     }
 
-    public static function createCertificationElement($certification_id, $elementId, $type){
+    public static function createCertificationElement($certification_id, $elementId, $type, $mainCompanyId) {
         $hours = 0;
         $face_to_face_hours = 0;
         $teletraining_hours = 0;
         $certification_element = null;
         if ($type == 'training_unit_id'){
             $certification_element = CertificationElement::where('training_unit_id', $elementId)
-                ->where('certification_id', $certification_id)->first();
+                ->where('certification_id', $certification_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
             if (!$certification_element){
                 $certification_element = CertificationElement::create([
                     'certification_id' => $certification_id,
-                    'training_unit_id' => $elementId
+                    'training_unit_id' => $elementId,
+                    'main_company_id' => $mainCompanyId,
                 ]);
                 $training_unit = TrainingUnit::find($elementId);
                 $hours = $training_unit['total_hours'];
@@ -60,46 +69,71 @@ class CertificationElement extends Model
             }
         } else if ($type == 'module_id'){
             $certification_element = CertificationElement::where('module_id', $elementId)
-                ->where('certification_id', $certification_id)->first();
+                ->where('certification_id', $certification_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
             if (!$certification_element){
                 $certification_element = CertificationElement::create([
                     'certification_id' => $certification_id,
                     'module_id' => $elementId,
+                    'main_company_id' => $mainCompanyId,
                 ]);
-                $module = Module::find($elementId);
-                $hours = $module['total_hours'];
-                $face_to_face_hours = $module['face_to_Face_hours'];
-                $teletraining_hours = $module['teletraining_hours'];
+                $module = Module::where('id', $elementId)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+                if ($module){
+                    $hours = $module['total_hours'];
+                    $face_to_face_hours = $module['face_to_Face_hours'];
+                    $teletraining_hours = $module['teletraining_hours'];
+                }
             }
         }
 
-        $certification = Certification::find($certification_id);
-        $certification->update([
-            'total_hours' => $certification['total_hours'] + $hours,
-            'face_to_face_hours' => $certification['face_to_face_hours'] + $face_to_face_hours,
-            'teletraining_hours' => $certification['teletraining_hours'] + $teletraining_hours
-        ]);
+        $certification = Certification::where('id', $certification_id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
+
+        if ($certification){
+            $certification->update([
+                'total_hours' => $certification['total_hours'] + $hours,
+                'face_to_face_hours' => $certification['face_to_face_hours'] + $face_to_face_hours,
+                'teletraining_hours' => $certification['teletraining_hours'] + $teletraining_hours
+            ]);
+        }
         return $certification_element;
     }
 
-    public static function deleteCertificationElement($id){
-        $certification_element = CertificationElement::find($id);
-        $certification = Certification::find($certification_element->certification_id);
+    public static function deleteCertificationElement($id, $mainCompanyId) {
+        $certification_element = CertificationElement::where('id', $id)
+        ->FilterMainCompany($mainCompanyId)
+        ->first();
+
+        $certification = Certification::where('id', $certification_element->certification_id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
+
          $hours = 0;
          $face_to_face_hours = 0;
          $teletraining_hours = 0;
         if ($certification){
             if ($certification_element){
                 if ($certification_element->training_unit_id) {
-                    $training_unit = TrainingUnit::find($certification_element->training_unit_id);
+                    $training_unit = TrainingUnit::where('id', $certification_element->training_unit_id)
+                        ->FilterMainCompany($mainCompanyId)
+                        ->first();
                     $hours = $training_unit['total_hours'];
                     $face_to_face_hours = $training_unit['face_to_face_hours'];
                     $teletraining_hours = $training_unit['teletraining_hours'];
                 } else if($certification_element->module_id) {
-                    $module = Module::find($certification_element->module_id);
-                    $hours = $module['total_hours'];
-                    $face_to_face_hours = $module['face_to_Face_hours'];
-                    $teletraining_hours = $module['teletraining_hours'];
+                    $module = Module::where('id', $certification_element->module_id)
+                        ->FilterMainCompany($mainCompanyId)
+                        ->first();
+                    if ($module){
+                        $hours = $module['total_hours'];
+                        $face_to_face_hours = $module['face_to_Face_hours'];
+                        $teletraining_hours = $module['teletraining_hours'];
+                    }
                 }
                 $certification_element->delete();
             }

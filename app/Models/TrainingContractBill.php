@@ -26,6 +26,7 @@ class TrainingContractBill extends Model
         'charged',
         'invoiced',
         'series_id',
+        'main_company_id'
     ];
 
     public function company()

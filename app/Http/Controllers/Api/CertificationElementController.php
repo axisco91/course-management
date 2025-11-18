@@ -1,38 +1,47 @@
 <?php
 namespace App\Http\Controllers\Api;
-use App\Models\Certification;
+use App\Helpers\GeneralHelpers;
 use App\Models\CertificationElement;
 use App\Models\Module;
 use App\Models\TrainingUnit;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class CertificationElementController extends BaseController
 {
-    public function index($id) {
+    public function index($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
         return response()->json([
-            'elements' => CertificationElement::getCertificationElements($id)
+            'elements' => CertificationElement::getCertificationElements($id, $mainCompanyId)
         ]);
     }
 
-    public function show($id) {
+    public function show($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
         return response()->json([
-            'elements' => CertificationElement::getCertificationElement($id)
+            'elements' => CertificationElement::getCertificationElement($id, $mainCompanyId)
         ]);
     }
 
-    public function getModules($id) {
-        return Module::getModulesNotInCertification($id);
+    public function getModules($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return Module::getModulesNotInCertification($id, $mainCompanyId);
     }
 
-    public function getUnits($id) {
-        return TrainingUnit::getTrainingUnitsNotInCertification($id);
+    public function getUnits($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return TrainingUnit::getTrainingUnitsNotInCertification($id, $mainCompanyId);
     }
 
     public function create($id, Request $request){
         try {
-            $element = CertificationElement::createCertificationElement($id, $request['id'], $request['type']);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $element = CertificationElement::createCertificationElement($id, $request['id'], $request['type'], $mainCompanyId);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -43,13 +52,17 @@ class CertificationElementController extends BaseController
         $unit = null;
         if ($element->module_id) {
             $module = Module::select('modules.*', 'modules.id as value', 'modules.name as label')
-                ->where('id', $element->module_id)->first();
+                ->where('id', $element->module_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
         }
         if ($element->training_unit_id) {
             $unit = TrainingUnit::select('training_units.*', 'training_units.id as value', 'training_units.name as label')
-                ->where('id', $element->training_unit_id)->first();
+                ->where('id', $element->training_unit_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
         }
-        $element = CertificationElement::getCertificationElement($element->id);
+        $element = CertificationElement::getCertificationElement($element->id, $mainCompanyId);
         return response()->json([
             'status' => 200,
             'element' => $element,
@@ -58,24 +71,41 @@ class CertificationElementController extends BaseController
         ]);
     }
 
-    public function destroy($id){
+    public function destroy($id, Request $request) {
         if ($id) {
             try {
-                $element = CertificationElement::find($id);
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $element = CertificationElement::where('certification_elements.id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
                 $module = null;
                 $unit = null;
                 if ($element->module_id) {
                     $module = Module::select('modules.*', 'modules.id as value', 'modules.name as label')
-                        ->where('id', $element->module_id)->first();
-                    $module = Module::getModule($module->id);
+                        ->where('id', $element->module_id)
+                        ->FilterMainCompany($mainCompanyId)
+                        ->first();
+
+                    $module = Module::getModule($module->id, $mainCompanyId);
                 }
                 if ($element->training_unit_id) {
                     $unit = TrainingUnit::select('training_units.*', 'training_units.id as value', 'training_units.name as label')
-                        ->where('id', $element->training_unit_id)->first();
+                        ->where('id', $element->training_unit_id)
+                        ->FilterMainCompany($mainCompanyId)
+                        ->first();
                     $unit = TrainingUnit::getTrainingUnit($unit->id);
                 }
-                CertificationElement::deleteCertificationElement($id);
-                CertificationElement::destroy($id);
+                $certificationElement = CertificationElement::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if ($certificationElement) {
+                    CertificationElement::deleteCertificationElement($id, $mainCompanyId);
+                    CertificationElement::destroy($id);
+                }
+
                 return response()->json([
                     'status' => 200,
                     'module' => $module,
@@ -88,5 +118,9 @@ class CertificationElementController extends BaseController
                 ]);
             }
         }
+        return response()->json([
+            'status' => 404,
+            'message' => 'Elemento no encontrado'
+        ]);
     }
 }

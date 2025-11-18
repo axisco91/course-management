@@ -9,9 +9,9 @@ class ExcludedDaysProvince extends Model
 {
 	use HasFactory;
 
-    public $timestamps = true;
+    public $timestamps = false;
 
-    protected $fillable = ['excluded_day_id','province_id'];
+    protected $fillable = ['excluded_day_id','province_id', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

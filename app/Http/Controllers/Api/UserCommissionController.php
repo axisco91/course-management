@@ -2,27 +2,22 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\GeneralHelpers;
 use App\Models\UserCommission;
-use App\Services\UserCommissionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class UserCommissionController extends BaseController
 {
-    private $userCommissionService;
-
-    public function __construct(UserCommissionService $userCommissionService)
-    {
-        $this->userCommissionService = $userCommissionService;
-    }
-
     /**
      * Obtener comisiones
      * @return mixed
      */
-    public function index($id) {
+    public function index($id, Request $request) {
         try {
-            $commissions = UserCommission::commissions()
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $commissions = UserCommission::commissions($mainCompanyId)
                 ->where('user_commissions.user_id', $id)
                 ->get();
 
@@ -38,15 +33,26 @@ class UserCommissionController extends BaseController
      * Editar comisión
      * @param $id
      * @param Request $request
-     * @return int
      */
     public function update($id, Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-            $userCommission = UserCommission::find($id);
-            $this->userCommissionService->update($userCommission, $data);
 
-            $commission = UserCommission::commissions()
+            $userCommission = UserCommission::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$userCommission) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Comisión no encontrada'
+                ]);
+            }
+
+            $userCommission->updateWithService($userCommission, $data);
+
+            $commission = UserCommission::commissions($mainCompanyId)
                 ->where('user_commissions.id', $id)
                 ->first();
 
@@ -67,10 +73,12 @@ class UserCommissionController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function show($id){
-        $userCommission = UserCommission::commissions()
+    public function show($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $userCommission = UserCommission::commissions($mainCompanyId)
             ->where('user_commissions.id', $id)
             ->first();
+
         if ($userCommission) {
             return response()->json([
                 'status' => 200,
@@ -78,7 +86,7 @@ class UserCommissionController extends BaseController
             ]);
         }
         return response()->json([
-            'status' => 400,
+            'status' => 404,
             'message' => 'Comisión no existe'
         ]);
     }
@@ -86,11 +94,23 @@ class UserCommissionController extends BaseController
     /**
      * Eliminar comisión
      * @param $id
-     * @return int|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $userCommission = UserCommission::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if (!$userCommission) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Comisión no existe'
+                    ]);
+                }
+
                 UserCommission::destroy($id);
                 return response()->json([
                     'status' => 200

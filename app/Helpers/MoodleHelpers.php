@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
 
 class MoodleHelpers
@@ -12,33 +13,40 @@ class MoodleHelpers
     /**
      * Get the course
      */
-    public static function getCourseByShortname($shortname){
+    public static function getCourseByShortname($shortname, $url, $token) {
         $client = new Client();
 
-        $response = $client->request('GET', 'https://avzformacion.com/aula/webservice/rest/server.php', [
-            'query' => [
-                'wstoken' => '28f133d28d18678a37346ff00b0101d4',
-                'wsfunction' => 'core_course_get_courses',
-                'moodlewsrestformat' => 'json',
-            ]
-        ]);
+        try {
+            $response = $client->request('GET', $url.'/webservice/rest/server.php', [
+                'query' => [
+                    'wstoken' => $token,
+                    'wsfunction' => 'core_course_get_courses',
+                    'moodlewsrestformat' => 'json',
+                ]
+            ]);
 
-        $courses = json_decode($response->getBody(), true);
+            $courses = json_decode($response->getBody(), true);
 
-        // Filter the courses by shortname
-        $filteredCourses = array_filter($courses, function ($course) use ($shortname) {
-            return $course['shortname'] === $shortname;
-        });
+            foreach ($courses as $course) {
+                if ($course['shortname'] === $shortname) {
+                    return $course; // Curso encontrado
+                }
+            }
 
-        return array_values($filteredCourses);
+            return null; // Curso no encontrado
+
+        } catch (RequestException $e) {
+            // Manejo del error HTTP o de red
+            return null;
+        }
     }
 
-    public static function getActivityCount($courseId) {
+    public static function getActivityCount($courseId, $url, $token) {
         $client = new Client();
 
-        $response = $client->request('GET', 'https://avzformacion.com/aula/webservice/rest/server.php', [
+        $response = $client->request('GET', $url.'/webservice/rest/server.php', [
             'query' => [
-                'wstoken' => '28f133d28d18678a37346ff00b0101d4', // Replace with your token
+                'wstoken' => $token, // Replace with your token
                 'wsfunction' => 'core_course_get_contents',
                 'moodlewsrestformat' => 'json',
                 'courseid' => $courseId, // The ID of the course
@@ -77,12 +85,12 @@ class MoodleHelpers
         ];
     }
 
-    public static function getStudentCourseDetails($courseId, $username) {
+    public static function getStudentCourseDetails($courseId, $username, $url, $token) {
         $client = new Client();
         // Step 1: Fetch userid from username
-        $responseUsers = $client->request('GET', 'https://avzformacion.com/aula/webservice/rest/server.php', [
+        $responseUsers = $client->request('GET', $url.'/webservice/rest/server.php', [
             'query' => [
-                'wstoken' => '28f133d28d18678a37346ff00b0101d4',
+                'wstoken' => $token,
                 'wsfunction' => 'core_user_get_users',
                 'moodlewsrestformat' => 'json',
                 'criteria[0][key]' => 'username',
@@ -99,9 +107,9 @@ class MoodleHelpers
         $userId = $users['users'][0]['id']; // Fetch the first matched user
 
         // Step 2: Fetch course contents (to map cmid to names)
-        $responseContents = $client->request('GET', 'https://avzformacion.com/aula/webservice/rest/server.php', [
+        $responseContents = $client->request('GET', $url.'/webservice/rest/server.php', [
             'query' => [
-                'wstoken' => '28f133d28d18678a37346ff00b0101d4',
+                'wstoken' => $token,
                 'wsfunction' => 'core_course_get_contents',
                 'moodlewsrestformat' => 'json',
                 'courseid' => $courseId,
@@ -121,9 +129,9 @@ class MoodleHelpers
         }
 
         // Step 3: Fetch activities completion status
-        $responseCompletion = $client->request('GET', 'https://avzformacion.com/aula/webservice/rest/server.php', [
+        $responseCompletion = $client->request('GET', $url.'/webservice/rest/server.php', [
             'query' => [
-                'wstoken' => '28f133d28d18678a37346ff00b0101d4',
+                'wstoken' => $token,
                 'wsfunction' => 'core_completion_get_activities_completion_status',
                 'moodlewsrestformat' => 'json',
                 'courseid' => $courseId,
@@ -160,9 +168,9 @@ class MoodleHelpers
         }
 
         // Step 4: Fetch last access time for the course
-        $responseEnrolledUsers = $client->request('GET', 'https://avzformacion.com/aula/webservice/rest/server.php', [
+        $responseEnrolledUsers = $client->request('GET', $url.'/webservice/rest/server.php', [
             'query' => [
-                'wstoken' => '28f133d28d18678a37346ff00b0101d4',
+                'wstoken' => $token,
                 'wsfunction' => 'core_enrol_get_enrolled_users',
                 'moodlewsrestformat' => 'json',
                 'courseid' => $courseId,
@@ -187,9 +195,9 @@ class MoodleHelpers
             $lastAccessFormatted = 'Never accessed';
         }
 
-        $response = $client->request('GET', 'https://avzformacion.com/aula/webservice/rest/server.php', [
+        $response = $client->request('GET', $url.'/webservice/rest/server.php', [
             'query' => [
-                'wstoken' => '28f133d28d18678a37346ff00b0101d4', // Your token
+                'wstoken' => $token, // Your token
                 'wsfunction' => 'local_dedication_get_dedication', // Your custom service function name
                 'moodlewsrestformat' => 'json', // Response format
                 'userid' => $userId, // The user ID you want to check
@@ -198,9 +206,9 @@ class MoodleHelpers
         ]);
         $times = json_decode($response->getBody(), true);
 
-        $responseCompletion = $client->request('GET', 'https://avzformacion.com/aula/webservice/rest/server.php', [
+        $responseCompletion = $client->request('GET', $url.'/webservice/rest/server.php', [
             'query' => [
-                'wstoken' => '28f133d28d18678a37346ff00b0101d4', // Replace with your token
+                'wstoken' => $token, // Replace with your token
                 'wsfunction' => 'core_completion_get_activities_completion_status',
                 'moodlewsrestformat' => 'json',
                 'courseid' => $courseId, // The course ID

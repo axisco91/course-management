@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\AdvisorCommission;
 use App\Models\AdvisorCommissionType;
 use App\Models\Bill;
@@ -16,20 +17,18 @@ use App\Models\TrainingAction;
 use App\Models\UserCommission;
 use App\Models\UserCommissionType;
 use App\Services\AdvisorCommissionService;
-use App\Services\BillService;
 use App\Services\UserCommissionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class  BillController extends BaseController
 {
-    private $billService;
     private $advisorCommissionService;
     private $userCommissionService;
 
-    public function __construct(BillService $billService, AdvisorCommissionService $advisorCommissionService, UserCommissionService $userCommissionService)
+    public function __construct( AdvisorCommissionService $advisorCommissionService, UserCommissionService $userCommissionService)
     {
-        $this->billService = $billService;
         $this->advisorCommissionService = $advisorCommissionService;
         $this->userCommissionService = $userCommissionService;
     }
@@ -40,8 +39,10 @@ class  BillController extends BaseController
      */
     public function index(Request $request) {
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $cfa = CourseType::where('name', 'CFA')->first();
-            $bills = Bill::bill();
+            $bills = Bill::bill($mainCompanyId);
             if ($cfa) {
                 $bills = $bills->where('course_type_id', '!=', $cfa->id);
             }
@@ -74,7 +75,7 @@ class  BillController extends BaseController
                 }
             }
 
-            $bills = $bills->groupBy('billings.id')->orderBy('courses.beginning', 'desc')->get();
+            $bills = $bills->FilterMainCompany($mainCompanyId)->groupBy('billings.id')->orderBy('courses.beginning', 'desc')->get();
             return $bills;
         } catch (\Exception $e) {
             return response()->json([
@@ -88,8 +89,10 @@ class  BillController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id){
-        $bill = Bill::bill()
+    public function show($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $bill = Bill::bill($mainCompanyId)
             ->where('billings.id', $id)
             ->first();
         if ($bill) {
@@ -124,13 +127,25 @@ class  BillController extends BaseController
      */
     public function update($id, Request $request){
         try {
-            $bill = Bill::find($id);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $bill = Bill::where('billings.id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$bill) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Factura no existe'
+                ]);
+            }
             $request['is_bonus'] = $bill->is_bonus;
             $data = $request->all();
-            $element = $this->billService->update($bill, $data);
+            $data['main_company_id'] = $bill->id;
+            $element = $bill->updateWithService($data);
 
             // Buscamos el curso de que pertenece esta matriculación
             $course = Course::where('id' , $bill->course_id)
+                ->FilterMainCompany($mainCompanyId)
                 ->first();
             if ($course) {
                 $commissionType = null;
@@ -169,7 +184,8 @@ class  BillController extends BaseController
                             'commission_type_id' => $commissionType->id,
                             'percentage' => $percentage,
                             'amount' => ($percentage / 100) * $bill->billing,
-                            'bill_amount' => $bill->billing
+                            'bill_amount' => $bill->billing,
+                            'main_company_id' => $mainCompanyId,
                         ];
                         if ($advisorCommission) {
                             $this->advisorCommissionService->update($advisorCommission, $commissionData);
@@ -196,7 +212,8 @@ class  BillController extends BaseController
                             'commission_type_id' => $commissionType->id,
                             'percentage' => $percentage,
                             'amount' => ($percentage / 100) * $bill->billing,
-                            'bill_amount' => $bill->billing
+                            'bill_amount' => $bill->billing,
+                            'main_company_id' => $mainCompanyId,
                         ];
                         if ($userCommission) {
                             $this->userCommissionService->update($userCommission, $commissionData);
@@ -207,24 +224,34 @@ class  BillController extends BaseController
                 }
             }
 
-            $registrations = Registration::billingRegistration($id)
+            $registrations = Registration::billingRegistration($id, $mainCompanyId)
                 ->get();
             foreach ($registrations as $registration){
-                $chore = Chore::find($registration->chore_id);
-                $chore->update([
-                    'bonus_sent_status' => $bill['invoiced'],
-                    'bonus_sent_date' => $request['billing_date'] ? \Illuminate\Support\Carbon::createFromFormat('d-m-Y', $request['billing_date'])->format('Y-m-d') : null,
-                    'invoiced_status' => $bill['invoiced'],
-                    'invoiced_date' => $request['billing_date'] ? Carbon::createFromFormat('d-m-Y', $request['billing_date'])->format('Y-m-d') : null
-                ]);
+                $chore = Chore::where('id', $registration->chore_id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if ($chore) {
+                    $chore->update([
+                        'bonus_sent_status' => $bill['invoiced'],
+                        'bonus_sent_date' => $request['billing_date'] ? \Illuminate\Support\Carbon::createFromFormat('d-m-Y', $request['billing_date'])->format('Y-m-d') : null,
+                        'invoiced_status' => $bill['invoiced'],
+                        'invoiced_date' => $request['billing_date'] ? Carbon::createFromFormat('d-m-Y', $request['billing_date'])->format('Y-m-d') : null,
+                        'main_company_id' => $mainCompanyId,
+                    ]);
+                }
             }
 
-            $bill = Bill::bill()
+            $bill = Bill::bill($mainCompanyId)
                 ->where('billings.id', $element->id)
                 ->first();
             if ($bill) {
-                $course = Course::where('id', $bill->course_id)->first();
-                $company = Company::where('id', $bill->company_id)->first();
+                $course = Course::where('id', $bill->course_id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+                $company = Company::where('id', $bill->company_id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
                 $bill['name'] = $course->group . '/' . $course->name . ' - ' . $company->name . ' ' . Carbon::parse($course->beginning)->format('d/m/Y') . ' - ' . Carbon::parse($course->end)->format('d/m/Y');
             }
             return response()->json([
@@ -244,10 +271,13 @@ class  BillController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
-                $bill = Bill::find($id);
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+                $bill = Bill::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
                 if ($bill) {
                     $advisorCommissions = AdvisorCommission::where('commissionable_id', $bill->id)
                         ->where('commissionable_type', 'App\Models\Bill')
@@ -274,8 +304,10 @@ class  BillController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getBillStudents($id)
+    public function getBillStudents($id, Request $request)
     {
-        return response()->json(Student::billedStudent($id)->get());
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return response()->json(Student::billedStudent($id, $mainCompanyId)->get());
     }
 }

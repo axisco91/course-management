@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\GeneralHelpers;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractBonus;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class TrainingContractBonusController extends BaseController
 {
-    public function trainingContractBonuses($id) {
+    public function trainingContractBonuses($id, Request $request) {
         try {
-            return TrainingContractBonus::getBonuses($id);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            return TrainingContractBonus::getBonuses($id, $mainCompanyId);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -21,167 +24,121 @@ class TrainingContractBonusController extends BaseController
         }
     }
 
-    public function generate($id) {
-        $trainingContract = TrainingContract::find($id);
-        $trainingContract_bonuses = TrainingContractBonus::where('training_contract_id', $trainingContract->id)->get();
+    public function generate($id, Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        if ($trainingContract_bonuses->isEmpty()) {
-            $beginning_date = Carbon::parse($trainingContract->beginning);
-            $end_date = Carbon::parse($trainingContract->end);
+        $trainingContract = TrainingContract::where('id', $id)
+            ->FilterMainCompany($mainCompanyId)
+            ->firstOrFail();
 
-            Log::info('Begin date: ' . $beginning_date);
-            Log::info('End date: ' . $end_date);
+        $beginning_date = Carbon::parse($trainingContract->beginning);
+        $end_date       = Carbon::parse($trainingContract->end);
 
-            // Calcula el total de bonos para el primer y segundo año
-            $total_bonus_first_year = $trainingContract->bonus_hours_first_year * 5;
-            $total_bonus_second_year = $trainingContract->bonus_hours_second_year * 5;
+        // 1) Trae existentes
+        $existing = TrainingContractBonus::where('training_contract_id', $trainingContract->id)
+            ->FilterMainCompany($mainCompanyId)
+            ->get(['year','month'])
+            ->map(fn($b) => sprintf('%04d-%02d', $b->year, $b->month))
+            ->toArray();
 
-            Log::info('Total bonus first year: ' . $total_bonus_first_year);
-            Log::info('Total bonus second year: ' . $total_bonus_second_year);
+        // 2) Construye todos los meses del rango
+        $period  = CarbonPeriod::create($beginning_date, '1 month', $end_date->copy()->endOfMonth());
+        $months  = iterator_to_array($period); // ¡no reutilizamos el iterador!
+        $total_months = count($months);
 
-            // Calcula el total amount
-            $total_amount = $total_bonus_first_year + $total_bonus_second_year;
-            Log::info('Total amount: ' . $total_amount);
+        // 3) Calcula importes y crea SOLO los faltantes
+        $total_bonus_first_year  = $trainingContract->bonus_hours_first_year  * 5;
+        $total_bonus_second_year = $trainingContract->bonus_hours_second_year * 5;
 
-            // Crear un periodo de un mes de duración desde la fecha de inicio hasta la fecha de finalización
-            $period = CarbonPeriod::create($beginning_date, '1 month', $end_date->copy()->endOfMonth());
+        foreach ($months as $idx => $date) {
+            $ymKey = sprintf('%04d-%02d', $date->year, $date->month);
+            if (in_array($ymKey, $existing, true)) {
+                continue; // este mes ya estaba
+            }
 
-            $total_months = iterator_count($period);
-            Log::info('Total months: ' . $total_months);
+            // ¿primer/segundo año?
+            $is_first_year = ($date->year == $beginning_date->year)
+                || ($date->year == $beginning_date->year + 1 && $date->month <= $beginning_date->month);
 
-            $amounts = [];
+            $amount_per_full_month = ($is_first_year ? $total_bonus_first_year : $total_bonus_second_year) / 12;
 
-            foreach ($period as $key => $date) {
-                // Determine if the month falls in the first or second year
-                $is_first_year = $date->year == $beginning_date->year || ($date->year == $beginning_date->year + 1 && $date->month <= $beginning_date->month);
+            // prorrateos inicio/fin/puente (igual que tu lógica)
+            if ($idx === 0) {
+                $days_in_first_month = $date->daysInMonth;
+                $days_in_contract_first_month = $days_in_first_month - $beginning_date->day + 1;
+                $amount = $amount_per_full_month * ($days_in_contract_first_month / $days_in_first_month);
+            } elseif ($idx === $total_months - 1) {
+                $days_in_last_month = $end_date->daysInMonth;
+                $days_in_contract_last_month = $end_date->day;
+                $amount = $amount_per_full_month * ($days_in_contract_last_month / $days_in_last_month);
+            } else {
+                if ($date->year == $beginning_date->year + 1 && $date->month == $beginning_date->month) {
+                    $days_in_month = $date->daysInMonth;
+                    // divide el mes “puente” entre año 1 y 2
+                    $boundary = $beginning_date->copy()->addYear()->startOfMonth();
+                    $startOfMonth = $date->copy()->startOfMonth();
+                    $endOfMonth   = $date->copy()->endOfMonth();
 
-                if ($is_first_year) {
-                    $amount_per_full_month = $total_bonus_first_year / 12;
+                    $days_in_first_year  = max(0, min($days_in_month, $boundary->diffInDays($endOfMonth) - $boundary->diffInDays($startOfMonth)));
+                    $days_in_second_year = $days_in_month - $days_in_first_year;
+
+                    $amount = (($total_bonus_first_year  / 12) * ($days_in_first_year  / $days_in_month))
+                        + (($total_bonus_second_year / 12) * ($days_in_second_year / $days_in_month));
                 } else {
-                    $amount_per_full_month = $total_bonus_second_year / 12;
-                }
-
-                // Calcular los días trabajados en el primer y último mes
-                if ($key == 0) {
-                    $days_in_first_month = $date->daysInMonth;
-                    $days_in_contract_first_month = $days_in_first_month - $beginning_date->day + 1;
-                    $amount = $amount_per_full_month * ($days_in_contract_first_month / $days_in_first_month);
-                } elseif ($key == $total_months - 1) {
-                    $days_in_last_month = $end_date->daysInMonth;
-                    $days_in_contract_last_month = $end_date->day;
-                    $amount = $amount_per_full_month * ($days_in_contract_last_month / $days_in_last_month);
-                } else {
-                    // Manejo del mes puente
-                    if ($date->year == $beginning_date->year + 1 && $date->month == $beginning_date->month) {
-                        $days_in_month = $date->daysInMonth;
-                        $days_in_first_year = $beginning_date->copy()->addYear()->startOfMonth()->diffInDays($date->copy()->endOfMonth()->startOfMonth());
-                        $days_in_second_year = $days_in_month - $days_in_first_year;
-                        Log::info('Bridge month: ' . $date . ' - Days in first year: ' . $days_in_first_year . ' - Days in second year: ' . $days_in_second_year);
-                        $amount = (($total_bonus_first_year / 12) * ($days_in_first_year / $days_in_month)) + (($total_bonus_second_year / 12) * ($days_in_second_year / $days_in_month));
-                    } else {
-                        $amount = $amount_per_full_month;
-                    }
-                }
-
-                // Redondear los montos al múltiplo de 5 más cercano
-                $amount = round($amount / 5) * 5;
-
-                Log::info('Date: ' . $date . ' - Amount: ' . $amount);
-
-                $amounts[] = $amount;
-            }
-
-            Log::info('Amounts before adjustment: ' . json_encode($amounts));
-
-            // Ajustar cualquier diferencia residual
-            $difference = $total_amount - array_sum($amounts);
-            Log::info('Initial difference: ' . $difference);
-
-            // Distribuir la diferencia en los meses, asegurando que ningún monto sea demasiado grande o pequeño
-            if (abs($difference) >= 5) {
-                $increment = $difference > 0 ? 5 : -5;
-                for ($i = 0; $i < count($amounts) && abs($difference) >= 5; $i++) {
-                    $amounts[$i] += $increment;
-                    $difference -= $increment;
+                    $amount = $amount_per_full_month;
                 }
             }
 
-            Log::info('Adjusted amounts: ' . json_encode($amounts));
-            Log::info('Remaining difference: ' . $difference);
+            $amount = round($amount / 5) * 5;
 
-            // Asegurar que ningún monto sea menor que 5 o desproporcionadamente grande
-            while ($difference != 0) {
-                for ($i = 0; $i < count($amounts); $i++) {
-                    if ($difference == 0) break;
+            $start_date = $idx === 0 ? Carbon::parse($trainingContract->beginning) : $date->copy()->startOfMonth();
+            $end_date_for_bonus = $idx === $total_months - 1 ? Carbon::parse($trainingContract->end) : $date->copy()->endOfMonth();
 
-                    if ($difference > 0 && $amounts[$i] >= 5) {
-                        $amounts[$i] += 5;
-                        $difference -= 5;
-                    } elseif ($difference < 0 && $amounts[$i] > 5) {
-                        $amounts[$i] -= 5;
-                        $difference += 5;
-                    }
-                }
-            }
-
-            Log::info('Amounts after final adjustment: ' . json_encode($amounts));
-
-            // Crear los bonos con los montos ajustados
-            foreach ($period as $key => $date) {
-                $start_date = $date->copy()->startOfMonth();
-                $end_date_for_bonus = $date->copy()->endOfMonth();
-
-                if ($key == 0) {
-                    $start_date = Carbon::parse($trainingContract->beginning);
-                }
-
-                if ($key == $total_months - 1) {
-                    $end_date_for_bonus = Carbon::parse($trainingContract->end);
-                }
-
-                TrainingContractBonus::createBonus([
+            // crea solo si no existe
+            TrainingContractBonus::firstOrCreate(
+                [
                     'training_contract_id' => $id,
+                    'year'  => $date->year,
                     'month' => $date->month,
-                    'year' => $date->year,
-                    'start' => $start_date,
-                    'end' => $end_date_for_bonus,
-                    'amount' => $amounts[$key],
-                    'hours' => 0,
-                    'invoiced' => 0
-                ]);
-            }
-
-            $contract = TrainingContract::select('training_contracts.*')
-                ->selectSub(function ($query) {
-                    $query->from('training_contract_bonuses')
-                        ->selectRaw('SUM(amount)')
-                        ->whereColumn('training_contract_bonuses.training_contract_id', 'training_contracts.id');
-                }, 'total_amount')
-                ->leftJoin('training_contract_bonuses', 'training_contract_bonuses.training_contract_id', '=', 'training_contracts.id')
-                ->where('training_contracts.id', $id)
-                ->first();
-
-            Log::info('Total amount from contract: ' . $contract->total_amount);
-
-            return response()->json([
-                'status' => 200,
-                'bonuses' => TrainingContractBonus::getBonuses($id),
-                'total_amount'=> $contract->total_amount,
-            ]);
-
-        } else {
-            return response()->json([
-                'status' => 400,
-                'message' => 'Bonos ya generados'
-            ]);
+                    'main_company_id' => $trainingContract->main_company_id,
+                ],
+                [
+                    'start'   => $start_date,
+                    'end'     => $end_date_for_bonus,
+                    'amount'  => $amount,
+                    'hours'   => 0,
+                    'invoiced'=> 0,
+                ]
+            );
         }
+
+        // Total recalculado
+        $contract = TrainingContract::select('training_contracts.*')
+            ->selectSub(function ($q) {
+                $q->from('training_contract_bonuses')
+                    ->selectRaw('SUM(amount)')
+                    ->whereColumn('training_contract_bonuses.training_contract_id', 'training_contracts.id');
+            }, 'total_amount')
+            ->leftJoin('training_contract_bonuses', 'training_contract_bonuses.training_contract_id', '=', 'training_contracts.id')
+            ->where('training_contracts.id', $id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
+
+        return response()->json([
+            'status'       => 200,
+            'message'      => 'Bonos generados para los meses faltantes',
+            'bonuses'      => TrainingContractBonus::getBonuses($id, $mainCompanyId),
+            'total_amount' => $contract->total_amount,
+        ]);
     }
-
-
 
     public function create(Request $request){
         try {
-            $bonus = TrainingContractBonus::createBonus($request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $data = $request->all();
+            $data['main_company_id'] = $mainCompanyId;
+            $bonus = TrainingContractBonus::createWithService($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -191,13 +148,27 @@ class TrainingContractBonusController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'bonus' => TrainingContractBonus::getBonus($bonus->id)
+            'bonus' => TrainingContractBonus::getBonus($bonus->id, $mainCompanyId),
         ]);
     }
 
     public function edit($id, Request $request){
         try {
-            $bonus = TrainingContractBonus::updateBonus($id, $request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $bonus = TrainingContractBonus::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$bonus){
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Bonificado no existe'
+                ]);
+            }
+
+            $data = $request->all();
+            $bonus->updateWithService($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -207,12 +178,13 @@ class TrainingContractBonusController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'bonus' => TrainingContractBonus::getBonus($bonus->id)
+            'bonus' => TrainingContractBonus::getBonus($bonus->id, $mainCompanyId),
         ]);
     }
 
-    public function getTrainingContractBonus($id){
-        $bonus = TrainingContractBonus::getBonus($id);
+    public function getTrainingContractBonus($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $bonus = TrainingContractBonus::getBonus($id, $mainCompanyId);
         if ($bonus) {
             return response()->json([
                 'status' => 200,
@@ -225,9 +197,22 @@ class TrainingContractBonusController extends BaseController
         ]);
     }
 
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $bonus = TrainingContractBonus::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if (!$bonus){
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Bonificado no existe'
+                    ]);
+                }
+
                 TrainingContractBonus::destroy($id);
                 return response()->json([
                     'status' => 200

@@ -1,22 +1,16 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\Course;
-use App\Models\CourseType;
 use App\Models\Profitability;
 use App\Models\Student;
-use App\Services\ProfitabilityService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProfitabilityController extends BaseController
 {
-    private $profitabilityService;
-
-    public function __construct(ProfitabilityService $profitabilityService)
-    {
-        $this->profitabilityService = $profitabilityService;
-    }
 
     /**
  * Obtener rentabilidad
@@ -24,8 +18,10 @@ class ProfitabilityController extends BaseController
  */
 public function index(Request $request) {
     try {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
         $profits = Profitability::with(['registrations.student', 'course.courseStatuses', 'company'])
-            ->profitability();
+            ->profitability($mainCompanyId);
 
         // Apply necessary filters
         if ($request->course) {
@@ -44,7 +40,9 @@ public function index(Request $request) {
             });
         }
 
-        $profits = $profits->orderBy('courses.beginning', 'desc')->get();
+        $profits = $profits->FilterMainCompany($mainCompanyId)
+            ->orderBy('courses.beginning', 'desc')->get();
+
         return response()->json($profits);
     } catch (\Exception $e) {
         return response()->json([
@@ -59,12 +57,16 @@ public function index(Request $request) {
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id){
-        $profitability = Profitability::profitability()
+    public function show($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $profitability = Profitability::profitability($mainCompanyId)
             ->where('profitabilities.id', $id)
             ->first();
         if ($profitability) {
-            $course = Course::where('id', $profitability->course_id)->first();
+            $course = Course::where('id', $profitability->course_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
             if ($course) {
                 $beginning = Carbon::parse($course->beginning)->format('d/m/Y');
                 $end = Carbon::parse($course->end)->format('d/m/Y');
@@ -88,21 +90,25 @@ public function index(Request $request) {
      */
     public function store(Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $data = $request->all();
-            $profitability = $this->profitabilityService->create($data);
+            $data['main_company_id'] = $mainCompanyId;
+
+            $profitability = Profitability::createWithService($data);
+
+            return response()->json([
+                'status' => 200,
+                'profitability' => Profitability::profitability($mainCompanyId)
+                    ->where('profitabilities.id', $profitability->id)
+                    ->first()
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'profitability' => Profitability::profitability()
-                ->where('profitabilities.id', $profitability->id)
-                ->first()
-        ]);
     }
 
     /**
@@ -113,22 +119,36 @@ public function index(Request $request) {
      */
     public function update($id, Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $profitability = Profitability::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$profitability) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Profitabilidad no existe'
+                ]);
+            }
+
             $data = $request->all();
-            $profitability = Profitability::find($id);
-            $profitability = $this->profitabilityService->update($profitability, $data);
+
+            $profitability->updateWithService($data);
+
+            return response()->json([
+                'status' => 200,
+                'profitability' => Profitability::profitability($mainCompanyId)
+                    ->where('profitabilities.id', $profitability->id)
+                    ->first()
+            ]);
+
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'profitability' => Profitability::profitability()
-                ->where('profitabilities.id', $profitability->id)
-                ->first()
-        ]);
     }
 
     /**
@@ -136,9 +156,22 @@ public function index(Request $request) {
      * @param $id
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $profitability = Profitability::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if (!$profitability) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Profitabilidad no existe'
+                    ]);
+                }
+
                 Profitability::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -157,12 +190,26 @@ public function index(Request $request) {
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getStudents($id){
-        $profitabilities = Profitability::find($id);
-        $registrations = $profitabilities->registrations()->get()->pluck('student_id')->toArray();
+    public function getStudents($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $profitability = Profitability::where('id', $id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
+
+        if (!$profitability) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Profitabilidad no existe'
+            ]);
+        }
+
+        $registrations = $profitability->registrations()->get()->pluck('student_id')->toArray();
+
         $students = Student::select('students.*', 'companies.name as company_name')
             ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
-            ->whereIn('students.id', $registrations)->get();
+            ->whereIn('students.id', $registrations)
+            ->FilterMainCompany($mainCompanyId)
+            ->get();
         return response()->json($students);
     }
 }

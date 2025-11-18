@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Support\Carbon;
+use App\Services\ChoreService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +45,8 @@ class Chore extends Model
         'send_doc_status',
         'send_doc_date',
         'tutor_guide_status',
-        'tutor_guide_date'
+        'tutor_guide_date',
+        'main_company_id'
     ];
 
     /**
@@ -80,7 +81,7 @@ class Chore extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public function scopeChore($query) {
+    public function scopeChore($query, $mainCompanyId) {
         return $query->select('chores.*', DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as course"),
             'companies.name as company', 'students.name as student_name',
             'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group',
@@ -94,10 +95,15 @@ class Chore extends Model
             ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
             ->leftjoin('companies', 'companies.id', '=', 'chores.company_id')
             ->leftjoin('students', 'students.id', '=', 'chores.student_id')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id');
+            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->where('chores.main_company_id', $mainCompanyId);
     }
 
-    public static function getChoresSendWelcome(){
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('chores.main_company_id', $mainCompanyId);
+    }
+
+    public static function getChoresSendWelcome($mainCompanyId) {
         $chores = Chore::select('chores.*', 'courses.name as course', 'companies.name as company', 'students.name as student_name',
             'courses.beginning',
             'students.surname as student_surname', 'course_statuses.name as status', 'courses.group as course_group')
@@ -106,6 +112,7 @@ class Chore extends Model
             ->leftjoin('companies', 'companies.id', '=', 'chores.company_id')
             ->leftjoin('students', 'students.id', '=', 'chores.student_id')
             ->where('welcome_guid_status', 0)
+            ->where('chores.main_company_id', $mainCompanyId)
             ->get();
 
         foreach ($chores as $chore){
@@ -113,5 +120,26 @@ class Chore extends Model
         }
 
         return $chores;
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(ChoreService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(ChoreService::class);
+        return $service->update($this, $data);
+    }
+
+    public function updateCommunicationStartDate($data){
+        $service = app(ChoreService::class);
+        return $service->updateCommunicationStartDate($this, $data);
+    }
+
+    public function updateCommunicationEndDate($data){
+        $service = app(ChoreService::class);
+        return $service->updateCommunicationEndDate($this, $data);
     }
 }

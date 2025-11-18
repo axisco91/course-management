@@ -1,28 +1,17 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\Advisor;
 use App\Models\Company;
 use App\Models\Course;
 use App\Models\TrainingContract;
 use App\Models\User;
-use App\Services\AdvisorService;
-use App\Services\CompanyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class AdvisorController extends BaseController
 {
-    private $advisorService;
-    private $companyService;
-
-    public function __construct(AdvisorService $advisorService, CompanyService $companyService)
-    {
-        $this->advisorService = $advisorService;
-        $this->companyService = $companyService;
-    }
 
     /**
      * Obtener asesorías
@@ -30,7 +19,9 @@ class AdvisorController extends BaseController
      */
     public function index(Request $request) {
         try {
-            $advisors = Advisor::getAdvisor();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $advisors = Advisor::getAdvisor($mainCompanyId);
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
                 $advisors = $advisors->leftjoin('billings', 'billings.advisor_id', '=', 'advisors.id')
@@ -97,14 +88,17 @@ class AdvisorController extends BaseController
      */
     public function store(Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $data = $request->all();
+            $data['main_company_id'] = $mainCompanyId;
             if (!$request['company_id']){
-                $company = $this->companyService->create($data);
+                $company = Company::createWithService($data);
                 if ($company){
                     $data['company_id'] = $company->id;
                 }
             }
-            $advisor = $this->advisorService->create($data);
+            $advisor = Advisor::createWithService($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -114,7 +108,7 @@ class AdvisorController extends BaseController
 
         return response()->json([
             'status' => 200,
-            'advisor' => Advisor::getAdvisor($advisor->id)
+            'advisor' => Advisor::getAdvisor($mainCompanyId)->where('id', $advisor->id)->first()
         ]);
     } // end method
 
@@ -127,10 +121,19 @@ class AdvisorController extends BaseController
     public function update($id, Request $request){
         try {
             $data = $request->all();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $company = Company::find($request->company_id);
-            $this->companyService->update($company, $data);
-            $advisor = Advisor::find($id);
-            $advisor = $this->advisorService->update($advisor, $data);
+            $company->updateWithService($data);
+            $advisor = Advisor::where('advisors.id', $id)
+            ->where('advisors.main_company_id', $mainCompanyId)->first();
+
+            if (!$advisor){
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Asesoria no encontrada'
+                ]);
+            }
+            $advisor->updateWithService($data);
 
             return response()->json([
                 'status' => 200,
@@ -149,10 +152,13 @@ class AdvisorController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function show($id){
-        $advisor = Advisor::getAdvisor()
+    public function show($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $advisor = Advisor::getAdvisor($mainCompanyId)
             ->where('advisors.id', $id)
             ->first();
+
         if ($advisor) {
             $company = Company::where('advisor_id', $advisor->id)->first();
             if ($company) {
@@ -217,8 +223,7 @@ class AdvisorController extends BaseController
      * @return int
      */
     public function convertAdvisor($id){
-        $advisor = Advisor::find($id);
-        $advisor = $this->advisorService->convertAdvisor($id);
+        $advisor = Advisor::convertAdvisor($id);
         if ($advisor){
             return 1;
         } else {
@@ -231,11 +236,13 @@ class AdvisorController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function getAdvisorCourses($id) {
+    public function getAdvisorCourses($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
         $courses = Course::select('courses.*')
             ->leftjoin('registrations', 'registrations.course_id', '=', 'courses.id')
             ->leftjoin('billings', 'billings.id', '=', 'registrations.billing_id')
-            ->where('billings.advisor_id', $id);
+            ->where('billings.advisor_id', $id)
+            ->where('courses.main_company_id', $mainCompanyId);
 
         $user = User::find(Auth::id());
         if ($user->teacher_id) {
@@ -251,11 +258,13 @@ class AdvisorController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function getAdvisorTrainingContracts($id) {
+    public function getAdvisorTrainingContracts($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
         $trainingActions = TrainingContract::select('training_contracts.*', 'companies.name as company_name', 'students.name as student_name', 'students.surname as student_surname')
             ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')
             ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
-            ->where('training_contracts.advisor_id', $id);
+            ->where('training_contracts.advisor_id', $id)
+            ->where('training_contracts.main_company_id', $mainCompanyId);
 
         $user = User::find(Auth::id());
         if ($user->teacher_id) {
@@ -272,9 +281,10 @@ class AdvisorController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function getAdvisorCompanies($id) {
-
-        $companies = Company::select('companies.*')->where('advisor_id', $id);
+    public function getAdvisorCompanies($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $companies = Company::select('companies.*')->where('advisor_id', $id)
+        ->where('main_company_id', $mainCompanyId);
 
         $user = User::find(Auth::id());
         if ($user->teacher_id) {
@@ -292,21 +302,73 @@ class AdvisorController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function indexWithCommissions() {
-        $advisors = Advisor::with('commissions')->get();
+    public function indexWithCommissions(Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $advisors = Advisor::with('commissions')
+            ->where('advisors.main_company_id', $mainCompanyId)
+            ->get();
         return response()->json($advisors);
     }
 
     public function createAdvisorUser($id, Request $request) {
         try {
-            $advisor = Advisor::find($id);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $advisor = Advisor::where($id)
+                ->where('advisors.main_company_id', $mainCompanyId)
+                ->first();
+
+            if (!$advisor) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'El usuario no existe.'
+                ]);
+            }
+            $email = explode(';', $advisor->email)[0] ?? $advisor->email;
+
+            $user = User::FilterEmail($email)
+                ->where('advisors.main_company_id', $mainCompanyId)
+                ->first();
+            if (!$user) {
+                if ($advisor) {
+                    $advisor->advisorUser();
+                    return response()->json([
+                        'status' => 200,
+                        'advisor' => $advisor
+                    ]);
+                }
+            } else {
+                return response()->json([
+                    'status' => 409,
+                    'message' => 'El usuario con este correo ya existe.'
+                ]);
+            }
+
+        } catch (\Exception $exception) {
+            return response()->json([]);
+        }
+    }
+
+    public function sendEmail($id, Request $request)
+    {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        try {
+            $advisor = Advisor::where('advisors.id', $id)
+                ->where('advisors.main_company_id', $mainCompanyId);
+
             if ($advisor) {
-                $this->advisorService->advisorUser($advisor);
+                $advisor->sendEmail();
                 return response()->json([
                     'status' => 200,
                     'advisor' => $advisor
                 ]);
             }
+            else {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'La asesoría no existe existe.'
+                ]);
+            }
+
         } catch (\Exception $exception) {
             return response()->json([]);
         }

@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\GeneralHelpers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
-use Spatie\Permission\Models\Role;
 use Validator;
 use App\Models\User;
-use Spatie\Permission\Traits\HasRoles;
 
 class AuthController extends BaseController
 {

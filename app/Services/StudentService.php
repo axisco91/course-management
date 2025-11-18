@@ -45,8 +45,8 @@ class StudentService
             'legal_guardian_dni' => $data['legal_guardian_dni'] ? $data['legal_guardian_dni'] : null,
             'population_code' => $data['population_code'] ? $data['population_code'] : null,
             'nationality_code' => $data['nationality_code'] ? $data['nationality_code'] : null,
-            'regimen' => $data['regimen'] ? $data['regimen'] : null
-
+            'regimen' => $data['regimen'] ? $data['regimen'] : null,
+  'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 
@@ -103,6 +103,7 @@ class StudentService
                 'password' => $student['password'],
                 'disable' => 0,
                 'active' => 1,
+                'main_company_id' => $student['main_company_id'],
             ]);
         }
     }

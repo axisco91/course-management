@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ModuleService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -11,7 +12,7 @@ class Module extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'total_hours', 'active', 'face_to_face_hours', 'tutoring_hours', 'teletraining_hours', 'exam_hours', 'formative_module'];
+    protected $fillable = ['name', 'total_hours', 'active', 'face_to_face_hours', 'tutoring_hours', 'teletraining_hours', 'exam_hours', 'formative_module', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -26,8 +27,14 @@ class Module extends Model
         return $this->belongsToMany(Certification::class,'certification_elements');
     }
 
-    public static function getModules(){
-        $modules = Module::select('*', 'id as value', 'name as label')->get();
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('modules.main_company_id', $mainCompanyId);
+    }
+
+    public static function getModules($mainCompanyId) {
+        $modules = Module::select('*', 'id as value', 'name as label')
+            ->where('main_company_id', $mainCompanyId)
+            ->get();
         foreach ($modules as $module) {
             $element = CertificationElement::where('module_id', $module->id)->first();
             if ($element) {
@@ -39,9 +46,14 @@ class Module extends Model
         return $modules;
     }
 
-    public static function getModule($id){
-        $module = Module::select('*', 'id as value', 'name as label')->where('id', $id)->first();
-        $element = CertificationElement::where('module_id', $module->id)->first();
+    public static function getModule($id, $mainCompanyId){
+        $module = Module::select('*', 'id as value', 'name as label')
+            ->where('id', $id)
+            ->where('main_company_id', $mainCompanyId)
+            ->first();
+        $element = CertificationElement::where('module_id', $module->id)
+            ->where('main_company_id', $mainCompanyId)
+            ->first();
         if ($element) {
             $module['used'] = true;
         } else {
@@ -50,53 +62,14 @@ class Module extends Model
         return $module;
     }
 
-    public static function createModule($data){
-        $face_to_face_hours = $data['exam_hours'] + $data['tutoring_hours'];
-        $total_hours = $face_to_face_hours + $data['teletraining_hours'];
-        $module = Module::create([
-            'formative_module' => $data['formative_module'],
-            'name' => $data['name'],
-            'exam_hours' => $data['exam_hours'],
-            'tutoring_hours' => $data['tutoring_hours'],
-            'face_to_face_hours' => $face_to_face_hours,
-            'teletraining_hours' => $data['teletraining_hours'],
-            'total_hours' => $total_hours,
-            'active' => $data['active'],
-        ]);
-
-        return $module;
-    }
-
-    public static function updateModule($id, $data){
-        $module = Module::find($id);
-
-        if ($module){
-            $face_to_face_hours = $data['exam_hours'] + $data['tutoring_hours'];
-            $total_hours = $face_to_face_hours + $data['teletraining_hours'];
-            if ($total_hours != $module->total_hours){
-
-            }
-            $module->update([
-                'formative_module' => $data['formative_module'],
-                'name' => $data['name'],
-                'exam_hours' => $data['exam_hours'],
-                'tutoring_hours' => $data['tutoring_hours'],
-                'face_to_face_hours' => $face_to_face_hours,
-                'teletraining_hours' => $data['teletraining_hours'],
-                'total_hours' => $total_hours,
-                'active' => $data['active'],
-            ]);
-
-        }
-        return $module;
-    }
-
-    public static function getModulesNotInCertification($id){
+    public static function getModulesNotInCertification($id, $mainCompanyId){
         $certifications_modules = CertificationElement::where('certification_elements.certification_id', $id)
+            ->where('certification_elements.main_company_id', $mainCompanyId)
             ->whereNotNull('module_id')
             ->pluck('module_id');
         $module = Module::select('modules.*', 'modules.id as value', 'modules.name as label')
             ->whereNotIn('id', $certifications_modules)
+            ->where('modules.main_company_id', $mainCompanyId)
             ->where('active', 1)->get();
         return $module;
     }
@@ -118,5 +91,16 @@ class Module extends Model
             'teletraining_hours' => $teletraining_hours,
             'total_hours' => $total_hours
         ]);
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(ModuleService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(ModuleService::class);
+        return $service->update($this, $data);
     }
 }

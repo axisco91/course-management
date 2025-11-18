@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Helpers\GeneralHelpers;
+use App\Services\RegistrationService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,7 +25,8 @@ class Registration extends Model
         'is_bonus',
         'billing_id',
         'status',
-        'on_leave_date'];
+        'on_leave_date',
+        'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -82,27 +84,36 @@ class Registration extends Model
         return $this->hasOne('App\Models\Bill', 'id', 'billing_id');
     }
 
-    public static function totalRegistrations(){
+    public static function totalRegistrations($mainCompanyId){
         $now = Carbon::now();
         $total = Registration::leftJoin('courses', 'registrations.course_id', '=', 'courses.id')->where('courses.beginning', '>=', $now->year.'-01-01')
-            ->where('courses.beginning', '<=', $now->year.'-12-31')->get();
+            ->where('courses.beginning', '<=', $now->year.'-12-31')
+            ->where('registrations.main_company_id', $mainCompanyId)
+            ->get();
         return $total->count();
     }
 
-    public static function countRegistrations($start, $limit){
-        $registrations = Registration::leftJoin('courses', 'registrations.course_id', '=', 'courses.id')->where('courses.beginning', '>=', $start)
-            ->where('courses.beginning', '<=', $limit)->get();
+    public static function countRegistrations($start, $limit, $mainCompanyId){
+        $registrations = Registration::leftJoin('courses', 'registrations.course_id', '=', 'courses.id')
+            ->where('courses.beginning', '>=', $start)
+            ->where('courses.beginning', '<=', $limit)
+            ->where('registrations.main_company_id', $mainCompanyId)
+            ->get();
 
         return $registrations->count();
     }
 
-    public function scopeStudentCourses($query, $id) {
-        return $query->select('courses.*')->leftJoin('courses', 'registrations.course_id', '=', 'courses.id')
-            ->where('registrations.student_id', $id);
+    public function scopeStudentCourses($query, $id, $mainCompanyId) {
+        return $query->select('courses.*')
+            ->leftJoin('courses', 'registrations.course_id', '=', 'courses.id')
+            ->where('registrations.student_id', $id)
+            ->where('registrations.main_company_id', $mainCompanyId);
     }
 
-    public static function eliminateBill($id){
-        $registrations = Registration::where('billing_id', $id)->get();
+    public static function eliminateBill($id, $mainCompanyId){
+        $registrations = Registration::where('billing_id', $id)
+            ->where('main_company_id', $mainCompanyId)
+            ->get();
         if ($registrations){
             foreach($registrations as $registration){
                 $registration->update([
@@ -113,7 +124,28 @@ class Registration extends Model
         return true;
     }
 
-    public function scopeBillingRegistration($query, $billId) {
-        return $query->where('billing_id', $billId);
+    public function scopeBillingRegistration($query, $billId, $mainCompanyId) {
+        return $query->where('billing_id', $billId)
+                ->where('main_company_id', $mainCompanyId);
+    }
+
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('registrations.main_company_id', $mainCompanyId);
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(RegistrationService::class);
+        return $service->create($data);
+    }
+
+    public function updateRegistration($data){
+        $service = app(RegistrationService::class);
+        return $service->updateRegistration($this, $data);
+    }
+
+    public function destroyRegistration($data){
+        $service = app(RegistrationService::class);
+        return $service->destroy($this, $data);
     }
 }

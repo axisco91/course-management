@@ -1,23 +1,19 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Http\Requests\StudentRequests;
 use App\Models\Registration;
 use App\Models\Student;
 use App\Models\User;
-use App\Services\StudentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class StudentController extends BaseController
 {
-    private $studentService;
 
-    public function __construct(StudentService $studentService)
-    {
-        $this->studentService = $studentService;
-    }
 
     /**
      * Obtener alumnos
@@ -25,8 +21,9 @@ class StudentController extends BaseController
      */
     public function index(Request $request) {
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            $students = Student::student();
+            $students = Student::student($mainCompanyId);
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
                 $students = $students->leftjoin('registrations', 'registrations.student_id', '=', 'students.id')
@@ -61,7 +58,9 @@ class StudentController extends BaseController
                 ->get();
             if (count($students) > 0) {
                 foreach($students as $student) {
-                    $registered = Registration::where('student_id', $student->id)->first();
+                    $registered = Registration::where('student_id', $student->id)
+                        ->FilterMainCompany($mainCompanyId)
+                        ->first();
                     if ($registered) {
                         $student['used'] = true;
                     } else {
@@ -82,12 +81,18 @@ class StudentController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id){
-        $student = Student::student()
+    public function show($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $student = Student::student($mainCompanyId)
             ->where('students.id', $id)
             ->first();
+
         if ($student) {
-            $registered = Registration::where('student_id', $student->id)->first();
+            $registered = Registration::where('student_id', $student->id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
             if ($registered) {
                 $student['used'] = true;
             } else {
@@ -111,12 +116,21 @@ class StudentController extends BaseController
      */
     public function store(StudentRequests $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $data = $request->all();
-            $element = $this->studentService->create($data);
-            $student = Student::student()
+            $data['main_company_id'] = $mainCompanyId;
+
+            $element = Student::createWithService($data);
+
+            $student = Student::student($mainCompanyId)
                 ->where('students.id', $element->id)
                 ->first();
-            $registered = Registration::where('student_id', $student->id)->first();
+
+            $registered = Registration::where('student_id', $student->id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
             if ($registered) {
                 $student['used'] = true;
             } else {
@@ -142,13 +156,19 @@ class StudentController extends BaseController
      */
     public function update($id, StudentRequests $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $data = $request->all();
             $student = Student::find($id);
-            $element = $this->studentService->update($student, $data);
-            $student = Student::student()
+            $element = $student->updateWithService($data);
+
+            $student = Student::student($mainCompanyId)
                 ->where('students.id', $element->id)
                 ->first();
-            $registered = Registration::where('student_id', $student->id)->first();
+            $registered = Registration::where('student_id', $student->id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
             if ($registered) {
                 $student['used'] = true;
             } else {
@@ -172,7 +192,11 @@ class StudentController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      */
     public function checkDni(Request $request){
-        $student = Student::where('dni', $request['dni']);
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $student = Student::where('dni', $request['dni'])
+        ->FilterMainCompany($mainCompanyId);
+
         if ($request['id']){
             $student = $student->where('id', '!=', $request['id']);
         }
@@ -193,24 +217,26 @@ class StudentController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function getStudentsCourses($id) {
-        $registations = Registration::studentCourses($id);
+    public function getStudentsCourses($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $registrations = Registration::studentCourses($id, $mainCompanyId);
 
         $user = User::find(Auth::id());
         if ($user->teacher_id) {
-            $registations = $registations->where('courses.teacher_id', $user->teacher_id);
+            $registrations = $registrations->where('courses.teacher_id', $user->teacher_id);
         }
-        $registations = $registations->get();
+        $registrations = $registrations->get();
 
-        if (count($registations) > 0) {
-            foreach ($registations as $registation){
-                $beginning = Carbon::parse($registation['beginning'])->format('d/m/Y');
-                $registation['beginning'] = $beginning;
-                $end = Carbon::parse($registation['end'])->format('d/m/Y');
-                $registation['end'] = $end;
+        if (count($registrations) > 0) {
+            foreach ($registrations as $registration){
+                $beginning = Carbon::parse($registration['beginning'])->format('d/m/Y');
+                $registration['beginning'] = $beginning;
+                $end = Carbon::parse($registration['end'])->format('d/m/Y');
+                $registration['end'] = $end;
             }
         }
-        return $registations;
+        return $registrations;
     }
 
     /**
@@ -218,9 +244,22 @@ class StudentController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request) {
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $student = Student::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if (!$student) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Alumno no encontrado'
+                    ]);
+                }
+
                 Student::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -241,7 +280,9 @@ class StudentController extends BaseController
      */
     public function studentsCSV(Request $request){
         try {
-            $students = Student::student();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $students = Student::student($mainCompanyId);
 
             if ($request->inactive == 'false') {
                 $students = $students->where('students.active', 1);
@@ -345,13 +386,19 @@ class StudentController extends BaseController
      */
     public function getActiveStudents(Request $request) {
         try {
-            $students = Student::student()
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $students = Student::student($mainCompanyId)
                 ->where('students.active', 1)
                 ->orderBy('students.name','asc')
                 ->get();
+
             if (count($students) > 0) {
                 foreach($students as $student) {
-                    $registered = Registration::where('student_id', $student->id)->first();
+                    $registered = Registration::where('student_id', $student->id)
+                        ->FilterMainCompany($mainCompanyId)
+                        ->first();
+
                     if ($registered) {
                         $student['used'] = true;
                     } else {
@@ -368,7 +415,10 @@ class StudentController extends BaseController
     }
 
     public function import(Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
         $students = json_decode($request->input('students'), true);
+
+        $students['main_company_id'] = $mainCompanyId;
 
         Student::import($students);
 

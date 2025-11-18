@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Helpers\CourseStatusHelper;
+use App\Services\CourseService;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +17,7 @@ class Course extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['name','training_action_id','group','course_type_id','teacher_id','nebrija','beginning','end','morning_schedule','afternoon_schedule','monday','tuesday','wednesday','thursday','friday','saturday','sunday','formation_center_id','delivery_center_id','outsourced','course_observation','reactivated','welcome_date','quarter_date','half_date','three_quarters_date','final_date','course_status_id','price'];
+    protected $fillable = ['name','training_action_id','group','course_type_id','teacher_id','nebrija','beginning','end','morning_schedule','afternoon_schedule','monday','tuesday','wednesday','thursday','friday','saturday','sunday','formation_center_id','delivery_center_id','outsourced','course_observation','reactivated','welcome_date','quarter_date','half_date','three_quarters_date','final_date','course_status_id','price', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -102,7 +103,7 @@ class Course extends Model
         return $this->hasOne('App\Models\TrainingAction', 'id', 'training_action_id');
     }
 
-    public function scopeWithCourseData($query)
+    public function scopeWithCourseData($query, $mainCompanyId)
     {
         return $query
             ->select(
@@ -131,148 +132,33 @@ class Course extends Model
             ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
             ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
             ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
+            ->where('courses.main_company_id', $mainCompanyId)
             ->orderBy('courses.beginning', 'desc');
     }
 
-
-    public static function createCourse($data){
-
-        $course_info = Course::courseDates(Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d'));
-        $anulado = CourseStatus::where('name', 'ANULADO')->first();
-        if ($data['canceled'] == 1) {
-            $course_info['course_status_id'] = $anulado->id;
-        }
-        $course = Course::create([
-            'name' => $data['name'],
-            'training_action_id' => $data['training_action_id'],
-            'group' => $data['group'],
-            'course_type_id' => $data['course_type_id'],
-            'teacher_id' => $data['teacher_id'],
-            'beginning' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
-            'end' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
-            'morning_schedule' => $data['morning_schedule'],
-            'afternoon_schedule' => $data['afternoon_schedule'],
-            'formation_center_id' => $data['formation_center_id'],
-            'delivery_center_id' => $data['delivery_center_id'],
-            'course_observation' => $data['course_observation'],
-            'welcome_date' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
-            'quarter_date' => $course_info['quarter'],
-            'half_date' => $course_info['half'],
-            'three_quarters_date' => $course_info['three_quarters'],
-            'final_date' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
-            'course_status_id' => $course_info['course_status_id'],
-            'price' => $data['price'],
-            'nebrija' => $data['nebrija'],
-            'monday' => $data['monday'],
-            'tuesday' => $data['tuesday'],
-            'wednesday' => $data['wednesday'],
-            'thursday' => $data['thursday'],
-            'friday' => $data['friday'],
-            'saturday' => $data['saturday'],
-            'sunday' => $data['sunday'],
-            'outsourced' => $data['outsourced'],
-            'reactivated' => $data['reactivated']
-        ]);
-        return $course;
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('courses.main_company_id', $mainCompanyId);
     }
 
-    public static function updateCourse($id, $data){
-        \Log::info('Updating course: ' . $id);
-        \Log::info('Received data: ' . json_encode($data));
-
-        $course_info = Course::courseDates(
-            Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'),
-            Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d')
-        );
-
-        // Si se proporciona course_status_id en la solicitud, úsalo
-        if (isset($data['course_status_id'])) {
-            $course_info['course_status_id'] = $data['course_status_id'];
-            \Log::info('Using provided course_status_id: ' . $data['course_status_id']);
-        } elseif (isset($data['canceled']) && $data['canceled'] == 1) {
-            $anulado = CourseStatus::where('name', 'ANULADO')->first();
-            $course_info['course_status_id'] = $anulado->id;
-            \Log::info('Course marked as canceled. Setting status to ANULADO (ID: ' . $anulado->id . ')');
-        }
-
-        $course = Course::find($id);
-        $updatedData = [
-            'name' => $data['name'],
-            'training_action_id' => $data['training_action_id'],
-            'group' => $data['group'],
-            'course_type_id' => $data['course_type_id'],
-            'teacher_id' => $data['teacher_id'],
-            'beginning' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
-            'end' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
-            'morning_schedule' => $data['morning_schedule'],
-            'afternoon_schedule' => $data['afternoon_schedule'],
-            'formation_center_id' => $data['formation_center_id'],
-            'delivery_center_id' => $data['delivery_center_id'],
-            'course_observation' => $data['course_observation'],
-            'welcome_date' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
-            'quarter_date' => $course_info['quarter'],
-            'half_date' => $course_info['half'],
-            'three_quarters_date' => $course_info['three_quarters'],
-            'final_date' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
-            'course_status_id' => $course_info['course_status_id'],
-            'price' => $data['price'],
-            'nebrija' => $data['nebrija'],
-            'monday' => $data['monday'],
-            'tuesday' => $data['tuesday'],
-            'wednesday' => $data['wednesday'],
-            'thursday' => $data['thursday'],
-            'friday' => $data['friday'],
-            'saturday' => $data['saturday'],
-            'sunday' => $data['sunday'],
-            'outsourced' => $data['outsourced'],
-            'reactivated' => $data['reactivated']
-        ];
-
-        $course->update($updatedData);
-
-        \Log::info('Course updated. New data: ' . json_encode($course->fresh()));
-
-        return $course;
+    public static function createWithService($data)
+    {
+        $service = app(CourseService::class);
+        return $service->create($data);
     }
 
-    public static function setName($trainingAction_id, $id){
-        if ($trainingAction_id > 0){
-            $trainingAction = TrainingAction::find($trainingAction_id);
-            if ($trainingAction_id < 10){
-                $name = '00'.$trainingAction_id;
-            } else if ($trainingAction_id < 100){
-                $name = '0'.$trainingAction_id;
-            } else {
-                $name = $trainingAction_id;
-            }
-            $num_courses = Course::where( 'training_action_id',$trainingAction['id'])
-                ->orderby('group', 'desc')->first();
-            if ($num_courses) {
-                $cont = intval($num_courses->group);
-                $cont = $cont+1;
-                if ($cont < 10){
-                    $group = '000'.$cont;
-                } else if ($cont < 100){
-                    $group = '00'.$cont;
-                } else if ($cont < 1000){
-                    $group = '0'.$cont;
-                } else {
-                    $group = $cont;
-                }
-            } else {
-                $group = '0001';
-            }
-            $price = '';
-            if ($id == null){
-                $price = $trainingAction['price'];
-            }
-        }
+    public function updateWithService($data){
+        $service = app(CourseService::class);
+        return $service->update($this, $data);
+    }
 
-        return [
-            'name' => $name.' / '. $group .' - '.$trainingAction['name'],
-            'group' => $group,
-            'price' => $price
-        ];
+    public function updateDatesWithService($data){
+        $service = app(CourseService::class);
+        return $service->updateDates($this, $data);
+    }
+
+    public static function setName($id, $trainingActionId, $mainCompanyId){
+        $service = app(CourseService::class);
+        return $service->setName($id, $trainingActionId, $mainCompanyId);
     }
 
     public static function numbercourses($trainingAction_id){
@@ -281,7 +167,7 @@ class Course extends Model
         return $num;
     }
 
-    private static function courseDates($beginning_date, $end_date){
+    public static function courseDates($beginning_date, $end_date){
         $quarter = null;
         $half = null;
         $three_quarters = null;
@@ -302,25 +188,26 @@ class Course extends Model
         ];
     }
 
-    public function scopeTeacherCourses($query, $id) {
+    public function scopeTeacherCourses($query, $id, $mainCompanyId) {
         return $query->where('teacher_id', $id)
+            ->where('main_company_id', $mainCompanyId)
             ->orderBy('beginning', 'DESC');
     }
 
-    public static function messageDates($beggining, $end){
+    public static function messageDates($beginning, $end){
 
-        $beggining = Carbon::createFromFormat('Y-m-d', $beggining);
+        $beginning = Carbon::createFromFormat('Y-m-d', $beginning);
         $end = Carbon::createFromFormat('Y-m-d', $end);
 
-        $difrence = $beggining->diffInDays($end);
-        $quarter_days = ($difrence/2)/2;
+        $difference = $beginning->diffInDays($end);
+        $quarter_days = ($difference/2)/2;
 
-        $quarter = Carbon::createFromFormat('Y-m-d', $beggining->toDateString());
+        $quarter = Carbon::createFromFormat('Y-m-d', $beginning->toDateString());
 
         $quarter = $quarter->addDays($quarter_days);
-        $half = Carbon::createFromFormat('Y-m-d', $beggining->toDateString());
+        $half = Carbon::createFromFormat('Y-m-d', $beginning->toDateString());
 
-        $half = $half->addDays($difrence/2);
+        $half = $half->addDays($difference/2);
         $three_quarters = Carbon::createFromFormat('Y-m-d', $end->toDateString());
 
         $three_quarters = $three_quarters->subDays($quarter_days);
@@ -332,29 +219,35 @@ class Course extends Model
         ];
     }
 
-    public function scopeTrainingActionCourses($query, $id) {
+    public function scopeTrainingActionCourses($query, $id, $mainCompanyId) {
         return $query->where('training_action_id', $id)
+            ->where('main_company_id', $mainCompanyId)
             ->orderBy('beginning', 'DESC');
     }
 
-    public function scopeCompanyCourses($query, $id) {
+    public function scopeCompanyCourses($query, $id, $mainCompanyId) {
         $registrations = Registration::where('company_id', $id)->groupBy('course_id')->pluck('course_id')->toArray();
         return $query->select('courses.*')
             ->where(function ($query) use ($registrations){
                 $query->WhereIn('courses.id', $registrations);
-            });
+            })
+            ->where('courses.main_company_id', $mainCompanyId);
     }
 
-    public static function getNumberCourses($year){
-        $courses = Course::WhereYear('beginning', $year)->get();
+    public static function getNumberCourses($year, $mainCompanyId){
+        $courses = Course::WhereYear('beginning', $year)
+            ->where('main_company_id', $mainCompanyId)
+            ->get();
         return count($courses);
     }
 
-    public static function getNumberCoursesPerMonth($year){
+    public static function getNumberCoursesPerMonth($year, $mainCompanyId){
         $per_month = [];
         for($i = 1; $i <= 12; $i++){
             $courses = Course::WhereYear('beginning', $year)
-                    ->WhereMonth('beginning', $i)->get();
+                ->WhereMonth('beginning', $i)
+                ->where('main_company_id', $mainCompanyId)
+                ->get();
             $per_month[] = count($courses);
         }
         return $per_month;
@@ -371,7 +264,7 @@ class Course extends Model
      *
      * @return void
      */
-    public function resetChoresAndFutureTracings()
+    public function resetChoresAndFutureTracings($mainCompanyId)
     {
         $today = Carbon::today();
         Log::info("Resetting chores and future tracings for course ID: {$this->id}");
@@ -379,7 +272,9 @@ class Course extends Model
 
         if ($this->beginning > $today) {
             Log::info("Course beginning is in the future. Deleting bills.");
-            $deletedBills = Bill::where('course_id', $this->id)->delete();
+            $deletedBills = Bill::where('course_id', $this->id)
+                ->FilterMainCompany($mainCompanyId)
+                ->delete();
             Log::info("Deleted {$deletedBills} bills for course {$this->id}");
         } else {
             Log::info("Course beginning is not in the future. No bills deleted.");

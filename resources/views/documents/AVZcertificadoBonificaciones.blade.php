@@ -10,28 +10,40 @@
 <style>
     @page {
         size: A4;
-        margin: 20mm 10mm 30mm 10mm; /* Adjust bottom margin */
-    }
-
-    @page {
-        @bottom-center {
-            content: element(footer);
-        }
+        margin: 20mm 10mm 30mm 10mm; /* bottom margin leaves room for footer */
     }
 
     #footer {
         position: fixed;
         bottom: 0;
+        left: 0;
         width: 100%;
         text-align: center;
         font-size: 12px;
         padding: 10px;
+        z-index: 1;
     }
+
 </style>
 
 <body>
-    <!-- PRIMERA PÁGINA -->
+<div id="footer">
+    <table style="border-collapse: collapse; width: 100%;">
+        <tr>
+            <td width="70%" style="padding: 0; border: none;">
+                <p class="pie-fondo" style="margin: 0; padding-left: 0;">
+                    info@avzformacion.com - 910 600 410
+                </p>
+            </td>
+            <td width="30%" style="padding: 0; border: none;" class="text-center">
+                <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
+            </td>
+        </tr>
+    </table>
+</div>
 
+    <!-- PRIMERA PÁGINA -->
+    <div class="content" style="padding-bottom: 100px;">
 <div class="mt-2">
     <div class="col-md-12 text-right">
         <img src="img-certificado/avz_logo_horizontal_CMYK_verde-gris_fondo-transparente.png" alt="avzlogo" class="img-fluid fixed-height-img-logo">
@@ -123,23 +135,6 @@
         <p>Fdo. Antonio J. Jiménez Agraz</p>
     </div>
 </div>
-    <br>
-    <br>
-    <br>
-    <div id="footer">
-        <table style="border-collapse: collapse; width: 100%;">
-            <tr>
-                <td width="70%" style="padding: 0; border: none;">
-                    <p class="pie-fondo" style="margin: 0; padding-left: 0;">
-                        info@avzformacion.com - 957 923 473 - 644 680 310
-                    </p>
-                </td>
-                <td width="30%" style="padding: 0; border: none;" class="text-center">
-                    <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
-                </td>
-            </tr>
-        </table>
-    </div>
 <div style="page-break-after: always;"></div>
 <div class="mt-2">
     <div class="col-md-12 text-right">
@@ -253,20 +248,6 @@
     </div>
 
 </div>
-<br>
-<div id="footer">
-    <table style="border-collapse: collapse; width: 100%;">
-        <tr>
-            <td width="70%" style="padding: 0; border: none;">
-                <p class="pie-fondo" style="margin: 0; padding-left: 0;">
-                    info@avzformacion.com - 957 923 473 - 644 680 310
-                </p>
-            </td>
-            <td width="30%" style="padding: 0; border: none;" class="text-center">
-                <img src="img-certificado/eurocert.PNG" alt="eurocert" class="img-fluid fixed-height-img-eurocert">
-            </td>
-        </tr>
-    </table>
-</div>
+    </div>
 </body>
 </html>

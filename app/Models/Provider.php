@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ProviderService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ class Provider extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3', 'nif', 'company_type_id', 'company_activity_id', 'email', 'telephone', 'legal_representative', 'dni_legal_representative', 'cnae_id', 'iban', 'iban', 'sepa', 'b2b', 'address', 'post_code', 'population_id', 'province_id', 'prpulation', 'active'];
+    protected $fillable = ['name','company_id','irpf','commission','contact_1','contact_2','contact_3', 'nif', 'company_type_id', 'company_activity_id', 'email', 'telephone', 'legal_representative', 'dni_legal_representative', 'cnae_id', 'iban', 'iban', 'sepa', 'b2b', 'address', 'post_code', 'population_id', 'province_id', 'prpulation', 'active', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -30,7 +31,7 @@ class Provider extends Model
         return $this->hasMany('App\Models\TrainingAction', 'provider_id', 'id');
     }
 
-    public static function getProviders(){
+    public static function getProviders($mainCompanyId){
         $providers = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province', 'providers.id as value', 'providers.name as label', 'companies.quote as quote', 'companies.average_template as average_template', 'users.id as collaborator_id',
             DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"), 'advisors.name as advisor', 'companies.advisor_id as advisor_id')
@@ -41,10 +42,13 @@ class Provider extends Model
             ->leftjoin('companies', 'companies.id', '=', 'providers.company_id')
             ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id')
             ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+            ->where('providers.main_company_id', $mainCompanyId)
             ->orderBy('providers.name', 'desc')
             ->get();
         foreach($providers as $provider) {
-            $trainingAction = TrainingAction::where('provider_id', $provider->id)->first();
+            $trainingAction = TrainingAction::where('provider_id', $provider->id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
             if ($trainingAction) {
                 $provider['used'] = true;
             } else {
@@ -54,7 +58,7 @@ class Provider extends Model
         return $providers;
     }
 
-    public static function getProvider($id){
+    public static function getProvider($id, $mainCompanyId){
         $provider = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province', 'providers.id as value', 'providers.name as label')
             ->leftjoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
@@ -62,8 +66,11 @@ class Provider extends Model
             ->leftjoin('cnaes', 'cnaes.id', '=', 'providers.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id')
             ->where('providers.id', $id)
+            ->where('providers.main_company_id', $mainCompanyId)
             ->first();
-        $trainingAction = TrainingAction::where('provider_id', $provider->id)->first();
+        $trainingAction = TrainingAction::where('provider_id', $provider->id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
         if ($trainingAction) {
             $provider['used'] = true;
         } else {
@@ -72,68 +79,9 @@ class Provider extends Model
         return $provider;
     }
 
-    public static function createProvider($data){
-        $provider = Provider::create([
-            'name' => $data['name'],
-            'company_id' => $data['company_id'],
-            'irpf' => $data['irpf'],
-            'commission' => $data['commission'],
-            'contact_1' => $data['contact_1'],
-            'contact_2' => $data['contact_2'],
-            'contact_3' => $data['contact_3'],
-            'nif' => $data['nif'],
-            'company_type_id' => $data['company_type_id'],
-            'company_activity_id' => $data['company_activity_id'],
-            'email' => $data['email'],
-            'telephone' => $data['telephone'],
-            'legal_representative' => $data['legal_representative'],
-            'dni_legal_representative' => $data['dni_legal_representative'],
-            'cnae_id' => $data['cnae_id'],
-            'iban' => $data['iban'],
-            'sepa' => $data['sepa'],
-            'b2b' => $data['b2b'],
-            'address' => $data['address'],
-            'post_code' => $data['post_code'],
-            'province_id' => $data['province_id'],
-            'population' => $data['population'],
-            'active' => $data['active']
-        ]);
-        return $provider;
-    }
-
-    public static function updateProvider($id, $data){
-        $provider = Provider::find($id);
-        $provider->update([
-            'name' => $data['name'],
-            'irpf' => $data['irpf'],
-            'commission' => $data['commission'],
-            'contact_1' => $data['contact_1'],
-            'contact_2' => $data['contact_2'],
-            'contact_3' => $data['contact_3'],
-            'nif' => $data['nif'],
-            'company_type_id' => $data['company_type_id'],
-            'company_activity_id' => $data['company_activity_id'],
-            'email' => $data['email'],
-            'telephone' => $data['telephone'],
-            'legal_representative' => $data['legal_representative'],
-            'dni_legal_representative' => $data['dni_legal_representative'],
-            'cnae_id' => $data['cnae_id'],
-            'iban' => $data['iban'],
-            'sepa' => $data['sepa'],
-            'b2b' => $data['b2b'],
-            'address' => $data['address'],
-            'post_code' => $data['post_code'],
-            'province_id' => $data['province_id'],
-            'population' => $data['population'],
-            'active' => $data['active']
-        ]);
-        return $provider;
-    }
-
-    public static function convertProvider($id){
+    public static function convertProvider($id, $record){
         if ($id) {
-            $record = Company::find($id);
-            $provider = Provider::create([
+            return Provider::create([
                 'name' => $record['name'],
                 'company_id' => $id,
                 'nif' => $record['nif'],
@@ -152,13 +100,14 @@ class Provider extends Model
                 'province_id' => $record['province_id'],
                 'population' => $record['population'],
                 'active' => $record['active'],
+                'main_company_id' => $record['main_company_id'],
             ]);
-            return $provider;
         }
     }
 
-    public static function findNif($nif, $id = null){
-        $provider = Provider::where('nif', $nif);
+    public static function findNif($nif, $mainCompanyId, $id = null){
+        $provider = Provider::where('nif', $nif)
+            ->where('main_company_id', $mainCompanyId);
         if ($id){
             $provider = $provider->where('id', '!=', $id);
         }
@@ -167,4 +116,14 @@ class Provider extends Model
         return $provider;
     }
 
+    public static function createWithService($data)
+    {
+        $service = app(ProviderService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(ProviderService::class);
+        return $service->update($this, $data);
+    }
 }

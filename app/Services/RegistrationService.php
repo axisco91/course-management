@@ -7,19 +7,12 @@ use App\Models\Bill;
 use App\Models\Chore;
 use App\Models\Profitability;
 use App\Models\Registration;
+use App\Models\Student;
 use App\Models\Tracing;
+use Carbon\Carbon;
 
 class RegistrationService
 {
-    private $tracingService;
-    private $choreService;
-
-    public function __construct(TracingService $tracingService, ChoreService $choreService)
-    {
-        $this->tracingService = $tracingService;
-        $this->choreService = $choreService;
-    }
-
     /**
      * Función para matricular
      * @param array $data
@@ -30,16 +23,18 @@ class RegistrationService
         $trainingData = [
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
-            'student_id' => $data['student_id']
+            'student_id' => $data['student_id'],
+            'main_company_id' => $data['main_company_id'],
         ];
-        $tracing = $this->tracingService->create($trainingData);
+        $tracing = Tracing::createWithService($trainingData);
 
         $choreData = [
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
-            'student_id' => $data['student_id']
+            'student_id' => $data['student_id'],
+            'main_company_id' => $data['main_company_id'],
         ];
-        $chore = $this->choreService->create($choreData);
+        $chore = Chore::createWithService($choreData);
 
         return Registration::create([
             'course_id' => $data['course_id'],
@@ -50,7 +45,8 @@ class RegistrationService
             'chore_id' => $chore->id,
             'price' => $data['price'],
             'profitability_id' => $data['profitability_id'],
-            'is_bonus' => $data['is_bonus']
+            'is_bonus' => $data['is_bonus'],
+            'main_company_id' => $data['main_company_id'],
         ]);
     }
 
@@ -69,19 +65,19 @@ class RegistrationService
             'password' => $data['password'],
             'date_of_birth' => $data['date_of_birth'] ? Carbon::createFromFormat('d-m-Y', $data['date_of_birth'])->format('Y-m-d') : null,
             'level_study_id' => $data['level_study_id'],
-            'social_security_number' => $data['social_security_number'] ? $data['social_security_number'] : null,
-            'c_quote' => $data['c_quote'] ? $data['c_quote'] : null,
-            'quote_group_id' => $data['quote_group_id'] ? $data['quote_group_id'] : null,
-            'professional_category_id' => $data['professional_category_id'] ? $data['professional_category_id'] : null,
-            'annual_gross_salary' => $data['annual_gross_salary'] ? $data['annual_gross_salary'] : null,
-            'annual_hours' => $data['annual_hours'] ? $data['annual_hours'] : null,
-            'hourly_cost_worker_gross' => $data['hourly_cost_worker_gross'] ? $data['hourly_cost_worker_gross'] : null,
-            'direction' => $data['direction'] ? $data['direction'] : null,
-            'post_code' => $data['post_code'] ? $data['post_code'] : null,
-            'province_id' => $data['province_id'] ? $data['province_id'] : null,
-            'population' => $data['population'] ? $data['population'] : null,
-            'observation' => $data['observation'] ? $data['observation'] : null,
-            'iban' => $data['iban'] ? $data['iban'] : null,
+            'social_security_number' => $data['social_security_number'] ?? null,
+            'c_quote' => $data['c_quote'] ?? null,
+            'quote_group_id' => $data['quote_group_id'] ?? null,
+            'professional_category_id' => $data['professional_category_id'] ?? null,
+            'annual_gross_salary' => $data['annual_gross_salary'] ?? null,
+            'annual_hours' => $data['annual_hours'] ?? null,
+            'hourly_cost_worker_gross' => $data['hourly_cost_worker_gross'] ?? null,
+            'direction' => $data['direction'] ?? null,
+            'post_code' => $data['post_code'] ?? null,
+            'province_id' => $data['province_id'] ?? null,
+            'population' => $data['population'] ?? null,
+            'observation' => $data['observation'] ?? null,
+            'iban' => $data['iban'] ?? null,
             'disabled' => $data['disabled'],
             'active' => $data['active']
         ]);

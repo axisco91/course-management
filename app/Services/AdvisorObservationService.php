@@ -15,7 +15,8 @@ class AdvisorObservationService
     {
         return AdvisorObservation::create([
             'advisor_id' => $data['advisor_id'],
-            'observation' => $data['observation']
+            'observation' => $data['observation'],
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 

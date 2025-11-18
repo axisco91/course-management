@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Helpers\CalculationHelpers;
+use App\Helpers\GeneralHelpers;
 use App\Models\Tracing;
 use Illuminate\Support\Carbon;
 
@@ -18,21 +20,22 @@ class TracingService
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
             'student_id' => $data['student_id'],
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 
     /**
      * Función para editar un alumno
      */
-    public function update(Tracing $tracing, array $data) {
+    public function update(Tracing $tracing, $data) {
         $tracing->update([
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
             'student_id' => $data['student_id'],
-           // 'last_connection' => $data['last_connection'] ? Carbon::createFromFormat('d-m-Y', $data['last_connection'])->format('Y-m-d') : null,
-           // 'performed_activities' => $data['performed_activities'] ? $data['performed_activities'] : 0,
-           // 'performed_hours' => $data['performed_hours'] ? $data['performed_hours'] : 0,
-           // 'performed_units' => $data['performed_units'] ? $data['performed_units'] : 0,
+            'last_connection' => GeneralHelpers::parseDateOrNull($data['last_connection']),
+            'performed_activities' => $data['performed_activities'] ? $data['performed_activities'] : 0,
+            'performed_hours' => $data['performed_hours'] ? CalculationHelpers::timeStringToDecimal($data['performed_hours']) : 0,
+            'performed_units' => $data['performed_units'] ? $data['performed_units'] : 0,
             'follow_up_date' => $data['follow_up_date'] ? Carbon::createFromFormat('d-m-Y', $data['follow_up_date'])->format('Y-m-d') : null,
             'final_test' => $data['final_test'],
             'questionnaire' => $data['questionnaire'],

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\TrainingUnitService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Module;
@@ -10,7 +11,7 @@ class TrainingUnit extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'total_hours', 'active', 'face_to_face_hours', 'tutoring_hours', 'teletraining_hours', 'exam_hours', 'formative_unit'];
+    protected $fillable = ['name', 'total_hours', 'active', 'face_to_face_hours', 'tutoring_hours', 'teletraining_hours', 'exam_hours', 'formative_unit', 'main_company_id'];
 
     public function modules()
     {
@@ -22,8 +23,14 @@ class TrainingUnit extends Model
         return $this->belongsToMany(Certification::class,'certification_elements');
     }
 
-    public static function getTrainingUnits(){
-        $training_units = TrainingUnit::select('*', 'id as value', 'name as label')->get();
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('training_units.main_company_id', $mainCompanyId);
+    }
+
+    public static function getTrainingUnits($mainCompanyId) {
+        $training_units = TrainingUnit::select('*', 'id as value', 'name as label')
+            ->FilterMainCompany($mainCompanyId)
+            ->get();
         foreach ($training_units as $training_unit) {
             $element = TrainingUnitsModule::where('training_unit_id', $training_unit->id)->first();
             if ($element) {
@@ -35,8 +42,10 @@ class TrainingUnit extends Model
         return $training_units;
     }
 
-    public static function getTrainingUnit($id){
-        $training_unit = TrainingUnit::select('*', 'id as value', 'name as label')->where('id', $id)->first();
+    public static function getTrainingUnit($id, $mainCompanyId) {
+        $training_unit = TrainingUnit::select('*', 'id as value', 'name as label')->where('id', $id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
         $element = TrainingUnitsModule::where('training_unit_id', $training_unit->id)->first();
         if ($element) {
             $training_unit['used'] = true;
@@ -46,59 +55,10 @@ class TrainingUnit extends Model
         return $training_unit;
     }
 
-    public static function createTrainingUnit($data){
-        $face_to_face_hours = $data['exam_hours'] + $data['tutoring_hours'];
-        $total_hours = $face_to_face_hours + $data['teletraining_hours'];
-
-        $training_unit = TrainingUnit::create([
-            'formative_unit' => $data['formative_unit'],
-            'name' => $data['name'],
-            'exam_hours' => $data['exam_hours'],
-            'tutoring_hours' => $data['tutoring_hours'],
-            'teletraining_hours' => $data['teletraining_hours'],
-            'face_to_face_hours' => $face_to_face_hours,
-            'total_hours' => $total_hours,
-            'active' => $data['active'],
-        ]);
-        return $training_unit;
-    }
-
-    public static function updateTrainingUnit($id, $data){
-        $training_unit = TrainingUnit::find($id);
-
-        $face_to_face_hours = $data['exam_hours'] + $data['tutoring_hours'];
-        $total_hours = $face_to_face_hours + $data['teletraining_hours'];
-        if ($training_unit){
-            if ($total_hours != $training_unit->total_hours){
-                $modules = $training_unit->modules()->get();
-                $exam_difference = $data['exam_hours'] - $training_unit->exam_hours;
-                $tutoring_difference = $data['tutoring_hours'] - $training_unit->tutoring_hours;
-                $teletraining_difference = $data['teletraining_hours'] - $training_unit->teletraining_hours;
-                foreach ($modules as $module){
-                    $module->updateHours($exam_difference, $tutoring_difference, $teletraining_difference);
-                }
-                $certifications = $training_unit->certifications()->get();
-                foreach ($certifications as $certification){
-                    $certification->updateHours($exam_difference, $tutoring_difference, $teletraining_difference);
-                }
-            }
-            $training_unit->update([
-                'formative_unit' => $data['formative_unit'],
-                'name' => $data['name'],
-                'exam_hours' => $data['exam_hours'],
-                'tutoring_hours' => $data['tutoring_hours'],
-                'teletraining_hours' => $data['teletraining_hours'],
-                'face_to_face_hours' => $face_to_face_hours,
-                'total_hours' => $total_hours,
-                'active' => $data['active'],
-            ]);
-        }
-        return $training_unit;
-    }
-
-    public static function getProviderTrainingUnit($id, $search_training_units_name, $search_training_units_action)
+    public static function getProviderTrainingUnit($id, $search_training_units_name, $search_training_units_action, $mainCompanyId)
     {
         $training_units = TrainingUnit::where('provider_id', $id)
+            ->where('training_units.main_company_id', $mainCompanyId)
             ->where(function ($query) use ($search_training_units_name) {
                 $query->orWhere('name', 'LIKE', $search_training_units_name);
             })->where(function ($query) use ($search_training_units_action) {
@@ -108,23 +68,38 @@ class TrainingUnit extends Model
         return $training_units;
     }
 
-    public static function getTrainingUnitsNotInModule($module_id){
+    public static function getTrainingUnitsNotInModule($moduleId, $mainCompanyId){
         $training_units = TrainingUnit::leftjoin('training_units_modules', 'training_units_modules.training_unit_id', 'training_units.id')
-            ->where('training_units_modules.module_id', $module_id)->pluck('training_units.id');
+            ->where('training_units_modules.module_id', $moduleId)
+            ->where('training_units_modules.main_company_id', $mainCompanyId)
+            ->pluck('training_units.id');
         $not_in_module = TrainingUnit::select('training_units.*', 'training_units.id as value', 'training_units.name as label')
             ->where('active', 1)
+            ->where('training_units.main_company_id', $mainCompanyId)
             ->whereNotIn('training_units.id', $training_units)->get();
         return $not_in_module;
     }
 
-    public static function getTrainingUnitsNotInCertification($id){
-        $certification_units = CertificationElement::where('certification_elements.certification_id', $id)
+    public static function getTrainingUnitsNotInCertification($id, $mainCompanyId){
+        $certificationUnits = CertificationElement::where('certification_elements.certification_id', $id)
             ->whereNotNull('training_unit_id')
+            ->where('certification_elements.main_company_id', $mainCompanyId)
             ->pluck('training_unit_id');
         $units = TrainingUnit::select('training_units.*', 'training_units.id as value', 'training_units.name as label')
-            ->whereNotIn('id', $certification_units)
+            ->whereNotIn('id', $certificationUnits)
+            ->where('training_units.main_company_id', $mainCompanyId)
             ->where('active', 1)->get();
         return $units;
     }
 
+    public static function createWithService($data)
+    {
+        $service = app(TrainingUnitService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(TrainingUnitService::class);
+        return $service->update($this, $data);
+    }
 }

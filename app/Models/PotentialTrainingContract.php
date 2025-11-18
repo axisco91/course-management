@@ -39,6 +39,7 @@ Class PotentialTrainingContract extends Model
         'friday',
         'saturday',
         'sunday',
+        'main_company_id'
     ];
 
 }

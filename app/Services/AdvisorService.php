@@ -2,8 +2,11 @@
 
 namespace App\Services;
 
+use App\Helpers\GeneralHelpers;
+use App\Mail\SendAdvisorUser;
 use App\Models\Advisor;
 use App\Models\Company;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -50,7 +53,8 @@ class AdvisorService
             'province_id' => $data['province_id'],
             'population' => $data['population'],
             'collaborator_id' => $data['collaborator_id'],
-            'active' => $data['active']
+            'active' => $data['active'],
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 
@@ -114,6 +118,7 @@ class AdvisorService
             'province_id' => $record['province_id'],
             'population' => $record['population'],
             'active' => $record['active'],
+            'main_company_id' => $record['main_company_id']
         ]);
     }
 
@@ -169,7 +174,8 @@ class AdvisorService
                     'active' => 1,
                     'teacher_id' => null,
                     'roles' => $role->id,
-                    'advisor_id' => $advisor->id
+                    'advisor_id' => $advisor->id,
+                    'default_password' => $password,
                 ];
 
                 $user = $this->userService->create($data);
@@ -178,15 +184,48 @@ class AdvisorService
                     'user_id' => $user->id,
                 ]);
 
-                Mail::getSwiftMailer()
-                    ->getTransport()
-                    ->setUsername('zona@avzformacion.com')
-                    ->setPassword('Avz.2021');
-                Mail::to($email)->send(new \App\Mail\SendAdvisorUser($advisor->nif, $password));
+                $username = GeneralHelpers::generalSettingValue( 'email');
+                $emailPassword = GeneralHelpers::generalSettingValue( 'password');
+
+                config([
+                    'mail.mailers.smtp.username' => $username,
+                    'mail.mailers.smtp.password' => $emailPassword,
+                ]);
+
+                Mail::mailer('smtp')
+                    ->to($email)
+                    ->send(new SendAdvisorUser($advisor->nif, $password));
 
                 db::commit();
                 return $advisor;
             }
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+    }
+
+    public function sendEmail(Advisor $advisor){
+        try {
+            $user = User::find($advisor->user_id);
+
+            if (!$user) {
+                $this->advisorUser($advisor);
+            }
+
+            $username = GeneralHelpers::generalSettingValue( 'email');
+            $emailPassword = GeneralHelpers::generalSettingValue( 'password');
+
+            config([
+                'mail.mailers.smtp.username' => $username,
+                'mail.mailers.smtp.password' => $emailPassword,
+            ]);
+
+            Mail::mailer('smtp')
+                ->to($user->email)
+                ->send(new SendAdvisorUser($user->username, $user->default_password));
+
+            return $advisor;
         } catch (\Throwable $th) {
             DB::rollBack();
             throw $th;

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CreditService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -12,48 +13,37 @@ class Credit extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['company_id', 'available_credit', 'consumed_credit', 'year'];
+    protected $fillable = ['company_id', 'available_credit', 'consumed_credit', 'year', 'main_company_id'];
 
 
-    public static function getCredits($id){
-        $credits = Credit::select('credits.*', DB::raw('(credits.available_credit - credits.consumed_credit) as credit_left'))
+    public static function getCredits($id, $mainCompanyId){
+        return Credit::select('credits.*', DB::raw('(credits.available_credit - credits.consumed_credit) as credit_left'))
             ->leftjoin('companies', 'companies.id', '=', 'credits.company_id')
             ->where('company_id', $id)
+            ->where('credits.main_company_id', $mainCompanyId)
             ->get();
-
-        return $credits;
     }
 
-    public static function getCredit($id){
-        $credit = Credit::select('credits.*', DB::raw('(credits.available_credit - credits.consumed_credit) as credit_left'))
+    public static function getCredit($id, $mainCompanyId){
+        return Credit::select('credits.*', DB::raw('(credits.available_credit - credits.consumed_credit) as credit_left'))
             ->leftjoin('companies', 'companies.id', '=', 'credits.company_id')
             ->where('credits.id', $id)
+            ->where('credits.main_company_id', $mainCompanyId)
             ->first();
-
-        return $credit;
     }
 
-    public static function createCredit($data){
-        $credit = Credit::create([
-            'company_id' => $data['company_id'],
-            'available_credit' => $data['available_credit'],
-            'consumed_credit' => $data['consumed_credit'],
-            'year' => $data['year']
-        ]);
-
-        return $credit;
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('credits.main_company_id', $mainCompanyId);
     }
 
-    public static function updateCredit($id, $data){
-        $credit = Credit::find($id);
-        $credit->update([
-            'company_id' => $data['company_id'],
-            'available_credit' => $data['available_credit'],
-            'consumed_credit' => $data['consumed_credit'],
-            'year' => $data['year']
-        ]);
-
-        return $credit;
+    public static function createWithService($data)
+    {
+        $service = app(CreditService::class);
+        return $service->create($data);
     }
 
+    public function updateWithService($data){
+        $service = app(CreditService::class);
+        return $service->update($this, $data);
+    }
 }

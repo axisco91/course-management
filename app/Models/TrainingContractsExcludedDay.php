@@ -14,12 +14,13 @@ class TrainingContractsExcludedDay extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['training_contract_id','excluded_day_type_id', 'day', 'description', 'group', 'valid'];
+    protected $fillable = ['training_contract_id','excluded_day_type_id', 'day', 'description', 'group', 'valid', 'main_company_id'];
 
     public static function createExcludedDay($data){
         $trainingContract = TrainingContract::where('id', $data['training_contract_id'])->first();
         // vemos otros grupos para obtener el número de grupo más alto
         $other_groups = TrainingContractsExcludedDay::where('training_contract_id', $trainingContract->id)
+            ->where('main_company_id', $data['main_company_id'])
             ->orderBy('group', 'desc')
             ->first();
         $start = Carbon::parse($data['beginning']);
@@ -30,7 +31,7 @@ class TrainingContractsExcludedDay extends Model
         }
         $count = 0;
         while ($start <= $end) {
-            $festival = TrainingContractFestival::existDay($start, $trainingContract->id)->first();
+            $festival = TrainingContractFestival::existDay($start, $trainingContract->id, $data['main_company_id'])->first();
             if (!$festival) {
                 $working_day = false;
                 switch($start->dayOfWeek){
@@ -73,6 +74,7 @@ class TrainingContractsExcludedDay extends Model
             }
             if ($working_day) {
                 $excluded_day = TrainingContractsExcludedDay::where('training_contract_id', $trainingContract->id)
+                    ->where('main_company_id', $data['main_company_id'])
                     ->where('day', $start)->first();
                 if ($excluded_day) {
                     $excluded_day->update([
@@ -85,7 +87,8 @@ class TrainingContractsExcludedDay extends Model
                         'training_contract_id' => $trainingContract->id,
                         'excluded_day_type_id' => $data['excluded_day_type_id'],
                         'group' => $group,
-                        'valid' => 1
+                        'valid' => 1,
+                        'main_company_id' => $data['main_company_id'],
                     ]);
                 }
             } else if ($start->toDateString() === Carbon::parse($data['beginning'])->toDateString() || $start->toDateString() === $end->toDateString()) {
@@ -94,7 +97,8 @@ class TrainingContractsExcludedDay extends Model
                     'training_contract_id' => $trainingContract->id,
                     'excluded_day_type_id' => $data['excluded_day_type_id'],
                     'group' => $group,
-                    'valid' => 0
+                    'valid' => 0,
+                    'main_company_id' => $data['main_company_id'],
                 ]);
             }
             $count++;
@@ -104,13 +108,15 @@ class TrainingContractsExcludedDay extends Model
         return true;
     }
 
-    public static function nonWorkingDay($trainingContractId, $date){
-        $trainingContract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $trainingContractId)->where('day', $date)
+    public static function nonWorkingDay($trainingContractId, $date, $mainCompanyId){
+        $trainingContract_excluded = TrainingContractsExcludedDay::where('training_contract_id', $trainingContractId)
+            ->where('day', $date)
             ->where('valid', 1)
+            ->where('main_company_id', $mainCompanyId)
             ->first();
 
         // Usar el método existDay del modelo TrainingContractFestival
-        $trainingContract_festival = TrainingContractFestival::existDay($date, $trainingContractId)->first();
+        $trainingContract_festival = TrainingContractFestival::existDay($date, $trainingContractId, $mainCompanyId)->first();
 
 
 
@@ -118,7 +124,9 @@ class TrainingContractsExcludedDay extends Model
             return true;
         }
 
-        $trainingContract = TrainingContract::where('id', $trainingContractId)->first();
+        $trainingContract = TrainingContract::where('id', $trainingContractId)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
 
 
 
@@ -137,7 +145,7 @@ class TrainingContractsExcludedDay extends Model
         return $workingDays[$dayOfWeek] == 0; // Devuelve true si el día no es un día laborable
     }
 
-    public function scopeSameGroup($query, $trainingContractId) {
+    public function scopeSameGroup($query, $trainingContractId, $mainCompanyId) {
         return $query->select('group', DB::raw("CONCAT(
                 excluded_day_types.name, ' ',
                 DATE_FORMAT(MIN(training_contracts_excluded_days.day), '%e/%c/%Y'), ' - ',
@@ -149,6 +157,11 @@ class TrainingContractsExcludedDay extends Model
             ) as name"))
             ->join('excluded_day_types', 'excluded_day_types.id', '=', 'training_contracts_excluded_days.excluded_day_type_id')
             ->where('training_contract_id', $trainingContractId)
+            ->where('training_contracts_excluded_days.main_company_id', $mainCompanyId)
             ->groupBy('group');
+    }
+
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('training_contracts_excluded_days.main_company_id', $mainCompanyId);
     }
 }

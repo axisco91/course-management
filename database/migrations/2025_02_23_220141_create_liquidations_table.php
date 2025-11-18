@@ -27,8 +27,8 @@ class CreateLiquidationsTable extends Migration
             $table->date('end');
             $table->double('price');
             $table->tinyInteger('paid')->default(0);
-            $table->double('commision_percent')->nullable();
-            $table->double('commision')->nullable();
+            $table->double('commission_percent')->nullable();
+            $table->double('commission')->nullable();
             $table->date('paid_date')->nullable();
             $table->date('invoice_date')->nullable();
             $table->foreignId('advisor_id')->constrained()->onUpdate('cascade')->onDelete('cascade');

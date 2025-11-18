@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Http\Requests\CompanyRequests;
 use App\Models\Advisor;
 use App\Models\Company;
@@ -8,8 +9,6 @@ use App\Models\Course;
 use App\Models\Provider;
 use App\Models\Student;
 use App\Models\User;
-use App\Services\AdvisorService;
-use App\Services\CompanyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -17,14 +16,6 @@ use Illuminate\Support\Facades\Log;
 
 class CompanyController extends BaseController
 {
-    private $companyService;
-    private $advisorService;
-
-    public function __construct(CompanyService $companyService, AdvisorService $advisorService)
-    {
-        $this->companyService = $companyService;
-        $this->advisorService = $advisorService;
-    }
 
     /**
      * Obtenemos empresas
@@ -32,7 +23,8 @@ class CompanyController extends BaseController
      */
     public function index(Request $request) {
         try {
-            $companies = Company::company();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $companies = Company::company($mainCompanyId);
 
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
@@ -131,8 +123,10 @@ class CompanyController extends BaseController
         }
     }
 
-    public function getActiveCompanies(){
+    public function getActiveCompanies(Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
         return Company::select('companies.*', 'id as value', 'name as label')
+            ->FilterMainCompany($mainCompanyId)
             ->where('active', 1)->get();
     }
 
@@ -141,15 +135,20 @@ class CompanyController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id){
-        $company = Company::company()
+    public function show($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $company = Company::company($mainCompanyId)
             ->where('companies.id', $id)
             ->first();
-        $student = Student::where('company_id', $company['id'])->first();
+        $student = Student::where('company_id', $company['id'])
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
         if ($student) {
             $company['used'] = true;
         } else {
-            $advisor = Advisor::where('company_id', $company['id'])->first();
+            $advisor = Advisor::where('company_id', $company['id'])
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
             if ($advisor){
                 $company['used'] = true;
             } else {
@@ -161,7 +160,9 @@ class CompanyController extends BaseController
                 }
             }
         }
-        $advisor = Advisor::where('company_id', $company['id'])->first();
+        $advisor = Advisor::where('company_id', $company['id'])
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
         if ($advisor) {
             $company['is_advisor'] = true;
         } else {
@@ -199,25 +200,31 @@ class CompanyController extends BaseController
      */
     public function store(CompanyRequests $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-    
+            $data['main_company_id'] = $mainCompanyId;
+
             // Verifica que el campo 'agreement' está presente en los datos recibidos
             if (isset($data['agreement'])) {
                 Log::info('Agreement received: ' . $data['agreement']);
             } else {
                 Log::warning('Agreement not received');
             }
-    
-            $element = $this->companyService->create($data);
-            $company = Company::company()
+
+            $element = Company::createWithService($data);
+            $company = Company::company($mainCompanyId)
                 ->where('companies.id', $element->id)
                 ->first();
-    
-            $student = Student::where('company_id', $company['id'])->first();
+
+            $student = Student::where('company_id', $company['id'])
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
             if ($student) {
                 $company['used'] = true;
             } else {
-                $advisor = Advisor::where('company_id', $company['id'])->first();
+                $advisor = Advisor::where('company_id', $company['id'])
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
                 if ($advisor){
                     $company['used'] = true;
                 } else {
@@ -229,21 +236,23 @@ class CompanyController extends BaseController
                     }
                 }
             }
-    
-            $advisor = Advisor::where('company_id', $company['id'])->first();
+
+            $advisor = Advisor::where('company_id', $company['id'])
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
             if ($advisor) {
                 $company['is_advisor'] = true;
             } else {
                 $company['is_advisor'] = false;
             }
-    
+
             $provider = Provider::where('company_id', $company['id'])->first();
             if ($provider) {
                 $company['is_provider'] = true;
             } else {
                 $company['is_provider'] = false;
             }
-    
+
             if ($company['potential'] === 1) {
                 $company['status'] = 'Potencial';
             } else if ($company['active'] === 0) {
@@ -251,7 +260,7 @@ class CompanyController extends BaseController
             } else {
                 $company['status'] = 'Activo';
             }
-    
+
             return response()->json([
                 'status' => 200,
                 'company' => $company
@@ -263,8 +272,6 @@ class CompanyController extends BaseController
             ]);
         }
     }
-    
-    
 
     /**
      * Editar empresa
@@ -274,27 +281,36 @@ class CompanyController extends BaseController
      */
     public function update($id, CompanyRequests $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-    
+
             // Verifica que el campo 'agreement' está presente en los datos recibidos
             if (isset($data['agreement'])) {
                 Log::info('Agreement received: ' . $data['agreement']);
             } else {
                 Log::warning('Agreement not received');
             }
-    
-            $company = Company::find($id);
-            $element = $this->companyService->update($company, $data);
-            $company = Company::company()
-                ->where('companies.id', $element->id)
+
+            $company = Company::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
                 ->first();
-    
+
+            if (!$company) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Empresa no existe'
+                ]);
+            }
+            $element = $company->updateWithService($data);
+            $company = Company::where('companies.id', $element->id)
+                ->first();
+
             $advisor = Advisor::where('company_id', $company->id)->first();
             if ($advisor) {
                 $data['company_id'] = $company->id;
-                $this->advisorService->updateAdvisorCompany($advisor, $data);
+                $advisor->updateAdvisorCompany($advisor, $data);
             }
-    
+
             $student = Student::where('company_id', $company['id'])->first();
             if ($student) {
                 $company['used'] = true;
@@ -311,21 +327,21 @@ class CompanyController extends BaseController
                     }
                 }
             }
-    
+
             $advisor = Advisor::where('company_id', $company['id'])->first();
             if ($advisor) {
                 $company['is_advisor'] = true;
             } else {
                 $company['is_advisor'] = false;
             }
-    
+
             $provider = Provider::where('company_id', $company['id'])->first();
             if ($provider) {
                 $company['is_provider'] = true;
             } else {
                 $company['is_provider'] = false;
             }
-    
+
             if ($company['potential'] === 1) {
                 $company['status'] = 'Potencial';
             } else if ($company['active'] === 0) {
@@ -333,7 +349,7 @@ class CompanyController extends BaseController
             } else {
                 $company['status'] = 'Activo';
             }
-    
+
             return response()->json([
                 'status' => 200,
                 'company' => $company
@@ -345,17 +361,28 @@ class CompanyController extends BaseController
             ]);
         }
     }
-    
-    
+
+
 
     /**
      * Eliminar empresa
      * @param $id
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $company = Company::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+                if (!$company) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Empresa no existe'
+                    ]);
+                }
                 Company::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -374,10 +401,20 @@ class CompanyController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function convertClient($id){
+    public function convertClient($id, Request $request){
         if ($id) {
             try {
-                $company = Company::find($id);
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $company = Company::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+                if (!$company) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Empresa no existe'
+                    ]);
+                }
                 $company->update([
                     'potential' => 0
                 ]);
@@ -402,10 +439,22 @@ class CompanyController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function convertAdvisor($id){
+    public function convertAdvisor($id, Request $request){
         if ($id) {
             try {
-                $this->advisorService->convertAdvisor($id);
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $company = Company::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+                if (!$company) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Empresa no existe'
+                    ]);
+                }
+
+                Advisor::convertAdvisor($id);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -427,10 +476,22 @@ class CompanyController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function convertProvider($id){
+    public function convertProvider($id, Request $request){
         if ($id) {
             try {
-                Provider::convertProvider($id);
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $company = Company::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+                if (!$company) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Empresa no existe'
+                    ]);
+                }
+
+                Provider::convertProvider($id, $company);
                 return response()->json([
                     'status' => 200
                 ]);
@@ -452,8 +513,20 @@ class CompanyController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function getCompanyCourses($id) {
-        $courses = Course::companyCourses($id)
+    public function getCompanyCourses($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $company = Company::where('id', $id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
+        if (!$company) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Empresa no existe'
+            ]);
+        }
+
+        $courses = Course::companyCourses($id, $mainCompanyId)
             ->orderBy('beginning', 'DESC')
             ->get();
         if (count($courses)) {
@@ -468,7 +541,19 @@ class CompanyController extends BaseController
     }
 
 
-    public function getCompanyStudents($id) {
-        return Student::companyStudents($id)->get();
+    public function getCompanyStudents($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $company = Company::where('id', $id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
+        if (!$company) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Empresa no existe'
+            ]);
+        }
+
+        return Student::companyStudents($id, $mainCompanyId)->get();
     }
 }

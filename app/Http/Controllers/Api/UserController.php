@@ -1,29 +1,22 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-use App\Models\TrainingActionLevel;
+use App\Helpers\GeneralHelpers;
 use App\Models\User;
-use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class UserController extends BaseController
 {
-    private $userService;
-
-    public function __construct(UserService $userService)
-    {
-        $this->userService = $userService;
-    }
-
     /**
      * Obtenemos usuarios
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getUsers() {
+    public function getUsers(Request $request) {
         try {
-            $users = User::getUser()
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $users = User::getUser($mainCompanyId)
                 ->get();
             foreach ($users as $user) {
                 $roles = $user->roles;
@@ -45,8 +38,9 @@ class UserController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getUser($id){
-        $user = User::getUser()
+    public function getUser($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $user = User::getUser($mainCompanyId)
             ->where('users.id', $id)
             ->first();
         if ($user) {
@@ -68,8 +62,22 @@ class UserController extends BaseController
 
     public function create(Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-            $user = $this->userService->create($data);
+            $data['main_company_id'] = $mainCompanyId;
+
+            $user = User::where('username', $data['username'])->first();
+
+            if (!$user) {
+                $user = User::createWithService($data);
+
+                return response()->json([
+                    'status' => 200,
+                    'user' => User::getUser($mainCompanyId)->where('users.id', $user->id)
+                        ->first()
+                ]);
+            }
+
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -78,15 +86,29 @@ class UserController extends BaseController
         }
 
         return response()->json([
-            'status' => 200,
-            'user' => User::getUser()->where('users.id', $user->id)
+            'status' => 300,
+            'user' => User::getUser($mainCompanyId)->where('users.id', $user->id)
                 ->first()
         ]);
     }
 
     public function edit($id, Request $request){
         try {
-            $user = User::updateUser($id, $request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $user = User::where('id', $id)
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
+            if (!$user) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Usuario no existe'
+                ]);
+            }
+            $data = $request->all();
+
+            $user->updateWithService($data);
             if ($request->file('image')) {
                 $file = $request->file('image');
                 $filename = substr(str_shuffle(MD5(microtime())), 0, 10).substr(str_shuffle(MD5($user->name.'-'.$user->surname)), 0, 10).'.'.$file->getClientOriginalExtension();
@@ -97,23 +119,36 @@ class UserController extends BaseController
                     'profile_photo_path' => $file
                 ]);
             }
+
+            return response()->json([
+                'status' => 200,
+                'user' => User::getUser($mainCompanyId)->where('users.id', $id)
+                    ->first()
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'user' => User::getUser()->where('users.id', $id)
-                ->first()
-        ]);
     }
 
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $user = User::where('id', $id)
+                    ->where('main_company_id', $mainCompanyId)
+                    ->first();
+
+                if (!$user) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Usuario no existe'
+                    ]);
+                }
+
                 User::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -129,7 +164,18 @@ class UserController extends BaseController
 
     public function changePassword($id, Request $request) {
         try {
-            $user = User::find($id);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $user = User::where('id', $id)
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
+            if (!$user) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Usuario no existe'
+                ]);
+            }
+
             $user->update([
                 'password' => Hash::make($request->password)
             ]);
@@ -141,8 +187,11 @@ class UserController extends BaseController
         ]);
     }
 
-    public function indexWithCommissions() {
-        $users = User::with('commissions')->get();
+    public function indexWithCommissions(Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $users = User::with('commissions')
+            ->where('main_company_id', $mainCompanyId)
+            ->get();
         return response()->json($users);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AdvisorIncidenceService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,28 +16,24 @@ class AdvisorIncidence extends Model
         'incidence_type_id',
         'advisor_id',
         'user_id',
+        'main_company_id'
     ];
 
-    public static function getAdvisorIncidences($advisor_id){
-        $advisor_incidences = AdvisorIncidence::select('*')->where('advisor_id', $advisor_id)->get();
+    public static function getAdvisorIncidences($advisorId, $mainCompanyId){
+        $advisor_incidences = AdvisorIncidence::select('*')->where('advisor_id', $advisorId)
+            ->where('advisor_inscidences', $mainCompanyId)->get();
 
         return $advisor_incidences;
     }
 
-    public static function createAdvisorIncidence($data){
-        $advisor_incidence = AdvisorIncidence::create(
-            $data
-        );
-
-        return $advisor_incidence;
+    public static function createWithService($data)
+    {
+        $service = app(AdvisorIncidenceService::class);
+        return $service->create($data);
     }
 
-    public static function updateAdvisorIncidence($id, $data){
-        $advisor_incidence = AdvisorIncidence::find($id);
-        $advisor_incidence->update(
-            $data
-        );
-
-        return $advisor_incidence;
+    public function updateWithService($data){
+        $service = app(AdvisorIncidenceService::class);
+        return $service->update($this, $data);
     }
 }

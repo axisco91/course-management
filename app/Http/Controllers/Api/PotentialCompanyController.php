@@ -1,18 +1,20 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\Company;
+use App\Models\MainCompany;
 use App\Models\PotentialCompany;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
 
 class PotentialCompanyController extends BaseController
 {
-    public function getPotentialCompanies() {
+    public function getPotentialCompanies(Request $request) {
         try {
-            return PotentialCompany::getPotentialCompanies();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            return PotentialCompany::getPotentialCompanies($mainCompanyId);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -22,22 +24,29 @@ class PotentialCompanyController extends BaseController
 
     public function create(Request $request){
         try {
-            $company = PotentialCompany::createPotentialCompany($request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $data = $request->all();
+            $data['main_company_id'] = $mainCompanyId;
+
+            $company = PotentialCompany::createWithService($data);
+
+            return response()->json([
+                'status' => 200,
+                'potential_company' => $company
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'potential_company' => $company
-        ]);
     }
 
     public function edit($id, Request $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $company = PotentialCompany::updatePotentialCompany($id, $request);
         } catch (\Exception $e){
             return response()->json([
@@ -52,8 +61,14 @@ class PotentialCompanyController extends BaseController
         ]);
     }
 
-    public function getPotentialCompany($id){
-        $company = PotentialCompany::find($id);
+    public function getPotentialCompany($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $company = PotentialCompany::where('id', $id)
+            ->where('main_company_id', $mainCompanyId)
+            ->first();
+
+
         if ($company) {
             return response()->json([
                 'status' => 200,
@@ -61,14 +76,27 @@ class PotentialCompanyController extends BaseController
             ]);
         }
         return response()->json([
-            'status' => 400,
+            'status' => 404,
             'message' => 'Empresa no existe'
         ]);
     }
 
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $company = PotentialCompany::where('id', $id)
+                    ->where('main_company_id', $mainCompanyId)
+                    ->first();
+
+                if (!$company) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Empresa no existe'
+                    ]);
+                }
+
                 PotentialCompany::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -82,16 +110,33 @@ class PotentialCompanyController extends BaseController
         }
     }
 
-    public function count(){
-        return PotentialCompany::count();
+    public function count(Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        return PotentialCompany::FilterMainCompany($mainCompanyId)->count();
     }
 
     public function convertCompany($id, Request $request) {
         try {
-            Company::createCompany($request);
-            $potential_company = PotentialCompany::find($id);
-            $potential_company->update([
-                'converted' => 1
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $potentialCompany = PotentialCompany::where('id', $id)
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
+            if (!$potentialCompany) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Empresa no existe'
+                ]);
+            }
+
+            Company::createWithService($request);
+
+            $potentialCompany->updateWithService();
+
+            return response()->json([
+                'status' => 200,
+                'company' => $potentialCompany
             ]);
         } catch (\Exception $e){
             return response()->json([
@@ -100,15 +145,16 @@ class PotentialCompanyController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'company' => $potential_company
-        ]);
+
     }
 
     public function sendEmail(Request $request){
         if ($request['email']){
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $mainCompany = MainCompany::find($mainCompanyId);
+
                 Mail::getSwiftMailer()
                     ->getTransport()
                     ->setUsername('zona@avzformacion.com')

@@ -17,7 +17,8 @@ class CenterService
             'name' => $data['name'],
             'address' => $data['address'],
             'email' => $data['email'],
-            'telephone' => $data['telephone']
+            'telephone' => $data['telephone'],
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 

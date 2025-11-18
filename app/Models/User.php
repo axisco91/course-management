@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\UserService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -41,7 +42,9 @@ class User extends Authenticatable
         'profile_photo_path',
         'active',
         'teacher_id',
-        'advisor_id'
+        'advisor_id',
+        'default_password',
+        'main_company_id'
     ];
 
     /**
@@ -98,10 +101,19 @@ class User extends Authenticatable
         'surname',
     ];
 
-    public function scopeGetUser($query) {
+    public function scopeGetUser($query, $mainCompanyId) {
         return $query->select('users.*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
             'users.id as value', DB::raw("CONCAT(teachers.name,' ',teachers.surname) as teacher"))
-            ->leftjoin('teachers', 'teachers.id', '=', 'users.teacher_id');
+            ->leftjoin('teachers', 'teachers.id', '=', 'users.teacher_id')
+            ->where('users.main_company_id', $mainCompanyId);
+    }
+
+    public function scopeFilterEmail($query, $email) {
+        return $query->where('email', $email);
+    }
+
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('users.main_company_id', $mainCompanyId);
     }
 
     public function commissions()
@@ -109,20 +121,14 @@ class User extends Authenticatable
         return $this->hasMany(UserCommission::class);
     }
 
-    public static function updateUser($id, $data){
-        $user = User::find($id);
-        $user->update([
-            'name' => $data['name'],
-            'surname' => $data['surname'],
-            'username' => $data['username'],
-            'email' => $data['email'],
-            'has_commission' => $data['has_commission'],
-            'commission' => $data['commission'] ?? 0.0,
-            'active' => $data['active'],
-            'teacher_id' => $data['teacher_id'] ?? null,
-        ]);
-        $roles = [$data['roles']];
-        $user->syncRoles($roles[0]);
-        return $user;
+    public static function createWithService($data)
+    {
+        $service = app(UserService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(UserService::class);
+        return $service->update($this, $data);
     }
 }

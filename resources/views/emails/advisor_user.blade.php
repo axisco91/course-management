@@ -1,7 +1,7 @@
 @extends('layouts/basicLayoutMaster')
 
 <div>
-    Hola, te acabán de dar de alta en la plataforma de zona formaciñon. Estos son tus credenciales para acceder a la plataforma.
+    Hola, Estos son tus credenciales para acceder a la plataforma de AVZ Formación.
 
 </div>
 <p>Usuario: {{$username}}</p>

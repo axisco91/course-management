@@ -11,30 +11,35 @@ class TrainingUnitsModule extends Model
 
     protected $fillable = ['training_unit_id', 'module_id'];
 
-    public static function getTrainingUnitModules($module_id){
-        $training_unit = TrainingUnitsModule::select('training_units_modules.*', 'training_units.name', 'training_units.formative_unit')
+    public static function getTrainingUnitModules($moduleId, $mainCompanyId){
+        return TrainingUnitsModule::select('training_units_modules.*', 'training_units.name', 'training_units.formative_unit')
             ->leftjoin('training_units', 'training_units.id', '=', 'training_units_modules.training_unit_id')
-            ->where('module_id', $module_id)->get();
-        return $training_unit;
+            ->where('module_id', $moduleId)
+            ->where('training_units_modules.main_company_id', $mainCompanyId)
+            ->get();
     }
 
-    public static function getTrainingUnitModule($id){
-        $training_unit = TrainingUnitsModule::select('training_units_modules.*', 'training_units.name', 'training_units.formative_unit')
+    public static function getTrainingUnitModule($id, $mainCompanyId){
+        return TrainingUnitsModule::select('training_units_modules.*', 'training_units.name', 'training_units.formative_unit')
             ->leftjoin('training_units', 'training_units.id', '=', 'training_units_modules.training_unit_id')
-            ->where('training_units_modules.id', $id)->first();
-        return $training_unit;
+            ->where('training_units_modules.id', $id)
+            ->where('training_units_modules.main_company_id', $mainCompanyId)
+            ->first();
     }
 
-    public static function createTrainingUnitModule($module_id, $training_unit_id){
-        $training_unit_module = TrainingUnitsModule::where('module_id', $module_id)
-            ->where('training_unit_id', $training_unit_id)->first();
+    public static function createTrainingUnitModule($moduleId, $training_unit_id, $mainCompanyId){
+        $training_unit_module = TrainingUnitsModule::where('module_id', $moduleId)
+            ->where('training_unit_id', $training_unit_id)
+            ->where('main_company_id', $mainCompanyId)
+            ->first();
         if (!$training_unit_module){
             $training_unit_module = TrainingUnitsModule::create([
-                'module_id' => $module_id,
-                'training_unit_id' => $training_unit_id
+                'module_id' => $moduleId,
+                'training_unit_id' => $training_unit_id,
+                'main_company_id' => $mainCompanyId
             ]);
             $training_unit = TrainingUnit::find($training_unit_id);
-            $module = Module::find($module_id);
+            $module = Module::find($moduleId);
             $module->update([
                 'face_to_face_hours' => $module['face_to_face_hours'] + $training_unit['face_to_face_hours'],
                 'teletraining_hours' => $module['teletraining_hours'] + $training_unit['teletraining_hours'],
@@ -46,8 +51,10 @@ class TrainingUnitsModule extends Model
         return $training_unit_module;
     }
 
-    public static function deleteTrainingUnitModule($id){
-        $training_unit_module = TrainingUnitsModule::find($id);
+    public static function deleteTrainingUnitModule($id, $mainCompanyId){
+        $training_unit_module = TrainingUnitsModule::where('id', $id)
+            ->where('main_company_id', $mainCompanyId)
+            ->first();
         $training_unit = TrainingUnit::find($training_unit_module['training_unit_id']);
         $training_unit['value'] = $training_unit->id;
         $training_unit['label'] = $training_unit->name;

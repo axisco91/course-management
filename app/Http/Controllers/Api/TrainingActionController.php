@@ -1,32 +1,29 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Http\Requests\TrainingActionRequests;
 use App\Models\Course;
 use App\Models\TrainingAction;
 use App\Models\User;
-use App\Services\TrainingActionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class TrainingActionController extends BaseController
 {
-    private $trainingActionService;
-
-    public function __construct(TrainingActionService $trainingActionService)
-    {
-        $this->trainingActionService = $trainingActionService;
-    }
-
     /**
      * Obtenemos las acciones formativas
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request) {
         try {
-            $trainingActions = TrainingAction::trainingAction();
-            $user = User::find(Auth::id());
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $trainingActions = TrainingAction::trainingAction($mainCompanyId);
+            $user = User::where('id', Auth::id())
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
             if ($user->teacher_id) {
                 $trainingActions = $trainingActions->leftjoin('courses', 'courses.training_action_id', '=', 'training_actions.id')
                     ->where('courses.teacher_id', $user->teacher_id);
@@ -59,7 +56,9 @@ class TrainingActionController extends BaseController
                 ->get();
             if (count($trainingActions) > 0) {
                 foreach($trainingActions as $trainingAction) {
-                    $course = Course::where('training_action_id', $trainingAction->id)->first();
+                    $course = Course::where('training_action_id', $trainingAction->id)
+                        ->FilterMainCompany($mainCompanyId)
+                        ->first();
                     if ($course) {
                         $trainingAction['used'] = true;
                     } else {
@@ -79,9 +78,10 @@ class TrainingActionController extends BaseController
      * Obtenemos las acciones formativas activas
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getActiveTrainingActions() {
+    public function getActiveTrainingActions(Request $request) {
         try {
-            return TrainingAction::active()
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            return TrainingAction::active($mainCompanyId)
                 ->get();
         } catch (\Exception $e) {
             return response()->json([
@@ -97,12 +97,19 @@ class TrainingActionController extends BaseController
      */
     public function store(TrainingActionRequests $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-            $element = $this->trainingActionService->create($data);
-            $trainingAction = TrainingAction::trainingAction()
+            $data['main_company_id'] = $mainCompanyId;
+
+            $element = TrainingAction::createWithService($data);
+            $trainingAction = TrainingAction::trainingAction($mainCompanyId)
                 ->where('training_actions.id', $element->id)
                 ->first();
-            $course = Course::where('training_action_id', $trainingAction->id)->first();
+
+            $course = Course::where('training_action_id', $trainingAction->id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
             if ($course) {
                 $trainingAction['used'] = true;
             } else {
@@ -122,13 +129,26 @@ class TrainingActionController extends BaseController
 
     public function update($id, TrainingActionRequests $request){
         try {
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
-            $trainingAction = TrainingAction::find($id);
-            $element = $this->trainingActionService->update($trainingAction, $data);
-            $trainingAction = TrainingAction::trainingAction()
+            $trainingAction = TrainingAction::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$trainingAction) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Acción Formativa no encontrada'
+                ]);
+            }
+
+            $element = $trainingAction->updateWithService($data);
+            $trainingAction = TrainingAction::trainingAction($mainCompanyId)
                 ->where('training_actions.id', $element->id)
                 ->first();
-            $course = Course::where('training_action_id', $trainingAction->id)->first();
+            $course = Course::where('training_action_id', $trainingAction->id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
             if ($course) {
                 $trainingAction['used'] = true;
             } else {
@@ -151,11 +171,14 @@ class TrainingActionController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id){
-        $trainingAction = TrainingAction::trainingAction()
+    public function show($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $trainingAction = TrainingAction::trainingAction($mainCompanyId)
             ->where('training_actions.id', $id)
             ->first();
-        $course = Course::where('training_action_id', $trainingAction->id)->first();
+        $course = Course::where('training_action_id', $trainingAction->id)
+            ->FilterMainCompany($mainCompanyId)
+            ->first();
         if ($course) {
             $trainingAction['used'] = true;
         } else {
@@ -178,9 +201,21 @@ class TrainingActionController extends BaseController
      * @param $id
      * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+                $trainingAction = TrainingAction::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+
+                if (!$trainingAction) {
+                    return response()->json([
+                        'status' => 404,
+                        'message' => 'Acción Formativa no encontrada'
+                    ]);
+                }
+
                 TrainingAction::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -198,8 +233,10 @@ class TrainingActionController extends BaseController
      * Obtenemos el siguiente número de la acción formativa
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getFormativeAction(){
-        $training = TrainingAction::orderBy('id', 'desc')->first();
+    public function getFormativeAction(Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $training = TrainingAction::FilterMainCompany($mainCompanyId)
+            ->orderBy('id', 'desc')->first();
         $id = $training['id']+1;
         if ($id < 10) {
             $formativeAction = '00'.$id;
@@ -219,9 +256,12 @@ class TrainingActionController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function getCourses($id) {
-        $courses =  Course::trainingActionCourses($id);
-        $user = User::find(Auth::id());
+    public function getCourses($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $courses =  Course::trainingActionCourses($id, $mainCompanyId);
+        $user = User::where('id', Auth::id())
+            ->where('main_company_id', $mainCompanyId)
+            ->first();
         if ($user->teacher_id) {
             $courses = $courses->where('courses.teacher_id', $user->teacher_id);
         }
@@ -237,11 +277,13 @@ class TrainingActionController extends BaseController
         return $courses;
     }
 
-    
-public static function indexPublic()
+
+public static function indexPublic(Request $request)
 {
+   $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
     // Primero, obtén todas las instancias de TrainingAction.
-    $trainingActions = TrainingAction::all();
+    $trainingActions = TrainingAction::FilterMainCompany($mainCompanyId)
+        ->get();
 
     // Luego, carga las relaciones en cada instancia usando el método `load`.
     $trainingActions->load([

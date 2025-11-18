@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Traits\ApiTraits;
+use App\Services\CompanyService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +38,8 @@ class Company extends Model
         'collaborator_id',
         'potential',
         'population_code',
-        'agreement',];
+        'agreement',
+        'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -112,7 +113,7 @@ class Company extends Model
         return $this->hasMany('App\Models\Student', 'company_id', 'id');
     }
 
-    public function scopeCompany($query) {
+    public function scopeCompany($query, $mainCompanyId) {
         return $query->select('companies.*', 'company_types.name as type',
             'company_activities.name as activity', 'cnaes.name as cnae',
             'provinces.name as province',
@@ -128,7 +129,12 @@ class Company extends Model
             ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
             ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
             ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
-            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id');
+            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id')
+            ->where('companies.main_company_id', $mainCompanyId);
+    }
+
+    public function scopeFilterMainCompany($query, $mainCompanyId) {
+        return $query->where('companies.main_company_id', $mainCompanyId);
     }
 
     public static function changeState($id){
@@ -173,5 +179,16 @@ class Company extends Model
             CompanyObservation::createCompanyObservation($data);
         }
         PotentialCompany::find($potential_id)->delete();
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(CompanyService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(CompanyService::class);
+        return $service->update($this, $data);
     }
 }

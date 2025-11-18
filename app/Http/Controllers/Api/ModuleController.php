@@ -1,18 +1,20 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Models\Module;
 use App\Models\TrainingUnit;
 use App\Models\TrainingUnitsModule;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class ModuleController extends BaseController
 {
-    public function modules() {
+    public function modules(Request $request) {
         try {
-            return Module::getModules();
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            return Module::getModules($mainCompanyId);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -22,38 +24,58 @@ class ModuleController extends BaseController
 
     public function create(Request $request){
         try {
-            $module = Module::createModule($request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $data = $request->all();
+            $data['main_company_id'] = $mainCompanyId;
+
+            $module = Module::createModule($data);
+
+            return response()->json([
+                'status' => 200,
+                'module' => Module::getModule($module->id, $mainCompanyId),
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'module' => Module::getModule($module->id)
-        ]);
     }
 
     public function edit($id, Request $request){
         try {
-            $module = Module::updateModule($id, $request);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $module = Module::where('id', $id)
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
+            if (!$module) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'Module no encontrado'
+                ]);
+            }
+
+            $module->updateWithService($request);
+
+            return response()->json([
+                'status' => 200,
+                'module' => Module::getModule($module->id, $mainCompanyId),
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'module' => Module::getModule($module->id)
-        ]);
     }
 
-    public function getModule($id){
-        $module = Module::getModule($id);
+    public function getModule($id, Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $module = Module::getModule($id, $mainCompanyId);
         if ($module) {
             return response()->json([
                 'status' => 200,
@@ -66,9 +88,22 @@ class ModuleController extends BaseController
         ]);
     }
 
-    public function destroy($id){
+    public function destroy($id, Request $request){
         if ($id) {
             try {
+               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+                $module = Module::where('id', $id)
+                    ->where('main_company_id', $mainCompanyId)
+                    ->first();
+
+                if (!$module) {
+                    return response()->json([
+                        'status' => 400,
+                        'message' => 'Module no encontrado'
+                    ]);
+                }
+
                 Module::destroy($id);
                 return response()->json([
                     'status' => 200
@@ -82,36 +117,44 @@ class ModuleController extends BaseController
         }
     }
 
-    public function getUnits($id) {
+    public function getUnits($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
         return response()->json([
-            'units' => TrainingUnitsModule::getTrainingUnitModules($id)
+            'units' => TrainingUnitsModule::getTrainingUnitModules($id, $mainCompanyId)
         ]);
     }
 
-    public function getNotUsedUnits($id) {
-        return TrainingUnit::getTrainingUnitsNotInModule($id);
+    public function getNotUsedUnits($id, Request $request) {
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return TrainingUnit::getTrainingUnitsNotInModule($id, $mainCompanyId);
     }
 
     public function addUnit($id, Request $request){
         try {
-            $training_unit = TrainingUnitsModule::createTrainingUnitModule($id, $request['unit_id']);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $trainingUnit = TrainingUnitsModule::createTrainingUnitModule($id, $request['unit_id'], $mainCompanyId);
+
+            return response()->json([
+                'status' => 200,
+                'training_unit_module' => TrainingUnitsModule::getTrainingUnitModule($trainingUnit->id, $mainCompanyId),
+                'module' => Module::getModule($id, $mainCompanyId),
+            ]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'training_unit_module' => TrainingUnitsModule::getTrainingUnitModule($training_unit->id),
-            'module' => Module::getModule($id)
-        ]);
     }
 
-    public function removeUnit($id){
+    public function removeUnit($id, Request $request){
         try {
-            $data = TrainingUnitsModule::deleteTrainingUnitModule($id);
+           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $data = TrainingUnitsModule::deleteTrainingUnitModule($id, $mainCompanyId);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -125,7 +168,9 @@ class ModuleController extends BaseController
         ]);
     }
 
-    public function count(){
-        return Module::count();
+    public function count(Request $request){
+       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        return Module::FilterMainCompany($mainCompanyId)->count();
     }
 }

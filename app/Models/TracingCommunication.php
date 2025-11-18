@@ -15,6 +15,7 @@ class TracingCommunication extends Model
         'incidence_type_id',
         'tracing_id',
         'user_id',
+        'main_company_id'
     ];
 
     public static function getTracingCommunications($tracing_id){

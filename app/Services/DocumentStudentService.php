@@ -24,6 +24,7 @@ class DocumentStudentService
             'training_contract_id' => $data['training_contract_id'],
             'document_name' => $data['document_name'],
             'key' => $key,
+            'main_company_id' => isset($data['main_company_id']) ?? null,
         ]);
     }
 

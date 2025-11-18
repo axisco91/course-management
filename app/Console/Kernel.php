@@ -2,7 +2,9 @@
 
 namespace App\Console;
 
+use App\Console\Commands\CheckAccesses;
 use App\Console\Commands\updateCoursesStatus;
+use App\Console\Commands\updateCoursesTracings;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -15,6 +17,8 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         updateCoursesStatus::class,
+        updateCoursesTracings::class,
+        CheckAccesses::class
     ];
 
     /**
@@ -28,6 +32,8 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
 
         $schedule->command('updateCoursesStatus')->dailyAt('00:00:00');
+        $schedule->command('updateCoursesTracings')->everyThirtyMinutes();
+        $schedule->command('checkAccesses')->everyMinute();
     }
 
     /**
