@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ProvinceService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -42,26 +43,20 @@ class Province extends Model
         return $this->belongsToMany(ExcludedDayType::class, 'excluded_days_provinces', 'province_id', 'excluded_day_id');
     }
 
-    public static function getProvinces(){
-        $provinces = Province::
-        select('*', 'id as value', 'name as label')
-            ->get();
-        return $provinces;
+    public function scopeGetProvinces($query)
+    {
+        return $query->select('*', 'id as value', 'name as label');
     }
 
-    public static function createProvince($data){
-        $province = Province::create([
-            'name' => $data['name']
-        ]);
-        return $province;
+    public static function createWithService($data)
+    {
+        $service = app(ProvinceService::class);
+        return $service->create($data);
     }
 
-    public static function updateProvince($id, $data){
-        $province = Province::find($id);
-        $province->update([
-            'name' => $data['name']
-        ]);
-        return $province;
+    public function updateWithService($data){
+        $service = app(ProvinceService::class);
+        return $service->update($this, $data);
     }
 
     public function scopeProvincesWithFestivals($query, $start = null, $end = null){

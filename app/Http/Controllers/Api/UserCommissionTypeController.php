@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\UserCommissionTypeResource;
 use App\Models\CommissionType;
 use App\Models\UserCommissionType;
 use Illuminate\Http\Request;
@@ -18,14 +19,46 @@ class UserCommissionTypeController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            $commissionTypes = CommissionType::select('commission_types.*', 'user_commission_types.id as user_commission_type_id', 'user_commission_types.percentage as user_commission_types_percentage')
+            $query = CommissionType::select('commission_types.*', 'user_commission_types.id as user_commission_type_id', 'user_commission_types.percentage as user_commission_types_percentage')
                 ->leftJoin('user_commission_types', function ($join) use ($id, $mainCompanyId) {
                     $join->on('user_commission_types.commission_type_id', '=', 'commission_types.id')
                         ->where('user_commission_types.user_id', '=', $id)
                         ->where('user_commission_types.main_company_id', $mainCompanyId);
-                })
-                ->get();
-            return response()->json($commissionTypes, 200); // HTTP 200 OK
+                });
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $commissionTypes = UserCommissionTypeResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'commission_types' => $commissionTypes,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $commissionTypes = UserCommissionTypeResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'commission_types' => $commissionTypes,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Illuminate\Database\QueryException $e) {
             // Handle database query exceptions
             return response()->json([
@@ -89,9 +122,10 @@ class UserCommissionTypeController extends BaseController
                 }
             }
 
-            return response()->json([
-                'status' => 200,
-            ]);
+            return $this->sendResponse(
+                [],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,

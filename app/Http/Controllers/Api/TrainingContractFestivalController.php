@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingContractFestivalResource;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractFestival;
 use Illuminate\Http\Request;
@@ -15,7 +16,41 @@ class TrainingContractFestivalController extends BaseController
         if ($request->has('id')) {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             try {
-                return TrainingContractFestival::festivals($mainCompanyId)->where('training_contract_id', $request->id)->orderBy('day')->get();
+                $query = TrainingContractFestival::festivals($mainCompanyId)->where('training_contract_id', $request->id)->orderBy('day');
+
+                if ($request->filled('perPage')) {
+                    $perPage = (int) $request->perPage;
+
+                    $paginator = $query->paginate($perPage);
+
+                    // Resource sobre el paginator
+                    $trainingContractFestivals = TrainingContractFestivalResource::collection($paginator);
+                    // Si no tienes Resource, podrías usar directamente:
+                    // $certifications = $paginator->items();
+
+                    // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                    $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                    return $this->sendResponse(
+                        [
+                            'training_contract_festivals' => $trainingContractFestivals,
+                            'links'          => $paginationData['links'],
+                            'meta'           => $paginationData['meta'],
+                        ],
+                        trans('Obtenido con éxito')
+                    );
+                }
+
+                // SIN PAGINACIÓN
+                $trainingContractFestivals = TrainingContractFestivalResource::collection($query->get());
+                // o, sin resource: $certifications = $query->get();
+
+                return $this->sendResponse(
+                    [
+                        'training_contract_festivals' => $trainingContractFestivals,
+                    ],
+                    trans('Obtenido con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'message' => $e->getMessage()
@@ -29,10 +64,14 @@ class TrainingContractFestivalController extends BaseController
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $trainingContract = TrainingContract::where('id', $request['training_contract_id'])->first();
             TrainingContractFestival::createTrainingContractFestivals($request['training_contract_id'], $request['id'], $request['type'], $trainingContract->beginning_formation, $trainingContract->end_formation, $mainCompanyId);
-            return response()->json([
-                'status' => 200,
-                'training_contract_festivals' =>  TrainingContractFestival::festivals($mainCompanyId)->where('training_contract_id', $trainingContract->id)->get()
-            ]);
+
+
+            return $this->sendResponse(
+                [
+                    'training_contract_festivals' => TrainingContractFestival::festivals($mainCompanyId)->where('training_contract_id', $trainingContract->id)->get(),
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -57,9 +96,10 @@ class TrainingContractFestivalController extends BaseController
                 }
 
                 TrainingContractFestival::destroy($id);
-                return response()->json([
-                    'status' => 200,
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

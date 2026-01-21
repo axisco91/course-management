@@ -31,52 +31,43 @@ class Provider extends Model
         return $this->hasMany('App\Models\TrainingAction', 'provider_id', 'id');
     }
 
-    public static function getProviders($mainCompanyId){
-        $providers = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province', 'providers.id as value', 'providers.name as label', 'companies.quote as quote', 'companies.average_template as average_template', 'users.id as collaborator_id',
-            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"), 'advisors.name as advisor', 'companies.advisor_id as advisor_id')
-            ->leftjoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
-            ->leftjoin('company_activities', 'company_activities.id', '=', 'providers.company_activity_id')
-            ->leftjoin('cnaes', 'cnaes.id', '=', 'providers.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id')
-            ->leftjoin('companies', 'companies.id', '=', 'providers.company_id')
-            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id')
-            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+    public function scopeGetProvider($query, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'providers.*',
+                'providers.id as value',
+                'providers.name as label',
+                'company_types.name as type',
+                'company_activities.name as activity',
+                'cnaes.name as cnae',
+                'provinces.name as province',
+                'companies.quote as quote',
+                'companies.average_template as average_template',
+                'users.id as collaborator_id',
+                DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
+                'advisors.name as advisor',
+                'companies.advisor_id as advisor_id'
+            )
+            ->leftJoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
+            ->leftJoin('company_activities', 'company_activities.id', '=', 'providers.company_activity_id')
+            ->leftJoin('cnaes', 'cnaes.id', '=', 'providers.cnae_id')
+            ->leftJoin('provinces', 'provinces.id', '=', 'providers.province_id')
+            ->leftJoin('companies', 'companies.id', '=', 'providers.company_id')
+            ->leftJoin('users', 'users.id', '=', 'companies.collaborator_id')
+            ->leftJoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+
+            // LEFT JOIN a training_actions para calcular USED
+            ->leftJoin('training_actions', function($join) use ($mainCompanyId) {
+                $join->on('training_actions.provider_id', '=', 'providers.id')
+                    ->where('training_actions.main_company_id', '=', $mainCompanyId);
+            })
+
+            ->selectRaw('CASE WHEN training_actions.id IS NULL THEN false ELSE true END as used')
+
             ->where('providers.main_company_id', $mainCompanyId)
             ->orderBy('providers.name', 'desc')
-            ->get();
-        foreach($providers as $provider) {
-            $trainingAction = TrainingAction::where('provider_id', $provider->id)
-                ->FilterMainCompany($mainCompanyId)
-                ->first();
-            if ($trainingAction) {
-                $provider['used'] = true;
-            } else {
-                $provider['used'] = false;
-            }
-        }
-        return $providers;
-    }
-
-    public static function getProvider($id, $mainCompanyId){
-        $provider = Provider::select('providers.*', 'company_types.name as type', 'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province', 'providers.id as value', 'providers.name as label')
-            ->leftjoin('company_types', 'company_types.id', '=', 'providers.company_type_id')
-            ->leftjoin('company_activities', 'company_activities.id', '=', 'providers.company_activity_id')
-            ->leftjoin('cnaes', 'cnaes.id', '=', 'providers.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'providers.province_id')
-            ->where('providers.id', $id)
-            ->where('providers.main_company_id', $mainCompanyId)
-            ->first();
-        $trainingAction = TrainingAction::where('provider_id', $provider->id)
-            ->FilterMainCompany($mainCompanyId)
-            ->first();
-        if ($trainingAction) {
-            $provider['used'] = true;
-        } else {
-            $provider['used'] = false;
-        }
-        return $provider;
+            ->groupBy('providers.id');
     }
 
     public static function convertProvider($id, $record){

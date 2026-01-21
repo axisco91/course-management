@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ProfessionalFamilyService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,47 +22,33 @@ class ProfessionalFamily extends Model
         return $this->hasMany('App\Models\TrainingAction', 'professional_family_id', 'id');
     }
 
-    public static function getProfessionalFamilies(){
-        $professional_families = ProfessionalFamily::
-        select('*', 'id as value', 'name as label')
-            ->get();
-        foreach ($professional_families as $professional_family){
-            $trainingAction = TrainingAction::where('professional_family_id', $professional_family['id'])->first();
-            if ($trainingAction){
-                $professional_family['used'] = true;
-            } else {
-                $professional_family['used'] = false;
-            }
-        }
-        return $professional_families;
+    public function scopeGetProfessionalFamily($query)
+    {
+        return $query
+            ->select(
+                'professional_families.*',
+                'professional_families.id as value',
+                'professional_families.name as label'
+            )
+            ->leftJoin(
+                'training_actions',
+                'training_actions.professional_family_id',
+                '=',
+                'professional_families.id'
+            )
+            ->selectRaw('CASE WHEN training_actions.id IS NULL THEN false ELSE true END as used')
+            ->groupBy('professional_families.id');
     }
 
-    public static function getProfessionalFamily($id){
-        $professional_family = ProfessionalFamily::
-        select('*', 'id as value', 'name as label')
-            ->where('id', $id)->first();
-        $trainingAction = TrainingAction::where('professional_family_id', $professional_family['id'])->first();
-        if ($trainingAction){
-            $professional_family['used'] = true;
-        } else {
-            $professional_family['used'] = false;
-        }
-        return $professional_family;
+    public static function createWithService($data)
+    {
+        $service = app(ProfessionalFamilyService::class);
+        return $service->create($data);
     }
 
-    public static function createProfessionalFamily($data){
-        $professional_family = ProfessionalFamily::create([
-            'name' => $data['name']
-        ]);
-        return $professional_family;
+    public function updateWithService($data)
+    {
+        $service = app(ProfessionalFamilyService::class);
+        return $service->update($this, $data);
     }
-
-    public static function updateProfessionalFamily($id, $data){
-        $professional_family = ProfessionalFamily::find($id);
-        $professional_family->update([
-            'name' => $data['name']
-        ]);
-        return $professional_family;
-    }
-
 }

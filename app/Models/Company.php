@@ -9,11 +9,12 @@ use Illuminate\Support\Facades\DB;
 
 class Company extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     public $timestamps = false;
 
-    protected $fillable = ['name',
+    protected $fillable = [
+        'name',
         'nif',
         'company_type_id',
         'company_activity_id',
@@ -39,156 +40,222 @@ class Company extends Model
         'potential',
         'population_code',
         'agreement',
-        'main_company_id'];
+        'main_company_id'
+    ];
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function advisors()
+    /*
+    |--------------------------------------------------------------------------
+    | Relaciones
+    |--------------------------------------------------------------------------
+    */
+
+    // Company.php
+
+    public function advisors() // ✅ una empresa puede tener varios advisors "propios" (company_id en advisors)
     {
-        return $this->hasMany('App\Models\Advisor', 'company_id', 'id');
+        return $this->hasMany(Advisor::class, 'company_id', 'id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function advisor()
+    public function advisor() // ✅ advisor asignado a la empresa (companies.advisor_id -> advisors.id)
     {
-        return $this->hasOne('App\Models\Advisor', 'id', 'advisor_id');
+        return $this->belongsTo(Advisor::class, 'advisor_id', 'id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function cnae()
+    public function collaborator()
     {
-        return $this->hasOne('App\Models\Cnae', 'id', 'cnae_id');
+        return $this->belongsTo(User::class, 'collaborator_id', 'id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function companyActivity()
+    public function advisorCompany()
     {
-        return $this->hasOne('App\Models\CompanyActivity', 'id', 'activity_id');
+        return $this->hasMany(Advisor::class, 'company_id', 'id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
+    public function provider()
+    {
+        return $this->hasMany(Provider::class, 'company_id', 'id');
+    }
+
+    public function cnae() // ✅ companies.cnae_id -> cnaes.id
+    {
+        return $this->belongsTo(Cnae::class, 'cnae_id', 'id');
+    }
+
+    public function companyActivity() // ✅ companies.company_activity_id -> company_activities.id  (ojo al campo)
+    {
+        return $this->belongsTo(CompanyActivity::class, 'company_activity_id', 'id');
+    }
+
     public function companyObservations()
     {
-        return $this->hasMany('App\Models\CompanyObservation', 'company_id', 'id');
+        return $this->hasMany(CompanyObservation::class, 'company_id', 'id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function companyType()
+    public function companyType() // ✅ companies.company_type_id -> company_types.id
     {
-        return $this->hasOne('App\Models\CompanyType', 'id', 'company_type_id');
+        return $this->belongsTo(CompanyType::class, 'company_type_id', 'id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function population()
+    public function population() // ✅ companies.population_id -> populations.id
     {
-        return $this->hasOne('App\Models\Population', 'id', 'population_id');
+        return $this->belongsTo(Population::class, 'population_id', 'id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function province()
+    public function province() // ✅ companies.province_id -> provinces.id
     {
-        return $this->hasOne('App\Models\Province', 'id', 'province_id');
+        return $this->belongsTo(Province::class, 'province_id', 'id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
     public function students()
     {
-        return $this->hasMany('App\Models\Student', 'company_id', 'id');
+        return $this->hasMany(Student::class, 'company_id', 'id');
     }
 
-    public function scopeCompany($query, $mainCompanyId) {
-        return $query->select('companies.*', 'company_types.name as type',
-            'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province',
-            'advisors.name as advisor',
-            'users.name as user_name',
-            'users.surname as user_surname',
-            'companies.id as value',
-            'companies.name as label',
-            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
-            DB::raw("'real' as type_company"))
-            ->leftjoin('company_types', 'company_types.id', '=', 'companies.company_type_id')
-            ->leftjoin('company_activities', 'company_activities.id', '=', 'companies.company_activity_id')
-            ->leftjoin('cnaes', 'cnaes.id', '=', 'companies.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'companies.province_id')
-            ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
-            ->leftjoin('users', 'users.id', '=', 'companies.collaborator_id')
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeCompany($query, $mainCompanyId)
+    {
+        return $query
+            ->with([
+                'companyType:id,name',
+                'companyActivity:id,name',
+                'cnae:id,name',
+                'population:id,name',
+                'province:id,name',
+                'advisor:id,name',
+                'collaborator:id,name,surname',
+                'provider:id,name',
+                'advisorCompany:id,name',
+            ])
+
+            // flags eficientes (NO joins)
+            ->withExists([
+                'provider as is_provider',
+                'advisorCompany as is_advisor',
+            ])
+
+            ->select([
+                'companies.*',
+                // STATUS
+                DB::raw("
+                CASE
+                    WHEN companies.potential = 1 THEN 'Potencial'
+                    WHEN companies.active = 0 THEN 'Inactivo'
+                    ELSE 'Activo'
+                END AS status
+            ")
+            ])
             ->where('companies.main_company_id', $mainCompanyId);
     }
 
-    public function scopeFilterMainCompany($query, $mainCompanyId) {
+    public function scopeFilterMainCompany($query, $mainCompanyId)
+    {
         return $query->where('companies.main_company_id', $mainCompanyId);
     }
 
-    public static function changeState($id){
-        $companies = Company::find($id);
-        if ($companies->active == 1){
-            $companies->update([
-                'active' => 0
-            ]);
-        } else {
-            $companies->update([
-                'active' => 1
-            ]);
-        }
-
-        return $companies->active;
+    public function scopeActive($query)
+    {
+        return $query->where('companies.active', 1);
     }
 
-    public static function findNif($nif, $id = null){
-        $company = Company::where('nif', $nif);
-        if ($id){
-            $company = $company->where('id', '!=', $id);
+    /**
+     * Scope para buscar por NIF dentro de COMPANIES (sin potencial)
+     *
+     * Uso:
+     *   Company::findNifScope($nif)->first();
+     *   Company::findNifScope($nif, $excludeId)->first();
+     */
+    public function scopeFindNifScope($query, string $nif, ?int $excludeId = null)
+    {
+        $query->where('nif', $nif);
+
+        if ($excludeId !== null) {
+            $query->where('id', '!=', $excludeId);
         }
-        $company = $company->first();
-        if (!$company){
-            $company = PotentialCompany::where('nif', $nif);
-            if ($id){
-                $company = $company->where('id', '!=', $id);
+
+        return $query;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Métodos estáticos (negocio / helpers)
+    |--------------------------------------------------------------------------
+    */
+
+    public static function changeState($id)
+    {
+        $company = self::find($id);
+
+        if (!$company) {
+            return null;
+        }
+
+        $company->update([
+            'active' => $company->active ? 0 : 1,
+        ]);
+
+        return $company->active;
+    }
+
+    /**
+     * Busca una company o potential_company por NIF.
+     * Internamente usa el scope para Company.
+     */
+    public static function findNif($nif, $id = null)
+    {
+        // Primero buscamos en Company
+        $company = self::findNifScope($nif, $id)->first();
+
+        if (!$company) {
+            // Luego en PotentialCompany
+            $potential = PotentialCompany::where('nif', $nif);
+
+            if ($id) {
+                $potential->where('id', '!=', $id);
             }
-            $company = $company->first();
+
+            $company = $potential->first();
         }
+
         return $company;
     }
 
-    public static function convertCompany($potential_id, $data){
-        $company = Company::createCompany($data);
+    public static function convertCompany($potential_id, $data)
+    {
+        $company = self::createCompany($data);
+
         $potential_observations = PotentialCompanyObservation::where('potential_company_id', $potential_id)->get();
-        foreach ($potential_observations as $potential_observation){
-            $data = [
-                'company_id' => $company->id,
-                'observation' => $potential_observation->observation
+
+        foreach ($potential_observations as $potential_observation) {
+            $obsData = [
+                'company_id'  => $company->id,
+                'observation' => $potential_observation->observation,
             ];
-            CompanyObservation::createCompanyObservation($data);
+            CompanyObservation::createCompanyObservation($obsData);
         }
-        PotentialCompany::find($potential_id)->delete();
+
+        $potential = PotentialCompany::find($potential_id);
+
+        if ($potential) {
+            $potential->delete();
+        }
     }
 
     public static function createWithService($data)
     {
         $service = app(CompanyService::class);
+
         return $service->create($data);
     }
 
-    public function updateWithService($data){
+    public function updateWithService($data)
+    {
         $service = app(CompanyService::class);
+
         return $service->update($this, $data);
     }
 }

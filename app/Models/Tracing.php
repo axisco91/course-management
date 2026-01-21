@@ -48,31 +48,54 @@ class Tracing extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
-    public function scopeTracing($query, $mainCompanyId) {
-        return $query->select('tracings.*',
-        DB::raw("CONCAT(training_actions.formative_action, ' / ', courses.group, ' ', training_actions.name) as course"),
-            'companies.name as company',
-            'students.name as student_name',
-            'students.surname as student_surname',
-            'training_actions.number_activities',
-            'training_actions.number_units',
-            'training_actions.total_hours',
-            'course_statuses.name as status',
-            'courses.group as course_group',
-            'courses.welcome_date',
-            'courses.quarter_date',
-            'courses.half_date',
-            'courses.three_quarters_date',
-            'courses.final_date',
-            'course_types.name as course_type',
-            DB::raw("CONCAT(students.name,' ',students.surname) as student"))
-            ->leftjoin('courses', 'courses.id', '=', 'tracings.course_id')
-            ->leftjoin('course_statuses', 'course_statuses.id', 'courses.course_status_id')
-            ->leftjoin('companies', 'companies.id', '=', 'tracings.company_id')
-            ->leftjoin('students', 'students.id', '=', 'tracings.student_id')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
-            ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
-            ->where('tracings.main_company_id', $mainCompanyId);
+    // Tracing model
+    public function scopeTracing($query, $mainCompanyId)
+    {
+        return $query
+            ->select('tracings.*')
+            ->with([
+                'company:id,name',
+                'student:id,name,surname',
+                'course' => function ($q) {
+                    $q->select(
+                        'id',
+                        'name',
+                        'training_action_id',
+                        'course_status_id',
+                        'course_type_id',
+                        'group',
+                        'welcome_date',
+                        'quarter_date',
+                        'half_date',
+                        'three_quarters_date',
+                        'final_date'
+                    )->with([
+                        'trainingAction:id,formative_action,name,number_activities,number_units,total_hours',
+                        'courseStatus:id,name',
+                        'courseType:id,name',
+                    ]);
+                },
+            ])
+            ->where('tracings.main_company_id', $mainCompanyId)
+            ->addSelect([
+                // ✅ estos dos NO rompen nada porque no se llaman igual que relaciones
+                'final_test_name' => DB::raw("
+                CASE
+                    WHEN tracings.final_test = 0 THEN 'Pendiente'
+                    WHEN tracings.final_test = 1 THEN 'Realizado'
+                    WHEN tracings.final_test = 2 THEN 'No realizado'
+                    ELSE NULL
+                END
+            "),
+                'questionnaire_name' => DB::raw("
+                CASE
+                    WHEN tracings.questionnaire = 0 THEN 'Pendiente'
+                    WHEN tracings.questionnaire = 1 THEN 'Realizado'
+                    WHEN tracings.questionnaire = 2 THEN 'No realizado'
+                    ELSE NULL
+                END
+            "),
+            ]);
     }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {

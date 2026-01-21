@@ -1,8 +1,11 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
+use App\Exports\CompanyCoursesExport;
 use App\Helpers\GeneralHelpers;
 use App\Http\Requests\CompanyRequests;
+use App\Http\Resources\CompanyResource;
 use App\Models\Advisor;
 use App\Models\Company;
 use App\Models\Course;
@@ -12,199 +15,269 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+
+// ✅ Excel
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\CompaniesExport;
 
 class CompanyController extends BaseController
 {
+    /**
+     * ✅ Helper: mismos filtros que index
+     */
+    private function applyCompanyFilters($query, Request $request)
+    {
+        if ($request->name) {
+            $query->where('companies.name', 'like', '%' . $request->name . '%');
+        }
+        if ($request->nif) {
+            $query->where('companies.nif', 'like', '%' . $request->nif . '%');
+        }
+        if ($request->type) {
+            $query->where('companies.company_type_id', $request->type);
+        }
+        if ($request->activity) {
+            $query->where('companies.company_activity_id', $request->activity);
+        }
+        if ($request->advisor) {
+            $query->where('companies.advisor_id', $request->advisor);
+        }
+        if ($request->province) {
+            $query->where('companies.province_id', $request->province);
+        }
+        if ($request->population) {
+            $query->where('companies.population_id', $request->population);
+        }
+        if ($request->collaborator) {
+            $query->where('companies.collaborator_id', $request->collaborator);
+        }
+
+        if ($request->status) {
+            if ($request->status === 'Potential') {
+                $query->where('companies.potential', 1);
+            } elseif ($request->status === 'Inactive') {
+                $query->where('companies.active', 0)->where('companies.potential', 0);
+            } elseif ($request->status === 'Active') {
+                $query->where('companies.active', 1)->where('companies.potential', 0);
+            }
+        }
+
+        return $query;
+    }
 
     /**
      * Obtenemos empresas
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $companies = Company::company($mainCompanyId);
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $query = Company::company($mainCompanyId);
 
             $user = User::find(Auth::id());
-            if ($user->teacher_id) {
-                $companies->leftjoin('registrations', 'registrations.company_id', '=', 'companies.id')
+            if ($user && $user->teacher_id) {
+                $query->leftjoin('registrations', 'registrations.company_id', '=', 'companies.id')
                     ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
                     ->where('courses.teacher_id', $user->teacher_id);
             }
 
-            if ($request->name) {
-                $companies = $companies->where('companies.name', 'like', '%'.$request->name.'%');
-            }
-            if ($request->nif) {
-                $companies = $companies->where('companies.nif', 'like', '%'.$request->nif.'&');
-            }
-            if ($request->type) {
-                $companies = $companies->where('company_types.name', 'like', '%'.$request->type.'%');
-            }
-            if ($request->activity) {
-                $companies = $companies->where('company_activities.name', 'like', '%'.$request->activity.'%');
-            }
-            if ($request->advisor) {
-                $companies = $companies->where('advisor.name', 'like', '%'.$request->advisor.'%');
-            }
-            if ($request->province) {
-                $companies = $companies->where('provinces.name', 'like', '%'.$request->province.'%');
-            }
-            if ($request->status) {
-                if ($request->status == 'Potential') {
-                    $companies = $companies->where('companies.potential', 1);
-                }else if ($request->status == 'Inactivo'){
-                    $companies = $companies->where('companies.active', 0)->where('companies.potential', 0);
-                } else if ($request->status == 'Activo'){
-                    $companies = $companies->where('companies.active', 1)->where('companies.potential', 0);
-                }
-            }
-            if ($request->collaborator) {
-                //$companies = $companies->where('users.name', 'like', '%'.$province.'%');
+            // ✅ filtros
+            $query = $this->applyCompanyFilters($query, $request);
+
+            $query = $query->groupBy('companies.id', 'companies.name');
+
+            // ✅ SORT
+            $sort = (string) $request->get('sort', 'name');
+            $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $key  = ltrim($sort, '-');
+
+            $sortable = [
+                'id'           => 'companies.id',
+                'name'         => 'companies.name',
+                'nif'          => 'companies.nif',
+                'telephone'    => 'companies.telephone',
+                'email'        => 'companies.email',
+                'created_at'   => 'companies.created_at',
+
+                // relaciones (depende de joins)
+                'company_type' => 'company_types.name',
+                'consultant'   => 'users.name',
+                'advisor'      => 'advisors.name',
+
+                'active'       => 'companies.active',
+                'status'       => 'status_sort',
+            ];
+
+            switch ($key) {
+                case 'company_type':
+                    $query->leftJoin('company_types', 'company_types.id', '=', 'companies.company_type_id');
+                    break;
+
+                case 'consultant':
+                    $query->leftJoin('users', 'users.id', '=', 'companies.collaborator_id');
+                    break;
+
+                case 'advisor':
+                    $query->leftJoin('advisors', 'advisors.id', '=', 'companies.advisor_id');
+                    break;
+
+                case 'status':
+                    $query->addSelect(DB::raw("
+                        CASE
+                            WHEN companies.potential = 1 THEN 3
+                            WHEN companies.active = 0 THEN 1
+                            ELSE 2
+                        END AS status_sort
+                    "));
+                    break;
             }
 
-            $companies = $companies
-        //        ->included()
-        //        ->filter()
-        //        ->sort()
-                ->groupBy('companies.id', 'companies.name')
-            ->get();
+            if (in_array($key, ['company_type', 'consultant', 'advisor'], true)) {
+                $query->select('companies.*')->distinct();
+            }
 
-            foreach ($companies as $company) {
-                $company['used'] = false;
-                $student = Student::where('company_id', $company['id'])->first();
-                if ($student) {
-                    $company['used'] = true;
-                }
-                $advisor = Advisor::where('company_id', $company['id'])->first();
-                if ($advisor) {
-                    $company['is_advisor'] = true;
-                    $company['used'] = true;
-                } else {
-                    $company['is_advisor'] = false;
-                }
-                $provider = Provider::where('company_id', $company['id'])->first();
-                if ($provider) {
-                    $company['is_provider'] = true;
-                    $company['used'] = true;
-                } else {
-                    $company['is_provider'] = false;
-                }
-                if ($company['potential'] === 1) {
-                    $company['status'] = 'Potencial';
-                } else if ($company['active'] === 0) {
-                    $company['status'] = 'Inactivo';
-                } else {
-                    $company['status'] = 'Activo';
-                }
+            if ($key === 'status') {
+                $query->orderBy('status_sort', $dir);
+            } elseif (isset($sortable[$key])) {
+                $query->orderBy($sortable[$key], $dir);
+            } else {
+                $query->orderBy('companies.name', 'desc');
             }
-            if ($request->perPage) {
-                return [
-                    'companies' => $companies->paginate(intval(request('perPage'))),
-                    'links' => $companies->links(),
-                    'meta' => [
-                        'current_page' => $companies->currentPage(),
-                        'from' => $companies->firstItem(),
-                        'last_page' => $companies->lastPage(),
-                        'links' => $companies->getUrlRange(1, $companies->lastPage()),
-                        'path' => $companies->resolveCurrentPath(),
-                        'per_page' => $companies->perPage(),
-                        'to' => $companies->lastItem(),
-                        'total' => $companies->total(),
-                    ]
-                ];
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                return $this->sendResponse(
+                    [
+                        'companies' => CompanyResource::collection($paginator),
+                        'links' => GeneralHelpers::generatePaginationData($paginator)['links'],
+                        'meta'  => GeneralHelpers::generatePaginationData($paginator)['meta'],
+                    ],
+                    trans('Obtenido')
+                );
             }
-            return $companies;
+
+            $companies = CompanyResource::collection($query->get());
+
+            return $this->sendResponse(
+                [
+                    'companies' => $companies,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
-    public function getActiveCompanies(Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-        return Company::select('companies.*', 'id as value', 'name as label')
-            ->FilterMainCompany($mainCompanyId)
-            ->where('active', 1)->get();
+    /**
+     * ✅ Export Excel Empresas (según Empresas.xlsx)
+     */
+    public function exportExcel(Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $query = Company::company($mainCompanyId);
+
+        // ✅ misma restricción que index si el user es teacher
+        $user = User::find(Auth::id());
+        if ($user && $user->teacher_id) {
+            $query->leftjoin('registrations', 'registrations.company_id', '=', 'companies.id')
+                ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
+                ->where('courses.teacher_id', $user->teacher_id);
+        }
+
+        // ✅ mismos filtros que index
+        $query = $this->applyCompanyFilters($query, $request);
+
+        $query->groupBy('companies.id', 'companies.name');
+
+        $companies = $query->orderBy('companies.name', 'asc')->get();
+
+        $rows = $companies->map(function ($c) {
+            // Estado
+            if ((int)($c->potential ?? 0) === 1) {
+                $status = 'Potencial';
+            } elseif ((int)($c->active ?? 0) === 1) {
+                $status = 'Activo';
+            } else {
+                $status = 'Inactivo';
+            }
+
+            // ✅ fila numérica (evita excel corrupto)
+            return [
+                (string)($c->name ?? ''),
+                (string)($c->nif ?? ''),
+                (string)($c->companyType ? $c->companyType->name : ''),
+                (string)($c->companyActivity ? $c->companyActivity->name : ''),
+                (string)($c->email ?? ''),
+                (string)($c->telephone ?? ''),
+                (string)($c->legal_representative ?? ''),
+                (string)($c->legal_representative_dni ?? ''),
+                (string)($c->c_quote ?? ''),
+                (string)($c->collaborator ? $c->collaborator->name .' '. $c->collaborator->surname : ''),
+                (string)($c->cnae ? $c->cnae->name : ''),
+                (string)($c->average_staff ?? ''),
+                (string)($c->iban ?? ''),
+                (string)($c->sepa ?? ''),
+                (string)($c->b2b ?? ''),
+                (string)($c->address ?? ''),
+                (string)($c->post_code ?? ''),
+                (string)($c->province ? $c->province->name : ''),
+                (string)($c->population ?? ''),
+                (string)($c->advisor ? $c->advisor->name : ''),
+                (string)($status),
+            ];
+        });
+
+        $fileName = 'empresas_' . now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(new CompaniesExport($rows), $fileName);
     }
 
     /**
      * Obtener empresa
-     * @param $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id, Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+    public function show($id, Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
         $company = Company::company($mainCompanyId)
             ->where('companies.id', $id)
             ->first();
-        $student = Student::where('company_id', $company['id'])
-            ->FilterMainCompany($mainCompanyId)
-            ->first();
-        if ($student) {
-            $company['used'] = true;
-        } else {
-            $advisor = Advisor::where('company_id', $company['id'])
-                ->FilterMainCompany($mainCompanyId)
-                ->first();
-            if ($advisor){
-                $company['used'] = true;
-            } else {
-                $provider = Provider::where('company_id', $company['id'])->first();
-                if ($provider) {
-                    $company['used'] = true;
-                } else {
-                    $company['used'] = false;
-                }
-            }
-        }
-        $advisor = Advisor::where('company_id', $company['id'])
-            ->FilterMainCompany($mainCompanyId)
-            ->first();
-        if ($advisor) {
-            $company['is_advisor'] = true;
-        } else {
-            $company['is_advisor'] = false;
-        }
-        $provider = Provider::where('company_id', $company['id'])->first();
-        if ($provider) {
-            $company['is_provider'] = true;
-        } else {
-            $company['is_provider'] = false;
-        }
-        if ($company['potential'] === 1) {
-            $company['status'] = 'Potencial';
-        } else if ($company['active'] === 0) {
-            $company['status'] = 'Inactivo';
-        } else {
-            $company['status'] = 'Activo';
-        }
+
         if ($company) {
-            return response()->json([
-                'status' => 200,
-                'company' => $company
-            ]);
+            return $this->sendResponse(
+                [
+                    'company' => $company,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
+
         return response()->json([
             'status' => 400,
             'message' => 'Empresa no existe'
-        ]);
+        ], 400);
     }
 
     /**
      * Crear empresa
-     * @param CompanyRequests $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(CompanyRequests $request){
+    public function store(CompanyRequests $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
             $data = $request->all();
             $data['main_company_id'] = $mainCompanyId;
 
-            // Verifica que el campo 'agreement' está presente en los datos recibidos
             if (isset($data['agreement'])) {
                 Log::info('Agreement received: ' . $data['agreement']);
             } else {
@@ -212,79 +285,34 @@ class CompanyController extends BaseController
             }
 
             $element = Company::createWithService($data);
+
             $company = Company::company($mainCompanyId)
                 ->where('companies.id', $element->id)
                 ->first();
 
-            $student = Student::where('company_id', $company['id'])
-                ->FilterMainCompany($mainCompanyId)
-                ->first();
-            if ($student) {
-                $company['used'] = true;
-            } else {
-                $advisor = Advisor::where('company_id', $company['id'])
-                    ->FilterMainCompany($mainCompanyId)
-                    ->first();
-                if ($advisor){
-                    $company['used'] = true;
-                } else {
-                    $provider = Provider::where('company_id', $company['id'])->first();
-                    if ($provider) {
-                        $company['used'] = true;
-                    } else {
-                        $company['used'] = false;
-                    }
-                }
-            }
-
-            $advisor = Advisor::where('company_id', $company['id'])
-                ->FilterMainCompany($mainCompanyId)
-                ->first();
-            if ($advisor) {
-                $company['is_advisor'] = true;
-            } else {
-                $company['is_advisor'] = false;
-            }
-
-            $provider = Provider::where('company_id', $company['id'])->first();
-            if ($provider) {
-                $company['is_provider'] = true;
-            } else {
-                $company['is_provider'] = false;
-            }
-
-            if ($company['potential'] === 1) {
-                $company['status'] = 'Potencial';
-            } else if ($company['active'] === 0) {
-                $company['status'] = 'Inactivo';
-            } else {
-                $company['status'] = 'Activo';
-            }
-
-            return response()->json([
-                'status' => 200,
-                'company' => $company
-            ]);
-        } catch (\Exception $e){
+            return $this->sendResponse(
+                [
+                    'company' => $company,
+                ],
+                trans('Creado con éxito')
+            );
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
-            ]);
+            ], 400);
         }
     }
 
     /**
      * Editar empresa
-     * @param $id
-     * @param CompanyRequests $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function update($id, CompanyRequests $request){
+    public function update($id, CompanyRequests $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
 
-            // Verifica que el campo 'agreement' está presente en los datos recibidos
             if (isset($data['agreement'])) {
                 Log::info('Agreement received: ' . $data['agreement']);
             } else {
@@ -299,261 +327,292 @@ class CompanyController extends BaseController
                 return response()->json([
                     'status' => 404,
                     'message' => 'Empresa no existe'
-                ]);
+                ], 404);
             }
+
             $element = $company->updateWithService($data);
-            $company = Company::where('companies.id', $element->id)
-                ->first();
+
+            $company = Company::where('companies.id', $element->id)->first();
 
             $advisor = Advisor::where('company_id', $company->id)->first();
             if ($advisor) {
                 $data['company_id'] = $company->id;
-                $advisor->updateAdvisorCompany($advisor, $data);
+                $advisor->updateAdvisorCompany($data);
             }
 
-            $student = Student::where('company_id', $company['id'])->first();
-            if ($student) {
-                $company['used'] = true;
-            } else {
-                $advisor = Advisor::where('company_id', $company['id'])->first();
-                if ($advisor){
-                    $company['used'] = true;
-                } else {
-                    $provider = Provider::where('company_id', $company['id'])->first();
-                    if ($provider) {
-                        $company['used'] = true;
-                    } else {
-                        $company['used'] = false;
-                    }
-                }
-            }
-
-            $advisor = Advisor::where('company_id', $company['id'])->first();
-            if ($advisor) {
-                $company['is_advisor'] = true;
-            } else {
-                $company['is_advisor'] = false;
-            }
-
-            $provider = Provider::where('company_id', $company['id'])->first();
-            if ($provider) {
-                $company['is_provider'] = true;
-            } else {
-                $company['is_provider'] = false;
-            }
-
-            if ($company['potential'] === 1) {
-                $company['status'] = 'Potencial';
-            } else if ($company['active'] === 0) {
-                $company['status'] = 'Inactivo';
-            } else {
-                $company['status'] = 'Activo';
-            }
-
-            return response()->json([
-                'status' => 200,
-                'company' => $company
-            ]);
-        } catch (\Exception $e){
+            return $this->sendResponse(
+                [
+                    'company' => $company,
+                ],
+                trans('Guardado con éxito')
+            );
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
-            ]);
+            ], 400);
         }
     }
 
-
-
     /**
      * Eliminar empresa
-     * @param $id
-     * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id, Request $request){
+    public function destroy($id, Request $request)
+    {
         if ($id) {
             try {
-               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
                 $company = Company::where('id', $id)
                     ->FilterMainCompany($mainCompanyId)
                     ->first();
+
                 if (!$company) {
                     return response()->json([
                         'status' => 404,
                         'message' => 'Empresa no existe'
-                    ]);
+                    ], 404);
                 }
+
                 Company::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+
+                return $this->sendResponse([]);
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
                     'message' => $e->getMessage()
-                ]);
+                ], 400);
             }
         }
     }
 
     /**
      * Convertir a cliente
-     * @param $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function convertClient($id, Request $request){
+    public function convertClient($id, Request $request)
+    {
         if ($id) {
             try {
-               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
                 $company = Company::where('id', $id)
                     ->FilterMainCompany($mainCompanyId)
                     ->first();
+
                 if (!$company) {
                     return response()->json([
                         'status' => 404,
                         'message' => 'Empresa no existe'
-                    ]);
+                    ], 404);
                 }
-                $company->update([
-                    'potential' => 0
-                ]);
-                return response()->json([
-                    'status' => 200
-                ]);
+
+                $company->update(['potential' => 0]);
+
+                return $this->sendResponse(
+                    [
+                        'company' => $company,
+                    ],
+                    trans('Guardado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
                     'message' => $e->getMessage()
-                ]);
+                ], 400);
             }
         }
+
         return response()->json([
             'status' => 400,
             'error' => 'No has pasado empresa'
-        ]);
+        ], 400);
     }
 
     /**
      * Convertir a asesoria
-     * @param $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function convertAdvisor($id, Request $request){
+    public function convertAdvisor($id, Request $request)
+    {
         if ($id) {
             try {
-               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
                 $company = Company::where('id', $id)
                     ->FilterMainCompany($mainCompanyId)
                     ->first();
+
                 if (!$company) {
                     return response()->json([
                         'status' => 404,
                         'message' => 'Empresa no existe'
-                    ]);
+                    ], 404);
                 }
 
                 Advisor::convertAdvisor($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+
+                return $this->sendResponse(
+                    [
+                        'company' => $company,
+                    ],
+                    trans('Guardado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
                     'message' => $e->getMessage()
-                ]);
+                ], 400);
             }
         }
+
         return response()->json([
             'status' => 400,
             'error' => 'No has pasado empresa'
-        ]);
+        ], 400);
     }
 
     /**
      * Convertir a proveedor
-     * @param $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function convertProvider($id, Request $request){
+    public function convertProvider($id, Request $request)
+    {
         if ($id) {
             try {
-               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
                 $company = Company::where('id', $id)
                     ->FilterMainCompany($mainCompanyId)
                     ->first();
+
                 if (!$company) {
                     return response()->json([
                         'status' => 404,
                         'message' => 'Empresa no existe'
-                    ]);
+                    ], 404);
                 }
 
                 Provider::convertProvider($id, $company);
-                return response()->json([
-                    'status' => 200
-                ]);
+
+                return $this->sendResponse(
+                    [
+                        'company' => $company,
+                    ],
+                    trans('Guardado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
                     'message' => $e->getMessage()
-                ]);
+                ], 400);
             }
         }
+
         return response()->json([
             'status' => 400,
             'error' => 'No has pasado empresa'
-        ]);
+        ], 400);
     }
 
     /**
-     * Obtenemos los cursos de las empresas
-     * @param $id
-     * @return mixed
+     * Cursos de empresa
      */
-    public function getCompanyCourses($id, Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+    public function getCompanyCourses($id, Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
         $company = Company::where('id', $id)
             ->FilterMainCompany($mainCompanyId)
             ->first();
+
         if (!$company) {
             return response()->json([
                 'status' => 404,
                 'message' => 'Empresa no existe'
-            ]);
+            ], 404);
         }
 
         $courses = Course::companyCourses($id, $mainCompanyId)
             ->orderBy('beginning', 'DESC')
             ->get();
+
         if (count($courses)) {
-            foreach ($courses as $course){
-                $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
-                $course['beginning'] = $beginning;
-                $end = Carbon::parse($course['end'])->format('d/m/Y');
-                $course['end'] = $end;
+            foreach ($courses as $course) {
+                $course['beginning'] = Carbon::parse($course['beginning'])->format('d/m/Y');
+                $course['end'] = Carbon::parse($course['end'])->format('d/m/Y');
             }
         }
-        return $courses;
+
+        return $this->sendResponse(
+            [
+                'courses' => $courses,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
-
-    public function getCompanyStudents($id, Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+    /**
+     * Alumnos de empresa
+     */
+    public function getCompanyStudents($id, Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
         $company = Company::where('id', $id)
             ->FilterMainCompany($mainCompanyId)
             ->first();
+
         if (!$company) {
             return response()->json([
                 'status' => 404,
                 'message' => 'Empresa no existe'
-            ]);
+            ], 404);
         }
 
-        return Student::companyStudents($id, $mainCompanyId)->get();
+        return $this->sendResponse(
+            [
+                'students' => Student::companyStudents($id, $mainCompanyId)->get(),
+            ],
+            trans('Obtenido con éxito')
+        );
+    }
+
+    public function coursesExportExcel($id, Request $request)
+    {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $company = Company::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$company) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Empresa no existe'
+                ], 404);
+            }
+
+            $courses = Course::companyCourses($id, $mainCompanyId)
+                ->orderBy('beginning', 'DESC')
+                ->get();
+
+            // Mapeo a columnas del Excel
+            $rows = $courses->map(function ($c) {
+                return [
+                    'Nombre'      => $c->name ?? '',
+                    'Grupo'       => $c->group ?? '',
+                    'Fecha Inicio'=> !empty($c->beginning) ? Carbon::parse($c->beginning)->format('d/m/Y') : '',
+                    'Fecha Fin'   => !empty($c->end) ? Carbon::parse($c->end)->format('d/m/Y') : '',
+                    'Tipo' => $c->courseType->name ?? '',
+                ];
+            });
+
+            $fileName = 'cursos_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+
+            return Excel::download(new CompanyCoursesExport($rows), $fileName);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

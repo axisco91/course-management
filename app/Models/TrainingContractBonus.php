@@ -6,6 +6,7 @@ use App\Services\TrainingContractBonusService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class TrainingContractBonus extends Model
 {
@@ -25,98 +26,57 @@ class TrainingContractBonus extends Model
         'main_company_id'
     ];
 
-    public static function getBonuses($id, $mainCompanyId){
-        $bonuses = TrainingContractBonus::where('training_contract_id', $id)
+    public function scopeGetBonuses($query, $trainingContractId, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'training_contract_bonuses.*',
+                DB::raw("
+                CASE month
+                    WHEN 1 THEN 'Enero'
+                    WHEN 2 THEN 'Febrero'
+                    WHEN 3 THEN 'Marzo'
+                    WHEN 4 THEN 'Abril'
+                    WHEN 5 THEN 'Mayo'
+                    WHEN 6 THEN 'Junio'
+                    WHEN 7 THEN 'Julio'
+                    WHEN 8 THEN 'Agosto'
+                    WHEN 9 THEN 'Septiembre'
+                    WHEN 10 THEN 'Octubre'
+                    WHEN 11 THEN 'Noviembre'
+                    WHEN 12 THEN 'Diciembre'
+                END as month_name
+            ")
+            )
+            ->where('training_contract_id', $trainingContractId)
             ->where('main_company_id', $mainCompanyId)
-            ->orderBy('start', 'asc')
-            ->get();
-        foreach ($bonuses as $bonus) {
-            switch ($bonus['month']) {
-                case 1:
-                    $bonus['month_name'] = 'Enero';
-                    break;
-                case 2:
-                    $bonus['month_name'] = 'Febrero';
-                    break;
-                case 3:
-                    $bonus['month_name'] = 'Marzo';
-                    break;
-                case 4:
-                    $bonus['month_name'] = 'Abril';
-                    break;
-                case 5:
-                    $bonus['month_name'] = 'Mayo';
-                    break;
-                case 6:
-                    $bonus['month_name'] = 'Junio';
-                    break;
-                case 7:
-                    $bonus['month_name'] = 'Julio';
-                    break;
-                case 8:
-                    $bonus['month_name'] = 'Agosto';
-                    break;
-                case 9:
-                    $bonus['month_name'] = 'Septiembre';
-                    break;
-                case 10:
-                    $bonus['month_name'] = 'Octubre';
-                    break;
-                case 11:
-                    $bonus['month_name'] = 'Noviembre';
-                    break;
-                case 12:
-                    $bonus['month_name'] = 'Diciembre';
-                    break;
-            }
-        }
-        return $bonuses;
+            ->orderBy('start', 'asc');
     }
 
-    public static function getBonus($id, $mainCompanyId){
-        $bonus = TrainingContractBonus::where('id', $id)
-            ->where('main_company_id', $mainCompanyId)
-            ->first();
-
-        switch ($bonus['month']) {
-            case 1:
-                $bonus['month_name'] = 'Enero';
-                break;
-            case 2:
-                $bonus['month_name'] = 'Febrero';
-                break;
-            case 3:
-                $bonus['month_name'] = 'Marzo';
-                break;
-            case 4:
-                $bonus['month_name'] = 'Abril';
-                break;
-            case 5:
-                $bonus['month_name'] = 'Mayo';
-                break;
-            case 6:
-                $bonus['month_name'] = 'Junio';
-                break;
-            case 7:
-                $bonus['month_name'] = 'Julio';
-                break;
-            case 8:
-                $bonus['month_name'] = 'Agosto';
-                break;
-            case 9:
-                $bonus['month_name'] = 'Septiembre';
-                break;
-            case 10:
-                $bonus['month_name'] = 'Octubre';
-                break;
-            case 11:
-                $bonus['month_name'] = 'Noviembre';
-                break;
-            case 12:
-                $bonus['month_name'] = 'Diciembre';
-                break;
-        }
-        return $bonus;
+    public function scopeGetBonus($query, $bonusId, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'training_contract_bonuses.*',
+                DB::raw("
+                CASE month
+                    WHEN 1 THEN 'Enero'
+                    WHEN 2 THEN 'Febrero'
+                    WHEN 3 THEN 'Marzo'
+                    WHEN 4 THEN 'Abril'
+                    WHEN 5 THEN 'Mayo'
+                    WHEN 6 THEN 'Junio'
+                    WHEN 7 THEN 'Julio'
+                    WHEN 8 THEN 'Agosto'
+                    WHEN 9 THEN 'Septiembre'
+                    WHEN 10 THEN 'Octubre'
+                    WHEN 11 THEN 'Noviembre'
+                    WHEN 12 THEN 'Diciembre'
+                END as month_name
+            ")
+            )
+            ->where('training_contract_bonuses.id', $bonusId)
+            ->where('training_contract_bonuses.main_company_id', $mainCompanyId);
     }
 
     public static function createBonus($data){
@@ -154,16 +114,17 @@ class TrainingContractBonus extends Model
         return $bonus;
     }
 
-    public static function bonusesWithNoBills($mainCompanyId) {
+    public function scopeBonusesWithNoBills($query, $mainCompanyId)
+    {
         $endOfMonth = Carbon::now()->endOfMonth();
-        $bonuses = TrainingContractBonus::whereNotIn('id', function ($query) {
-            $query->select('training_contract_bonus_id')
-                ->from('training_contract_bills');
-        })
+
+        return $query
+            ->whereNotIn('id', function ($sub) {
+                $sub->select('training_contract_bonus_id')
+                    ->from('training_contract_bills');
+            })
             ->where('start', '<=', $endOfMonth->toDateString())
-            ->where('main_company_id', $mainCompanyId)
-            ->get();
-        return $bonuses;
+            ->where('main_company_id', $mainCompanyId);
     }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {

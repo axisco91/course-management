@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ModalityService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,46 +22,27 @@ class Modality extends Model
         return $this->hasMany('App\Models\TrainingAction', 'modality_id', 'id');
     }
 
-    public static function getModalities(){
-        $modalities = Modality::
-        select('*', 'id as value', 'name as label')
-            ->get();
-        foreach ($modalities as $modality){
-            $trainingAction = TrainingAction::where('modality_id', $modality['id'])->first();
-            if ($trainingAction){
-                $modality['used'] = true;
-            } else {
-                $modality['used'] = false;
-            }
-        }
-        return $modalities;
+    public function scopeGetModality($query)
+    {
+        return $query
+            ->select(
+                'modalities.*',
+                'modalities.id as value',
+                'modalities.name as label'
+            )
+            ->leftJoin('training_actions', 'training_actions.modality_id', '=', 'modalities.id')
+            ->selectRaw('CASE WHEN training_actions.id IS NULL THEN false ELSE true END as used')
+            ->groupBy('modalities.id');
     }
 
-    public static function getModality($id){
-        $modality = Modality::select('*', 'id as value', 'name as label')
-            ->where('id', $id)->first();
-        $trainingAction = TrainingAction::where('modality_id', $modality['id'])->first();
-        if ($trainingAction){
-            $modality['used'] = true;
-        } else {
-            $modality['used'] = false;
-        }
-        return $modality;
+    public static function createWithService($data)
+    {
+        $service = app(ModalityService::class);
+        return $service->create($data);
     }
 
-    public static function createModality($data){
-        $modality = Modality::create([
-            'name' => $data['name']
-        ]);
-        return $modality;
+    public function updateWithService($data){
+        $service = app(ModalityService::class);
+        return $service->update($this, $data);
     }
-
-    public static function updateModality($id, $data){
-        $modality = Modality::find($id);
-        $modality->update([
-            'name' => $data['name']
-        ]);
-        return $modality;
-    }
-
 }

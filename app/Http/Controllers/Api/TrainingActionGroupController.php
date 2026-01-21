@@ -1,17 +1,51 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-use App\Models\TrainingAction;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingActionGroupResource;
 use App\Models\TrainingActionGroup;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class TrainingActionGroupController extends BaseController
 {
-    public function trainingActionGroups() {
+    public function trainingActionGroups(Request $request) {
         try {
-            return TrainingActionGroup::getTrainingActionGroups();
+            $query = TrainingActionGroup::getTrainingActionGroup();
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $trainingActionGroups = TrainingActionGroupResource::collection($paginator);
+
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'cnaes' => $trainingActionGroups,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $trainingActionGroups = TrainingActionGroupResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'training_action_groups' => $trainingActionGroups,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -29,10 +63,12 @@ class TrainingActionGroupController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'training_action_group' => TrainingActionGroup::getTrainingActionGroup($group->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'training_action_group' => TrainingActionGroup::getTrainingActionGroup()->where('training_action_groups.id', $group->id)->first(),
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -45,19 +81,23 @@ class TrainingActionGroupController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'training_action_group' => TrainingActionGroup::getTrainingActionGroup($group->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'training_action_group' => TrainingActionGroup::getTrainingActionGroup()->where('training_action_groups.id', $group->id)->first(),
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function getTrainingActionGroup($id){
-        $group = TrainingActionGroup::getTrainingActionGroup($id);
+        $group = TrainingActionGroup::getTrainingActionGroup()->where('training_action_groups.id', $id)->first();
         if ($group) {
-            return response()->json([
-                'status' => 200,
-                'training_action_group' => $group
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_action_group' => $group->id,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -69,9 +109,10 @@ class TrainingActionGroupController extends BaseController
         if ($id) {
             try {
                 TrainingActionGroup::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

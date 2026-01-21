@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Http\Livewire\TrainingUnits;
+use App\Services\CourseOriginService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,50 +15,25 @@ class CourseOrigin extends Model
 
     protected $fillable = ['name', 'main_company_id'];
 
-    public static function getCourseOrigins(){
-        $origins = CourseOrigin::select('*', 'id as value', 'name as label')
-            ->get();
-
-        foreach ($origins as $origin){
-            $trainingAction = TrainingAction::where('course_origin_id', $origin['id'])->first();
-            if ($trainingAction){
-                $origin['used'] = true;
-            } else{
-                $origin['used'] = false;
-            }
-        }
-        return $origins;
+    public function scopeGetCourseOrigin($query)
+    {
+        return $query->select('*', 'id as value', 'name as label');
     }
 
-    public static function getCourseOrigin($id){
-        $origin = CourseOrigin::select('*', 'id as value', 'name as label')
-            ->where('id', $id)
-            ->first();
+    /**
+     * Services
+     */
+    public static function createWithService($data)
+    {
+        $service = app(CourseOriginService::class);
 
-        $trainingAction = TrainingAction::where('course_origin_id', $origin['id'])->first();
-        if ($trainingAction){
-            $origin['used'] = true;
-        } else{
-            $origin['used'] = false;
-        }
-        return $origin;
+        return $service->create($data);
     }
 
-    public static function createCourseOrigin($data){
-        $origin = CourseOrigin::create([
-            'name' => $data['name']
-        ]);
+    public function updateWithService($data)
+    {
+        $service = app(CourseOriginService::class);
 
-        return $origin;
+        return $service->update($this, $data);
     }
-
-    public static function updateCourseOrigin($id, $data){
-        $origin = CourseOrigin::find($id);
-        $origin->update([
-            'name' => $data['name']
-        ]);
-
-        return $origin;
-    }
-
 }

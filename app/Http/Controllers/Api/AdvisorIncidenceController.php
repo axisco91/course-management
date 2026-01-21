@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\AdvisorIncidenceResource;
 use App\Models\AdvisorIncidence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,11 +17,29 @@ class AdvisorIncidenceController extends BaseController
     public function getIncidencesForAdvisor($advisor_id, Request $request) {
 
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-        $incidences = AdvisorIncidence::where('advisor_id', $advisor_id)
-            ->where('main_company_id', $mainCompanyId)
-            ->get();
+        $params = AdvisorIncidence::where('advisor_id', $advisor_id)
+            ->where('main_company_id', $mainCompanyId);
 
-        return response()->json($incidences);
+        if ($request->perPage) {
+            $advisorIncidences = AdvisorIncidenceResource::collection($params->paginate(intval(request('perPage'))));
+            $paginationData = GeneralHelpers::generatePaginationData($params);
+            return $this->sendResponse(
+                [
+                    'advisor_incidences' => $advisorIncidences,
+                    'links'       => $paginationData['links'],
+                    'meta'        => $paginationData['meta'],
+                ],
+                trans('Obtenido')
+            );
+        }
+        $advisorIncidences = AdvisorIncidenceResource::collection($params->get());
+
+        return $this->sendResponse(
+            [
+                'advisor_incidences' => $advisorIncidences,
+            ],
+            trans('Obtenido')
+        );
     }
     /**
      * Create Advisor Incidences
@@ -45,7 +64,15 @@ class AdvisorIncidenceController extends BaseController
             'main_company_id' => $mainCompanyId
         ];
 
-        return AdvisorIncidence::createWithService($data);
+        $advisorIncidence =  AdvisorIncidence::createWithService($data);
+        $advisorIncidence = AdvisorIncidenceResource::make($advisorIncidence);
+
+        return $this->sendResponse(
+            [
+                'advisor_incidence' => $advisorIncidence,
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     /**

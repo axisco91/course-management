@@ -1,10 +1,11 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Exports\TracingsExport;
 use App\Helpers\GeneralHelpers;
 use App\Helpers\MoodleHelpers;
+use App\Http\Resources\TracingResource;
 use App\Models\Course;
-use App\Models\CourseStatus;
 use App\Models\Student;
 use App\Models\Tracing;
 use App\Models\TrainingAction;
@@ -13,6 +14,8 @@ use App\Models\WebPlatform;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TracingController extends BaseController
 {
@@ -24,86 +27,154 @@ class TracingController extends BaseController
     {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $start = \Illuminate\Support\Carbon::now();
-            $number_days = 5;
-            if ($start->dayOfWeek >= 2)
-                $number_days = 7;
-            $start = $start->addDays($number_days);
-            $tracings = Tracing::tracing($mainCompanyId);
+            $query = Tracing::tracing($mainCompanyId);
 
             $user = User::where('id', Auth::id())
                 ->where('main_company_id', $mainCompanyId)
                 ->first();
 
             if ($user->teacher_id) {
-                 $tracings = $tracings->where('courses.teacher_id', $user->teacher_id);
+                $query = $query->where('courses.teacher_id', $user->teacher_id);
             }
 
             if ($request->course) {
-                $tracings = $tracings->where('courses.id', $request->course);
+                $query = $query->where('courses.id', $request->course);
             }
             if ($request->company) {
-                $tracings = $tracings->where('companies.id', $request->company);
+                $query = $query->where('companies.id', $request->company);
             }
             if ($request->student) {
-                $tracings = $tracings->where('students.id', 'LIKE', $request->student);
+                $query = $query->where('students.id', 'LIKE', $request->student);
             }
             if ($request->status) {
-                $tracings = $tracings
-                    ->where('course_statuses.name', 'LIKE', $request->status);
+                $query->whereHas('course.courseStatus', function ($q) use ($request) {
+                    $q->where('id', $request->status);
+                });
             }
             if ($request->type) {
-                $tracings = $tracings
-                    ->where('course_types.name', 'LIKE', $request->type);
+                $query->whereHas('course.courseType', function ($q) use ($request) {
+                    $q->where('id', $request->type);
+                });
             }
             if ($request->beginning) {
-                $tracings = $tracings->where('courses.beginning', '>=', $request->beginning);
+                $beginning = \Illuminate\Support\Carbon::parse($request->beginning)->format('Y-m-d');
+                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '>=', $beginning));
             }
+
             if ($request->end) {
-                $tracings = $tracings->where('courses.beginning', '<=', $request->end);
+                $end = \Illuminate\Support\Carbon::parse($request->end)->format('Y-m-d');
+                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '<=', $end));
             }
 
-            if (isset($request['status'])) {
-                $courseStatus = CourseStatus::where('name', $request['status'])->first();
+            $sort = (string) $request->get('sort', 'follow_up_date');
+            $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $key  = ltrim($sort, '-');
 
-                if ($courseStatus) {
-                    $tracings->where('course_statuses.id', '!=', $courseStatus->id);
-                }
+            // campos directos (en tabla tracings)
+            $direct = [
+                'follow_up_date'        => 'tracings.follow_up_date',
+                'final_test'            => 'tracings.final_test',
+                'questionnaire'         => 'tracings.questionnaire',
+                'welcome_message'       => 'tracings.welcome_message',
+                'quarter_message'       => 'tracings.quarter_message',
+                'half_message'          => 'tracings.half_message',
+                'three_quarters_message'=> 'tracings.three_quarters_message',
+                'final_message'         => 'tracings.final_message',
+                // si tienes id/created_at:
+                'id'                    => 'tracings.id',
+                'created_at'            => 'tracings.created_at',
+                'updated_at'            => 'tracings.updated_at',
+            ];
+
+            // ✅ subqueries para ordenar por relaciones (sin joins)
+            switch ($key) {
+                case 'company':
+                    $query->orderBy(
+                        DB::raw("(SELECT c.name FROM companies c WHERE c.id = tracings.company_id)"),
+                        $dir
+                    );
+                    break;
+
+                case 'student':
+                    // apellido y luego nombre
+                    $query->orderBy(
+                        DB::raw("(SELECT s.surname FROM students s WHERE s.id = tracings.student_id)"),
+                        $dir
+                    )->orderBy(
+                        DB::raw("(SELECT s.name FROM students s WHERE s.id = tracings.student_id)"),
+                        $dir
+                    );
+                    break;
+
+                case 'status':
+                    // status del curso: courses.course_status_id -> course_statuses.name
+                    $query->orderBy(
+                        DB::raw("(
+                    SELECT cs.name
+                    FROM courses co
+                    JOIN course_statuses cs ON cs.id = co.course_status_id
+                    WHERE co.id = tracings.course_id
+                )"),
+                        $dir
+                    );
+                    break;
+
+                case 'course':
+                    // Orden “como lo que muestras”: formative_action / group + name
+                    $query->orderBy(
+                        DB::raw("(
+                    SELECT CONCAT(ta.formative_action,' / ', co.`group`, ' ', ta.name)
+                    FROM courses co
+                    JOIN training_actions ta ON ta.id = co.training_action_id
+                    WHERE co.id = tracings.course_id
+                )"),
+                        $dir
+                    );
+                    break;
+
+                default:
+                    if (isset($direct[$key])) {
+                        $query->orderBy($direct[$key], $dir);
+                    } else {
+                        // fallback
+                        $query->orderBy('tracings.follow_up_date', 'desc');
+                    }
+                    break;
             }
 
-            $tracings = $tracings->orderBy('tracings.id', 'desc')->get();
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
 
-            foreach ($tracings as $tracing) {
-                // Debug: Log each tracing's course_status_id
+                $paginator = $query->paginate($perPage);
 
-                if ($tracing->final_test === 0) {
-                    $tracing['final_test_name'] = 'Pendiente';
-                } else if ($tracing->final_test === 1) {
-                    $tracing['final_test_name'] = 'Realizado';
-                } else if ($tracing->final_test === 2) {
-                    $tracing['final_test_name'] = 'No realizado';
-                }
-                if ($tracing->questionnaire === 0) {
-                    $tracing['questionnaire_name'] = 'Pendiente';
-                } else if ($tracing->questionnaire === 1) {
-                    $tracing['questionnaire_name'] = 'Realizado';
-                } else if ($tracing->questionnaire === 2) {
-                    $tracing['questionnaire_name'] = 'No realizado';
-                }
+                // Resource sobre el paginator
+                $tracings = TracingResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
 
-                // Attempt to get course_status_id from the tracing object
-                $tracing['course_status_id'] = $tracing->course_status_id;
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
 
-                // If it's still null, try to fetch it directly from the Course model
-                if ($tracing['course_status_id'] === null) {
-                    $course = Course::find($tracing->course_id);
-                    $tracing['course_status_id'] = $course ? $course->course_status_id : null;
-                }
-
-
+                return $this->sendResponse(
+                    [
+                        'tracings' => $tracings,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
             }
 
-            return $tracings;
+            // SIN PAGINACIÓN
+            $tracings = TracingResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'tracings' => $tracings,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             \Log::error("Error in index method: " . $e->getMessage());
             \Log::error("Stack trace: " . $e->getTraceAsString());
@@ -178,10 +249,12 @@ class TracingController extends BaseController
                 }
             }
 
-            return response()->json([
-                'status' => 200,
-                'tracing' => $tracing
-            ]);
+            return $this->sendResponse(
+                [
+                    'tracing' => $tracing,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -284,10 +357,12 @@ class TracingController extends BaseController
 
                 $tracing['name'] = $course->group . '/' . $course->name . ' - ' . $student->name . ' ' . Carbon::parse($course->beginning)->format('d/m/Y') . ' - ' . Carbon::parse($course->end)->format('d/m/Y');
             }
-            return response()->json([
-                'status' => 200,
-                'tracing' => $tracing
-            ]);
+            return $this->sendResponse(
+                [
+                    'tracing' => $tracing,
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -318,9 +393,10 @@ class TracingController extends BaseController
                 }
 
                 Tracing::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -408,11 +484,192 @@ class TracingController extends BaseController
                 ];
                 $data[] = $element;
             }
-            return $data;
+            return $this->sendResponse(
+                [
+                    'tracings' => $data,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
             ]);
+        }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                Auth::id()
+            );
+
+            $query = Tracing::tracing($mainCompanyId);
+
+            $user = User::where('id', Auth::id())
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
+            if ($user && $user->teacher_id) {
+                // (según tu index)
+                $query->where('courses.teacher_id', $user->teacher_id);
+            }
+
+            // ✅ filtros IGUALES a index
+            if ($request->course) {
+                $query->where('courses.id', $request->course);
+            }
+            if ($request->company) {
+                $query->where('companies.id', $request->company);
+            }
+            if ($request->student) {
+                // OJO: en tu index tienes LIKE con id (raro), lo dejo igual
+                $query->where('students.id', 'LIKE', $request->student);
+            }
+            if ($request->status) {
+                $query->whereHas('course.courseStatus', function ($q) use ($request) {
+                    $q->where('id', $request->status);
+                });
+            }
+            if ($request->type) {
+                $query->whereHas('course.courseType', function ($q) use ($request) {
+                    $q->where('id', $request->type);
+                });
+            }
+            if ($request->beginning) {
+                $beginning = Carbon::parse($request->beginning)->format('Y-m-d');
+                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '>=', $beginning));
+            }
+            if ($request->end) {
+                $end = Carbon::parse($request->end)->format('Y-m-d');
+                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '<=', $end));
+            }
+
+            // ✅ mismo sort del index (si quieres respetarlo en el excel)
+            $sort = (string) $request->get('sort', 'follow_up_date');
+            $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $key  = ltrim($sort, '-');
+
+            $direct = [
+                'follow_up_date'         => 'tracings.follow_up_date',
+                'final_test'             => 'tracings.final_test',
+                'questionnaire'          => 'tracings.questionnaire',
+                'welcome_message'        => 'tracings.welcome_message',
+                'quarter_message'        => 'tracings.quarter_message',
+                'half_message'           => 'tracings.half_message',
+                'three_quarters_message' => 'tracings.three_quarters_message',
+                'final_message'          => 'tracings.final_message',
+                'id'                     => 'tracings.id',
+                'created_at'             => 'tracings.created_at',
+                'updated_at'             => 'tracings.updated_at',
+            ];
+
+            switch ($key) {
+                case 'company':
+                    $query->orderByRaw("(SELECT c.name FROM companies c WHERE c.id = tracings.company_id) {$dir}");
+                    break;
+
+                case 'student':
+                    $query->orderByRaw("(SELECT s.surname FROM students s WHERE s.id = tracings.student_id) {$dir}")
+                        ->orderByRaw("(SELECT s.name FROM students s WHERE s.id = tracings.student_id) {$dir}");
+                    break;
+
+                case 'status':
+                    $query->orderByRaw("(
+                    SELECT cs.name
+                    FROM courses co
+                    JOIN course_statuses cs ON cs.id = co.course_status_id
+                    WHERE co.id = tracings.course_id
+                ) {$dir}");
+                    break;
+
+                case 'course':
+                    $query->orderByRaw("(
+                    SELECT CONCAT(ta.formative_action,' / ', co.`group`, ' ', ta.name)
+                    FROM courses co
+                    JOIN training_actions ta ON ta.id = co.training_action_id
+                    WHERE co.id = tracings.course_id
+                ) {$dir}");
+                    break;
+
+                default:
+                    if (isset($direct[$key])) {
+                        $query->orderBy($direct[$key], $dir);
+                    } else {
+                        $query->orderBy('tracings.follow_up_date', 'desc');
+                    }
+                    break;
+            }
+
+            $items = $query->get();
+
+            // ✅ helpers
+            $yesNo = fn($v) => ((string)$v === '1' || $v === 1 || $v === true) ? 'Sí' : 'No';
+
+            $fmtDate = function ($v) {
+                if (!$v) return '';
+                try {
+                    return Carbon::parse($v)->format('d-m-Y');
+                } catch (\Exception $e) {
+                    return '';
+                }
+            };
+
+            // 👇 Mapea en el ORDEN EXACTO del excel plantilla Seguimientos.xlsx
+            $rows = $items->map(function ($tr) use ($yesNo, $fmtDate) {
+
+                $studentFull = trim(
+                    (string) optional($tr->student)->name . ' ' .
+                    (string) optional($tr->student)->surname
+                );
+
+                return [
+                    // 📅 Fecha seguimiento
+                    $fmtDate($tr->follow_up_date),
+
+                    // 🏢 Empresa
+                    optional($tr->company)->name ?? '',
+
+                    // 👤 Alumno
+                    $studentFull,
+
+                    // 📚 Curso (YA calculado en el scope)
+                    $tr->course->name ?? '',
+
+                    // 🏷️ Tipo curso
+                    optional(optional($tr->course)->courseType)->name ?? '',
+
+                    // 📌 Estado curso
+                    optional(optional($tr->course)->courseStatus)->name ?? '',
+
+                    // 📩 Mensajes
+                    $yesNo($tr->welcome_message),
+                    $yesNo($tr->quarter_message),
+                    $yesNo($tr->half_message),
+                    $yesNo($tr->three_quarters_message),
+                    $yesNo($tr->final_message),
+
+                    // 📝 Seguimiento
+                    $tr->questionnaire_name ?? '',
+                    $tr->final_test_name ?? '',
+
+                    // 🕒 Fechas sistema
+                    $fmtDate($tr->created_at),
+                    $fmtDate($tr->updated_at),
+                ];
+            });
+
+            return Excel::download(new TracingsExport($rows), 'Seguimientos.xlsx');
+
+        } catch (\Exception $e) {
+            Log::error("Error exporting tracings excel: " . $e->getMessage());
+            Log::error($e->getTraceAsString());
+
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }

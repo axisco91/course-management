@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingContractBonusResource;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractBonus;
 use Carbon\Carbon;
@@ -16,7 +17,41 @@ class TrainingContractBonusController extends BaseController
     public function trainingContractBonuses($id, Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            return TrainingContractBonus::getBonuses($id, $mainCompanyId);
+            $query = TrainingContractBonus::getBonuses($id, $mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $trainingContractBonuses = TrainingContractBonusResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'training_contract_bonuses' => $trainingContractBonuses,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $trainingContractBonuses = TrainingContractBonusResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'training_contract_bonuses' => $trainingContractBonuses,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -125,12 +160,13 @@ class TrainingContractBonusController extends BaseController
             ->FilterMainCompany($mainCompanyId)
             ->first();
 
-        return response()->json([
-            'status'       => 200,
-            'message'      => 'Bonos generados para los meses faltantes',
-            'bonuses'      => TrainingContractBonus::getBonuses($id, $mainCompanyId),
-            'total_amount' => $contract->total_amount,
-        ]);
+        return $this->sendResponse(
+            [
+                'bonuses'      => TrainingContractBonus::getBonuses($id, $mainCompanyId)->get(),
+                'total_amount' => $contract->total_amount,
+            ],
+            trans('Bonos generados para los meses faltantes')
+        );
     }
 
     public function create(Request $request){
@@ -146,10 +182,12 @@ class TrainingContractBonusController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'bonus' => TrainingContractBonus::getBonus($bonus->id, $mainCompanyId),
-        ]);
+        return $this->sendResponse(
+            [
+                'training_contract_bonus' => TrainingContractBonus::getBonus($bonus->id, $mainCompanyId)->first(),
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -176,20 +214,24 @@ class TrainingContractBonusController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'bonus' => TrainingContractBonus::getBonus($bonus->id, $mainCompanyId),
-        ]);
+        return $this->sendResponse(
+            [
+                'training_contract_bonus' => TrainingContractBonus::getBonus($bonus->id, $mainCompanyId)->first(),
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function getTrainingContractBonus($id, Request $request){
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-        $bonus = TrainingContractBonus::getBonus($id, $mainCompanyId);
+        $bonus = TrainingContractBonus::getBonus($id, $mainCompanyId)->first();
         if ($bonus) {
-            return response()->json([
-                'status' => 200,
-                'bonus' => $bonus
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_contract_bonus' => $bonus,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -214,9 +256,10 @@ class TrainingContractBonusController extends BaseController
                 }
 
                 TrainingContractBonus::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

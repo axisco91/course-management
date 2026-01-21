@@ -1,10 +1,10 @@
 <?php
 
-
 namespace App\Http\Controllers\Api;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller as Controller;
 
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller as Controller;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class BaseController extends Controller
 {
@@ -13,17 +13,38 @@ class BaseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function sendResponse($result, $message)
+    // 👈 Quitamos el type-hint "mixed" porque solo existe en PHP 8
+    public function sendResponse($result, string $message, int $statusCode = 200): JsonResponse
     {
-        $response = [
+        $responseData = [
             'success' => true,
-            'data'    => $result,
             'message' => $message,
         ];
 
-        return response()->json($response, 200);
-    }
+        if ($result instanceof LengthAwarePaginator) {
+            $pagination = [
+                'current_page' => $result->currentPage(),
+                'last_page'    => $result->lastPage(),
+                'per_page'     => $result->perPage(),
+                'total'        => $result->total(),
+            ];
 
+            if ($result->hasMorePages()) {
+                $pagination['next_page_url'] = $result->nextPageUrl();
+            }
+
+            if ($result->currentPage() > 1) {
+                $pagination['prev_page_url'] = $result->previousPageUrl();
+            }
+
+            $responseData['data']       = $result->items();
+            $responseData['pagination'] = $pagination;
+        } else {
+            $responseData['data'] = $result;
+        }
+
+        return response()->json($responseData, $statusCode);
+    }
 
     /**
      * return error response.
@@ -37,7 +58,7 @@ class BaseController extends Controller
             'message' => $error,
         ];
 
-        if(!empty($errorMessages)){
+        if (!empty($errorMessages)) {
             $response['data'] = $errorMessages;
         }
 

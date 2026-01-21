@@ -23,39 +23,21 @@ class WebPlatform extends Model
         return $this->hasMany('App\Models\TrainingAction', 'web_platform_id', 'id');
     }
 
-    public static function getWebPlatforms($mainCompanyId){
-        $web_platforms = WebPlatform::
-        select('*', 'id as value', 'name as label')
-            ->where('main_company_id', $mainCompanyId)
-            ->get();
-        foreach ($web_platforms as $web_platform){
-            $trainingAction = TrainingAction::where('web_platform_id', $web_platform['id'])
-                ->where('main_company_id', $mainCompanyId)
-                ->first();
-            if ($trainingAction){
-                $web_platform['used'] = true;
-            } else {
-                $web_platform['used'] = false;
-            }
-        }
-        return $web_platforms;
-    }
-
-    public static function getWebPlatform($id, $mainCompanyId){
-        $web_platform = WebPlatform::
-        select('*', 'id as value', 'name as label')
-            ->where('id', $id)
-            ->where('main_company_id', $mainCompanyId)
-            ->first();
-        $trainingAction = TrainingAction::where('web_platform_id', $web_platform['id'])
-            ->where('main_company_id', $mainCompanyId)
-            ->first();
-        if ($trainingAction){
-            $web_platform['used'] = true;
-        } else {
-            $web_platform['used'] = false;
-        }
-        return $web_platform;
+    public function scopeGetWebPlatform($query, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'web_platforms.*',
+                'web_platforms.id as value',
+                'web_platforms.name as label'
+            )
+            ->leftJoin('training_actions', function ($join) use ($mainCompanyId) {
+                $join->on('training_actions.web_platform_id', '=', 'web_platforms.id')
+                    ->where('training_actions.main_company_id', '=', $mainCompanyId);
+            })
+            ->selectRaw('CASE WHEN training_actions.id IS NULL THEN false ELSE true END as used')
+            ->where('web_platforms.main_company_id', $mainCompanyId)
+            ->groupBy('web_platforms.id');
     }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {

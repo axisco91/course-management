@@ -32,8 +32,8 @@ class TrainingContractsExcludedDay extends Model
         $count = 0;
         while ($start <= $end) {
             $festival = TrainingContractFestival::existDay($start, $trainingContract->id, $data['main_company_id'])->first();
+            $working_day = false;
             if (!$festival) {
-                $working_day = false;
                 switch($start->dayOfWeek){
                     case 0:
                         if ($trainingContract->sunday == 1){

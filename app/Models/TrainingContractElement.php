@@ -26,53 +26,79 @@ class TrainingContractElement extends Model
         return $this->belongsTo(Certification::class);
     }
 
-    public static function getTrainingContractElements($trainingContractId, $mainCompanyId){
-        return TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
-            'training_contracts.number_cfa as cfa',
-            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
-        'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
-        'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
-            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
-            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
-            ->where('training_contract_id', $trainingContractId)
+    public function scopeGetTrainingContractElements($query, $trainingContractId, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'training_contract_elements.*',
+                'certifications.name as certification_name',
+                'certifications.total_hours as certification_total_hours',
+                'training_contracts.number_cfa as cfa',
+                'training_actions.formative_action',
+                'training_actions.name as training_action_name',
+                'training_actions.total_hours as training_action_total_hours',
+                'training_actions.face_to_face_hours as training_action_face_to_face_hours',
+                'training_actions.teletraining_hours as training_action_teletraining_hours',
+                'certifications.face_to_face_hours as certification_face_to_face_hours',
+                'certifications.teletraining_hours as certification_teletraining_hours'
+            )
+            ->leftJoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
+            ->leftJoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
+            ->leftJoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
+            ->where('training_contract_elements.training_contract_id', $trainingContractId)
             ->where('training_contract_elements.main_company_id', $mainCompanyId)
-            ->orderBy('order', 'asc')
-            ->get();
+            ->orderBy('training_contract_elements.order', 'asc');
     }
 
-    public static function getAllTrainingContractElements($mainCompanyId){
-
-        return TrainingContractElement::with('training_contract', 'training_contract.student')
-            ->select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+    public function scopeGetAllTrainingContractElements($query, $mainCompanyId)
+    {
+        return $query
+            ->with(['training_contract', 'training_contract.student'])
+            ->select(
+                'training_contract_elements.*',
+                'certifications.name as certification_name',
+                'certifications.total_hours as certification_total_hours',
                 'training_contracts.number_cfa as cfa',
-                'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
-            'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
-            'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
-            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
-            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
+                'training_actions.formative_action',
+                'training_actions.name as training_action_name',
+                'training_actions.total_hours as training_action_total_hours',
+                'training_actions.face_to_face_hours as training_action_face_to_face_hours',
+                'training_actions.teletraining_hours as training_action_teletraining_hours',
+                'certifications.face_to_face_hours as certification_face_to_face_hours',
+                'certifications.teletraining_hours as certification_teletraining_hours'
+            )
+            ->leftJoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
+            ->leftJoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
+            ->leftJoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
             ->where('training_contract_elements.main_company_id', $mainCompanyId)
-            ->orderBy('order', 'asc')
-            ->get();
+            ->orderBy('training_contract_elements.order', 'asc');
     }
 
-    public static function getActiveTrainingContractElements($mainCompanyId){
 
-         return TrainingContractElement::with('training_contract', 'training_contract.student')
-            ->select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
+    public function scopeGetActiveTrainingContractElements($query, $mainCompanyId)
+    {
+        return $query
+            ->with(['training_contract', 'training_contract.student'])
+            ->select(
+                'training_contract_elements.*',
+                'certifications.name as certification_name',
+                'certifications.total_hours as certification_total_hours',
                 'training_contracts.number_cfa as cfa',
-                'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours',
-                'training_actions.face_to_face_hours as training_action_face_to_face_hours', 'training_actions.teletraining_hours as training_action_teletraining_hours',
-                'certifications.face_to_face_hours as certification_face_to_face_hours', 'certifications.teletraining_hours as certification_teletraining_hours')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
-            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
-            ->leftjoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
-            ->leftjoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id')
+                'training_actions.formative_action',
+                'training_actions.name as training_action_name',
+                'training_actions.total_hours as training_action_total_hours',
+                'training_actions.face_to_face_hours as training_action_face_to_face_hours',
+                'training_actions.teletraining_hours as training_action_teletraining_hours',
+                'certifications.face_to_face_hours as certification_face_to_face_hours',
+                'certifications.teletraining_hours as certification_teletraining_hours'
+            )
+            ->leftJoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
+            ->leftJoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
+            ->leftJoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
+            ->leftJoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id')
             ->whereNotIn('training_contract_statuses.name', ['BAJA', 'BAJA IT'])
             ->where('training_contract_elements.main_company_id', $mainCompanyId)
-            ->orderBy('order', 'asc')
-            ->get();
+            ->orderBy('training_contract_elements.order', 'asc');
     }
 
     public static function deleteTrainingContractElement($id, $mainCompanyId){

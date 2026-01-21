@@ -1,16 +1,50 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\CnaeResource;
 use App\Models\Cnae;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class CnaeController extends BaseController
 {
-    public function cnaes() {
+    public function cnaes(Request $request) {
         try {
-            return Cnae::getCnaes();
+            $query = Cnae::select('*');
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $cnaes = CnaeResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'cnaes' => $cnaes,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $cnaes = CnaeResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'cnaes' => $cnaes,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -28,10 +62,12 @@ class CnaeController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'cnae' => $cnae
-        ]);
+        return $this->sendResponse(
+            [
+                'cnae' => $cnae,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -44,19 +80,23 @@ class CnaeController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'cnae' => $cnae
-        ]);
+        return $this->sendResponse(
+            [
+                'cnae' => $cnae,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function getCnae($id){
-        $cnae = Cnae::getCnae($id);
+        $cnae = Cnae::where('id', $id)->first();
         if ($cnae) {
-            return response()->json([
-                'status' => 200,
-                'cnae' => $cnae
-            ]);
+            return $this->sendResponse(
+                [
+                    'cnae' => $cnae,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -68,9 +108,10 @@ class CnaeController extends BaseController
         if ($id) {
             try {
                 Cnae::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\ExamTutorialResource;
 use App\Models\ExamTutorial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +15,41 @@ class ExamTutorialController extends BaseController
             try {
                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-                return  ExamTutorial::getExamTutorials($id, $mainCompanyId);
+                $query =  ExamTutorial::getExamTutorials($id, $mainCompanyId);
+
+                if ($request->filled('perPage')) {
+                    $perPage = (int) $request->perPage;
+
+                    $paginator = $query->paginate($perPage);
+
+                    // Resource sobre el paginator
+                    $examTutorial = ExamTutorialResource::collection($paginator);
+                    // Si no tienes Resource, podrías usar directamente:
+                    // $certifications = $paginator->items();
+
+                    // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                    $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                    return $this->sendResponse(
+                        [
+                            'exam_tutorial' => $examTutorial,
+                            'links'          => $paginationData['links'],
+                            'meta'           => $paginationData['meta'],
+                        ],
+                        trans('Obtenido con éxito')
+                    );
+                }
+
+                // SIN PAGINACIÓN
+                $examTutorial = ExamTutorialResource::collection($query->get());
+                // o, sin resource: $certifications = $query->get();
+
+                return $this->sendResponse(
+                    [
+                        'exam_tutorial' => $examTutorial,
+                    ],
+                    trans('Obtenido con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'message' => $e->getMessage()
@@ -32,10 +67,12 @@ class ExamTutorialController extends BaseController
 
             $examTutorial = ExamTutorial::createWithService($data);
 
-            return response()->json([
-                'status' => 200,
-                'exam_tutorial' => ExamTutorial::getExamTutorial($examTutorial->id, $mainCompanyId),
-            ]);
+            return $this->sendResponse(
+                [
+                    'exam_tutorial' => ExamTutorial::getExamTutorial($examTutorial->id, $mainCompanyId)->first(),
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -61,10 +98,12 @@ class ExamTutorialController extends BaseController
 
             $examTutorial->updateWithService($id, $request);
 
-            return response()->json([
-                'status' => 200,
-                'exam_tutorial' => ExamTutorial::getExamTutorial($id, $mainCompanyId),
-            ]);
+            return $this->sendResponse(
+                [
+                    'exam_tutorial' => ExamTutorial::getExamTutorial($examTutorial->id, $mainCompanyId)->first(),
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -90,9 +129,10 @@ class ExamTutorialController extends BaseController
                 }
 
                 ExamTutorial::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

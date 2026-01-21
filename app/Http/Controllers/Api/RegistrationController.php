@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\CourseResource;
+use App\Http\Resources\RegistrationResource;
 use App\Models\Advisor;
 use App\Models\Bill;
 use App\Models\Company;
@@ -25,8 +27,41 @@ class RegistrationController extends BaseController
     public function getRegistrations($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        return Student::getRegistrated($id, $mainCompanyId)
-            ->get();
+        $query = Student::getRegistrated($id, $mainCompanyId);
+
+        if ($request->filled('perPage')) {
+            $perPage = (int) $request->perPage;
+
+            $paginator = $query->paginate($perPage);
+
+            // Resource sobre el paginator
+            $students = RegistrationResource::collection($paginator);
+            // Si no tienes Resource, podrías usar directamente:
+            // $certifications = $paginator->items();
+
+            // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+            $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+            return $this->sendResponse(
+                [
+                    'students' => $students,
+                    'links'          => $paginationData['links'],
+                    'meta'           => $paginationData['meta'],
+                ],
+                trans('Obtenido con éxito')
+            );
+        }
+
+        // SIN PAGINACIÓN
+        $students = RegistrationResource::collection($query->get());
+        // o, sin resource: $certifications = $query->get();
+
+        return $this->sendResponse(
+            [
+                'students' => $students,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     /**
@@ -69,9 +104,12 @@ class RegistrationController extends BaseController
                 ->FilterMainCompany($mainCompanyId)
                 ->first();
 
-            $advisor = Advisor::where('id', $company->advisor_id)
-                ->FilterMainCompany($mainCompanyId)
-                ->first();
+            $advisor = null;
+            if ($company->advisor_id) {
+                $advisor = Advisor::where('id', $company->advisor_id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+            }
 
             $advisor_percentage = null;
             $collaborator_percentage = null;
@@ -180,11 +218,13 @@ class RegistrationController extends BaseController
             ]);
         }
         DB::commit();
-        return response()->json([
-            'status' => 200,
-            'registration' => $registration,
-            'student' => $student
-        ]);
+        return $this->sendResponse(
+            [
+                'registration' => $registration,
+                'student' => $student
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     /**
@@ -201,11 +241,12 @@ class RegistrationController extends BaseController
 
             if ($registration) {
             Log::info($registration);
-            return response()->json([
-                'status' => 200,
-                'registration' => $registration
-
-            ]);
+            return $this->sendResponse(
+                    [
+                        'registration' => $registration,
+                    ],
+                    trans('Obtenido con éxito')
+                );
         }
         return response()->json([
             'status' => 400,
@@ -239,10 +280,10 @@ class RegistrationController extends BaseController
 
                 $registration->destroyRegistration();
 
-                return response()->json([
-                    'status' => 200,
-                    'student' => $student
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -296,11 +337,13 @@ class RegistrationController extends BaseController
 
             $registration->load('company');
 
-            return response()->json([
-                'status' => 200,
-                'message' => 'Registration updated successfully',
-                'student' => $registration
-            ]);
+
+            return $this->sendResponse(
+                [
+                    'student' => $registration
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e) {
             Log::error('Error updating registration: ' . $e->getMessage());
             return response()->json([

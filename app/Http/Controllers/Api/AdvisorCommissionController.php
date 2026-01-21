@@ -2,35 +2,56 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\AdvisorCommissionResource;
 use App\Models\AdvisorCommission;
-use App\Services\AdvisorCommissionService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class AdvisorCommissionController extends BaseController
 {
-    private $advisorCommissionService;
-
-    public function __construct(AdvisorCommissionService $advisorCommissionService)
-    {
-        $this->advisorCommissionService = $advisorCommissionService;
-    }
-
     /**
      * Obtener comisiones
      * @return mixed
      */
-    public function index($id) {
+    public function index($id, Request $request)
+    {
         try {
-            $commissions = AdvisorCommission::commissions()
-                ->where('advisor_commissions.advisor_id', $id)
-                ->get();
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                Auth::id()
+            );
 
-            return $commissions;
+            $query = AdvisorCommission::commissions($mainCompanyId)
+                ->where('advisor_commissions.advisor_id', $id);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+                $paginator = $query->paginate($perPage);
+
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'advisor_commissions' => AdvisorCommissionResource::collection($paginator),
+                        'links' => $paginationData['links'],
+                        'meta'  => $paginationData['meta'],
+                    ],
+                    trans('Obtenido')
+                );
+            }
+
+            return $this->sendResponse(
+                [
+                    'advisor_commissions' => AdvisorCommissionResource::collection($query->get()),
+                ],
+                trans('Obtenido')
+            );
+
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
-            ]);
+            ], 500);
         }
     } // end method
 
@@ -44,16 +65,16 @@ class AdvisorCommissionController extends BaseController
         try {
             $data = $request->all();
             $advisorCommission = AdvisorCommission::find($id);
-            $this->advisorCommissionService->update($advisorCommission, $data);
+            $advisorCommission->updateWithService($data);
 
-            $commission = AdvisorCommission::commissions()
-                ->where('advisor_commissions.id', $id)
-                ->first();
+            $commission = AdvisorCommissionResource::collection($advisorCommission);
 
-            return response()->json([
-                'status' => 200,
-                'advisor_commission' => $commission
-            ]);
+            return $this->sendResponse(
+                [
+                    'advisor_commission' => $commission,
+                ],
+                trans('Obtenido')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -71,11 +92,16 @@ class AdvisorCommissionController extends BaseController
         $advisorCommission = AdvisorCommission::commissions()
             ->where('advisor_commissions.id', $id)
             ->first();
+
         if ($advisorCommission) {
-            return response()->json([
-                'status' => 200,
-                'advisor_commission' => $advisorCommission
-            ]);
+            $advisorCommission = AdvisorCommissionResource::collection($advisorCommission);
+
+            return $this->sendResponse(
+                [
+                    'advisor_commission' => $advisorCommission,
+                ],
+                trans('Obtenido')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -92,9 +118,12 @@ class AdvisorCommissionController extends BaseController
         if ($id) {
             try {
                 AdvisorCommission::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [
+
+                    ],
+                    trans('Eliminado')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

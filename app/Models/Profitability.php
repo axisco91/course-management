@@ -22,33 +22,37 @@ class Profitability extends Model
         'advisor_percentage', 'collaborator_percentage', 'number_students', 'main_company_id'
     ];
 
-    // Define the relationship with the Course model
     public function course()
     {
-        return $this->belongsTo(Course::class);
+        return $this->belongsTo(Course::class, 'course_id');
     }
 
-    // Define the relationship with the Company model
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'student_id');
+    }
+
     public function registrations()
     {
-        return $this->hasMany('App\Models\Registration', 'profitability_id', 'id');
+        return $this->hasMany(Registration::class, 'profitability_id', 'id');
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function students()
+    public function trainingAction()
     {
-        return $this->hasOne('App\Models\Student', 'id', 'student_id');
+        return $this->belongsTo(TrainingAction::class, 'training_action_id');
     }
+
+    public function courseStatus()
+    {
+        return $this->belongsTo(CourseStatus::class, 'course_status_id');
+    }
+
+
 
     public function scopeProfitability($query, $mainCompanyId) {
         return $query->select('profitabilities.*',
@@ -73,50 +77,32 @@ class Profitability extends Model
         return $query->where('profitabilities.main_company_id', $mainCompanyId);
     }
 
-    public static function getProfitabilityYear($year, $mainCompanyId)
+    public function scopeGetProfitabilityYear($query, $year, $mainCompanyId)
     {
-        $profitabilities = Profitability::whereYear('created_at', $year)
+        return $query
+            ->selectRaw('SUM(benefits) as total')
+            ->whereYear('created_at', $year)
+            ->where('profitabilities.main_company_id', $mainCompanyId);
+    }
+
+    public function scopeGetBenefitsPerMonth($query, $year, $mainCompanyId)
+    {
+        return $query
+            ->selectRaw('MONTH(created_at) as month, SUM(benefits) as total')
+            ->whereYear('created_at', $year)
             ->where('profitabilities.main_company_id', $mainCompanyId)
-            ->get();
-        $total = 0;
-        foreach ($profitabilities as $profitability) {
-            $total += $profitability['benefits'];
-        }
-        return $total;
+            ->groupBy('month')
+            ->orderBy('month');
     }
 
-    public static function getBenefitsPerMonth($year, $mainCompanyId)
+    public function scopeGetExpensesPerMonth($query, $year, $mainCompanyId)
     {
-        $total_months = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $total = 0;
-            $profitabilities = Profitability::whereYear('created_at', $year)
-                ->whereMonth('created_at', $i)
-                ->where('profitabilities.main_company_id', $mainCompanyId)
-                ->get();
-            foreach ($profitabilities as $profitability) {
-                $total += $profitability['benefits'];
-            }
-            $total_months[] = $total;
-        }
-        return $total_months;
-    }
-
-    public static function getExpensesPerMonth($year, $mainCompanyId)
-    {
-        $total_months = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $total = 0;
-            $profitabilities = Profitability::whereYear('created_at', $year)
-                ->whereMonth('created_at', $i)
-                ->where('profitabilities.main_company_id', $mainCompanyId)
-                ->get();
-            foreach ($profitabilities as $profitability) {
-                $total += $profitability['total'];
-            }
-            $total_months[] = -$total;
-        }
-        return $total_months;
+        return $query
+            ->selectRaw('MONTH(created_at) as month, SUM(total) as total')
+            ->whereYear('created_at', $year)
+            ->where('profitabilities.main_company_id', $mainCompanyId)
+            ->groupBy('month')
+            ->orderBy('month');
     }
 
     public static function createWithService($data)

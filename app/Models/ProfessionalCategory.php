@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ProfessionalCategoryService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,47 +22,33 @@ class ProfessionalCategory extends Model
         return $this->hasMany('App\Models\Student', 'professional_category_id', 'id');
     }
 
-    public static function getProfessionalCategories(){
-        $professional_categories = ProfessionalCategory::
-        select('professional_categories.*', 'id as value', 'name as label')
-            ->get();
-        foreach ($professional_categories as $professional_category){
-            $student = Student::where('professional_category_id', $professional_category['id'])->first();
-            if ($student) {
-                $professional_category['used'] = true;
-            } else {
-                $professional_category['used'] = false;
-            }
-        }
-        return $professional_categories;
+    public function scopeGetProfessionalCategory($query)
+    {
+        return $query
+            ->select(
+                'professional_categories.*',
+                'professional_categories.id as value',
+                'professional_categories.name as label'
+            )
+            ->leftJoin(
+                'students',
+                'students.professional_category_id',
+                '=',
+                'professional_categories.id'
+            )
+            ->selectRaw('CASE WHEN students.id IS NULL THEN false ELSE true END as used')
+            ->groupBy('professional_categories.id');
     }
 
-    public static function getProfessionalCategory($id){
-        $professional_category = ProfessionalCategory::
-        select('professional_categories.*', 'id as value', 'name as label')
-            ->where('id', $id)->first();
-        $student = Student::where('professional_category_id', $professional_category['id'])->first();
-        if ($student) {
-            $professional_category['used'] = true;
-        } else {
-            $professional_category['used'] = false;
-        }
-        return $professional_category;
+    public static function createWithService($data)
+    {
+        $service = app(ProfessionalCategoryService::class);
+        return $service->create($data);
     }
 
-    public static function createProfessionalCategory($data){
-        $professional_category = ProfessionalCategory::create([
-            'name' => $data['name']
-        ]);
-        return $professional_category;
+    public function updateWithService($data)
+    {
+        $service = app(ProfessionalCategoryService::class);
+        return $service->update($this, $data);
     }
-
-    public static function updateProfessionalCategory($id, $data){
-        $professional_category = ProfessionalCategory::find($id);
-        $professional_category->update([
-            'name' => $data['name']
-        ]);
-        return $professional_category;
-    }
-
 }

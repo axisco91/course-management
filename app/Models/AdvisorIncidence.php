@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AdvisorIncidence extends Model
 {
-	use HasFactory;
+    use HasFactory;
 
     protected $fillable = [
         'affair',
@@ -16,24 +16,41 @@ class AdvisorIncidence extends Model
         'incidence_type_id',
         'advisor_id',
         'user_id',
-        'main_company_id'
+        'main_company_id',
     ];
 
-    public static function getAdvisorIncidences($advisorId, $mainCompanyId){
-        $advisor_incidences = AdvisorIncidence::select('*')->where('advisor_id', $advisorId)
-            ->where('advisor_inscidences', $mainCompanyId)->get();
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    */
 
-        return $advisor_incidences;
+    // Equivalente a getAdvisorIncidences($advisorId, $mainCompanyId)
+    public function scopeGetAdvisorIncidences($query, int $advisorId, int $mainCompanyId)
+    {
+        return $query
+            ->where('advisor_id', $advisorId)
+            ->where('advisor_incidences.main_company_id', $mainCompanyId);
+        // también podría ser ->where('main_company_id', $mainCompanyId) si no hay joins
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Services
+    |--------------------------------------------------------------------------
+    */
 
     public static function createWithService($data)
     {
         $service = app(AdvisorIncidenceService::class);
+
         return $service->create($data);
     }
 
-    public function updateWithService($data){
+    public function updateWithService($data)
+    {
         $service = app(AdvisorIncidenceService::class);
+
         return $service->update($this, $data);
     }
 }

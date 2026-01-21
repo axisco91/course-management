@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
 use App\Http\Requests\DocumentRequests;
+use App\Http\Resources\DocumentResource;
 use App\Models\Document;
 use App\Models\DocumentStudent;
 use Illuminate\Http\Request;
@@ -18,10 +19,43 @@ class DocumentController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            return Document::select('documents.*')
+            $query = Document::select('documents.*')
                 ->join('document_types', 'document_types.id', '=', 'documents.document_type_id')
-                ->FilterMainCompanyId($mainCompanyId)
-                ->get();
+                ->FilterMainCompanyId($mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $documents = DocumentResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'documents' => $documents,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $documents = DocumentResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'documents' => $documents,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -37,9 +71,14 @@ class DocumentController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            return Document::where('document_type_id', $request->document_type_id)
-                ->FilterMainCompanyId($mainCompanyId)
-                ->get();
+            return $this->sendResponse(
+                [
+                    'student_documents' => Document::where('document_type_id', $request->document_type_id)
+                        ->FilterMainCompanyId($mainCompanyId)
+                        ->get(),
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -64,19 +103,12 @@ class DocumentController extends BaseController
             $document = Document::where('id', $document->id)
                 ->first();
 
-            $documentUser = DocumentStudent::where('document_id', $document->id)
-                ->FilterMainCompanyId($mainCompanyId)
-                ->first();
-
-            if ($documentUser) {
-                $document['used'] = true;
-            } else {
-                $document['used'] = false;
-            }
-          return response()->json([
-              'status' => 200,
-              'document' => $document
-          ]);
+            return $this->sendResponse(
+                [
+                    'document' => $document,
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -97,19 +129,12 @@ class DocumentController extends BaseController
             if ($document) {
                 $document = $document->updateWithService($document, $data);
 
-                $documentUser = DocumentStudent::where('document_id', $document->id)
-                    ->FilterMainCompanyId($mainCompanyId)
-                    ->first();
-                if ($documentUser) {
-                    $document['used'] = true;
-                } else {
-                    $document['used'] = false;
-                }
-
-                return response()->json([
-                    'status' => 200,
-                    'document' => $document
-                ]);
+                return $this->sendResponse(
+                    [
+                        'document' => $document,
+                    ],
+                    trans('Obtenido con éxito')
+                );
             }
         } catch (\Exception $e){
             return response()->json([
@@ -134,10 +159,12 @@ class DocumentController extends BaseController
             ->first();
 
         if ($document) {
-            return response()->json([
-                'status' => 200,
-                'document' => $document
-            ]);
+            return $this->sendResponse(
+                [
+                    'document' => $document,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -167,9 +194,10 @@ class DocumentController extends BaseController
                 }
 
                 Document::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

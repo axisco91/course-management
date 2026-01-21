@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingContractExcludedDayResource;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractsExcludedDay;
 use Illuminate\Http\Request;
@@ -14,8 +15,41 @@ class TrainingContractExcludedDayController extends BaseController
         if ($request->has('id')) {
             try {
                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-                return TrainingContractsExcludedDay::sameGroup($request->id, $mainCompanyId)
-                    ->get();
+                $query = TrainingContractsExcludedDay::sameGroup($request->id, $mainCompanyId);
+
+                if ($request->filled('perPage')) {
+                    $perPage = (int) $request->perPage;
+
+                    $paginator = $query->paginate($perPage);
+
+                    // Resource sobre el paginator
+                    $trainingContractExcludedDays = TrainingContractExcludedDayResource::collection($paginator);
+                    // Si no tienes Resource, podrías usar directamente:
+                    // $certifications = $paginator->items();
+
+                    // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                    $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                    return $this->sendResponse(
+                        [
+                            'training_contract_excluded_days' => $trainingContractExcludedDays,
+                            'links'          => $paginationData['links'],
+                            'meta'           => $paginationData['meta'],
+                        ],
+                        trans('Obtenido con éxito')
+                    );
+                }
+
+                // SIN PAGINACIÓN
+                $trainingContractExcludedDays = TrainingContractExcludedDayResource::collection($query->get());
+                // o, sin resource: $certifications = $query->get();
+
+                return $this->sendResponse(
+                    [
+                        'training_contract_excluded_days' => $trainingContractExcludedDays,
+                    ],
+                    trans('Obtenido con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'message' => $e->getMessage()
@@ -30,11 +64,14 @@ class TrainingContractExcludedDayController extends BaseController
             $data = $request->all();
             $data['main_company_id'] = $mainCompanyId;
             TrainingContractsExcludedDay::createExcludedDay($data);
-            return response()->json([
-                'status' => 200,
-                'training_contract_excluded_days' =>  TrainingContractsExcludedDay::sameGroup($request->training_contract_id, $mainCompanyId)
-                    ->get()
-            ]);
+
+            return $this->sendResponse(
+                [
+                    'training_contract_excluded_days' => TrainingContractsExcludedDay::sameGroup($request->training_contract_id, $mainCompanyId)
+                        ->get(),
+                ],
+                trans('Creado con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -50,12 +87,15 @@ class TrainingContractExcludedDayController extends BaseController
         } else {
             TrainingContractsExcludedDay::createTrainingContractExcludedDay($request['training_contract_id'], $request['id'], $request['type'], $trainingContract->beginning, $trainingContract->end, $mainCompanyId);
         }
-        return response()->json([
-            'status' => 200,
-            'training_contract_excluded_days' => TrainingContractsExcludedDay::select('training_contracts_excluded_days.*', 'excluded_days.day')
-                ->leftJoin('excluded_days', 'excluded_days.id', '=', 'training_contracts_excluded_days.excluded_day_id')
-                ->where('training_contract_id', $request['training_contract_id'])->get()
-        ]);
+
+        return $this->sendResponse(
+            [
+                'training_contract_excluded_days' => TrainingContractsExcludedDay::select('training_contracts_excluded_days.*', 'excluded_days.day')
+                    ->leftJoin('excluded_days', 'excluded_days.id', '=', 'training_contracts_excluded_days.excluded_day_id')
+                    ->where('training_contract_id', $request['training_contract_id'])->get()
+            ],
+            trans('creado con éxito')
+        );
     }
 
     public function destroy($group, Request $request){
@@ -68,10 +108,10 @@ class TrainingContractExcludedDayController extends BaseController
                 foreach ($excludedDays as $excludedDay) {
                     TrainingContractsExcludedDay::destroy($excludedDay->id);
                 }
-                return response()->json([
-                    'status' => 200,
-                    'excluded' => $excludedDays
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

@@ -1,16 +1,50 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\QuoteGroupResource;
 use App\Models\QuoteGroup;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class QuoteGroupController extends BaseController
 {
-    public function quoteGroups() {
+    public function quoteGroups(Request $request) {
         try {
-            return QuoteGroup::getQuoteGroups();
+            $query = QuoteGroup::getQuoteGroups();
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $quoteGroups = QuoteGroup::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'quote_groups' => $quoteGroups,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $quoteGroups = QuoteGroupResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'quote_groups' => $quoteGroups,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -28,10 +62,12 @@ class QuoteGroupController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'quote_group' => $quote
-        ]);
+        return $this->sendResponse(
+            [
+                'quote_group' => $quote,
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -44,19 +80,23 @@ class QuoteGroupController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'quote_group' => $quote
-        ]);
+        return $this->sendResponse(
+            [
+                'quote_group' => $quote,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function getQuoteGroup($id){
         $quote = QuoteGroup::find($id);
         if ($quote) {
-            return response()->json([
-                'status' => 200,
-                'quote_group' => $quote
-            ]);
+            return $this->sendResponse(
+                [
+                    'quote_group' => $quote,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -68,9 +108,10 @@ class QuoteGroupController extends BaseController
         if ($id) {
             try {
                 QuoteGroup::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

@@ -21,29 +21,50 @@ class ExamTutorial extends Model
         return $this->belongsTo(TrainingAction::class);
     }
 
-    public static function getExamTutorials($trainingContractId, $mainCompanyId){
-        return ExamTutorial::select(
-            'exams_tutorials.id',
-            'exams_tutorials.*',
-            'centers.name as center',
-            DB::raw("CONCAT(training_actions.formative_action,' / ', MAX(courses.group), ' ', training_actions.name) as label"),
-            DB::raw("CONCAT(training_actions.formative_action,' - ', training_actions.name) as training_action"))
+    public function scopeGetExamTutorials($query, $trainingContractId, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'exams_tutorials.id',
+                'exams_tutorials.*',
+                'centers.name as center',
+                DB::raw("CONCAT(training_actions.formative_action,' / ', MAX(courses.group), ' ', training_actions.name) as label"),
+                DB::raw("CONCAT(training_actions.formative_action,' - ', training_actions.name) as training_action")
+            )
             ->join('centers', 'centers.id', '=', 'exams_tutorials.center_id')
             ->join('training_actions', 'training_actions.id', '=', 'exams_tutorials.training_action_id')
             ->join('courses', 'courses.training_action_id', '=', 'training_actions.id')
             ->where('training_contract_id', $trainingContractId)
             ->where('exams_tutorials.main_company_id', $mainCompanyId)
-            ->groupBy('exams_tutorials.id', 'centers.name', 'training_actions.formative_action', 'training_actions.name')
-            ->get();
+            ->groupBy(
+                'exams_tutorials.id',
+                'centers.name',
+                'training_actions.formative_action',
+                'training_actions.name'
+            );
     }
 
-    public static function getExamTutorial($id, $mainCompanyId){
-        return ExamTutorial::select('exams_tutorials.*', 'centers.name as center')
-            ->leftjoin('centers', 'centers.id', '=', 'exams_tutorials.center_id')
-            ->where('exams_tutorials.id', $id)
-            ->where('exams_tutorials.main_company_id', $mainCompanyId)
-            ->first();
-    }
+  public function scopeGetExamTutorial($query, $id, $mainCompanyId)
+  {
+      return $query
+          ->select(
+              'exams_tutorials.*',
+              'centers.name as center',
+              DB::raw("CONCAT(training_actions.formative_action,' - ', training_actions.name) as training_action"),
+              DB::raw("CONCAT(training_actions.formative_action,' / ', MAX(courses.group), ' ', training_actions.name) as label")
+          )
+          ->leftJoin('centers', 'centers.id', '=', 'exams_tutorials.center_id')
+          ->leftJoin('training_actions', 'training_actions.id', '=', 'exams_tutorials.training_action_id')
+          ->leftJoin('courses', 'courses.training_action_id', '=', 'training_actions.id')
+          ->where('exams_tutorials.id', $id)
+          ->where('exams_tutorials.main_company_id', $mainCompanyId)
+          ->groupBy(
+              'exams_tutorials.id',
+              'centers.name',
+              'training_actions.formative_action',
+              'training_actions.name'
+          );
+  }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {
         return $query->where('exams_tutorials.main_company_id', $mainCompanyId);

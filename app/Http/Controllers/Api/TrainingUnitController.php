@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingUnitResource;
 use App\Models\TrainingUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,41 @@ class TrainingUnitController extends BaseController
     public function trainingUnits(Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            return TrainingUnit::getTrainingUnits($mainCompanyId);
+            $query = TrainingUnit::getTrainingUnits($mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $trainingUnits = TrainingUnitResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'training_units' => $trainingUnits,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $trainingUnits = TrainingUnitResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'training_units' => $trainingUnits,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -25,7 +60,7 @@ class TrainingUnitController extends BaseController
             $data = $request->all();
             $data['main_company_id'] = $mainCompanyId;
 
-            $training_unit = TrainingUnit::creatWithService($data);
+            $trainingUnit = TrainingUnit::creatWithService($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -33,10 +68,12 @@ class TrainingUnitController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'training_unit' => TrainingUnit::getTrainingUnit($training_unit->id, $mainCompanyId)
-        ]);
+        return $this->sendResponse(
+            [
+                'training_unit' => TrainingUnit::getTrainingUnit($trainingUnit->id, $mainCompanyId)->first(),
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -56,10 +93,12 @@ class TrainingUnitController extends BaseController
 
             $trainingUnit->updateWithService($request);
 
-            return response()->json([
-                'status' => 200,
-                'training_unit' => TrainingUnit::getTrainingUnit($trainingUnit->id, $mainCompanyId)
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_unit' => TrainingUnit::getTrainingUnit($trainingUnit->id, $mainCompanyId)->first(),
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -83,10 +122,12 @@ class TrainingUnitController extends BaseController
         }
 
         if ($trainingUnit) {
-            return response()->json([
-                'status' => 200,
-                'training_unit' => $trainingUnit
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_unit' => $trainingUnit,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -104,10 +145,10 @@ class TrainingUnitController extends BaseController
                     ->first();
 
                 if (!$trainingUnit) {
-                    return response()->json([
-                        'status' => 404,
-                        'message' => 'Unidad no encontrada'
-                    ]);
+                    return $this->sendResponse(
+                        [],
+                        trans('Eliminado con éxito')
+                    );
                 }
 
                 TrainingUnit::destroy($id);

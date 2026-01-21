@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Exports\TrainingContractBillsExport;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingContractBillResource;
 use App\Models\AdvisorCommission;
 use App\Models\AdvisorCommissionType;
-use App\Models\Bill;
 use App\Models\CommissionType;
 use App\Models\TrainingContractBill;
 use App\Models\TrainingContractBonus;
@@ -11,8 +13,9 @@ use App\Models\UserCommission;
 use App\Models\UserCommissionType;
 use App\Services\AdvisorCommissionService;
 use App\Services\UserCommissionService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TrainingContractBillController extends BaseController
 {
@@ -24,69 +27,134 @@ class TrainingContractBillController extends BaseController
         $this->userCommissionService = $userCommissionService;
     }
 
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         try {
-            $bills = TrainingContractBill::getTrainingContractBills();
+            $query = TrainingContractBill::getTrainingContractBill();
 
-            if ($request->student) {
-                $bills = $bills->where('students.name', 'like', '%'.$request->student.'%');
-            }
-            if ($request->company) {
-                $bills = $bills->where('companies.name', 'like', '%'.$request->company.'&');
-            }
-            $bills = $bills->orderBy('training_contract_bills.number', 'desc')->get();
+            /**
+             * -------------------------
+             * ✅ FILTROS (initialFilters)
+             * student: string (busca en nombre/apellidos si existen)
+             * company: string
+             * month: int|string
+             * invoiced: 0|1
+             * paid: 0|1  (en tu UI lo llamas charged; aquí filtro por charged)
+             * year: int
+             * -------------------------
+             */
 
-            foreach ($bills as $bill) {
-                switch ($bill['month']) {
-                    case 1:
-                        $bill['month_name'] = 'Enero';
-                        break;
-                    case 2:
-                        $bill['month_name'] = 'Febrero';
-                        break;
-                    case 3:
-                        $bill['month_name'] = 'Marzo';
-                        break;
-                    case 4:
-                        $bill['month_name'] = 'Abril';
-                        break;
-                    case 5:
-                        $bill['month_name'] = 'Mayo';
-                        break;
-                    case 6:
-                        $bill['month_name'] = 'Junio';
-                        break;
-                    case 7:
-                        $bill['month_name'] = 'Julio';
-                        break;
-                    case 8:
-                        $bill['month_name'] = 'Agosto';
-                        break;
-                    case 9:
-                        $bill['month_name'] = 'Septiembre';
-                        break;
-                    case 10:
-                        $bill['month_name'] = 'Octubre';
-                        break;
-                    case 11:
-                        $bill['month_name'] = 'Noviembre';
-                        break;
-                    case 12:
-                        $bill['month_name'] = 'Diciembre';
-                        break;
-                }
+            // student (busca por name y surname si existe)
+            if ($request->filled('student')) {
+                $s = trim((string) $request->student);
+                $query->where(function ($q) use ($s) {
+                    $q->where('students.name', 'like', "%{$s}%");
+                    // si tienes surname en students
+                    $q->orWhere('students.surname', 'like', "%{$s}%");
+                });
             }
 
-            return $bills;
+            // company
+            if ($request->filled('company')) {
+                $c = trim((string) $request->company);
+                $query->where('companies.name', 'like', "%{$c}%"); // ✅ sin &
+            }
+
+            // month
+            if ($request->filled('month')) {
+                $query->where('training_contract_bills.month', $request->month);
+            }
+
+            // year
+            if ($request->filled('year')) {
+                $query->where('training_contract_bills.year', $request->year);
+            }
+
+            // invoiced (0/1)
+            if ($request->filled('invoiced')) {
+                $query->where('training_contract_bills.invoiced', (int) $request->invoiced);
+            }
+
+            // paid => en tabla lo pintas como "charged"
+            if ($request->filled('charged')) {
+                $query->where('training_contract_bills.charged', (int) $request->charged);
+            }
+
+            /**
+             * -------------------------
+             * ✅ ORDER BY (DataGrid sort)
+             * sort: "field" o "-field"
+             * -------------------------
+             */
+            $sortParam = (string) $request->get('sort', '-number'); // default desc
+            $dir       = str_starts_with($sortParam, '-') ? 'desc' : 'asc';
+            $key       = ltrim($sortParam, '-');
+
+            // whitelist: field => column
+            $sortable = [
+                // grid fields
+                'number'      => 'training_contract_bills.number',        // si existe
+                'number_cfa'  => 'training_contract_bills.number_cfa',
+                'cfa'         => 'training_contract_bills.cfa',
+                'month'       => 'training_contract_bills.month',
+                'year'        => 'training_contract_bills.year',
+                'invoiced'    => 'training_contract_bills.invoiced',
+                'charged'     => 'training_contract_bills.charged',
+
+                // relaciones (ordenar por nombre)
+                'student'     => 'students.name',
+                'company'     => 'companies.name',
+            ];
+
+            if (isset($sortable[$key])) {
+                $query->orderBy($sortable[$key], $dir);
+
+                // desempate estable
+                $query->orderBy('training_contract_bills.id', 'desc');
+            } else {
+                // fallback
+                $query->orderBy('training_contract_bills.number', 'desc');
+            }
+
+            /**
+             * ✅ importante si getTrainingContractBill() mete selects raros:
+             */
+
+            // -------------------------
+            // PAGINACIÓN
+            if ($request->filled('perPage')) {
+                $perPage   = (int) $request->perPage;
+                $paginator = $query->paginate($perPage);
+
+                $trainingContractBills = TrainingContractBillResource::collection($paginator);
+                $paginationData        = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'training_contract_bills' => $trainingContractBills,
+                        'links'                   => $paginationData['links'],
+                        'meta'                    => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            return $this->sendResponse(
+                [
+                    'training_contract_bills' => TrainingContractBillResource::collection($query->get()),
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
     public function store(){
-        $bonuses = TrainingContractBonus::bonusesWithNoBills();
+        $bonuses = TrainingContractBonus::bonusesWithNoBills()->get();
         $cont = 0;
         foreach($bonuses as $bonus) {
             if ($bonus->amount != 0) {
@@ -154,16 +222,18 @@ class TrainingContractBillController extends BaseController
             }
         }
 
-        return response()->json([
-            'status' => 200,
-            'created' => $cont
-        ]);
+        return $this->sendResponse(
+            [
+                'created' => $cont,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     public function update($id, Request $request){
         try {
             $bill = TrainingContractBill::updateBill($id, $request);
-            
+
             if (!is_object($bill)) {
                 throw new \Exception('Error al actualizar la factura');
             }
@@ -195,7 +265,7 @@ class TrainingContractBillController extends BaseController
                 }
             }
 
-            $bill = TrainingContractBill::getTrainingContractBills()
+            $bill = TrainingContractBill::getTrainingContractBill()
                 ->where('training_contract_bills.id', $id)->first();
 
             switch ($bill['month']) {
@@ -237,10 +307,12 @@ class TrainingContractBillController extends BaseController
                     break;
             }
 
-            return response()->json([
-                'status' => 200,
-                'training_contract_bill' => $bill
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_contract_bill' => $bill,
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -255,11 +327,13 @@ class TrainingContractBillController extends BaseController
             $bill['name'] = $bill['number'] . ' - '.$bill->company->name.' - ' . $bill->training_contract->student->name . ' ' . $bill->training_contract->student->surname;
             $bill['company'] = $bill->company->name;
             $bill['student'] = $bill->training_contract->student->name.' '.$bill->training_contract->student->surname;
-    
-            return response()->json([
-                'status' => 200,
-                'training_contract_bill' => $bill
-            ]);
+
+            return $this->sendResponse(
+                [
+                    'training_contract_bill' => $bill,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -303,10 +377,10 @@ class TrainingContractBillController extends BaseController
 
             $bill->delete();
 
-            return response()->json([
-                'status' => 200,
-                'message' => 'Factura eliminada con éxito'
-            ]);
+            return $this->sendResponse(
+                [],
+                trans('Factura eliminada con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
@@ -314,4 +388,79 @@ class TrainingContractBillController extends BaseController
             ]);
         }
     }
+
+    public function exportExcel(Request $request)
+    {
+        try {
+            $query = TrainingContractBill::getTrainingContractBill();
+
+            // ✅ mismos filtros que index
+            if ($request->filled('student')) {
+                $s = trim((string) $request->student);
+                $query->where(function ($q) use ($s) {
+                    $q->where('students.name', 'like', "%{$s}%")
+                        ->orWhere('students.surname', 'like', "%{$s}%");
+                });
+            }
+
+            if ($request->filled('company')) {
+                $c = trim((string) $request->company);
+                $query->where('companies.name', 'like', "%{$c}%");
+            }
+
+            if ($request->filled('month')) {
+                $query->where('training_contract_bills.month', $request->month);
+            }
+
+            if ($request->filled('year')) {
+                $query->where('training_contract_bills.year', $request->year);
+            }
+
+            if ($request->filled('invoiced')) {
+                $query->where('training_contract_bills.invoiced', (int) $request->invoiced);
+            }
+
+            // ✅ en tu UI lo llamas "paid" pero realmente es charged (cobrado)
+            if ($request->filled('charged')) {
+                $query->where('training_contract_bills.charged', (int) $request->charged);
+            }
+
+            // ✅ mismo ORDER BY que index (opcional)
+            $sortParam = (string) $request->get('sort', '-number');
+            $dir       = str_starts_with($sortParam, '-') ? 'desc' : 'asc';
+            $key       = ltrim($sortParam, '-');
+
+            $sortable = [
+                'number'      => 'training_contract_bills.number',
+                'bill_number' => 'training_contract_bills.number', // si tu grid manda bill_number
+                'cfa_number'  => 'training_contract_bills.number_cfa',
+                'month'       => 'training_contract_bills.month',
+                'year'        => 'training_contract_bills.year',
+                'invoiced'    => 'training_contract_bills.invoiced',
+                'charged'     => 'training_contract_bills.charged',
+                'student'     => 'students.name',
+                'company'     => 'companies.name',
+            ];
+
+            if (isset($sortable[$key])) {
+                $query->orderBy($sortable[$key], $dir)->orderBy('training_contract_bills.id', 'desc');
+            } else {
+                $query->orderBy('training_contract_bills.number', 'desc');
+            }
+
+            // ✅ si tu builder hace joins y selects extraños, puedes asegurar:
+            // $query->select('training_contract_bills.*');
+
+            $rows = $query->get();
+
+            $filename = 'facturas_cfa_' . Carbon::now()->format('Y-m-d_H-i-s') . '.xlsx';
+
+            return Excel::download(new TrainingContractBillsExport($rows), $filename);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

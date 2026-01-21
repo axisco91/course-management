@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\CertificationElementResource;
 use App\Models\CertificationElement;
 use App\Models\Module;
 use App\Models\TrainingUnit;
@@ -12,29 +13,73 @@ class CertificationElementController extends BaseController
     public function index($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        return response()->json([
-            'elements' => CertificationElement::getCertificationElements($id, $mainCompanyId)
-        ]);
+        $query = CertificationElement::GetCertificationElements($id, $mainCompanyId);
+        // CON PAGINACIÓN
+        if ($request->filled('perPage')) {
+            $perPage   = (int) $request->perPage;
+
+            $paginator = $query->paginate($perPage);
+
+            // Resource sobre el paginator
+            $certificationElements = CertificationElementResource::collection($paginator);
+            // Si no tienes Resource, podrías usar directamente:
+            // $certifications = $paginator->items();
+
+            // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+            $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+            return $this->sendResponse(
+                [
+                    'certification_elements' => $certificationElements,
+                    'links'          => $paginationData['links'],
+                    'meta'           => $paginationData['meta'],
+                ],
+                trans('Obtenido con éxito')
+            );
+        }
+
+        // SIN PAGINACIÓN
+        $certificationElements = CertificationElementResource::collection($query->get());
+        // o, sin resource: $certifications = $query->get();
+
+        return $this->sendResponse(
+            [
+                'certification_elements' => $certificationElements,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     public function show($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        return response()->json([
-            'elements' => CertificationElement::getCertificationElement($id, $mainCompanyId)
-        ]);
+        $certificationElement = CertificationElement::getCertificationElement($id, $mainCompanyId);
+
+        return $this->sendResponse(
+            [
+                'certification_element' => $certificationElement,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     public function getModules($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        return Module::getModulesNotInCertification($id, $mainCompanyId);
+        $module = Module::AvailableForCertification($id, $mainCompanyId)->get();
+
+        return $this->sendResponse(
+            [
+                'module' => $module,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     public function getUnits($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        return TrainingUnit::getTrainingUnitsNotInCertification($id, $mainCompanyId);
+        return TrainingUnit::getTrainingUnitsNotInCertification($id, $mainCompanyId)->get();
     }
 
     public function create($id, Request $request){
@@ -88,14 +133,14 @@ class CertificationElementController extends BaseController
                         ->FilterMainCompany($mainCompanyId)
                         ->first();
 
-                    $module = Module::getModule($module->id, $mainCompanyId);
+                    $module = Module::getModule($module->id, $mainCompanyId)->first();
                 }
                 if ($element->training_unit_id) {
                     $unit = TrainingUnit::select('training_units.*', 'training_units.id as value', 'training_units.name as label')
                         ->where('id', $element->training_unit_id)
                         ->FilterMainCompany($mainCompanyId)
                         ->first();
-                    $unit = TrainingUnit::getTrainingUnit($unit->id);
+                    $unit = TrainingUnit::getTrainingUnit($unit->id, $mainCompanyId)->first();
                 }
                 $certificationElement = CertificationElement::where('id', $id)
                     ->FilterMainCompany($mainCompanyId)

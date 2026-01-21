@@ -1,38 +1,43 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
 use App\Http\Requests\GeneralRequests;
+use App\Http\Resources\ActionTypeResource;
 use App\Models\ActionType;
-use App\Models\TrainingAction;
-use App\Services\ActionTypeService;
+use Illuminate\Http\Request;
 
 class ActionTypeController extends BaseController
 {
-    private $actionTypeService;
-
-    public function __construct(ActionTypeService $actionTypeService)
-    {
-        $this->actionTypeService = $actionTypeService;
-    }
-
     /**
      * Obtener tipo acciones
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getActionTypes() {
+    public function getActionTypes(Request $request) {
         try {
-            $actionTypes = ActionType::getActionType()->get();
+            $params = ActionType::getActionType()
+                ->withExists(['trainingActions as used']);
 
-            foreach ($actionTypes as $actionType){
-                $trainingAction = TrainingAction::where('action_type_id', $actionType['id'])->first();
-                if ($trainingAction){
-                    $actionType['used'] = true;
-                } else{
-                    $actionType['used'] = false;
-                }
+            if ($request->perPage) {
+                $actionTypes = ActionTypeResource::collection($params->paginate(intval(request('perPage'))));
+                $paginationData = GeneralHelpers::generatePaginationData($params);
+                return $this->sendResponse(
+                    [
+                        'action_types' => $actionTypes,
+                        'links'       => $paginationData['links'],
+                        'meta'        => $paginationData['meta'],
+                    ],
+                    trans('Obtenido')
+                );
             }
+            $actionTypes = ActionTypeResource::collection($params->get());
 
-            return $actionTypes;
+            return $this->sendResponse(
+                [
+                    'action_types' => $actionTypes,
+                ],
+                trans('Obtenido')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -46,20 +51,20 @@ class ActionTypeController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      */
     public function getActionType($id){
-        $actionType = ActionType::getActionType()
-            ->where('id', $id)
+        $params = ActionType::getActionType()
+            ->withExists(['trainingActions as used'])
+            ->where('action_types.id', $id)
             ->first();
-        if ($actionType) {
-            $trainingAction = TrainingAction::where('action_type_id', $actionType['id'])->first();
-            if ($trainingAction){
-                $actionType['used'] = true;
-            } else{
-                $actionType['used'] = false;
-            }
-            return response()->json([
-                'status' => 200,
-                'action_type' => $actionType
-            ]);
+
+        if ($params) {
+            $actionType = ActionTypeResource::collection($params);
+
+            return $this->sendResponse(
+                [
+                    'action_type' => $actionType,
+                ],
+                trans('Obtenido')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -75,22 +80,21 @@ class ActionTypeController extends BaseController
     public function create(GeneralRequests $request){
         try {
             $data = $request->all();
-            $element = $this->actionTypeService->create($data);
-            $actionType = ActionType::getActionType()
-                ->where('id', $element->id)
+            $param = ActionType::createWithService($data);
+
+            $params = ActionType::getActionType()
+                ->withExists(['trainingActions as used'])
+                ->where('action_types.id', $param->id)
                 ->first();
-            if ($actionType) {
-                $trainingAction = TrainingAction::where('action_type_id', $actionType['id'])->first();
-                if ($trainingAction){
-                    $actionType['used'] = true;
-                } else{
-                    $actionType['used'] = false;
-                }
-            }
-            return response()->json([
-                'status' => 200,
-                'action_type' => $actionType
-            ]);
+
+            $actionType = ActionTypeResource::collection($params);
+
+            return $this->sendResponse(
+                [
+                    'action_type' => $actionType,
+                ],
+                trans('Creado')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -109,22 +113,21 @@ class ActionTypeController extends BaseController
         try {
             $actionType = ActionType::find($id);
             $data = $request->all();
-            $element = $this->actionTypeService->update($actionType, $data);
-            $actionType = ActionType::getActionType()
-                ->where('id', $element->id)
+            $element = $actionType->updateWithService($data);
+
+            $params = ActionType::getActionType()
+                ->withExists(['trainingActions as used'])
+                ->where('action_types.id', $element->id)
                 ->first();
-            if ($actionType) {
-                $trainingAction = TrainingAction::where('action_type_id', $actionType['id'])->first();
-                if ($trainingAction){
-                    $actionType['used'] = true;
-                } else{
-                    $actionType['used'] = false;
-                }
-            }
-            return response()->json([
-                'status' => 200,
-                'action_type' => $actionType
-            ]);
+
+            $actionType = ActionTypeResource::collection($params);
+
+            return $this->sendResponse(
+                [
+                    'action_type' => $actionType,
+                ],
+                trans('Actualizado correctamente')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -142,9 +145,12 @@ class ActionTypeController extends BaseController
         if ($id) {
             try {
                 ActionType::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [
+
+                    ],
+                    trans('Eliminado correctamente')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

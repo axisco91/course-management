@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\PotentialStudentResource;
 use App\Mail\PotentialPrivateStudent as PotentialPrivateStudent;
 use App\Mail\PotentialStudent as PotentialEmail;
 use App\Models\MainCompany;
@@ -18,7 +19,41 @@ class PotentialStudentController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            return PotentialStudent::getPotentialStudents($mainCompanyId);
+            $query = PotentialStudent::getPotentialStudent($mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $potentialStudents = PotentialStudentResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'potential_students' => $potentialStudents,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $potentialStudents = PotentialStudentResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'potential_students' => $potentialStudents,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -29,12 +64,14 @@ class PotentialStudentController extends BaseController
     public function getPotentialStudent($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        $potentialStudent = PotentialStudent::getPotentialStudent($id, $mainCompanyId);
+        $potentialStudent = PotentialStudent::getPotentialStudent($mainCompanyId)->where('potential_students.id', $id);
         if ($potentialStudent) {
-            return response()->json([
-                'status' => 200,
-                'student' => $potentialStudent
-            ]);
+            return $this->sendResponse(
+                [
+                    'potential_student' => $potentialStudent,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -57,10 +94,12 @@ class PotentialStudentController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'potential_student' => $student
-        ]);
+        return $this->sendResponse(
+            [
+                'potential_student' => $student,
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -75,10 +114,12 @@ class PotentialStudentController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'potential_student' => $student
-        ]);
+        return $this->sendResponse(
+            [
+                'potential_student' => $student,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function destroy($id, Request $request){
@@ -98,9 +139,10 @@ class PotentialStudentController extends BaseController
                 }
 
                 PotentialStudent::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -122,9 +164,10 @@ class PotentialStudentController extends BaseController
                     ->setUsername('zona@avzformacion.com')
                     ->setPassword('Avz.2021');
                     Mail::to($request['email'])->send(new PotentialPrivateStudent());
-                    return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Enviado con éxito')
+                );
             } catch(Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -150,9 +193,10 @@ class PotentialStudentController extends BaseController
                     ->setUsername('zona@avzformacion.com')
                     ->setPassword('Avz.2021');
                 Mail::to($request['email'])->send(new PotentialEmail());
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch(Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -171,13 +215,19 @@ class PotentialStudentController extends BaseController
 
         $dni = PotentialStudent::findDni($request['dni'], $mainCompanyId, $request['id']);
         if ($dni){
-            return response()->json([
-                'exists' => true
-            ]);
+            return $this->sendResponse(
+                [
+                    'exists' => true,
+                ],
+                trans('Obtenido con éxito')
+            );
         } else {
-            return response()->json([
-                'exists' => false
-            ]);
+            return $this->sendResponse(
+                [
+                    'exists' => false,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
     }
 
@@ -202,7 +252,7 @@ class PotentialStudentController extends BaseController
                 ]);
             }
 
-            Student::createWithService($request);
+            Student::createWithService($request->all());
             $potentialStudent->convertPotentialStudent();
         } catch (\Exception $e){
             return response()->json([
@@ -211,9 +261,11 @@ class PotentialStudentController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'student' => $potentialStudent
-        ]);
+        return $this->sendResponse(
+            [
+                'student' => $potentialStudent,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 }

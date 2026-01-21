@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\ProviderResource;
 use App\Models\Company;
 use App\Models\Provider;
 use App\Models\TrainingAction;
@@ -14,7 +15,41 @@ class ProviderController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            return Provider::getProviders($mainCompanyId);
+
+            $query = Provider::getProvider($mainCompanyId);
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $providers = ProviderResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'providers' => $providers,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $providers = ProviderResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'providers' => $providers,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -35,10 +70,12 @@ class ProviderController extends BaseController
             }
             $provider = Provider::createWithService($data);
 
-            return response()->json([
-                'status' => 200,
-                'provider' => Provider::getProvider($provider->id, $mainCompanyId),
-            ]);
+            return $this->sendResponse(
+                [
+                    'provider' => Provider::getProvider($mainCompanyId)->where('providers.id', $provider->id)->first(),
+                ],
+                trans('Created con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -77,10 +114,12 @@ class ProviderController extends BaseController
 
             $provider->updateWithService($id, $request);
 
-            return response()->json([
-                'status' => 200,
-                'provider' => Provider::getProvider($provider->id, $mainCompanyId),
-            ]);
+            return $this->sendResponse(
+                [
+                    'provider' => Provider::getProvider($mainCompanyId)->where('providers.id', $provider->id)->first(),
+                ],
+                trans('Guardar con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -92,13 +131,15 @@ class ProviderController extends BaseController
     public function getProvider($id, Request $request){
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        $provider = Provider::getProvider($id, $mainCompanyId);
+        $provider = Provider::getProvider($mainCompanyId)->where('providers.id', $id)->first();
 
         if ($provider) {
-            return response()->json([
-                'status' => 200,
-                'provider' => $provider
-            ]);
+            return $this->sendResponse(
+                [
+                    'provider' => $provider,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -123,9 +164,10 @@ class ProviderController extends BaseController
                 }
 
                 Provider::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -138,7 +180,7 @@ class ProviderController extends BaseController
     public function getTrainingActions($id, Request $request){
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        return TrainingAction::getProviderTrainingActions($id, $mainCompanyId);
+        return TrainingAction::getProviderTrainingActions($id, $mainCompanyId)->get();
     }
 
     public function count(Request $request ){

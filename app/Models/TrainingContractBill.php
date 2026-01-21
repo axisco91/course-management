@@ -66,16 +66,33 @@ class TrainingContractBill extends Model
         );
     }
 
-    public function scopeGetTrainingContractBills($query)
+    public function scopeGetTrainingContractBill($query)
     {
-        return $query->select('training_contract_bills.*',
+        return $query->select(
+            'training_contract_bills.*',
             'companies.name as company',
             'companies.id as company_id',
             'students.id as student_id',
             'training_contracts.number_cfa',
             DB::raw("CONCAT(students.name,' ', students.surname) as student"),
-            DB::raw("(CASE WHEN training_contract_bills.invoiced='1' THEN 'Si' ELSE 'No' END) as invoice"),
-            DB::raw("(CASE WHEN training_contract_bills.charged='1' THEN 'Si' ELSE 'No' END) as charge"))
+            DB::raw("(CASE WHEN training_contract_bills.invoiced = '1' THEN 'Si' ELSE 'No' END) as invoice"),
+            DB::raw("(CASE WHEN training_contract_bills.charged = '1' THEN 'Si' ELSE 'No' END) as charge"),
+            DB::raw("(CASE
+                        WHEN training_contract_bills.month = 1  THEN 'Enero'
+                        WHEN training_contract_bills.month = 2  THEN 'Febrero'
+                        WHEN training_contract_bills.month = 3  THEN 'Marzo'
+                        WHEN training_contract_bills.month = 4  THEN 'Abril'
+                        WHEN training_contract_bills.month = 5  THEN 'Mayo'
+                        WHEN training_contract_bills.month = 6  THEN 'Junio'
+                        WHEN training_contract_bills.month = 7  THEN 'Julio'
+                        WHEN training_contract_bills.month = 8  THEN 'Agosto'
+                        WHEN training_contract_bills.month = 9  THEN 'Septiembre'
+                        WHEN training_contract_bills.month = 10 THEN 'Octubre'
+                        WHEN training_contract_bills.month = 11 THEN 'Noviembre'
+                        WHEN training_contract_bills.month = 12 THEN 'Diciembre'
+                        ELSE NULL
+                      END) as month_name")
+        )
             ->leftJoin('companies', 'companies.id', '=', 'training_contract_bills.company_id')
             ->leftJoin('training_contracts', 'training_contracts.id', '=', 'training_contract_bills.training_contract_id')
             ->leftJoin('students', 'students.id', '=', 'training_contracts.student_id');

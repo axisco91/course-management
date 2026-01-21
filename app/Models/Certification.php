@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CertificationService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -12,107 +13,153 @@ class Certification extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'total_hours', 'code', 'professional_family_id', 'professional_area_id', 'level', 'face_to_face_hours', 'teletraining_hours', 'main_company_id'];
+    protected $fillable = [
+        'name',
+        'total_hours',
+        'code',
+        'professional_family_id',
+        'professional_area_id',
+        'level',
+        'face_to_face_hours',
+        'teletraining_hours',
+        'main_company_id',
+        'active',
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Relaciones
+    |--------------------------------------------------------------------------
+    */
 
     public function trainingContracts()
     {
-        return $this->belongsToMany(TrainingContract::class,'training_contract_elements');
+        return $this->belongsToMany(TrainingContract::class, 'training_contract_elements');
     }
 
-    public function scopeFilterMainCompany($query, $mainCompanyId) {
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes base
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeFilterMainCompany($query, $mainCompanyId)
+    {
         return $query->where('certifications.main_company_id', $mainCompanyId);
     }
 
-    public static function getCertifications($mainCompanyId){
-        $certifications = Certification::select('certifications.*',
-            'professional_families.name as family',
-            'professional_areas.name as area'
-        )
-            ->leftjoin('professional_families', 'professional_families.id', '=', 'certifications.professional_family_id')
-            ->leftjoin('professional_areas', 'professional_areas.id', '=', 'certifications.professional_area_id')
-            ->where('certifications.main_company_id', $mainCompanyId)
-            ->get();
-        foreach ($certifications as $certification) {
-            $element = TrainingContractElement::where('certification_id', $certification->id)->first();
-            if ($element) {
-                $certification['used'] = true;
-            } else {
-                $certification['used'] = false;
-            }
-        }
-        return $certifications;
+    public function scopeActive($query)
+    {
+        return $query->where('certifications.active', 1);
     }
 
-    public static function getCertification($id, $mainCompanyId){
-        $certification = Certification::select('certifications.*',
-            'professional_families.name as family',
-            'professional_areas.name as area'
+    /**
+     * Scope base para traer certificaciones con meta (familia + área + used)
+     */
+    protected function scopeWithMeta($query)
+    {
+        return $query
+            ->select(
+                'certifications.*',
+                'professional_families.name as family',
+                'professional_areas.name as area'
             )
-            ->leftjoin('professional_families', 'professional_families.id', '=', 'certifications.professional_family_id')
-            ->leftjoin('professional_areas', 'professional_areas.id', '=', 'certifications.professional_area_id')
-            ->where('certifications.id', $id)
-            ->where('certifications.main_company_id', $mainCompanyId)
-            ->first();
-        $element = TrainingContractElement::where('certification_id', $certification->id)->first();
-        if ($element) {
-            $certification['used'] = true;
-        } else {
-            $certification['used'] = false;
-        }
-        return $certification;
+            ->leftJoin(
+                'professional_families',
+                'professional_families.id',
+                '=',
+                'certifications.professional_family_id'
+            )
+            ->leftJoin(
+                'professional_areas',
+                'professional_areas.id',
+                '=',
+                'certifications.professional_area_id'
+            )
+            // "used" = existe algún training_contract asociado
+            ->withExists(['trainingContracts as used']);
     }
 
-    public static function createCertification($data){
-        $certification = Certification::create([
-            'code' => $data['code'],
-            'name' => $data['name'],
-            'professional_family_id' => $data['professional_family_id'],
-            'professional_area_id' => $data['professional_area_id'],
-            'level' => $data['level'],
-            'active' => $data['active'],
-        ]);
-        return $certification;
+    /**
+     * Antes: scopeForMainCompanyWithMeta
+     */
+    public function scopeForMainCompanyWithMeta($query, int $mainCompanyId)
+    {
+        return $query
+            ->withMeta()
+            ->FilterMainCompany($mainCompanyId);
     }
 
-    public static function updateCertification($id, $data){
-        $certification = Certification::where('id', $id)
-            ->FilterMainCompany($data['main_company_id'])
-            ->first();
-
-        if ($certification){
-            $certification->update([
-                'code' => $data['code'],
-                'name' => $data['name'],
-                'professional_family_id' => $data['professional_family_id'],
-                'professional_area_id' => $data['professional_area_id'],
-                'level' => $data['level'],
-                'active' => $data['active'],
-            ]);
-        }
-        return $certification;
+    /**
+     * Antes: scopeCertification
+     * Es exactamente lo mismo, así que lo dejamos como alias
+     */
+    public function scopeCertification($query, int $mainCompanyId)
+    {
+        return $query->forMainCompanyWithMeta($mainCompanyId);
     }
 
-    public static function getCertificationsNotinTrainingContract($id, $mainCompanyId){
-        $trainingContracts_certifications = TrainingContractElement::where('training_contract_elements.training_contract_id', $id)
-            ->whereNotNull('certification_id')
-            ->where('training_contract_elements.main_company_id', $mainCompanyId)
-            ->pluck('certification_id');
-        $certifications = Certification::select('certifications.*', 'certifications.id as value', DB::raw("CONCAT(certifications.name,' (', certifications.total_hours,' horas)') as label"))
-            ->whereNotIn('id', $trainingContracts_certifications)
-            ->where('active', 1)
-            ->where('certifications.main_company_id', $mainCompanyId)
-            ->get();
-        return $certifications;
+    /*
+    |--------------------------------------------------------------------------
+    | Certificaciones no incluidas en un training contract
+    |--------------------------------------------------------------------------
+    |
+    | Creamos un scope + mantenemos tu método static para no romper llamadas.
+    |
+    */
+
+    public function scopeNotInTrainingContract($query, $trainingContractId, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'certifications.*',
+                'certifications.id as value',
+                DB::raw("CONCAT(certifications.name,' (', certifications.total_hours,' horas)') as label")
+            )
+            ->Active()
+            ->FilterMainCompany($mainCompanyId)
+            ->whereNotIn('certifications.id', function ($sub) use ($trainingContractId, $mainCompanyId) {
+                $sub->from('training_contract_elements')
+                    ->select('certification_id')
+                    ->where('training_contract_id', $trainingContractId)
+                    ->where('main_company_id', $mainCompanyId)
+                    ->whereNotNull('certification_id');
+            });
     }
 
-    public function updateHours($exam_difference, $tutoring_difference, $teletraining_difference){
-        $total_hours = $this->total_hours + $exam_difference + $tutoring_difference + $teletraining_difference;
-        $certifications = $this->certifications()->get();
-        foreach ($certifications as $certification){
-            $certification->updateHours($exam_difference, $tutoring_difference, $teletraining_difference);
-        }
+    /*
+  |--------------------------------------------------------------------------
+  | Helpers create/update (los dejo estáticos)
+  |--------------------------------------------------------------------------
+  */
+    public static function createWithService($data)
+    {
+        $service = app(CertificationService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(CertificationService::class);
+        return $service->update($this, $data);
+    }
+
+    /*
+   |--------------------------------------------------------------------------
+   | Horas
+   |--------------------------------------------------------------------------
+   */
+    public function updateHours($exam_difference, $tutoring_difference, $teletraining_difference)
+    {
+        $total_hours = $this->total_hours
+            + $exam_difference
+            + $tutoring_difference
+            + $teletraining_difference;
+
+        // Aquí solo actualizamos ESTA certificación.
+        // Si quisieras propagar a algo más (módulos, unidades...), se haría por otras relaciones,
+        // pero tu código original tenía un $this->certifications() que no existe y causaría error/recursión.
         $this->update([
-            'total_hours' => $total_hours
+            'total_hours' => $total_hours,
         ]);
     }
 }

@@ -1,21 +1,49 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-use App\Models\LevelStudy;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TeacherAreaResource;
 use App\Models\TeacherArea;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class TeacherAreaController extends BaseController
 {
-    public function teacherAreas() {
+    public function teacherAreas(Request $request) {
         try {
-            $teacherAreas = TeacherArea::getTeacherAreas();
-            return response()->json([
-                'status' => 200,
-                'teacher_areas' => $teacherAreas
-            ]);
+            $query = TeacherArea::getTeacherArea();
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $teacherAreas = TeacherAreaResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'teacher_areas' => $teacherAreas,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $teacherAreas = TeacherAreaResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'teacher_areas' => $teacherAreas,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
@@ -26,7 +54,7 @@ class TeacherAreaController extends BaseController
 
     public function create(Request $request){
         try {
-            $teacher_area = TeacherArea::createTeacherArea($request);
+            $teacherArea = TeacherArea::createTeacherArea($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -34,15 +62,17 @@ class TeacherAreaController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'teacher_area' => $teacher_area
-        ]);
+        return $this->sendResponse(
+            [
+                'teacher_area' => $teacherArea,
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
         try {
-            $teacher_area = TeacherArea::updateTeacherArea($id, $request);
+            $teacherArea = TeacherArea::updateTeacherArea($id, $request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -50,19 +80,23 @@ class TeacherAreaController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'teacher_area' => $teacher_area
-        ]);
+        return $this->sendResponse(
+            [
+                'teacher_area' => $teacherArea,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
-    public function getTrainingActionLevel($id){
-        $teacher_area = TeacherArea::getTeacherArea($id);
-        if ($teacher_area) {
-            return response()->json([
-                'status' => 200,
-                'teacher_area' => $teacher_area
-            ]);
+    public function show($id){
+        $teacherArea = TeacherArea::getTeacherArea()->where('teacher_areas.id', $id)->first();
+        if ($teacherArea) {
+            return $this->sendResponse(
+                [
+                    'teacher_area' => $teacherArea,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -74,9 +108,10 @@ class TeacherAreaController extends BaseController
         if ($id) {
             try {
                 TeacherArea::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

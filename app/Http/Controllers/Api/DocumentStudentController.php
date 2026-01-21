@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\DocumentStudentResource;
 use App\Mail\SignDocument;
 use App\Models\Document;
 use App\Models\DocumentStudent;
@@ -34,15 +35,48 @@ class DocumentStudentController extends BaseController
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
             $contractId = $request->training_contract_id;
-            $documents = Document::select('documents.*', 'document_students.signed as signed', 'document_students.date_signed as date_signed', 'document_students.key as student_key')
+            $query = Document::select('documents.*', 'document_students.signed as signed', 'document_students.date_signed as date_signed', 'document_students.key as student_key')
                 ->leftJoin('document_students', function ($join) use ($contractId) {
                     $join->on('document_students.document_id', '=', 'documents.id')
                         ->where('document_students.training_contract_id', '=', $contractId);
                 })
                 ->join('document_types', 'document_types.id', '=', 'documents.document_type_id')
                 ->where('document_types.name', 'Contratos')
-                ->FilterMainCompany($mainCompanyId)
-                ->get();
+                ->FilterMainCompany($mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $documentStudents = DocumentStudentResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'document_students' => $documentStudents,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $documentStudents = DocumentStudentResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'document_students' => $documentStudents,
+                ],
+                trans('Obtenido con éxito')
+            );
             return response()->json($documents);
         } catch (\Exception $e) {
             Log::error('Error in index method: ' . $e->getMessage());
@@ -83,7 +117,10 @@ class DocumentStudentController extends BaseController
                 Mail::to($student->email)->send(new SignDocument($documentStudent->name, $documentStudent->key));
                 Log::info('Mail sent to: ' . $student->email);
 
-                return response()->json(['status' => 200]);
+                return $this->sendResponse(
+                    [],
+                    trans('Enviado con éxito')
+                );
             }
         } catch (\Exception $e) {
             Log::error('Error in send method: ' . $e->getMessage());
@@ -184,10 +221,10 @@ class DocumentStudentController extends BaseController
             'trainingContractExcludedDays'
         ]);
 
-        $elements = TrainingContractElement::getTrainingContractElements($trainingContract->id, $mainCompanyId);
+        $elements = TrainingContractElement::getTrainingContractElements($trainingContract->id, $mainCompanyId)->get();
         $monthlyFormationHours = $trainingContract->calculateMonthlyFormationHours($trainingContract->id)['monthly_formation_hours'];
 
-        $bonus = TrainingContractBonus::getBonuses($trainingContract->id, $mainCompanyId);
+        $bonus = TrainingContractBonus::getBonuses($trainingContract->id, $mainCompanyId)->get();
         $companyType = CompanyType::find($trainingContract->company->company_type_id);
 
         $dias = $this->calculateWorkingDays($trainingContract);

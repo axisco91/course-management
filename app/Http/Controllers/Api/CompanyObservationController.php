@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\CompanyObservationResource;
 use App\Models\CompanyObservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,41 @@ class CompanyObservationController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            return CompanyObservation::getCompanyObservations($id, $mainCompanyId);
+            $query = CompanyObservation::getCompanyObservations($id, $mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $companyObservations = CompanyObservationResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'company_observations' => $companyObservations,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $companyObservations = CompanyObservationResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'company_observations' => $companyObservations,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -29,10 +64,12 @@ class CompanyObservationController extends BaseController
 
             $observation = CompanyObservation::createWithService($data);
 
-            return response()->json([
-                'status' => 200,
-                'observation' => $observation
-            ]);
+            return $this->sendResponse(
+                [
+                    'company_observation' => $observation,
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -59,10 +96,12 @@ class CompanyObservationController extends BaseController
 
             $companyObservation->updateWithService($data);
 
-            return response()->json([
-                'status' => 200,
-                'observation' => $companyObservation
-            ]);
+            return $this->sendResponse(
+                [
+                    'company_observation' => $companyObservation,
+                ],
+                trans('Actualizado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -71,7 +110,7 @@ class CompanyObservationController extends BaseController
         }
     }
 
-    public function getCompanyObservation($id, Request $request){
+    public function show($id, Request $request){
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
         $observation = CompanyObservation::where('id', $id)
@@ -79,10 +118,12 @@ class CompanyObservationController extends BaseController
             ->first();
 
         if ($observation) {
-            return response()->json([
-                'status' => 200,
-                'observation' => $observation
-            ]);
+            return $this->sendResponse(
+                [
+                    'company_observation' => $observation,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -107,9 +148,12 @@ class CompanyObservationController extends BaseController
                 }
 
                 CompanyObservation::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [
+
+                    ],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

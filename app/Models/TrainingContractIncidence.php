@@ -21,34 +21,21 @@ class TrainingContractIncidence extends Model
         'main_company_id'
     ];
 
-    public static function getTrainingContractIncidences($id, $mainCompanyId){
-        $trainingContract_incidences = TrainingContractIncidence::select('training_contract_incidences.*',
-            'incidence_types.name as incidence_type',
-            'users.name as user_name', 'users.surname as user_surname',
-            DB::raw("CONCAT(users.name,' ',users.surname) as user"))
-            ->leftjoin('incidence_types', 'incidence_types.id', '=', 'training_contract_incidences.incidence_type_id')
-            ->leftjoin('users', 'users.id', '=', 'training_contract_incidences.user_id')
-            ->where('training_contract_id', $id)
-            ->where('training_contract_incidences.main_company_id', $mainCompanyId)
-            ->get();
-        foreach ($trainingContract_incidences as $trainingContract_incidence) {
-            $trainingContract_incidence['created'] = Carbon::createFromFormat('Y-m-d H:i:s', $trainingContract_incidence['created_at'])->format('d/m/Y');
-        }
-        return $trainingContract_incidences;
-    }
-
-    public static function getTrainingContractIncidence($id, $mainCompanyId){
-        $trainingContract_incidence = TrainingContractIncidence::select('training_contract_incidences.*',
-            'incidence_types.name as incidence_type',
-            'users.name as user_name', 'users.surname as user_surname',
-            DB::raw("CONCAT(users.name,' ',users.surname) as user"))
-            ->leftjoin('incidence_types', 'incidence_types.id', '=', 'training_contract_incidences.incidence_type_id')
-            ->leftjoin('users', 'users.id', '=', 'training_contract_incidences.user_id')
-            ->where('training_contract_incidences.id', $id)
-            ->where('training_contract_incidences.main_company_id', $mainCompanyId)
-            ->first();
-        $trainingContract_incidence['created'] = Carbon::createFromFormat('Y-m-d H:i:s', $trainingContract_incidence['created_at'])->format('d/m/Y');
-        return $trainingContract_incidence;
+    public function scopeGetTrainingContractIncidence($query, $trainingContractId, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'training_contract_incidences.*',
+                'incidence_types.name as incidence_type',
+                'users.name as user_name',
+                'users.surname as user_surname',
+                DB::raw("CONCAT(users.name, ' ', users.surname) as user"),
+                DB::raw("DATE_FORMAT(training_contract_incidences.created_at, '%d/%m/%Y') as created")
+            )
+            ->leftJoin('incidence_types', 'incidence_types.id', '=', 'training_contract_incidences.incidence_type_id')
+            ->leftJoin('users', 'users.id', '=', 'training_contract_incidences.user_id')
+            ->where('training_contract_incidences.training_contract_id', $trainingContractId)
+            ->where('training_contract_incidences.main_company_id', $mainCompanyId);
     }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingContractElementResource;
 use App\Models\Certification;
 use App\Models\TrainingAction;
 use App\Models\TrainingContractElement;
@@ -17,11 +18,41 @@ class TrainingContractElementController extends BaseController
     public function getAll(Request $request){
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $elements = TrainingContractElement::getAllTrainingContractElements($mainCompanyId);
-            return response()->json([
-                'status' => 200,
-                'elements' => $elements
-            ]);
+            $query = TrainingContractElement::getAllTrainingContractElements($mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $trainingContractElements = TrainingContractElementResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'training_contract_elements' => $trainingContractElements,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $trainingContractElements = TrainingContractElementResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'training_contract_elements' => $trainingContractElements,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
@@ -33,11 +64,13 @@ class TrainingContractElementController extends BaseController
     public function getActive(Request $request){
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $elements = TrainingContractElement::getActiveTrainingContractElements($mainCompanyId);
-            return response()->json([
-                'status' => 200,
-                'elements' => $elements
-            ]);
+            $elements = TrainingContractElement::getActiveTrainingContractElements($mainCompanyId)->get();
+            return $this->sendResponse(
+                [
+                    'training_contract_elements' => $elements,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,
@@ -65,13 +98,13 @@ class TrainingContractElementController extends BaseController
                         $planned = $planned + $element->training_action_total_hours;
                     }
                 }
-                return response()->json([
-                    'status' => 200,
-                    'elements' => $elements,
-                    'planned' => $planned,
-                    'message' => ' element fetched successfully'
-
-                ]);
+                return $this->sendResponse(
+                    [
+                        'elements' => $elements,
+                        'planned' => $planned,
+                    ],
+                    trans('Obtenido con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'message' => $e->getMessage()
@@ -112,12 +145,15 @@ class TrainingContractElementController extends BaseController
                 ->where('training_contract_elements.id', $element->id)
                 ->FilterMainCompany($mainCompanyId)
                 ->first();
-            return response()->json([
-                'status' => 200,
-                'element' => $element,
-                'certification' => $certification,
-                'training_action' => $trainingAction
-            ]);
+
+            return $this->sendResponse(
+                [
+                    'element' => $element,
+                    'certification' => $certification,
+                    'training_action' => $trainingAction
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -155,12 +191,15 @@ class TrainingContractElementController extends BaseController
 
                 TrainingContractElement::deleteTrainingContractElement($id, $mainCompanyId);
                 TrainingContractElement::destroy($id);
-                return response()->json([
-                    'status' => 200,
-                    'certification' => $certification,
-                    'training_action' => $trainingAction,
-                    'formation_hours' => $formation_hours,
-                ]);
+
+                return $this->sendResponse(
+                    [
+                        'certification' => $certification,
+                        'training_action' => $trainingAction,
+                        'formation_hours' => $formation_hours,
+                    ],
+                    trans('Obtenido con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -195,7 +234,13 @@ class TrainingContractElementController extends BaseController
             }
 
             $trainingContractElements = $trainingContractElements->orderBy('order', 'asc')->get();
-            return $trainingContractElements;
+
+            return $this->sendResponse(
+                [
+                    'training_contract_elements' => $trainingContractElements,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -219,9 +264,10 @@ class TrainingContractElementController extends BaseController
                 // Registrar que el ordenamiento se realizó correctamente
                 Log::info('Ordenamiento realizado con éxito');
 
-                return response()->json([
-                    'status' => 200,
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Obtenido con éxito')
+                );
             } else {
                 // Registrar que no se recibió elementListChange
                 Log::warning('No se recibió elementListChange en la solicitud');
@@ -257,10 +303,12 @@ class TrainingContractElementController extends BaseController
                 ]);
             }
 
-            return response()->json([
-                'status' => 200,
-                'element' => $element
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_contract_element' => $element,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -287,10 +335,12 @@ class TrainingContractElementController extends BaseController
 
             $element->updateDates($data);
 
-            return response()->json([
-                'status' => 200,
-                'element' =>  TrainingContractElement::info($mainCompanyId)->where('training_contract_elements.id', $element->id)->first()
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_contract_element' => TrainingContractElement::info($mainCompanyId)->where('training_contract_elements.id', $element->id)->first(),
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -300,9 +350,14 @@ class TrainingContractElementController extends BaseController
     public function getAllTrainingContractElements(Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $elements = TrainingContractElement::getAllTrainingContractElements($mainCompanyId);
-            dd($elements);
-            return response()->json(['status' => 200, 'elements' => $elements]);
+            $elements = TrainingContractElement::getAllTrainingContractElements($mainCompanyId)->get();
+
+            return $this->sendResponse(
+                [
+                    'training_contract_elements' => $elements,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json(['status' => 500, 'error' => 'Error fetching training contract elements']);
         }
@@ -333,13 +388,14 @@ class TrainingContractElementController extends BaseController
                 'training_tutor_dni' => $request->input('training_tutor_dni')
             ];
 
-            $element->updateTutorInfo($element, $data);
+            $element->updateTutorInfo($data);
 
-            return response()->json([
-                'status' => 200,
-                'element' => TrainingContractElement::info($mainCompanyId)->where('training_contract_elements.id', $element->id)->first(),
-                'message' => 'Tutor information updated successfully'
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_contract_element' => TrainingContractElement::info($mainCompanyId)->where('training_contract_elements.id', $element->id)->first(),
+                ],
+                trans('Tutor information updated successfully')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 500,

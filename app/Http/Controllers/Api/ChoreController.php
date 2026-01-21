@@ -1,12 +1,15 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Exports\ChoresExport;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\ChoreResource;
 use App\Models\Chore;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ChoreController extends BaseController
 {
@@ -15,146 +18,117 @@ class ChoreController extends BaseController
      * Obtenemos tareas
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $start = \Illuminate\Support\Carbon::now();
-            $number_days = 3;
-            if ($start->dayOfWeek >= 3)
-                $number_days = 5;
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                Auth::id()
+            );
 
-            $chores = Chore::chore($mainCompanyId);
+            $query = Chore::chore($mainCompanyId);
+
             $user = User::find(Auth::id());
+
             if ($user->teacher_id) {
-                $chores = $chores->where('courses.teacher_id', $user->teacher_id);
+                $query->whereHas('course', function ($q) use ($user) {
+                    $q->where('teacher_id', $user->teacher_id);
+                });
             }
 
             if ($request->course) {
-                $chores = $chores->where('courses.id', $request->course);
+                $query->where('course_id', $request->course);
+                // o si quieres asegurarte que existe:
+                // $query->whereHas('course', fn($q)=>$q->where('id',$request->course));
             }
+
             if ($request->company) {
-                $chores = $chores->where('companies.id', $request->company);
+                $query->where('company_id', $request->company);
             }
+
             if ($request->student) {
-                $chores = $chores->where('students.id', 'LIKE', $request->student);
+                $query->where('student_id', $request->student);
             }
+
             if ($request->status) {
-                $chores = $chores
-                    ->where('course_statuses.name', 'LIKE', $request->status);
+                $query->whereHas('course.courseStatus', function ($q) use ($request) {
+                    $q->where('id', $request->status);
+                });
             }
+
             if ($request->beginning) {
-                $chores = $chores->where('courses.beginning', '>=', \Illuminate\Support\Carbon::parse($request->beginning));
+                $beginning = \Illuminate\Support\Carbon::parse($request->beginning)->format('Y-m-d');
+                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '>=', $beginning));
             }
+
             if ($request->end) {
-                $chores = $chores->where('courses.beginning', '<=', Carbon::parse($request->end));
+                $end = \Illuminate\Support\Carbon::parse($request->end)->format('Y-m-d');
+                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '<=', $end));
             }
 
             if ($request->type) {
-                $chores = $chores->where('course_types.name', 'LIKE', $request->type);
+                $query->whereHas('course.courseType', function ($q) use ($request) {
+                    $q->where('id', $request->type);
+                });
             }
 
-            $chores = $chores->orderBy('chores.id', 'desc')
-                ->get();
+            $query
+                ->leftJoin('courses', 'courses.id', '=', 'chores.course_id')
+                ->leftJoin('companies', 'companies.id', '=', 'chores.company_id')
+                ->leftJoin('students', 'students.id', '=', 'chores.student_id')
+                ->select('chores.*');
 
-            foreach ($chores as $chore){
-                if ($chore->membership_tab_status == 0) {
-                    $chore['membership_tab_status_name'] = 'Pendiente';
-                } else if ($chore->membership_tab_status == 1) {
-                    $chore['membership_tab_status_name'] = 'Enviada';
-                } else if ($chore->membership_tab_status == 2) {
-                    $chore['membership_tab_status_name'] = 'Recibida';
-                } else if ($chore->membership_tab_status == 3) {
-                    $chore['membership_tab_status_name'] = 'No procede';
-                }
+            $sortRaw = $request->get('sort', '-id');
 
-                if ($chore->economic_proposal_status == 0) {
-                    $chore['economic_proposal_status_name'] = 'Pendiente';
-                } else if ($chore->economic_proposal_status == 1) {
-                    $chore['economic_proposal_status_name'] = 'Enviada';
-                } else if ($chore->economic_proposal_status == 2) {
-                    $chore['economic_proposal_status_name'] = 'Recibida';
-                }
+            $dir = 'asc';
+            $field = $sortRaw;
 
-                if ($chore->student_tab_status == 0) {
-                    $chore['student_tab_status_name'] = 'Pendiente';
-                } else if ($chore->student_tab_status == 1) {
-                    $chore['student_tab_status_name'] = 'Enviada';
-                } else if ($chore->student_tab_status == 2) {
-                    $chore['student_tab_status_name'] = 'Recibida';
-                }
-
-                if ($chore->welcome_guid_status == 0) {
-                    $chore['welcome_guid_status_name'] = 'Pendiente';
-                } else if ($chore->welcome_guid_status == 1) {
-                    $chore['welcome_guid_status_name'] = 'Realizada';
-                }
-
-                if ($chore->registration_status == 0) {
-                    $chore['registration_status_name'] = 'Pendiente';
-                } else if ($chore->registration_status == 1) {
-                    $chore['registration_status_name'] = 'Realizada';
-                }
-
-                if ($chore->diploma_status == 0) {
-                    $chore['diploma_status_name'] = 'Pendiente';
-                } else if ($chore->diploma_status == 1) {
-                    $chore['diploma_status_name'] = 'Realizada';
-                } else if ($chore->diploma_status == 2) {
-                    $chore['diploma_status_name'] = 'No procede';
-                }
-
-                if ($chore->start_communication_status == 0) {
-                    $chore['start_communication_status_name'] = 'Pendiente';
-                } else if ($chore->start_communication_status == 1) {
-                    $chore['start_communication_status_name'] = 'Realizada';
-                } else if ($chore->start_communication_status == 2) {
-                    $chore['start_communication_status_name'] = 'No procede';
-                }
-
-                if ($chore->close_communication_status == 0) {
-                    $chore['close_communication_status_name'] = 'Pendiente';
-                } else if ($chore->close_communication_status == 1) {
-                    $chore['close_communication_status_name'] = 'Realizada';
-                } else if ($chore->close_communication_status == 2) {
-                    $chore['close_communication_status_name'] = 'No procede';
-                }
-
-                if ($chore->invoiced_status == 0) {
-                    $chore['invoiced_status_name'] = 'Pendiente';
-                } else if ($chore->invoiced_status == 1) {
-                    $chore['invoiced_status_name'] = 'Realizada';
-                } else if ($chore->invoiced_status == 2) {
-                    $chore['invoiced_status_name'] = 'No procede';
-                }
-
-                if ($chore->bonus_sent_status == 0) {
-                    $chore['bonus_sent_status_name'] = 'Pendiente';
-                } else if ($chore->bonus_sent_status == 1) {
-                    $chore['bonus_sent_status_name'] = 'Realizada';
-                } else if ($chore->bonus_sent_status == 2) {
-                    $chore['bonus_sent_status_name'] = 'No procede';
-                }
-
-                if ($chore->send_doc_status == 0) {
-                    $chore['send_doc_status_name'] = 'Pendiente';
-                } else if ($chore->send_doc_status == 1) {
-                    $chore['send_doc_status_name'] = 'Realizada';
-                } else if ($chore->send_doc_status == 2) {
-                    $chore['send_doc_status_name'] = 'No procede';
-                }
-
-                if ($chore->tutor_guide_status == 0) {
-                    $chore['tutor_guide_status_name'] = 'Pendiente';
-                } else if ($chore->tutor_guide_status == 1) {
-                    $chore['tutor_guide_status_name'] = 'Realizada';
-                }
+            if (is_string($sortRaw) && $sortRaw[0] === '-') {
+                $dir = 'desc';
+                $field = substr($sortRaw, 1);
             }
 
-            return $chores;
+            $sortable = [
+                'id' => 'chores.id',
+                'course' => 'courses.name',
+                'company' => 'companies.name',
+                'student' => 'students.name',
+            ];
+
+            if (!array_key_exists($field, $sortable)) {
+                $field = 'id';
+            }
+
+            // student = nombre + apellido
+            if ($field === 'student') {
+                $query
+                    ->orderBy('students.name', $dir)
+                    ->orderBy('students.surname', $dir);
+            } else {
+                $query->orderBy($sortable[$field], $dir);
+            }
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+                $paginator = $query->paginate($perPage);
+
+                return $this->sendResponse(
+                    [
+                        'chores' => ChoreResource::collection($paginator),
+                        'links'  => GeneralHelpers::generatePaginationData($paginator)['links'],
+                        'meta'   => GeneralHelpers::generatePaginationData($paginator)['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            return $this->sendResponse(
+                ['chores' => ChoreResource::collection($query->get())],
+                trans('Obtenido con éxito')
+            );
+
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
+            return response()->json(['message' => $e->getMessage()]);
         }
     }
 
@@ -169,102 +143,13 @@ class ChoreController extends BaseController
             ->where('chores.id', $id)
             ->first();
         if ($chore) {
-            if ($chore->membership_tab_status == 0) {
-                $chore['membership_tab_status_name'] = 'Pendiente';
-            } else if ($chore->membership_tab_status == 1) {
-                $chore['membership_tab_status_name'] = 'Enviada';
-            } else if ($chore->membership_tab_status == 2) {
-                $chore['membership_tab_status_name'] = 'Recibida';
-            } else if ($chore->membership_tab_status == 3) {
-                $chore['membership_tab_status_name'] = 'No procede';
-            }
 
-            if ($chore->economic_proposal_status == 0) {
-                $chore['economic_proposal_status_name'] = 'Pendiente';
-            } else if ($chore->economic_proposal_status == 1) {
-                $chore['economic_proposal_status_name'] = 'Enviada';
-            } else if ($chore->economic_proposal_status == 2) {
-                $chore['economic_proposal_status_name'] = 'Recibida';
-            }
-
-            if ($chore->student_tab_status == 0) {
-                $chore['student_tab_status_name'] = 'Pendiente';
-            } else if ($chore->student_tab_status == 1) {
-                $chore['student_tab_status_name'] = 'Enviada';
-            } else if ($chore->student_tab_status == 2) {
-                $chore['student_tab_status_name'] = 'Recibida';
-            }
-
-            if ($chore->welcome_guid_status == 0) {
-                $chore['welcome_guid_status_name'] = 'Pendiente';
-            } else if ($chore->welcome_guid_status == 1) {
-                $chore['welcome_guid_status_name'] = 'Realizada';
-            }
-
-            if ($chore->registration_status == 0) {
-                $chore['registration_status_name'] = 'Pendiente';
-            } else if ($chore->registration_status == 1) {
-                $chore['registration_status_name'] = 'Realizada';
-            }
-
-            if ($chore->diploma_status == 0) {
-                $chore['diploma_status_name'] = 'Pendiente';
-            } else if ($chore->diploma_status == 1) {
-                $chore['diploma_status_name'] = 'Realizada';
-            } else if ($chore->diploma_status == 2) {
-                $chore['diploma_status_name'] = 'No procede';
-            }
-
-            if ($chore->start_communication_status == 0) {
-                $chore['start_communication_status_name'] = 'Pendiente';
-            } else if ($chore->start_communication_status == 1) {
-                $chore['start_communication_status_name'] = 'Realizada';
-            } else if ($chore->start_communication_status == 2) {
-                $chore['start_communication_status_name'] = 'No procede';
-            }
-
-            if ($chore->close_communication_status == 0) {
-                $chore['close_communication_status_name'] = 'Pendiente';
-            } else if ($chore->close_communication_status == 1) {
-                $chore['close_communication_status_name'] = 'Realizada';
-            } else if ($chore->close_communication_status == 2) {
-                $chore['close_communication_status_name'] = 'No procede';
-            }
-
-            if ($chore->invoiced_status == 0) {
-                $chore['invoiced_status_name'] = 'Pendiente';
-            } else if ($chore->invoiced_status == 1) {
-                $chore['invoiced_status_name'] = 'Realizada';
-            } else if ($chore->invoiced_status == 2) {
-                $chore['invoiced_status_name'] = 'No procede';
-            }
-
-            if ($chore->bonus_sent_status == 0) {
-                $chore['bonus_sent_status_name'] = 'Pendiente';
-            } else if ($chore->bonus_sent_status == 1) {
-                $chore['bonus_sent_status_name'] = 'Realizada';
-            } else if ($chore->bonus_sent_status == 2) {
-                $chore['bonus_sent_status_name'] = 'No procede';
-            }
-
-            if ($chore->send_doc_status == 0) {
-                $chore['send_doc_status_name'] = 'Pendiente';
-            } else if ($chore->send_doc_status == 1) {
-                $chore['send_doc_status_name'] = 'Realizada';
-            } else if ($chore->send_doc_status == 2) {
-                $chore['send_doc_status_name'] = 'No procede';
-            }
-
-            if ($chore->tutor_guide_status == 0) {
-                $chore['tutor_guide_status_name'] = 'Pendiente';
-            } else if ($chore->tutor_guide_status == 1) {
-                $chore['tutor_guide_status_name'] = 'Realizada';
-            }
-
-            return response()->json([
-                'status' => 200,
-                'chore' => $chore
-            ]);
+            return $this->sendResponse(
+                [
+                    'chore' => $chore,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -291,87 +176,13 @@ class ChoreController extends BaseController
                     ->where('chores.id', $element->id)
                     ->first();
                 if ($chore) {
-                    if ($chore->membership_tab_status == 0) {
-                        $chore['membership_tab_status_name'] = 'Pendiente';
-                    } else if ($chore->membership_tab_status == 1) {
-                        $chore['membership_tab_status_name'] = 'Enviada';
-                    } else if ($chore->membership_tab_status == 2) {
-                        $chore['membership_tab_status_name'] = 'Recibida';
-                    } else if ($chore->membership_tab_status == 3) {
-                        $chore['membership_tab_status_name'] = 'No procede';
-                    }
 
-                    if ($chore->economic_proposal_status == 0) {
-                        $chore['economic_proposal_status_name'] = 'Pendiente';
-                    } else if ($chore->economic_proposal_status == 1) {
-                        $chore['economic_proposal_status_name'] = 'Enviada';
-                    } else if ($chore->economic_proposal_status == 2) {
-                        $chore['economic_proposal_status_name'] = 'Recibida';
-                    }
-
-                    if ($chore->student_tab_status == 0) {
-                        $chore['student_tab_status_name'] = 'Pendiente';
-                    } else if ($chore->student_tab_status == 1) {
-                        $chore['student_tab_status_name'] = 'Enviada';
-                    } else if ($chore->student_tab_status == 2) {
-                        $chore['student_tab_status_name'] = 'Recibida';
-                    }
-
-                    if ($chore->welcome_guid_status == 0) {
-                        $chore['welcome_guid_status_name'] = 'Pendiente';
-                    } else if ($chore->welcome_guid_status == 1) {
-                        $chore['welcome_guid_status_name'] = 'Realizada';
-                    }
-
-                    if ($chore->registration_status == 0) {
-                        $chore['registration_status_name'] = 'Pendiente';
-                    } else if ($chore->registration_status == 1) {
-                        $chore['registration_status_name'] = 'Realizada';
-                    }
-
-                    if ($chore->diploma_status == 0) {
-                        $chore['diploma_status_name'] = 'Pendiente';
-                    } else if ($chore->diploma_status == 1) {
-                        $chore['diploma_status_name'] = 'Realizada';
-                    } else if ($chore->diploma_status == 2) {
-                        $chore['diploma_status_name'] = 'No procede';
-                    }
-
-                    if ($chore->start_communication_status == 0) {
-                        $chore['start_communication_status_name'] = 'Pendiente';
-                    } else if ($chore->start_communication_status == 1) {
-                        $chore['start_communication_status_name'] = 'Realizada';
-                    } else if ($chore->start_communication_status == 2) {
-                        $chore['start_communication_status_name'] = 'No procede';
-                    }
-
-                    if ($chore->close_communication_status == 0) {
-                        $chore['close_communication_status_name'] = 'Pendiente';
-                    } else if ($chore->close_communication_status == 1) {
-                        $chore['close_communication_status_name'] = 'Realizada';
-                    } else if ($chore->close_communication_status == 2) {
-                        $chore['close_communication_status_name'] = 'No procede';
-                    }
-
-                    if ($chore->invoiced_status == 0) {
-                        $chore['invoiced_status_name'] = 'Pendiente';
-                    } else if ($chore->invoiced_status == 1) {
-                        $chore['invoiced_status_name'] = 'Realizada';
-                    } else if ($chore->invoiced_status == 2) {
-                        $chore['invoiced_status_name'] = 'No procede';
-                    }
-
-                    if ($chore->bonus_sent_status == 0) {
-                        $chore['bonus_sent_status_name'] = 'Pendiente';
-                    } else if ($chore->bonus_sent_status == 1) {
-                        $chore['bonus_sent_status_name'] = 'Realizada';
-                    } else if ($chore->bonus_sent_status == 2) {
-                        $chore['bonus_sent_status_name'] = 'No procede';
-                    }
-                    return response()->json([
-                        'status' => 200,
-                        'chore' => $chore
-                    ]);
+                    return $this->sendResponse(
+                        [
+                            'chore' => $chore,
+                        ],
+                        trans('Obtenido con éxito')
+                    );
                 }
                 return response()->json([
                     'status' => 404,
@@ -407,15 +218,170 @@ class ChoreController extends BaseController
                     ]);
                 }
                 Chore::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
                     'message' => $e->getMessage()
                 ]);
             }
+        }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                Auth::id()
+            );
+
+            $query = Chore::chore($mainCompanyId);
+
+            $user = User::find(Auth::id());
+
+            if ($user && $user->teacher_id) {
+                $query->whereHas('course', function ($q) use ($user) {
+                    $q->where('teacher_id', $user->teacher_id);
+                });
+            }
+
+            // ✅ filtros IGUALES a index
+            if ($request->course) {
+                $query->where('course_id', $request->course);
+            }
+
+            if ($request->company) {
+                $query->where('company_id', $request->company);
+            }
+
+            if ($request->student) {
+                $query->where('student_id', $request->student);
+            }
+
+            if ($request->status) {
+                $query->whereHas('course.courseStatus', function ($q) use ($request) {
+                    $q->where('id', $request->status);
+                });
+            }
+
+            if ($request->beginning) {
+                $beginning = Carbon::parse($request->beginning)->format('Y-m-d');
+                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '>=', $beginning));
+            }
+
+            if ($request->end) {
+                $end = Carbon::parse($request->end)->format('Y-m-d');
+                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '<=', $end));
+            }
+
+            if ($request->type) {
+                $query->whereHas('course.courseType', function ($q) use ($request) {
+                    $q->where('id', $request->type);
+                });
+            }
+
+            $query->orderByDesc('id');
+
+            // ✅ para evitar N+1 en el map (ajusta nombres si difieren)
+            $query->with([
+                'course:id,name,group,beginning,end,course_type_id,course_status_id,teacher_id',
+                'course.courseType:id,name',
+                'course.courseStatus:id,name',
+                'company:id,name',
+                'student:id,name,surname',
+            ]);
+
+            $query
+                ->leftJoin('courses', 'courses.id', '=', 'chores.course_id')
+                ->leftJoin('companies', 'companies.id', '=', 'chores.company_id')
+                ->leftJoin('students', 'students.id', '=', 'chores.student_id')
+                ->select('chores.*');
+
+            $sortRaw = $request->get('sort', '-id');
+
+            $dir = 'asc';
+            $field = $sortRaw;
+
+            if (is_string($sortRaw) && $sortRaw[0] === '-') {
+                $dir = 'desc';
+                $field = substr($sortRaw, 1);
+            }
+
+            $sortable = [
+                'id' => 'chores.id',
+                'course' => 'courses.name',
+                'company' => 'companies.name',
+                'student' => 'students.name',
+            ];
+
+            if (!array_key_exists($field, $sortable)) {
+                $field = 'id';
+            }
+
+            // student = nombre + apellido
+            if ($field === 'student') {
+                $query
+                    ->orderBy('students.name', $dir)
+                    ->orderBy('students.surname', $dir);
+            } else {
+                $query->orderBy($sortable[$field], $dir);
+            }
+
+            $items = $query->get();
+
+            // ✅ helpers
+            $fmtDate = function ($v) {
+                if (!$v) return '';
+                try {
+                    return Carbon::parse($v)->format('d-m-Y');
+                } catch (\Exception $e) {
+                    return '';
+                }
+            };
+
+            // 👇 aquí mapeas EXACTO a las columnas de tu plantilla Tareas.xlsx
+            $rows = $items->map(function ($ch) use ($fmtDate) {
+                $student = trim(
+                    (string) data_get($ch, 'student.name', '') . ' ' .
+                    (string) data_get($ch, 'student.surname', '')
+                );
+
+                return [
+                    (string) data_get($ch, 'id', ''),
+                    (string) data_get($ch, 'company.name', ''),
+                    $student,
+
+                    // curso
+                    (string) data_get($ch, 'course.name', ''),
+                    (string) data_get($ch, 'course.group', ''),
+                    (string) data_get($ch, 'course.courseType.name', ''),
+                    (string) data_get($ch, 'course.courseStatus.name', ''),
+                    $fmtDate(data_get($ch, 'course.beginning')),
+                    $fmtDate(data_get($ch, 'course.end')),
+
+                    // tarea
+                    (string) data_get($ch, 'title', data_get($ch, 'name', '')),
+                    (string) data_get($ch, 'description', ''),
+                    (string) data_get($ch, 'status', ''),
+
+                    // fechas tarea (si existen)
+                    $fmtDate(data_get($ch, 'beginning')),
+                    $fmtDate(data_get($ch, 'end')),
+                    $fmtDate(data_get($ch, 'created_at')),
+                ];
+            });
+
+            return Excel::download(new ChoresExport($rows), 'Tareas.xlsx');
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ]);
         }
     }
 }

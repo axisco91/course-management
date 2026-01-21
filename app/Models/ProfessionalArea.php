@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ProfessionalAreaService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,47 +22,33 @@ class ProfessionalArea extends Model
         return $this->hasMany('App\Models\TrainingAction', 'professional_area_id', 'id');
     }
 
-    public static function getProfessionalAreas(){
-        $professional_areas = ProfessionalArea::
-        select('*', 'id as value', 'name as label')
-            ->get();
-        foreach ($professional_areas as $professional_area){
-            $trainingAction = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
-            if ($trainingAction){
-                $professional_area['used'] = true;
-            } else {
-                $professional_area['used'] = false;
-            }
-        }
-        return $professional_areas;
+    public function scopeGetProfessionalArea($query)
+    {
+        return $query
+            ->select(
+                'professional_areas.*',
+                'professional_areas.id as value',
+                'professional_areas.name as label'
+            )
+            ->leftJoin(
+                'training_actions',
+                'training_actions.professional_area_id',
+                '=',
+                'professional_areas.id'
+            )
+            ->selectRaw('CASE WHEN training_actions.id IS NULL THEN false ELSE true END as used')
+            ->groupBy('professional_areas.id');
     }
 
-    public static function getProfessionalArea($id){
-        $professional_area = ProfessionalArea::
-        select('*', 'id as value', 'name as label')
-            ->where('id', $id)->first();
-        $trainingAction = TrainingAction::where('professional_area_id', $professional_area['id'])->first();
-        if ($trainingAction){
-            $professional_area['used'] = true;
-        } else {
-            $professional_area['used'] = false;
-        }
-        return $professional_area;
+    public static function createWithService($data)
+    {
+        $service = app(ProfessionalAreaService::class);
+        return $service->create($data);
     }
 
-    public static function createProfessionalArea($data){
-        $professional_area = ProfessionalArea::create([
-            'name' => $data['name']
-        ]);
-        return $professional_area;
+    public function updateWithService($data)
+    {
+        $service = app(ProfessionalAreaService::class);
+        return $service->update($this, $data);
     }
-
-    public static function updateProfessionalArea($id, $data){
-        $professional_area = ProfessionalArea::find($id);
-        $professional_area->update([
-            'name' => $data['name']
-        ]);
-        return $professional_area;
-    }
-
 }

@@ -20,34 +20,42 @@ class RegistrationService
      */
     public function create(array $data)
     {
-        $trainingData = [
-            'course_id' => $data['course_id'],
-            'company_id' => $data['company_id'],
-            'student_id' => $data['student_id'],
-            'main_company_id' => $data['main_company_id'],
-        ];
-        $tracing = Tracing::createWithService($trainingData);
+        $registration = Registration::where('student_id', $data['student_id'])
+            ->where('course_id', $data['course_id'])
+            ->first();
 
-        $choreData = [
-            'course_id' => $data['course_id'],
-            'company_id' => $data['company_id'],
-            'student_id' => $data['student_id'],
-            'main_company_id' => $data['main_company_id'],
-        ];
-        $chore = Chore::createWithService($choreData);
+        if (!$registration) {
+            $trainingData = [
+                'course_id' => $data['course_id'],
+                'company_id' => $data['company_id'],
+                'student_id' => $data['student_id'],
+                'main_company_id' => $data['main_company_id'],
+            ];
+            $tracing = Tracing::createWithService($trainingData);
 
-        return Registration::create([
-            'course_id' => $data['course_id'],
-            'company_id' => $data['company_id'],
-            'student_id' => $data['student_id'],
-            'billing_id' => isset($data['billing_id']) ? $data['billing_id'] : null,
-            'tracing_id' => $tracing->id,
-            'chore_id' => $chore->id,
-            'price' => $data['price'],
-            'profitability_id' => $data['profitability_id'],
-            'is_bonus' => $data['is_bonus'],
-            'main_company_id' => $data['main_company_id'],
-        ]);
+            $choreData = [
+                'course_id' => $data['course_id'],
+                'company_id' => $data['company_id'],
+                'student_id' => $data['student_id'],
+                'main_company_id' => $data['main_company_id'],
+            ];
+            $chore = Chore::createWithService($choreData);
+
+            return Registration::create([
+                'course_id' => $data['course_id'],
+                'company_id' => $data['company_id'],
+                'student_id' => $data['student_id'],
+                'billing_id' => isset($data['billing_id']) ? $data['billing_id'] : null,
+                'tracing_id' => $tracing->id,
+                'chore_id' => $chore->id,
+                'price' => $data['price'],
+                'profitability_id' => $data['profitability_id'],
+                'is_bonus' => $data['is_bonus'],
+                'main_company_id' => $data['main_company_id'],
+            ]);
+        } else {
+            return $registration;
+        }
     }
 
     /**

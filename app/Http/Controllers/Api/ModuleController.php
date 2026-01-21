@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\ModuleResource;
 use App\Models\Module;
 use App\Models\TrainingUnit;
 use App\Models\TrainingUnitsModule;
@@ -14,7 +15,41 @@ class ModuleController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            return Module::getModules($mainCompanyId);
+            $query = Module::getModules($mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $modules = ModuleResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'modules' => $modules,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $modules = ModuleResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'modules' => $modules,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -31,10 +66,12 @@ class ModuleController extends BaseController
 
             $module = Module::createModule($data);
 
-            return response()->json([
-                'status' => 200,
-                'module' => Module::getModule($module->id, $mainCompanyId),
-            ]);
+            return $this->sendResponse(
+                [
+                    'module' => Module::getModule($module->id, $mainCompanyId)->first(),
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -60,10 +97,12 @@ class ModuleController extends BaseController
 
             $module->updateWithService($request);
 
-            return response()->json([
-                'status' => 200,
-                'module' => Module::getModule($module->id, $mainCompanyId),
-            ]);
+            return $this->sendResponse(
+                [
+                    'module' => Module::getModule($module->id, $mainCompanyId)->first(),
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -75,12 +114,14 @@ class ModuleController extends BaseController
     public function getModule($id, Request $request){
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        $module = Module::getModule($id, $mainCompanyId);
+        $module = Module::getModule($id, $mainCompanyId)->first();
         if ($module) {
-            return response()->json([
-                'status' => 200,
-                'module' => $module
-            ]);
+            return $this->sendResponse(
+                [
+                    'module' => $module,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -105,9 +146,10 @@ class ModuleController extends BaseController
                 }
 
                 Module::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -120,15 +162,23 @@ class ModuleController extends BaseController
     public function getUnits($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        return response()->json([
-            'units' => TrainingUnitsModule::getTrainingUnitModules($id, $mainCompanyId)
-        ]);
+        return $this->sendResponse(
+            [
+                'training_units' => TrainingUnitsModule::getTrainingUnitModules($id, $mainCompanyId)->get(),
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     public function getNotUsedUnits($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        return TrainingUnit::getTrainingUnitsNotInModule($id, $mainCompanyId);
+        return $this->sendResponse(
+            [
+                'not_used_units' => TrainingUnit::getTrainingUnitsNotInModule($id, $mainCompanyId)->get(),
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     public function addUnit($id, Request $request){
@@ -137,11 +187,13 @@ class ModuleController extends BaseController
 
             $trainingUnit = TrainingUnitsModule::createTrainingUnitModule($id, $request['unit_id'], $mainCompanyId);
 
-            return response()->json([
-                'status' => 200,
-                'training_unit_module' => TrainingUnitsModule::getTrainingUnitModule($trainingUnit->id, $mainCompanyId),
-                'module' => Module::getModule($id, $mainCompanyId),
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_unit_module' => TrainingUnitsModule::getTrainingUnitModule($trainingUnit->id, $mainCompanyId),
+                    'module' => Module::getModule($id, $mainCompanyId)->first(),
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -162,10 +214,12 @@ class ModuleController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'data' => $data
-        ]);
+        return $this->sendResponse(
+            [
+                'data' => $data,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     public function count(Request $request){

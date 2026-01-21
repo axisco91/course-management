@@ -23,11 +23,21 @@ class Teacher extends Model
         return $this->belongsToMany(TeacherArea::class, 'areas_teacher_areas', 'teacher_id', 'teacher_area_id');
     }
 
-    public function scopeTeacher($query, $mainCompanyId) {
-        return $query->select('teachers.*', 'provinces.name as province', 'teachers.id as value',
-            DB::raw("CONCAT(teachers.name,' ', teachers.surname) as label"))
-            ->leftjoin('provinces', 'provinces.id', '=', 'teachers.province_id')
-            ->where('teachers.main_company_id', $mainCompanyId);
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function province()
+    {
+        return $this->hasOne('App\Models\Province', 'id', 'province_id');
+    }
+
+    public function scopeTeacher($query, $mainCompanyId)
+    {
+        return $query->select(
+            'teachers.*',
+        )
+            ->where('teachers.main_company_id', $mainCompanyId)
+            ->with(['teacherAreas:id,name', 'province']);
     }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {

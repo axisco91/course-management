@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\OccupationService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,48 +14,32 @@ class OnLeaveType extends Model
 
     protected $fillable = ['name'];
 
-    public static function getOnLeaveTypes(){
-        $types = OnLeaveType::select('*', 'id as value', 'name as label')
-            ->get();
-        foreach($types as $type) {
-            $contract = TrainingContract::where('on_leave_type_id', $type->id)->first();
-            if ($contract) {
-                $type['used'] = true;
-            } else {
-                $type['used'] = false;
-            }
-        }
-        return $types;
+    public function scopeGetOnLeaveType($query)
+    {
+        return $query
+            ->select(
+                'on_leave_types.*',
+                'on_leave_types.id as value',
+                'on_leave_types.name as label'
+            )
+            ->leftJoin(
+                'training_contracts',
+                'training_contracts.on_leave_type_id',
+                '=',
+                'on_leave_types.id'
+            )
+            ->selectRaw('CASE WHEN training_contracts.id IS NULL THEN false ELSE true END as used')
+            ->groupBy('on_leave_types.id');
     }
 
-    public static function getOnLeaveType($id){
-        $type = OnLeaveType::select('*', 'id as value', 'name as label')
-            ->where('id', $id)
-            ->first();
-        $contract = TrainingContract::where('on_leave_type_id', $type->id)->first();
-        if ($contract) {
-            $type['used'] = true;
-        } else {
-            $type['used'] = false;
-        }
-        return $type;
+    public static function createWithService($data)
+    {
+        $service = app(OccupationService::class);
+        return $service->create($data);
     }
 
-    public static function createOnLeaveType($data){
-        $status = OnLeaveType::create([
-            'name' => $data['name']
-        ]);
-
-        return $status;
+    public function updateWithService($data){
+        $service = app(OccupationService::class);
+        return $service->update($this, $data);
     }
-
-    public static function updateOnLeaveType($id, $data){
-        $status = OnLeaveType::find($id);
-        $status->update([
-            'name' => $data['name']
-        ]);
-
-        return $status;
-    }
-
 }

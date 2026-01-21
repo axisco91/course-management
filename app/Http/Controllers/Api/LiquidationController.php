@@ -2,21 +2,111 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\LiquidationResource;
 use App\Models\Liquidation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LiquidationController extends BaseController
 {
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                Auth::id()
+            );
 
-            return Liquidation::getliquidations($mainCompanyId);
+            $query = Liquidation::getliquidation($mainCompanyId);
+
+            // sort param: "course" | "-course" | "advisor" | ...
+            $sortParam = (string) $request->get('sort', '-id');
+            $dir       = str_starts_with($sortParam, '-') ? 'desc' : 'asc';
+            $key       = ltrim($sortParam, '-');
+
+            // ✅ joins SOLO si hace falta
+            if ($key === 'course') {
+                $query->leftJoin('courses', 'courses.id', '=', 'liquidations.course_id');
+            }
+
+            if ($key === 'advisor') {
+                $query->leftJoin('advisors', 'advisors.id', '=', 'liquidations.advisor_id');
+            }
+
+            /**
+             * ✅ SELECT estable:
+             * - Siempre seleccionamos liquidations.*
+             * - Si ordenas por course/advisor, añadimos aliases con el nombre.
+             *   (evita errores con DISTINCT / paginación / order by)
+             */
+            $select = ['liquidations.*'];
+
+            if ($key === 'course') {
+                $select[] = 'courses.name as course_name_sort';
+            }
+
+            if ($key === 'advisor') {
+                $select[] = 'advisors.name as advisor_name_sort';
+            }
+
+            $query->select($select);
+
+            // ✅ whitelist de columnas sortable
+            $sortable = [
+                'id'           => 'liquidations.id',
+                'beginning'    => 'liquidations.beginning',
+                'end'          => 'liquidations.end',
+                'status'       => 'liquidations.status',
+                'paid'         => 'liquidations.paid',
+                'invoice_date' => 'liquidations.invoice_date',
+                'paid_date'    => 'liquidations.paid_date',
+                'bill_number'  => 'liquidations.bill_number',
+                'price'        => 'liquidations.price',
+                'commission'   => 'liquidations.commission',
+
+                // ✅ ordenar por NOMBRE (alias)
+                'course'       => 'course_name_sort',
+                'advisor'      => 'advisor_name_sort',
+            ];
+
+            if (isset($sortable[$key])) {
+                $query->orderBy($sortable[$key], $dir);
+
+                // tie-breaker estable
+                if ($key !== 'id') {
+                    $query->orderBy('liquidations.id', 'desc');
+                }
+            } else {
+                $query->orderBy('liquidations.id', 'desc');
+            }
+
+            if ($request->filled('perPage')) {
+                $perPage   = (int) $request->perPage;
+                $paginator = $query->paginate($perPage);
+
+                $liquidations = LiquidationResource::collection($paginator);
+                $pagination   = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'liquidations' => $liquidations,
+                        'links'        => $pagination['links'],
+                        'meta'         => $pagination['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            return $this->sendResponse(
+                [
+                    'liquidations' => LiquidationResource::collection($query->get()),
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
@@ -29,10 +119,12 @@ class LiquidationController extends BaseController
 
             $liquidation = Liquidation::createWithService($data);
 
-            return response()->json([
-                'status' => 200,
-                'module' => Liquidation::getliquidation($liquidation->id, $mainCompanyId),
-            ]);
+            return $this->sendResponse(
+                [
+                    'liquidation' => Liquidation::getliquidation($mainCompanyId)->where('id', $liquidation->id)->first(),
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -59,10 +151,12 @@ class LiquidationController extends BaseController
 
             $liquidation->updateWithService($data);
 
-            return response()->json([
-                'status' => 200,
-                'liquidation' => Liquidation::getLiquidation($liquidation->id, $mainCompanyId)
-            ]);
+            return $this->sendResponse(
+                [
+                    'liquidation' => Liquidation::getliquidation($mainCompanyId)->where('id', $liquidation->id)->first(),
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -74,12 +168,14 @@ class LiquidationController extends BaseController
     public function show($id, Request $request){
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        $liquidation = Liquidation::getLiquidation($id, $mainCompanyId);
+        $liquidation = Liquidation::getliquidation($mainCompanyId)->where('id', $id)->first();
         if ($liquidation) {
-            return response()->json([
-                'status' => 200,
-                'liquidation' => $liquidation
-            ]);
+            return $this->sendResponse(
+                [
+                    'liquidation' => $liquidation,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -104,9 +200,10 @@ class LiquidationController extends BaseController
                 }
 
                 Liquidation::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

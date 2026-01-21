@@ -63,8 +63,8 @@ class CourseService
     public function update(Course $course, array $data) {
 
         $course_info = Course::courseDates(
-            Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'),
-            Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d')
+           $data['beginning'],
+            $data['end']
         );
 
         // Si se proporciona course_status_id en la solicitud, úsalo
@@ -83,18 +83,18 @@ class CourseService
             'group' => $data['group'],
             'course_type_id' => $data['course_type_id'],
             'teacher_id' => $data['teacher_id'],
-            'beginning' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
-            'end' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
+            'beginning' => $data['beginning'],
+            'end' => $data['end'],
             'morning_schedule' => $data['morning_schedule'],
             'afternoon_schedule' => $data['afternoon_schedule'],
             'formation_center_id' => $data['formation_center_id'],
             'delivery_center_id' => $data['delivery_center_id'],
             'course_observation' => $data['course_observation'],
-            'welcome_date' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
+            'welcome_date' => $data['beginning'],
             'quarter_date' => $course_info['quarter'],
             'half_date' => $course_info['half'],
             'three_quarters_date' => $course_info['three_quarters'],
-            'final_date' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
+            'final_date' => $data['end'],
             'course_status_id' => $course_info['course_status_id'],
             'price' => $data['price'],
             'nebrija' => $data['nebrija'],

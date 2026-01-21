@@ -1,19 +1,51 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-use App\Models\ExcludedDayType;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\NacionalFestivalResource;
 use App\Models\NacionalFestival;
-use App\Models\TrainingActionLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class NacionalFestivalController extends BaseController
 {
-    public function getNacionalFestivals() {
+    public function getNacionalFestivals(Request $request) {
         try {
-            return NacionalFestival::all();
+            $query = NacionalFestival::select('*');
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $nacionalFestivals = NacionalFestivalResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'nacional_festivals' => $nacionalFestivals,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $nacionalFestivals = NacionalFestivalResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'nacional_festivals' => $nacionalFestivals,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -34,10 +66,12 @@ class NacionalFestivalController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'nacional_festival' => $festival
-        ]);
+        return $this->sendResponse(
+            [
+                'nacional_festival' => $festival,
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -54,19 +88,22 @@ class NacionalFestivalController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'nacional_festival' => $festival
-        ]);
+        return $this->sendResponse(
+            [
+                'nacional_festival' => $festival,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function destroy($id){
         if ($id) {
             try {
                 NacionalFestival::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

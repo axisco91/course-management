@@ -29,30 +29,14 @@ class Liquidation extends Model
         return $this->hasOne('App\Models\Advisor', 'id', 'advisor_id');
     }
 
-    public static function getLiquidations($mainCompanyId){
-        $liquidations = Liquidation::select('*')
+    public function scopeGetLiquidation($query, $mainCompanyId)
+    {
+        return $query
+            ->select('*')
             ->where('liquidations.main_company_id', $mainCompanyId)
             ->with('course')
             ->with('company')
-            ->with('advisor')
-            ->get();
-
-        return $liquidations;
-    }
-
-    public static function getLiquidation($id, $mainCompanyId)
-    {
-        $liquidation = Liquidation::with([
-            'course' => function ($query) use ($mainCompanyId) {
-                $query->withCourseData($mainCompanyId); // Apply the scope to the course relationship
-            },
-            'company',
-            'advisor'
-        ])->where('id', $id)
-            ->where('liquidations.main_company_id', $mainCompanyId)
-            ->first();
-
-        return $liquidation;
+            ->with('advisor');
     }
 
     public function scopeGetAdvisorLiquidation($query, $advisorId, $companyId, $courseId, $mainCompanyId)

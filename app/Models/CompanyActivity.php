@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\CompanyActivityService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class CompanyActivity extends Model
 {
@@ -21,33 +23,20 @@ class CompanyActivity extends Model
         return $this->hasMany('App\Models\Company', 'activity_id', 'id');
     }
 
-    public static function getCompanyActivities(){
-        $companyActivities = CompanyActivity::select('*', 'id as value', 'name as label')->get();
-        foreach ($companyActivities as $companyActivity) {
-            $company = Company::where('company_activity_id', $companyActivity['id'])->first();
-            if ($company) {
-                $companyActivity['used'] = true;
-            } else {
-                $companyActivity['used'] = false;
-            }
-        }
+    /**
+     * Services
+     */
+    public static function createWithService($data)
+    {
+        $service = app(CompanyActivityService::class);
 
-        return $companyActivities;
+        return $service->create($data);
     }
 
-    public static function createCompanyActivity($data){
-        $company_activity = CompanyActivity::create([
-            'name' => $data['name']
-        ]);
+    public function updateWithService($data)
+    {
+        $service = app(CompanyActivityService::class);
 
-        return $company_activity;
+        return $service->update($this, $data);
     }
-
-    public static function updateCompanyActivity($id, $data){
-        $record = CompanyActivity::find($id);
-        $record->update([
-            'name' => $data['name']
-        ]);
-    }
-
 }

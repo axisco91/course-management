@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class PotentialCompanyObservation extends Model
 {
@@ -22,14 +23,14 @@ class PotentialCompanyObservation extends Model
         return $this->hasOne('App\Models\PotentialCompany', 'id', 'potential_company_id');
     }
 
-    public static function getPotentialCompanyObservations($id){
-        $observations = PotentialCompanyObservation::where('potential_company_id', $id)->get();
-
-        foreach ($observations as $observation){
-            $observation['date'] = Carbon::createFromFormat('Y-m-d H:i:s', $observation['created_at'])->format('d/m/Y');
-        }
-
-        return $observations;
+    public function scopeGetPotentialCompanyObservations($query, $companyId)
+    {
+        return $query
+            ->select(
+                'potential_company_observations.*',
+                DB::raw("DATE_FORMAT(potential_company_observations.created_at, '%d/%m/%Y') as date")
+            )
+            ->where('potential_company_id', $companyId);
     }
 
     public static function createPotentialCompanyObservation($data){

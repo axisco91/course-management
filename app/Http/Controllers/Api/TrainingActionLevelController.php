@@ -1,16 +1,51 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingActionGroupResource;
+use App\Http\Resources\TrainingActionLevelResource;
 use App\Models\TrainingActionLevel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class TrainingActionLevelController extends BaseController
 {
-    public function getTrainingActionLevels() {
+    public function getTrainingActionLevels(Request $request) {
         try {
-            return TrainingActionLevel::getTrainingActionLevels();
+            $query = TrainingActionLevel::getTrainingActionLevel();
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $trainingActionLevels = TrainingActionGroupResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'training_action_levels' => $trainingActionLevels,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $trainingActionLevels = TrainingActionLevelResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'training_action_levels' => $trainingActionLevels,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -28,10 +63,12 @@ class TrainingActionLevelController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'training_action_level' => TrainingActionLevel::getTrainingActionLevel($level->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'training_action_level' => TrainingActionLevel::getTrainingActionLevel()->where('training_action_levels.id', $level->id)->first(),
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -44,19 +81,23 @@ class TrainingActionLevelController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'training_action_level' => TrainingActionLevel::getTrainingActionLevel($id)
-        ]);
+        return $this->sendResponse(
+            [
+                'training_action_level' => TrainingActionLevel::getTrainingActionLevel()->where('training_action_levels.id', $level->id)->first(),
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function getTrainingActionLevel($id){
-        $level = TrainingActionLevel::getTrainingActionLevel($id);
+        $level = TrainingActionLevel::getTrainingActionLevel()->where('training_action_levels.id', $id)->first();
         if ($level) {
-            return response()->json([
-                'status' => 200,
-                'training_action_level' => $level
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_action_level' => $level,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -68,9 +109,10 @@ class TrainingActionLevelController extends BaseController
         if ($id) {
             try {
                 TrainingActionLevel::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

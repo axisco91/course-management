@@ -112,21 +112,29 @@ class Student extends Model
     {
         return $this->hasMany('App\Models\Tracing', 'student_id', 'id');
     }
-
-    public function scopeStudent($query, $mainCompanyId){
-        return $query->select('students.*',
+    public function scopeStudent($query, $mainCompanyId)
+    {
+        return $query->select(
+            'students.*',
             'companies.name as company',
             'level_studies.name as level_study',
             'professional_categories.name as professional_category',
             'provinces.name as province',
             'quote_groups.name as quote_group',
             'students.id as value',
-            DB::raw("CONCAT(students.name,' ',students.surname) as label"))
-            ->leftjoin('companies', 'companies.id', '=', 'students.company_id')
-            ->leftjoin('level_studies', 'level_studies.id', '=', 'students.level_study_id')
-            ->leftjoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'students.province_id')
-            ->leftjoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')
+            DB::raw("CONCAT(students.name,' ',students.surname) as label"),
+            // Aquí añadimos el used
+            DB::raw("CASE WHEN registrations.id IS NULL THEN 0 ELSE 1 END AS used")
+        )
+            ->leftJoin('companies', 'companies.id', '=', 'students.company_id')
+            ->leftJoin('level_studies', 'level_studies.id', '=', 'students.level_study_id')
+            ->leftJoin('professional_categories', 'professional_categories.id', '=', 'students.professional_category_id')
+            ->leftJoin('provinces', 'provinces.id', '=', 'students.province_id')
+            ->leftJoin('quote_groups', 'quote_groups.id', '=', 'students.quote_group_id')
+            ->leftJoin('registrations', function ($join) use ($mainCompanyId) {
+                $join->on('registrations.student_id', '=', 'students.id')
+                    ->where('registrations.main_company_id', $mainCompanyId);
+            })
             ->where('students.main_company_id', $mainCompanyId);
     }
 

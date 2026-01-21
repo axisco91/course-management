@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CourseStatusService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,35 +22,20 @@ class CourseStatus extends Model
         return $this->hasMany('App\Models\Bonus', 'course_status_id', 'id');
     }
 
-    public static function getCourseStatuses(){
-        $course_statuses = CourseStatus::
-        select('*', 'id as value', 'name as label')
-            ->get();
-        foreach ($course_statuses as $course_status){
-            $course = Course::where('course_status_id', $course_status['id'])->first();
-            if ($course){
-                $course_status['used'] = true;
-            } else {
-                $course_status['used'] = false;
-            }
-        }
-        return $course_statuses;
+    /**
+     * Services
+     */
+    public static function createWithService($data)
+    {
+        $service = app(CourseStatusService::class);
+
+        return $service->create($data);
     }
 
-    public static function createCourseStatus($data){
-        $course_status = CourseStatus::create([
-            'name' => $data['name']
-        ]);
+    public function updateWithService($data)
+    {
+        $service = app(CourseStatusService::class);
 
-        return $course_status;
+        return $service->update($this, $data);
     }
-
-    public static function updateCourseStatus($id, $data){
-        $course_status = CourseStatus::find($id);
-        $course_status->update([
-            'name' => $data['name']
-        ]);
-        return $course_status;
-    }
-
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CourseTypeService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,51 +19,33 @@ class CourseType extends Model
      */
     public function courses()
     {
-        return $this->hasMany('App\Models\Course', 'course_type_id', 'id');
+        return $this->hasMany(\App\Models\Course::class, 'course_type_id', 'id');
     }
 
-    public static function getCourseTypes(){
-        $course_types = CourseType::
-        select('*', 'id as value', 'name as label')
-            ->get();
-        foreach ($course_types as $course_type){
-            $course = Course::where('course_type_id', $course_type['id'])->first();
-            if ($course){
-                $course_type['used'] = true;
-            } else {
-                $course_type['used'] = false;
-            }
-        }
-        return $course_types;
+    public function scopeGetCourseType($query)
+    {
+        return $query
+            ->leftJoin('courses', 'courses.course_type_id', '=', 'course_types.id')
+            ->select(
+                'course_types.*',
+                'course_types.id as value',
+                'course_types.name as label'
+            )
+            ->selectRaw('CASE WHEN COUNT(courses.id) > 0 THEN true ELSE false END as used')
+            ->groupBy('course_types.id');
     }
 
-    public static function getCourseType($id){
-        $course_type = CourseType::select('*', 'id as value', 'name as label')
-            ->where('id', $id)
-            ->first();
-        $course = Course::where('course_type_id', $course_type['id'])->first();
-        if ($course){
-            $course_type['used'] = true;
-        } else {
-            $course_type['used'] = false;
-        }
-        return $course_type;
+    public static function createWithService($data)
+    {
+        $service = app(CourseTypeService::class);
+
+        return $service->create($data);
     }
 
-    public static function createCourseType($data){
-        $course_type = CourseType::create([
-            'name' => $data['name']
-        ]);
+    public function updateWithService($data)
+    {
+        $service = app(CourseTypeService::class);
 
-        return $course_type;
-    }
-
-    public static function updateCourseType($id, $data){
-        $course_type = CourseType::find($id);
-        $course_type->update([
-            'name' => $data['name']
-        ]);
-
-        return $course_type;
+        return $service->update($this, $data);
     }
 }

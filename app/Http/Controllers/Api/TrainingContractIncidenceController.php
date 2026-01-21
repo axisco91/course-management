@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingContractIncidenceResource;
 use App\Models\TrainingContractIncidence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,41 @@ class TrainingContractIncidenceController extends BaseController
     public function trainingContractIncidences($id, Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            return TrainingContractIncidence::getTrainingContractIncidences($id, $mainCompanyId);
+            $query = TrainingContractIncidence::getTrainingContractIncidence($id, $mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $trainingContractIncidences = TrainingContractIncidenceResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'training_contract_incidences' => $trainingContractIncidences,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $trainingContractIncidences = TrainingContractIncidenceResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'training_contract_incidences' => $trainingContractIncidences,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -33,10 +68,12 @@ class TrainingContractIncidenceController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'incidence' => TrainingContractIncidence::getTrainingContractIncidence($incidence->id, $mainCompanyId)
-        ]);
+        return $this->sendResponse(
+            [
+                'training_contract_incidence' => TrainingContractIncidence::getTrainingContractIncidence($request->training_contract_id, $mainCompanyId)->where('training_contract_incidences.id', $incidence->id)->first(),
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -56,10 +93,12 @@ class TrainingContractIncidenceController extends BaseController
 
             $incidence->updateWithService($request);
 
-            return response()->json([
-                'status' => 200,
-                'incidence' => TrainingContractIncidence::getTrainingContractIncidence($incidence->id, $mainCompanyId)
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_contract_incidence' => TrainingContractIncidence::getTrainingContractIncidence($mainCompanyId)->where('training_contract_incidences.id', $incidence->id)->first(),
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -68,7 +107,7 @@ class TrainingContractIncidenceController extends BaseController
         }
     }
 
-    public function getTrainingContractIncidence($id, Request $request){
+    public function show($id, Request $request){
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
 
@@ -83,10 +122,12 @@ class TrainingContractIncidenceController extends BaseController
             ]);
         }
         if ($incidence) {
-            return response()->json([
-                'status' => 200,
-                'incidence' => $incidence
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_contract_incidence' => $incidence,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -111,9 +152,10 @@ class TrainingContractIncidenceController extends BaseController
                 }
 
                 TrainingContractIncidence::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

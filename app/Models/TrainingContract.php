@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use App\Services\TrainingContractService;
 
 class TrainingContract extends Model
@@ -64,32 +63,42 @@ class TrainingContract extends Model
     {
         return $this->belongsTo(Province::class);
     }
+    public function trainingContractStatus()
+    {
+        return $this->belongsTo(TrainingContractStatus::class, 'training_contract_status_id');
+    }
+
+    public function onLeaveType()
+    {
+        return $this->belongsTo(OnLeaveType::class, 'on_leave_type_id');
+    }
+
+    public function advisor()
+    {
+        return $this->belongsTo(Advisor::class, 'advisor_id');
+    }
+
+    public function collaborator()
+    {
+        return $this->belongsTo(User::class, 'collaborator_id');
+    }
+
 
     public function scopeGetTrainingContracts($query, $mainCompanyId)
     {
-        return $query->select(
-            'training_contracts.*',
-            'companies.name as company_name',
-            'students.name as student_name',
-            'students.surname as student_surname',
-            'training_contract_statuses.name as training_contract_status',
-            'providers.name as provider',
-            'provinces.name as province',
-            'on_leave_types.name as on_leave_type',
-            'advisors.name as advisor',
-            DB::raw("CONCAT(users.name,' ',users.surname) as collaborator"),
-            DB::raw("CONCAT(students.name,' ',students.surname) as student"),
-            'occupations.name as occupation'
-        )
-            ->leftjoin('companies', 'companies.id', '=', 'training_contracts.company_id')
-            ->leftjoin('students', 'students.id', '=', 'training_contracts.student_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'training_contracts.province_id')
-            ->leftjoin('providers', 'providers.id', '=', 'training_contracts.provider_id')
-            ->leftjoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id')
-            ->leftjoin('on_leave_types', 'on_leave_types.id', '=', 'training_contracts.on_leave_type_id')
-            ->leftjoin('advisors', 'advisors.id', '=', 'training_contracts.advisor_id')
-            ->leftjoin('users', 'users.id', '=', 'training_contracts.collaborator_id')
-            ->leftjoin('occupations', 'occupations.id', '=', 'training_contracts.occupation_id')
+        return $query
+            ->select('training_contracts.*')
+            ->with([
+                'company:id,name',
+                'student:id,name,surname',
+                'trainingContractStatus:id,name',
+                'provider:id,name',
+                'province:id,name',
+                'onLeaveType:id,name',
+                'advisor:id,name',
+                'collaborator:id,name,surname',
+                'occupation:id,name',
+            ])
             ->where('training_contracts.main_company_id', $mainCompanyId);
     }
 

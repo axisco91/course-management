@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Exports\AdvisorsExport;
 use App\Helpers\GeneralHelpers;
 use App\Models\Advisor;
 use App\Models\Company;
@@ -9,6 +10,7 @@ use App\Models\TrainingContract;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdvisorController extends BaseController
 {
@@ -17,68 +19,172 @@ class AdvisorController extends BaseController
      * Obtener asesorías
      * @return mixed
      */
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $user = Auth::user();
 
-            $advisors = Advisor::getAdvisor($mainCompanyId);
-            $user = User::find(Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                $user->id
+            );
+
+            // Query base
+            $query = Advisor::getAdvisor($mainCompanyId);
+
+            // Filtro por teacher si aplica
             if ($user->teacher_id) {
-                $advisors = $advisors->leftjoin('billings', 'billings.advisor_id', '=', 'advisors.id')
-                    ->leftjoin('courses', 'courses.id', '=', 'billings.course_id')
+                $query = $query
+                    ->leftJoin('billings', 'billings.advisor_id', '=', 'advisors.id')
+                    ->leftJoin('courses', 'courses.id', '=', 'billings.course_id')
                     ->where('courses.teacher_id', $user->teacher_id);
             }
 
-            if ($request->name) {
-                $advisors = $advisors->where('advisors.name', 'like', '%'.$request->name.'%');
+            // Filtros dinámicos
+            $query
+                ->when($request->filled('name'), function ($q) use ($request) {
+                    $q->where('advisors.name', 'like', '%' . $request->name . '%');
+                })
+                ->when($request->filled('nif'), function ($q) use ($request) {
+                    $q->where('advisors.nif', 'like', '%' . $request->nif . '%');
+                })
+                ->when($request->filled('type'), function ($q) use ($request) {
+                    $q->where('advisors.company_types_id', $request->type);
+                })
+                ->when($request->filled('activity'), function ($q) use ($request) {
+                    $q->where('advisors.company_activities_id', $request->activity);
+                })
+                ->when($request->filled('province'), function ($q) use ($request) {
+                    $q->where('advisors.province_id', 'like', '%' . $request->province);
+                })
+                ->when($request->has('show_inactive') && $request->show_inactive === 'false', function ($q) {
+                    $q->where('advisors.active', 1);
+                });
+
+            $query->groupBy('advisors.id', 'advisors.name');
+
+            // =======================
+            // 🔃 SORT ADVISORS
+            // =======================
+            $sort = (string) $request->get('sort', '-id');
+            $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $key  = ltrim($sort, '-');
+
+            // whitelist segura
+            $sortable = [
+                'id'                  => 'advisors.id',
+                'name'                => 'advisors.name',
+                'cif'                 => 'advisors.cif',       // o nif si usas nif
+                'email'               => 'advisors.email',
+                'telephone'           => 'advisors.telephone',
+                'legal_representative'=> 'advisors.legal_representative',
+                'status'              => 'advisors.active',
+            ];
+
+            // 🔹 company_type (relación)
+            if ($key === 'company_type') {
+                $query->distinct()
+                    ->orderBy('company_types.name', $dir);
             }
-            if ($request->nif) {
-                $advisors = $advisors->where('advisors.nif', 'like', '%'.$request->nif.'&');
+            // 🔹 columnas directas
+            elseif (isset($sortable[$key])) {
+                $query->orderBy($sortable[$key], $dir);
             }
-            if ($request->type) {
-                $advisors = $advisors->where('company_types.name', 'like', '%'.$request->type.'%');
-            }
-            if ($request->activity) {
-                $advisors = $advisors->where('company_activities.name', 'like', '%'.$request->activity.'%');
-            }
-            if ($request->province) {
-                $advisors = $advisors->where('provinces.name', 'like', '%'.$request->province.'%');
-            }
-            if ($request->inactive == 'false') {
-                $advisors = $advisors->where('advisors.active', 1);
+            // 🔹 fallback
+            else {
+                $query->orderBy('advisors.id', 'desc');
             }
 
-            $advisors = $advisors->groupBy('advisors.id', 'advisors.name')
-                ->get();
-            foreach ($advisors as $advisor) {
-                $company = Company::where('advisor_id', $advisor->id)->first();
+
+            // === CON PAGINACIÓN ===
+            if ($request->filled('perPage')) {
+                $perPage   = (int) $request->perPage;
+                $paginator = $query->paginate($perPage);
+
+                // Colección de la página actual
+                $advisors = $paginator->getCollection();
+
+                // Cargamos companies de golpe (evitar N+1)
+                $companyIds = $advisors->pluck('company_id')->filter()->unique();
+
+                $companies = Company::select('companies.*', 'advisors.name as advisor')
+                    ->leftJoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+                    ->whereIn('companies.id', $companyIds)
+                    ->get()
+                    ->keyBy('id');
+
+                // Enriquecemos cada advisor
+                $advisors->transform(function ($advisor) use ($companies) {
+                    $company = $companies->get($advisor->company_id);
+
+                    $advisor->used = $company !== null;
+
+                    if ($company) {
+                        $advisor->advisor_id = $company->advisor_id;
+                        $advisor->advisor    = $company->advisor;
+                    } else {
+                        $advisor->advisor_id = null;
+                        $advisor->advisor    = null;
+                    }
+
+                    return $advisor;
+                });
+
+                // Actualizamos la colección del paginator (por si acaso)
+                $paginator->setCollection($advisors);
+
+                // Tu helper de paginación
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'advisors' => $advisors, // solo la página actual
+                        'links'    => $paginationData['links'],
+                        'meta'     => $paginationData['meta'],
+                    ],
+                    trans('Obtenido')
+                );
+            }
+
+            // === SIN PAGINACIÓN ===
+            $advisors = $query->get();
+
+            $companyIds = $advisors->pluck('company_id')->filter()->unique();
+
+            $companies = Company::select('companies.*', 'advisors.name as advisor')
+                ->leftJoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+                ->whereIn('companies.id', $companyIds)
+                ->get()
+                ->keyBy('id');
+
+            $advisors->transform(function ($advisor) use ($companies) {
+                $company = $companies->get($advisor->company_id);
+
+                $advisor->used = $company !== null;
+
                 if ($company) {
-                    $advisor['used'] = true;
+                    $advisor->advisor_id = $company->advisor_id;
+                    $advisor->advisor    = $company->advisor;
                 } else {
-                    $advisor['used'] = false;
+                    $advisor->advisor_id = null;
+                    $advisor->advisor    = null;
                 }
-                $company_info = Company::select('companies.*', 'advisors.name as advisor')
-                    ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
-                    ->where('companies.id', $advisor->company_id)->first();
-                $advisor['advisor_id'] = $company_info->advisor_id;
-                $advisor['advisor'] = $company_info->advisor;
-            }
-            return $advisors;
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
-        }
-    } // end method
 
-    /**
-     * Obtener asesorías activas
-     * @return mixed
-     */
-    public function getActiveAdvisors(){
-        return Advisor::select('advisors.*', 'id as value', 'name as label')
-            ->where('active', 1)
-            ->get();
+                return $advisor;
+            });
+
+            return $this->sendResponse(
+                [
+                    'advisors' => $advisors,
+                ],
+                trans('Obtenido')
+            );
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -106,10 +212,12 @@ class AdvisorController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'advisor' => Advisor::getAdvisor($mainCompanyId)->where('id', $advisor->id)->first()
-        ]);
+        return $this->sendResponse(
+            [
+                'advisor' => Advisor::getAdvisor($mainCompanyId)->where('id', $advisor->id)->first(),
+            ],
+            trans('Creado con exito')
+        );
     } // end method
 
     /**
@@ -135,10 +243,12 @@ class AdvisorController extends BaseController
             }
             $advisor->updateWithService($data);
 
-            return response()->json([
-                'status' => 200,
-                'advisor' => Advisor::getAdvisor($advisor->id)
-            ]);
+            return $this->sendResponse(
+                [
+                    'advisor' => Advisor::getAdvisor($mainCompanyId)->where('id', $advisor->id)->first(),
+                ],
+                trans('Actualizado con exito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -152,35 +262,39 @@ class AdvisorController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function show($id, Request $request){
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+    public function show($id, Request $request)
+    {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                Auth::id()
+            );
 
-        $advisor = Advisor::getAdvisor($mainCompanyId)
-            ->where('advisors.id', $id)
-            ->first();
+            $advisor = Advisor::getAdvisor($mainCompanyId)
+                ->where('advisors.id', $id)
+                ->first();
 
-        if ($advisor) {
-            $company = Company::where('advisor_id', $advisor->id)->first();
-            if ($company) {
-                $advisor['used'] = true;
-            } else {
-                $advisor['used'] = false;
+            if (!$advisor) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Asesoría no existe'
+                ], 404);
             }
-            $company_info = Company::select('companies.*', 'advisors.name as advisor')
-                ->leftjoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
-                ->where('companies.id', $advisor->company_id)->first();
-            $advisor['advisor_id'] = $company_info->advisor_id;
-            $advisor['advisor'] = $company_info->advisor;
+
+            return $this->sendResponse(
+                [
+                    'advisor' => $advisor
+                ],
+                trans('Obtenido')
+            );
+        } catch (\Throwable $e) {
             return response()->json([
-                'status' => 200,
-                'advisor' => $advisor
-            ]);
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
-        return response()->json([
-            'status' => 400,
-            'message' => 'Asesoría no existe'
-        ]);
     }
+
 
     /**
      * Eliminar asesoría
@@ -191,9 +305,12 @@ class AdvisorController extends BaseController
         if ($id) {
             try {
                 Advisor::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [
+
+                    ],
+                    trans('Eliminado con exito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -209,12 +326,19 @@ class AdvisorController extends BaseController
      * @return int
      */
     public function checkNif(Request $request){
-        if ($request->nif){
-            $nif = Advisor::findNif($request->nif);
-            if ($nif){
-                return 1;
-            }
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $advisor = Advisor::findNif($request->nif, $mainCompanyId);
+
+        if ($request['id']) {
+            $advisor = $advisor->where('id', '!=', $request['id']);
         }
+
+        $advisor = $advisor->first();
+
+        return response()->json([
+            'exists' => (bool) $advisor
+        ]);
     }
 
     /**
@@ -273,7 +397,14 @@ class AdvisorController extends BaseController
                 ->where('courses.teacher_id', $user->teacher_id);
         }
 
-        return $trainingActions->groupBy('training_contracts.id', 'training_contracts.number_cfa')->get();
+        $trainingActions = $trainingActions->groupBy('training_contracts.id', 'training_contracts.number_cfa')->get();
+
+        return $this->sendResponse(
+            [
+                'training_actions' => $trainingActions,
+            ],
+            trans('Obtenido')
+        );
     }
 
     /**
@@ -283,19 +414,38 @@ class AdvisorController extends BaseController
      */
     public function getAdvisorCompanies($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-        $companies = Company::select('companies.*')->where('advisor_id', $id)
+        $query = Company::select('companies.*')->where('advisor_id', $id)
         ->where('main_company_id', $mainCompanyId);
 
         $user = User::find(Auth::id());
         if ($user->teacher_id) {
-            $companies = $companies->leftjoin('registrations', 'registrations.company_id', '=', 'companies.id')
+            $query = $query->leftjoin('registrations', 'registrations.company_id', '=', 'companies.id')
                 ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
                 ->where('courses.teacher_id', $user->teacher_id);
         }
 
-        return $companies
-            ->groupBy('companies.id', 'companies.name')
-            ->get();
+        if ($request->filled('perPage')) {
+            $perPage   = (int) $request->perPage;
+            $paginator = $query->paginate($perPage);
+
+            // Colección de la página actual
+            $companies = $paginator->getCollection();
+
+            // Actualizamos la colección del paginator (por si acaso)
+            $paginator->setCollection($companies);
+
+            // Tu helper de paginación
+            $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+            return $this->sendResponse(
+                [
+                    'companies' => $companies, // solo la página actual
+                    'links'    => $paginationData['links'],
+                    'meta'     => $paginationData['meta'],
+                ],
+                trans('Obtenido')
+            );
+        }
     }
     /**
      * Obtenemos las comisiones de la asesoría con la asesoria para los graphs
@@ -307,7 +457,12 @@ class AdvisorController extends BaseController
         $advisors = Advisor::with('commissions')
             ->where('advisors.main_company_id', $mainCompanyId)
             ->get();
-        return response()->json($advisors);
+        return $this->sendResponse(
+            [
+                'advisors' =>$advisors,
+            ],
+            trans('Obtenido')
+        );
     }
 
     public function createAdvisorUser($id, Request $request) {
@@ -331,10 +486,12 @@ class AdvisorController extends BaseController
             if (!$user) {
                 if ($advisor) {
                     $advisor->advisorUser();
-                    return response()->json([
-                        'status' => 200,
-                        'advisor' => $advisor
-                    ]);
+                    return $this->sendResponse(
+                        [
+                            'advisor' => Advisor::getAdvisor($mainCompanyId)->where('id', $advisor->id)->first(),
+                        ],
+                        trans('Creado con éxito')
+                    );
                 }
             } else {
                 return response()->json([
@@ -357,10 +514,12 @@ class AdvisorController extends BaseController
 
             if ($advisor) {
                 $advisor->sendEmail();
-                return response()->json([
-                    'status' => 200,
-                    'advisor' => $advisor
-                ]);
+                return $this->sendResponse(
+                    [
+                        'advisor' => $advisor,
+                    ],
+                    trans('enviado con éxito')
+                );
             }
             else {
                 return response()->json([
@@ -371,6 +530,168 @@ class AdvisorController extends BaseController
 
         } catch (\Exception $exception) {
             return response()->json([]);
+        }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                $user->id
+            );
+
+            // Query base igual que tu index
+            $query = Advisor::getAdvisor($mainCompanyId);
+
+            // Filtro por teacher si aplica (igual que index)
+            if ($user->teacher_id) {
+                $query = $query
+                    ->leftJoin('billings', 'billings.advisor_id', '=', 'advisors.id')
+                    ->leftJoin('courses', 'courses.id', '=', 'billings.course_id')
+                    ->where('courses.teacher_id', $user->teacher_id);
+            }
+
+            // Filtros (igual que index)
+            $query
+                ->when($request->filled('name'), function ($q) use ($request) {
+                    $q->where('advisors.name', 'like', '%' . $request->name . '%');
+                })
+                ->when($request->filled('nif'), function ($q) use ($request) {
+                    $q->where('advisors.nif', 'like', '%' . $request->nif . '%');
+                })
+                ->when($request->filled('type'), function ($q) use ($request) {
+                    $q->where('advisors.company_types_id', $request->type);
+                })
+                ->when($request->filled('activity'), function ($q) use ($request) {
+                    $q->where('advisors.company_activities_id', $request->activity);
+                })
+                ->when($request->filled('province'), function ($q) use ($request) {
+                    $q->where('advisors.province_id', 'like', '%' . $request->province);
+                })
+                ->when($request->has('show_inactive') && $request->show_inactive === 'false', function ($q) {
+                    $q->where('advisors.active', 1);
+                });
+
+            $query->groupBy('advisors.id', 'advisors.name');
+
+            // (Opcional) Si quieres respetar sort como en index:
+            $sort = (string) $request->get('sort', '-id');
+            $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $key  = ltrim($sort, '-');
+
+            $sortable = [
+                'id'                  => 'advisors.id',
+                'name'                => 'advisors.name',
+                'cif'                 => 'advisors.cif',
+                'email'               => 'advisors.email',
+                'telephone'           => 'advisors.telephone',
+                'legal_representative'=> 'advisors.legal_representative',
+                'status'              => 'advisors.active',
+            ];
+
+            if (isset($sortable[$key])) {
+                $query->orderBy($sortable[$key], $dir);
+            } else {
+                $query->orderBy('advisors.id', 'desc');
+            }
+
+            // Traemos todo (sin paginación) y enriquecemos como en index
+            $advisors = $query->get();
+
+            $companyIds = $advisors->pluck('company_id')->filter()->unique();
+            $companies = Company::select('companies.*', 'advisors.name as advisor')
+                ->leftJoin('advisors', 'advisors.id', '=', 'companies.advisor_id')
+                ->whereIn('companies.id', $companyIds)
+                ->get()
+                ->keyBy('id');
+
+            $advisors->transform(function ($advisor) use ($companies) {
+                $company = $companies->get($advisor->company_id);
+
+                $advisor->used = $company !== null;
+
+                if ($company) {
+                    $advisor->advisor_id = $company->advisor_id;
+                    $advisor->advisor    = $company->advisor;
+                } else {
+                    $advisor->advisor_id = null;
+                    $advisor->advisor    = null;
+                }
+
+                return $advisor;
+            });
+
+            // Mapeo EXACTO a tu Excel "Asesorias.xlsx"
+            $rows = $advisors->map(function ($a) {
+                // ⚠️ Como no sé tus nombres exactos de relaciones/atributos,
+                // uso data_get con varias posibilidades para que no se rompa.
+                $tipo      = data_get($a, 'companyType.name')
+                    ?? data_get($a, 'company_type.name')
+                    ?? data_get($a, 'type.name')
+                    ?? '';
+
+                $actividad = data_get($a, 'companyActivity.name')
+                    ?? data_get($a, 'company_activity.name')
+                    ?? data_get($a, 'activity.name')
+                    ?? '';
+
+                $provincia = data_get($a, 'province.name')
+                    ?? data_get($a, 'provincia.name')
+                    ?? '';
+
+                $cnae      = data_get($a, 'cnae.name')
+                    ?? data_get($a, 'cnae_id')
+                    ?? '';
+
+                $colab     = data_get($a, 'collaborator.name')
+                    ?? data_get($a, 'collaborator_user.name')
+                    ?? data_get($a, 'user.name')
+                    ?? '';
+
+                $potencial = (string) (data_get($a, 'potential', '0')) === '1' ? 'Sí' : 'No';
+
+                return [
+                    'Nombre'                 => $a->name ?? '',
+                    'CIF'                    => $a->cif ?? ($a->nif ?? ''),
+                    'Tipo'                   => $tipo,
+                    'Actividad'              => $actividad,
+                    'Email'                  => $a->email ?? '',
+                    'Teléfono'               => $a->telephone ?? '',
+                    'Representante Legal'    => $a->legal_representative ?? '',
+                    'DNI Representante Legal'=> $a->dni_legal_representative ?? '',
+                    'IRPF'                   => $a->irpf ?? '',
+                    'Comisión'               => $a->commission ?? '',
+                    'Contacto 1'             => $a->contact_1 ?? '',
+                    'Contacto 2'             => $a->contact_2 ?? '',
+                    'Contacto 3'             => $a->contact_3 ?? '',
+                    'Cotización'             => $a->quote ?? '',
+                    'Colaborador'            => $colab,
+                    'CNAE'                   => $cnae,
+                    'Plantilla Media'        => $a->average_template ?? '',
+                    'IBAN'                   => $a->iban ?? '',
+                    'SEPA'                   => $a->sepa ?? '',
+                    'B2B'                    => $a->b2b ?? '',
+                    'Dirección'              => $a->address ?? '',
+                    'Código Postal'          => $a->post_code ?? '',
+                    'Provincia'              => $provincia,
+                    'Población'              => $a->population ?? '',
+                    'Asesor'                 => $a->advisor ?? '',
+                    'Potencial'              => $potencial,
+                ];
+            });
+
+            $fileName = 'asesorias_' . now()->format('Ymd_His') . '.xlsx';
+
+            return Excel::download(new AdvisorsExport($rows->toArray()), $fileName);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 }

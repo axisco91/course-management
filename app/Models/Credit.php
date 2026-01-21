@@ -16,20 +16,13 @@ class Credit extends Model
     protected $fillable = ['company_id', 'available_credit', 'consumed_credit', 'year', 'main_company_id'];
 
 
-    public static function getCredits($id, $mainCompanyId){
-        return Credit::select('credits.*', DB::raw('(credits.available_credit - credits.consumed_credit) as credit_left'))
-            ->leftjoin('companies', 'companies.id', '=', 'credits.company_id')
-            ->where('company_id', $id)
-            ->where('credits.main_company_id', $mainCompanyId)
-            ->get();
-    }
-
-    public static function getCredit($id, $mainCompanyId){
-        return Credit::select('credits.*', DB::raw('(credits.available_credit - credits.consumed_credit) as credit_left'))
-            ->leftjoin('companies', 'companies.id', '=', 'credits.company_id')
-            ->where('credits.id', $id)
-            ->where('credits.main_company_id', $mainCompanyId)
-            ->first();
+    public function scopeGetCredit($query, $companyId, $mainCompanyId)
+    {
+        return $query
+            ->select('credits.*', DB::raw('(credits.available_credit - credits.consumed_credit) as credit_left'))
+            ->leftJoin('companies', 'companies.id', '=', 'credits.company_id')
+            ->where('credits.company_id', $companyId)
+            ->where('credits.main_company_id', $mainCompanyId);
     }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {

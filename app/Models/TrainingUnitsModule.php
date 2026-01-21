@@ -11,20 +11,17 @@ class TrainingUnitsModule extends Model
 
     protected $fillable = ['training_unit_id', 'module_id'];
 
-    public static function getTrainingUnitModules($moduleId, $mainCompanyId){
-        return TrainingUnitsModule::select('training_units_modules.*', 'training_units.name', 'training_units.formative_unit')
-            ->leftjoin('training_units', 'training_units.id', '=', 'training_units_modules.training_unit_id')
-            ->where('module_id', $moduleId)
-            ->where('training_units_modules.main_company_id', $mainCompanyId)
-            ->get();
-    }
-
-    public static function getTrainingUnitModule($id, $mainCompanyId){
-        return TrainingUnitsModule::select('training_units_modules.*', 'training_units.name', 'training_units.formative_unit')
-            ->leftjoin('training_units', 'training_units.id', '=', 'training_units_modules.training_unit_id')
-            ->where('training_units_modules.id', $id)
-            ->where('training_units_modules.main_company_id', $mainCompanyId)
-            ->first();
+    public function scopeGetTrainingUnitModules($query, $moduleId, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'training_units_modules.*',
+                'training_units.name',
+                'training_units.formative_unit'
+            )
+            ->leftJoin('training_units', 'training_units.id', '=', 'training_units_modules.training_unit_id')
+            ->where('training_units_modules.module_id', $moduleId)
+            ->where('training_units_modules.main_company_id', $mainCompanyId);
     }
 
     public static function createTrainingUnitModule($moduleId, $training_unit_id, $mainCompanyId){

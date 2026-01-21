@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\LiquidationController;
+use App\Http\Controllers\Api\MainCompanyController;
 use App\Http\Controllers\API\PotentialTrainingContractController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -154,7 +155,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::delete('{id}', 'destroy');
             Route::get('check_dni', 'checkDni');
             Route::get('courses/{id}', 'getStudentsCourses');
-            Route::get('active', 'getActiveStudents');
+            Route::get('export-excel', 'studentsExportExcel');
             Route::get('{id}', 'show');
         });
     });
@@ -194,12 +195,13 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('advisors')->group(function() {
         Route::controller(AdvisorController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('export-excel', 'exportExcel');
             Route::post('', 'store');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::get('send-email/{id}', 'sendEmail');
             Route::get('convert-advisor/{id}', 'convertAdvisor');
-            Route::get('check-nif/{nif}', 'checkNif');
+            Route::get('check-nif', 'checkNif');
             Route::get('active', 'getActiveAdvisors');
             Route::get('courses/{id}', 'getAdvisorCourses');
             Route::get('companies/{id}', 'getAdvisorCompanies');
@@ -262,6 +264,7 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('courses')->group(function() {
         Route::get('', [CourseController::class, 'index']);
+        Route::get('export-excel', [CourseController::class, 'exportExcel']);
         Route::post('', [CourseController::class, 'store']);
         Route::put('{id}', [CourseController::class, 'update']);
         Route::delete('{id}', [CourseController::class, 'destroy']);
@@ -345,7 +348,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('', 'create');
             Route::put('{id}', 'edit');
             Route::delete('{id}', 'destroy');
-            Route::get('{id}', 'getLevelStudy');
+            Route::get('{id}', 'show');
         });
     });
 
@@ -368,7 +371,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('teacher-areas')->group(function() {
         Route::controller(TeacherAreaController::class)->group(function(){
             Route::get('', 'teacherAreas');
-            Route::get('{id}', 'getTrainingActionLevel');
+            Route::get('{id}', 'show');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
             Route::delete('{id}', 'destroy');
@@ -510,7 +513,8 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('', 'create');
             Route::put('{id}', 'edit');
             Route::delete('{id}', 'destroy');
-            Route::get('get/{id}', 'getCompanyIncidence');
+            Route::get('incidence/{id}', 'getCompanyIncidence');
+            Route::get('get/{id}', 'show');
             Route::get('{id}', 'companyObservations');
         });
     });
@@ -536,7 +540,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('', 'create');
             Route::put('{id}', 'edit');
             Route::delete('{id}', 'destroy');
-            Route::get('get/{id}', 'getCompanyIncidence');
+            Route::get('get/{id}', 'show');
             Route::get('{id}', 'companyIncidences');
         });
     });
@@ -549,8 +553,8 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('', 'create');
             Route::put('{id}', 'edit');
             Route::delete('{id}', 'destroy');
-            Route::get('get/{id}', 'getCredit');
-            Route::get('{id}', 'getCredits');
+            Route::get('', 'index');
+            Route::get('{id}', 'show');
         });
     });
 
@@ -560,7 +564,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('teachers')->group(function() {
         Route::controller(TeacherController::class)->group(function(){
             Route::get('', 'index');
-            Route::get('active', 'activeTeachers');
+            Route::get('export-excel', 'teachersExportExcel');
             Route::post('', 'store');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
@@ -576,6 +580,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('training-actions')->group(function() {
         Route::controller(TrainingActionController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('export-excel', 'exportExcel');
             Route::post('', 'store');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
@@ -675,7 +680,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::post('', 'create');
             Route::post('{id}', 'edit');
             Route::delete('{id}', 'destroy');
-            Route::get('get/{id}', 'getTrainingContractIncidence');
+            Route::get('show/{id}', 'show');
             Route::get('{id}', 'trainingContractIncidences');
         });
     });
@@ -700,6 +705,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('chores')->group(function() {
         Route::controller(ChoreController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('export-excel', 'exportExcel');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::get('{id}', 'show');
@@ -712,6 +718,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('tracings')->group(function() {
         Route::controller(TracingController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('export-excel', 'exportExcel');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::get('{id}', 'show');
@@ -733,6 +740,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('training-contracts')->group(function() {
         Route::controller(TrainingContractController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('export-excel', 'exportExcel');
             Route::post('', 'store');
             Route::put('update-additional-clause/{id}', 'updateAdditionalClause');
             Route::delete('{id}', 'destroy');
@@ -755,6 +763,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('profitabilities')->group(function() {
         Route::controller(ProfitabilityController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('export-excel', 'exportExcel');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::get('students/{id}', 'getStudents');
@@ -783,6 +792,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('users')->group(function() {
         Route::controller(UserController::class)->group(function(){
             Route::get('', 'getUsers');
+            Route::get('basic-user', 'basicUser');
             Route::post('', 'create');
             Route::post('{id}', 'edit');
             Route::delete('{id}', 'destroy');
@@ -824,7 +834,8 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('companies')->group(function() {
         Route::controller(CompanyController::class)->group(function(){
             Route::get('', 'index');
-            Route::get('active', 'getActiveCompanies');
+            Route::get('export-excel', 'exportExcel');
+            Route::get('courses-export-excel/{id}', 'coursesExportExcel');
             Route::post('', 'store');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
@@ -884,9 +895,11 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('bills')->group(function() {
         Route::controller(BillController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('export-excel', 'exportExcel');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::get('students/{id}', 'getBillStudents');
+            Route::get('min-year', 'minYear');
             Route::get('{id}', 'show');
         });
     });
@@ -1053,6 +1066,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('training-contract-bills')->group(function() {
         Route::controller(TrainingContractBillController::class)->group(function(){
             Route::get('', 'index');
+            Route::get('export-excel', 'exportExcel');
             Route::post('', 'store');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'delete');
@@ -1169,7 +1183,7 @@ Route::middleware('auth:sanctum')->group( function () {
 Route::prefix('professional-categories')->group(function() {
     Route::controller(ProfessionalCategoryController::class)->group(function(){
         Route::get('', 'professionalCategories');
-        Route::get('{id}', 'getProfessionalCategories');
+        Route::get('{id}', 'show');
         Route::post('', 'create');
         Route::put('{id}', 'edit');
         Route::delete('{id}', 'destroy');
@@ -1270,6 +1284,12 @@ Route::prefix('training-actions')->group(function() {
 
         // Nueva ruta GET para información pública
         Route::get('public-info', 'indexPublic');
+    });
+});
+
+Route::prefix('main-companies')->group(function() {
+    Route::controller(MainCompanyController::class)->group(function(){
+        Route::get('basic', 'basic');
     });
 });
 

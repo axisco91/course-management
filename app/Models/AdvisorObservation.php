@@ -14,6 +14,7 @@ class AdvisorObservation extends Model
     public $timestamps = true;
 
     protected $fillable = ['advisor_id','observation', 'main_company_id'];
+    protected $appends = ['date'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -23,16 +24,18 @@ class AdvisorObservation extends Model
         return $this->hasOne('App\Models\Advisor', 'id', 'advisor_id');
     }
 
-    public static function getAdvisorObservations($id, $mainCompanyId){
-        $observations = AdvisorObservation::where('advisor_id', $id)
-            ->where('main_company_id', $mainCompanyId)
-            ->get();
+    public function scopeForAdvisor($query, int $advisorId, int $mainCompanyId)
+    {
+        return $query
+            ->where('advisor_id', $advisorId)
+            ->where('main_company_id', $mainCompanyId);
+    }
 
-        foreach ($observations as $observation){
-            $observation['date'] = Carbon::createFromFormat('Y-m-d H:i:s', $observation['created_at'])->format('d/m/Y');
-        }
-
-        return $observations;
+    public function getDateAttribute(): ?string
+    {
+        return $this->created_at
+            ? $this->created_at->format('d/m/Y')
+            : null;
     }
 
     public static function createWithService($data)

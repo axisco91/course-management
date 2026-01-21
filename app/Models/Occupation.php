@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\OccupationService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,50 +14,32 @@ class Occupation extends Model
 
     protected $fillable = ['name', 'cno'];
 
-    public static function getOccupations(){
-        $occupations = Occupation::select('*', 'id as value', 'name as label')
-            ->get();
-        foreach ($occupations as $occupation){
-            $contact = TrainingContract::where('occupation_id', $occupation['id'])->first();
-            if ($contact){
-                $occupation['used'] = true;
-            } else{
-                $occupation['used'] = false;
-            }
-        }
-        return $occupations;
+    public function scopeGetOccupation($query)
+    {
+        return $query
+            ->select(
+                'occupations.*',
+                'occupations.id as value',
+                'occupations.name as label'
+            )
+            ->leftJoin(
+                'training_contracts',
+                'training_contracts.occupation_id',
+                '=',
+                'occupations.id'
+            )
+            ->selectRaw('CASE WHEN training_contracts.id IS NULL THEN false ELSE true END as used')
+            ->groupBy('occupations.id');
     }
 
-    public static function getOccupation($id){
-        $occupation = Occupation::select('*', 'id as value', 'name as label')
-            ->where('id', $id)
-            ->first();
-        $contact = TrainingContract::where('occupation_id', $occupation['id'])->first();
-        if ($contact){
-            $occupation['used'] = true;
-        } else{
-            $occupation['used'] = false;
-        }
-        return $occupation;
+    public static function createWithService($data)
+    {
+        $service = app(OccupationService::class);
+        return $service->create($data);
     }
 
-    public static function createOccupation($data){
-        $occupation = Occupation::create([
-            'name' => $data['name'],
-            'cno' => $data['cno']
-        ]);
-
-        return $occupation;
+    public function updateWithService($data){
+        $service = app(OccupationService::class);
+        return $service->update($this, $data);
     }
-
-    public static function updateOccupation($id, $data){
-        $occupation = Occupation::find($id);
-        $occupation->update([
-            'name' => $data['name'],
-            'cno' => $data['cno']
-        ]);
-
-        return $occupation;
-    }
-
 }

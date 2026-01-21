@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\CommissionTypeResource;
 use App\Models\CommissionType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,9 +18,41 @@ class CommissionTypeController extends BaseController
     public function index(Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $commissionTypes = CommissionType::FilterMainCompany($mainCompanyId)->get();
+            $query = CommissionType::FilterMainCompany($mainCompanyId)->get();
 
-            return $commissionTypes;
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $commissionTypes = CommissionTypeResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'commission_types' => $commissionTypes,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $commissionTypes = CommissionTypeResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'commission_types' => $commissionTypes,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -39,10 +72,12 @@ class CommissionTypeController extends BaseController
             $data['main_company_id'] = $mainCompanyId;
 
             $commissionType = CommissionType::createWithService($data);
-            return response()->json([
-                'status' => 200,
-                'commission_type' => $commissionType
-            ]);
+            return $this->sendResponse(
+                [
+                    'commission_type' => $commissionType,
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -72,10 +107,12 @@ class CommissionTypeController extends BaseController
             }
 
             $commissionType = $commissionType->updateWithService($data);
-            return response()->json([
-                'status' => 200,
-                'commission_type' => $commissionType
-            ]);
+            return $this->sendResponse(
+                [
+                    'commission_type' => $commissionType,
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -95,12 +132,12 @@ class CommissionTypeController extends BaseController
         $commissionType = CommissionType::where('id', $id)
             ->FilterMainCompany($mainCompanyId);
 
-        if ($commissionType) {
-            return response()->json([
-                'status' => 200,
-                'commission_type' => $commissionType
-            ]);
-        }
+        return $this->sendResponse(
+            [
+                'commission_type' => $commissionType->first(),
+            ],
+            trans('Obtenido con éxito')
+        );
         return response()->json([
             'status' => 400,
             'message' => 'Comisión no existe'

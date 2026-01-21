@@ -13,31 +13,22 @@ class TrainingContractStatus extends Model
 
     protected $fillable = ['name'];
 
-    public static function getTrainingContractStatuses(){
-        $statuses = TrainingContractStatus::select('*', 'id as value', 'name as label')
-            ->get();
-        foreach ($statuses as $status){
-            $contract = TrainingContract::where('training_contract_status_id', $status['id'])->first();
-            if ($contract){
-                $status['used'] = true;
-            } else{
-                $status['used'] = false;
-            }
-        }
-        return $statuses;
-    }
-
-    public static function getTrainingContractStatus($id){
-        $status = TrainingContractStatus::select('*', 'id as value', 'name as label')
-            ->where('id', $id)
-            ->first();
-        $contract = TrainingContract::where('training_contract_status_id', $status['id'])->first();
-        if ($contract){
-            $status['used'] = true;
-        } else{
-            $status['used'] = false;
-        }
-        return $status;
+    public function scopeGetTrainingContractStatus($query)
+    {
+        return $query
+            ->select(
+                'training_contract_statuses.*',
+                'training_contract_statuses.id as value',
+                'training_contract_statuses.name as label'
+            )
+            ->leftJoin(
+                'training_contracts',
+                'training_contracts.training_contract_status_id',
+                '=',
+                'training_contract_statuses.id'
+            )
+            ->selectRaw('CASE WHEN training_contracts.id IS NULL THEN false ELSE true END as used')
+            ->groupBy('training_contract_statuses.id');
     }
 
     public static function createTrainingContractStatus($data){

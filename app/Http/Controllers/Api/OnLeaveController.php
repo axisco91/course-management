@@ -1,16 +1,50 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\OnLeaveResource;
 use App\Models\OnLeaveType;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class OnLeaveController extends BaseController
 {
-    public function getOnLeaveTypes() {
+    public function getOnLeaveTypes(Request $request) {
         try {
-            return OnLeaveType::getOnLeaveTypes();
+            $query = OnLeaveType::getOnLeaveType();
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $onleaves = OnLeaveResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'on_leave_types' => $onleaves,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $onleaves = OnLeaveResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'on_leave_types' => $onleaves,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -20,7 +54,7 @@ class OnLeaveController extends BaseController
 
     public function create(Request $request){
         try {
-            $on_leave = OnLeaveType::createOnLeaveType($request);
+            $on_leave = OnLeaveType::createWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -28,15 +62,18 @@ class OnLeaveController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'on_leave' => OnLeaveType::getOnLeaveType($on_leave->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'on_leave' => OnLeaveType::getOnLeaveType()->where('on_leave_types', $on_leave->id)->first(),
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
         try {
-            $on_leave = OnLeaveType::updateOnLeaveType($id, $request);
+            $on_leave = OnLeaveType::find($id);
+            $on_leave->updateWithService($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -44,19 +81,23 @@ class OnLeaveController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'on_leave' => OnLeaveType::getOnLeaveType($on_leave->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'on_leave' => OnLeaveType::getOnLeaveType()->where('on_leave_types', $on_leave->id)->first(),
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function getOnLeaveType($id){
-        $on_leave = OnLeaveType::getOnLeaveType($id);
-        if ($on_leave) {
-            return response()->json([
-                'status' => 200,
-                'on_leave' => $on_leave
-            ]);
+        $onLeave = OnLeaveType::getOnLeaveType()->where('on_leave_types', $id)->first();
+        if ($onLeave) {
+            return $this->sendResponse(
+                [
+                    'on_leave' => $onLeave,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -68,9 +109,10 @@ class OnLeaveController extends BaseController
         if ($id) {
             try {
                 OnLeaveType::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

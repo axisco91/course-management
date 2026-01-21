@@ -6,6 +6,7 @@ use App\Services\CompanyObservationService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class CompanyObservation extends Model
 {
@@ -27,16 +28,15 @@ class CompanyObservation extends Model
         return $query->where('company_observations.main_company_id', $mainCompanyId);
     }
 
-    public static function getCompanyObservations($id, $mainCompanyId){
-        $observations = CompanyObservation::where('company_id', $id)
-            ->where('main_company_id', $mainCompanyId)
-            ->get();
-
-        foreach ($observations as $observation){
-            $observation['date'] = Carbon::createFromFormat('Y-m-d H:i:s', $observation['created_at'])->format('d/m/Y');
-        }
-
-        return $observations;
+    public function scopeGetCompanyObservations($query, $id, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'company_observations.*',
+                DB::raw("DATE_FORMAT(company_observations.created_at, '%d/%m/%Y') as date")
+            )
+            ->where('company_observations.company_id', $id)
+            ->where('company_observations.main_company_id', $mainCompanyId);
     }
 
     public static function createWithService($data)

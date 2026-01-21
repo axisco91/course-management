@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\GeneralHelpers;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\PotentialTrainingContractResource;
 use App\Models\PotentialTrainingContract;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -14,14 +16,44 @@ class PotentialTrainingContractController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $contracts = PotentialTrainingContract::all();
-            return response()->json([
-                'status' => 200,
-                'contracts' => $contracts
-            ]);
+            $query = PotentialTrainingContract::select('*');
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $contracts = PotentialTrainingContractResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'potential_training_contracts' => $contracts,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $contracts = PotentialTrainingContractResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'potential_training_contracts' => $contracts,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
@@ -37,10 +69,13 @@ class PotentialTrainingContractController extends Controller
     {
         try {
             $contract = PotentialTrainingContract::create($request->all());
-            return response()->json([
-                'status' => 201,
-                'contract' => $contract
-            ]);
+
+            return $this->sendResponse(
+                [
+                    'potential_training_contract' => $contract,
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
@@ -56,10 +91,12 @@ class PotentialTrainingContractController extends Controller
     {
         try {
             $contract = PotentialTrainingContract::findOrFail($id);
-            return response()->json([
-                'status' => 200,
-                'contract' => $contract
-            ]);
+            return $this->sendResponse(
+                [
+                    'potential_training_contract' => $contract,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 404,
@@ -76,10 +113,12 @@ class PotentialTrainingContractController extends Controller
         try {
             $contract = PotentialTrainingContract::findOrFail($id);
             $contract->update($request->all());
-            return response()->json([
-                'status' => 200,
-                'contract' => $contract
-            ]);
+            return $this->sendResponse(
+                [
+                    'potential_training_contract' => $contract,
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
@@ -96,10 +135,12 @@ class PotentialTrainingContractController extends Controller
         try {
             $contract = PotentialTrainingContract::findOrFail($id);
             $contract->delete();
-            return response()->json([
-                'status' => 204,
-                'message' => 'Contract deleted successfully'
-            ]);
+            return $this->sendResponse(
+                [
+                    'potential_training_contract' => $contract,
+                ],
+                trans('Eliminado con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
@@ -116,9 +157,10 @@ class PotentialTrainingContractController extends Controller
                     ->setUsername('zona@avzformacion.com')
                     ->setPassword('Avz.2021');
                     Mail::to($request['email'])->send(new PotentialTrainingContractMail());
-                    return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Enviado con éxito')
+                );
             } catch(Exception $e) {
                 return response()->json([
                     'status' => 400,

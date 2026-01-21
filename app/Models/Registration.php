@@ -84,24 +84,26 @@ class Registration extends Model
         return $this->hasOne('App\Models\Bill', 'id', 'billing_id');
     }
 
-    public static function totalRegistrations($mainCompanyId){
+    public function scopeTotalRegistration($query, $mainCompanyId)
+    {
         $now = Carbon::now();
-        $total = Registration::leftJoin('courses', 'registrations.course_id', '=', 'courses.id')->where('courses.beginning', '>=', $now->year.'-01-01')
-            ->where('courses.beginning', '<=', $now->year.'-12-31')
-            ->where('registrations.main_company_id', $mainCompanyId)
-            ->get();
-        return $total->count();
+
+        return $query
+            ->leftJoin('courses', 'registrations.course_id', '=', 'courses.id')
+            ->where('courses.beginning', '>=', $now->year . '-01-01')
+            ->where('courses.beginning', '<=', $now->year . '-12-31')
+            ->where('registrations.main_company_id', $mainCompanyId);
     }
 
-    public static function countRegistrations($start, $limit, $mainCompanyId){
-        $registrations = Registration::leftJoin('courses', 'registrations.course_id', '=', 'courses.id')
+    public function scopeCountRegistrations($query, $start, $limit, $mainCompanyId)
+    {
+        return $query
+            ->leftJoin('courses', 'registrations.course_id', '=', 'courses.id')
             ->where('courses.beginning', '>=', $start)
             ->where('courses.beginning', '<=', $limit)
-            ->where('registrations.main_company_id', $mainCompanyId)
-            ->get();
-
-        return $registrations->count();
+            ->where('registrations.main_company_id', $mainCompanyId);
     }
+
 
     public function scopeStudentCourses($query, $id, $mainCompanyId) {
         return $query->select('courses.*')
@@ -144,8 +146,8 @@ class Registration extends Model
         return $service->updateRegistration($this, $data);
     }
 
-    public function destroyRegistration($data){
+    public function destroyRegistration(){
         $service = app(RegistrationService::class);
-        return $service->destroy($this, $data);
+        return $service->destroy($this);
     }
 }

@@ -101,10 +101,33 @@ class User extends Authenticatable
         'surname',
     ];
 
-    public function scopeGetUser($query, $mainCompanyId) {
-        return $query->select('users.*', DB::raw("CONCAT(users.name,' ',users.surname) as label"),
-            'users.id as value', DB::raw("CONCAT(teachers.name,' ',teachers.surname) as teacher"))
-            ->leftjoin('teachers', 'teachers.id', '=', 'users.teacher_id')
+    public function scopeGetUser($query, $mainCompanyId)
+    {
+        return $query->select(
+            'users.*',
+            DB::raw("CONCAT(users.name,' ',users.surname) as label"),
+            'users.id as value',
+            DB::raw("CONCAT(teachers.name,' ',teachers.surname) as teacher"),
+
+            // Role name (primer rol encontrado)
+            DB::raw("(SELECT roles.name
+                      FROM roles
+                      INNER JOIN model_has_roles
+                             ON model_has_roles.role_id = roles.id
+                      WHERE model_has_roles.model_type = 'App\\Models\\User'
+                        AND model_has_roles.model_id = users.id
+                      LIMIT 1) AS role"),
+
+            // Role id
+            DB::raw("(SELECT roles.id
+                      FROM roles
+                      INNER JOIN model_has_roles
+                             ON model_has_roles.role_id = roles.id
+                      WHERE model_has_roles.model_type = 'App\\Models\\User'
+                        AND model_has_roles.model_id = users.id
+                      LIMIT 1) AS role_id")
+        )
+            ->leftJoin('teachers', 'teachers.id', '=', 'users.teacher_id')
             ->where('users.main_company_id', $mainCompanyId);
     }
 

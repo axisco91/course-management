@@ -1,16 +1,50 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\PaymentResource;
 use App\Models\Payment;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class PaymentController extends BaseController
 {
-    public function getPayments() {
+    public function getPayments(Request $request) {
         try {
-            return Payment::getPayments();
+            $query = Payment::getPayment();
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $payments = PaymentResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'payments' => $payments,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $payments = PaymentResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'payments' => $payments,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -20,7 +54,7 @@ class PaymentController extends BaseController
 
     public function create(Request $request){
         try {
-            $payment = Payment::createPayment($request);
+            $payment = Payment::createWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -28,15 +62,18 @@ class PaymentController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'payment' => Payment::getPayment($payment->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'payment' => Payment::getPayment()->where('payments.id', $payment->id)->first(),
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
         try {
-            $payment = Payment::updatePayment($id, $request);
+            $payment = Payment::find($id);
+            $payment->updateWithService($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -44,19 +81,23 @@ class PaymentController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'payment' => Payment::getPayment($payment->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'payment' => Payment::getPayment()->where('payments.id', $payment->id)->first(),
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function getPayment($id){
-        $payment = Payment::getPayment($id);
+        $payment = Payment::getPayment()->where('payments.id', $id)->first();
         if ($payment) {
-            return response()->json([
-                'status' => 200,
-                'payment' => $payment
-            ]);
+            return $this->sendResponse(
+                [
+                    'payment' => $payment,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -68,9 +109,10 @@ class PaymentController extends BaseController
         if ($id) {
             try {
                 Payment::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

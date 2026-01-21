@@ -1,14 +1,17 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Exports\TrainingActionsExport;
 use App\Helpers\GeneralHelpers;
 use App\Http\Requests\TrainingActionRequests;
+use App\Http\Resources\TrainingActionResource;
 use App\Models\Course;
 use App\Models\TrainingAction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TrainingActionController extends BaseController
 {
@@ -19,54 +22,73 @@ class TrainingActionController extends BaseController
     public function index(Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $trainingActions = TrainingAction::trainingAction($mainCompanyId);
+            $query = TrainingAction::trainingAction($mainCompanyId);
             $user = User::where('id', Auth::id())
                 ->where('main_company_id', $mainCompanyId)
                 ->first();
 
             if ($user->teacher_id) {
-                $trainingActions = $trainingActions->leftjoin('courses', 'courses.training_action_id', '=', 'training_actions.id')
+                $query = $query->leftjoin('courses', 'courses.training_action_id', '=', 'training_actions.id')
                     ->where('courses.teacher_id', $user->teacher_id);
             }
 
-            if ($request->formative_actions) {
-                $trainingActions = $trainingActions->where('training_actions.formative_action', 'like', '%'.$request->formative_actions.'%');
+            if ($request->formative_action) {
+                $query = $query->where('training_actions.formative_action', 'like', '%'.$request->formative_action.'%');
             }
             if ($request->name) {
-                $trainingActions = $trainingActions->where('training_actions.name', 'like', '%'.$request->name.'&');
+                $query = $query->where('training_actions.name', 'like', '%'.$request->name.'%');
             }
             if ($request->professional_family) {
-                $trainingActions = $trainingActions->where('professional_families.name', 'like', '%'.$request->professional_family.'%');
+                $query = $query->where('professional_family_id', $request->professional_family);
             }
             if ($request->professional_area) {
-                $trainingActions = $trainingActions->where('professional_areas.name', 'like', '%'.$request->professional_area.'%');
+                $query = $query->where('professional_area_id', $request->professional_area);
             }
             if ($request->modality) {
-                $trainingActions = $trainingActions->where('modalities.name', 'like', '%'.$request->modality.'%');
+                $query = $query->where('modality_id', $request->modality);
             }
             if ($request->provider) {
-                $trainingActions = $trainingActions->where('providers.name', 'like', '%'.$request->provider.'%');
+                $query = $query->where('provider_id', $request->provider);
             }
-            if ($request->inactive == 'false') {
-                $trainingActions = $trainingActions->where('training_actions.active', 1);
+            if ($request->show_inactive == 'false') {
+                $query = $query->where('training_actions.active', 1);
             }
 
-            $trainingActions = $trainingActions->groupBy('training_actions.id', 'training_actions.name')
-                ->orderby('id', 'asc')
-                ->get();
-            if (count($trainingActions) > 0) {
-                foreach($trainingActions as $trainingAction) {
-                    $course = Course::where('training_action_id', $trainingAction->id)
-                        ->FilterMainCompany($mainCompanyId)
-                        ->first();
-                    if ($course) {
-                        $trainingAction['used'] = true;
-                    } else {
-                        $trainingAction['used'] = false;
-                    }
-                }
+            $query = $query->groupBy('training_actions.id', 'training_actions.name');
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $trainingActions = TrainingActionResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'training_actions' => $trainingActions,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
             }
-            return $trainingActions;
+
+            // SIN PAGINACIÓN
+            $trainingActions = TrainingActionResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'training_actions' => $trainingActions,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -81,8 +103,14 @@ class TrainingActionController extends BaseController
     public function getActiveTrainingActions(Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            return TrainingAction::active($mainCompanyId)
-                ->get();
+            $trainingActions = TrainingAction::active($mainCompanyId);
+
+            return $this->sendResponse(
+                [
+                    'training_actions' => $trainingActions->get(),
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -115,10 +143,12 @@ class TrainingActionController extends BaseController
             } else {
                 $trainingAction['used'] = false;
             }
-          return response()->json([
-              'status' => 200,
-              'training_action' => $trainingAction
-          ]);
+            return $this->sendResponse(
+                [
+                    'training_action' => $trainingAction,
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -154,10 +184,12 @@ class TrainingActionController extends BaseController
             } else {
                 $trainingAction['used'] = false;
             }
-            return response()->json([
-                'status' => 200,
-                'training_action' => $trainingAction
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_action' => $trainingAction,
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -185,10 +217,12 @@ class TrainingActionController extends BaseController
             $trainingAction['used'] = false;
         }
         if ($trainingAction) {
-            return response()->json([
-                'status' => 200,
-                'training_action' => $trainingAction
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_action' => $trainingAction,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -217,9 +251,10 @@ class TrainingActionController extends BaseController
                 }
 
                 TrainingAction::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -246,9 +281,13 @@ class TrainingActionController extends BaseController
         } else {
             $formativeAction = $id;
         }
-        return response()->json([
-            'formative_action' => $formativeAction
-        ]);
+
+        return $this->sendResponse(
+            [
+                'formative_action' => $formativeAction,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     /**
@@ -256,29 +295,88 @@ class TrainingActionController extends BaseController
      * @param $id
      * @return mixed
      */
-    public function getCourses($id, Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-        $courses =  Course::trainingActionCourses($id, $mainCompanyId);
-        $user = User::where('id', Auth::id())
-            ->where('main_company_id', $mainCompanyId)
-            ->first();
-        if ($user->teacher_id) {
-            $courses = $courses->where('courses.teacher_id', $user->teacher_id);
-        }
-        $courses =  $courses->get();
-        if (count($courses) > 0) {
-            foreach ($courses as $course){
-                $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
-                $course['beginning'] = $beginning;
-                $end = Carbon::parse($course['end'])->format('d/m/Y');
-                $course['end'] = $end;
+    public function getCourses($id, Request $request)
+    {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                Auth::id()
+            );
+
+            $coursesQuery = Course::WithCourseData($mainCompanyId)
+                ->where('training_action_id', $id)
+                ->orderBy('beginning', 'DESC');
+
+            $user = User::where('id', Auth::id())
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
+            if ($user && $user->teacher_id) {
+                $coursesQuery = $coursesQuery->where('courses.teacher_id', $user->teacher_id);
             }
+
+            // ✅ PAGINACIÓN
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $coursesQuery->paginate($perPage);
+
+                // ✅ formatear SOLO la página actual
+                $collection = $paginator->getCollection()->map(function ($course) {
+                    if (!empty($course->beginning)) {
+                        $course->beginning = Carbon::parse($course->beginning)->format('d/m/Y');
+                    }
+                    if (!empty($course->end)) {
+                        $course->end = Carbon::parse($course->end)->format('d/m/Y');
+                    }
+                    return $course;
+                });
+
+                $paginator->setCollection($collection);
+
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        // Si tienes CourseResource, mejor:
+                        // 'courses' => CourseResource::collection($paginator),
+                        // Si no, devuelves el paginator ya transformado:
+                        'courses' => $paginator->items(),
+                        'links'   => $paginationData['links'],
+                        'meta'    => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // ✅ SIN PAGINACIÓN (como antes)
+            $courses = $coursesQuery->get();
+
+            if ($courses->count() > 0) {
+                foreach ($courses as $course) {
+                    if (!empty($course->beginning)) {
+                        $course->beginning = Carbon::parse($course->beginning)->format('d/m/Y');
+                    }
+                    if (!empty($course->end)) {
+                        $course->end = Carbon::parse($course->end)->format('d/m/Y');
+                    }
+                }
+            }
+
+            return $this->sendResponse(
+                [
+                    'courses' => $courses,
+                ],
+                trans('Obtenido con éxito')
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 500);
         }
-        return $courses;
     }
 
-
-public static function indexPublic(Request $request)
+    public static function indexPublic(Request $request)
 {
    $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
     // Primero, obtén todas las instancias de TrainingAction.
@@ -300,4 +398,94 @@ public static function indexPublic(Request $request)
 
     return $trainingActions;
 }
+
+    public function exportExcel(Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $query = TrainingAction::trainingAction($mainCompanyId);
+
+        $user = User::where('id', Auth::id())
+            ->where('main_company_id', $mainCompanyId)
+            ->first();
+
+        if ($user && $user->teacher_id) {
+            $query = $query->leftJoin('courses', 'courses.training_action_id', '=', 'training_actions.id')
+                ->where('courses.teacher_id', $user->teacher_id);
+        }
+
+        // filtros iguales a tu index
+        if ($request->formative_action) {
+            $query->where('training_actions.formative_action', 'like', '%' . $request->formative_action . '%');
+        }
+        if ($request->name) {
+            $query->where('training_actions.name', 'like', '%' . $request->name . '%');
+        }
+        if ($request->professional_family) {
+            $query->where('professional_family_id', $request->professional_family);
+        }
+        if ($request->professional_area) {
+            $query->where('professional_area_id', $request->professional_area);
+        }
+        if ($request->modality) {
+            $query->where('modality_id', $request->modality);
+        }
+        if ($request->provider) {
+            $query->where('provider_id', $request->provider);
+        }
+        if ($request->show_inactive == 'false') {
+            $query->where('training_actions.active', 1);
+        }
+
+        $query->groupBy('training_actions.id', 'training_actions.name');
+
+        // ✅ para que salgan los nombres (ajusta relaciones si se llaman distinto)
+        $query->with([
+            'professionalFamily:id,name',
+            'professionalArea:id,name',
+            'modality:id,name',
+            'provider:id,name',
+            'trainingActionLevel:id,name',
+        ]);
+
+        $items = $query->get();
+
+        $yesNo = fn($v) => ((string) $v === '1' || $v === true) ? 'Sí' : 'No';
+
+        $num = function ($v) {
+            if ($v === null || $v === '') return '';
+            $n = (float) $v;
+            return rtrim(rtrim(number_format($n, 2, '.', ''), '0'), '.');
+        };
+
+        // 👇 mapeo EXACTO a las columnas del Excel
+        $rows = $items->map(function ($ta) use ($yesNo, $num) {
+            $pres = $ta->hours_presence ?? $ta->presential_hours ?? 0;
+            $tele = $ta->hours_teletraining ?? $ta->teleformation_hours ?? 0;
+
+            return [
+                'Acción Formativa'       => $ta->formative_action ?? '',
+                'Nombre'                 => $ta->name ?? '',
+                'Tipo Acción'            => $ta->type_action ?? $ta->type ?? '',
+
+                'Familia Professional'   => data_get($ta, 'professionalFamily.name', ''),
+                'Área Professional'      => data_get($ta, 'professionalArea.name', ''),
+                'Modalidad'              => data_get($ta, 'modality.name', ''),
+                'Nivel'                  => data_get($ta, 'level.name', ''),
+
+                'Grupo'                  => $ta->group ?? '',
+
+                'Tutorización'           => $yesNo($ta->tutoring ?? $ta->tutorizacion ?? 0),
+                'En Catalogo'            => $yesNo($ta->in_catalog ?? $ta->catalog ?? 0),
+
+                'Horas Presenciales'     => $num($pres),
+                'Horas Teleformación'    => $num($tele),
+                'Horas Totales'          => $num(((float)$pres) + ((float)$tele)),
+
+                'Precio'                 => $num($ta->price ?? 0),
+            ];
+        });
+
+        return Excel::download(new TrainingActionsExport($rows), 'Acciones Formativas.xlsx');
+    }
 }

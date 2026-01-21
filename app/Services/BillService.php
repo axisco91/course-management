@@ -87,19 +87,37 @@ class BillService
             }
         }
 
+        $parseDate = function ($v) {
+            if (empty($v)) return null;
+
+            // si viene con hora, nos quedamos con la parte de fecha
+            $v = substr((string)$v, 0, 10);
+
+            foreach (['Y-m-d', 'd-m-Y'] as $fmt) {
+                try {
+                    return Carbon::createFromFormat($fmt, $v)->format('Y-m-d');
+                } catch (\Exception $e) {}
+            }
+
+            // último intento (más permisivo)
+            try {
+                return Carbon::parse($v)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return null;
+            }
+        };
+
         $bill->update([
             'number_students' => $data['number_students'],
             'billing' => $data['billing'] ? GeneralHelpers::convertComa($data['billing']) : 0,
             'bonus' => $data['bonus'] ? GeneralHelpers::convertComa($data['bonus']) : 0,
-            'total_training_activity' => $data['bonus'] ? GeneralHelpers::convertComa($data['total_training_activity']) : 0,
+            'total_training_activity' => $data['total_training_activity']
+                ? GeneralHelpers::convertComa($data['total_training_activity'])
+                : 0,
             'expenses' => $data['expenses'] ? GeneralHelpers::convertComa($data['expenses']) : 0,
             'salary_costs' => $data['salary_costs'] ? GeneralHelpers::convertComa($data['salary_costs']) : 0,
             'payment_id' => $data['payment_id'] ? $data['payment_id'] : null,
-            'communication_start_date' => $data['communication_start_date'] ? Carbon::createFromFormat('d-m-Y', $data['communication_start_date'])->format('Y-m-d') : null,
-            'communication_end_date' => $data['communication_end_date'] ? Carbon::createFromFormat('d-m-Y', $data['communication_end_date'])->format('Y-m-d') : null,
             'billing_number' => $data['billing_number'],
-            'billing_date' => $data['billing_date'] ? Carbon::createFromFormat('d-m-Y', $data['billing_date'])->format('Y-m-d') : null,
-            'collection_date' => $data['collection_date'] ? Carbon::createFromFormat('d-m-Y', $data['collection_date'])->format('Y-m-d') : null,
             'bonus_status' => $data['bonus_status'],
             'observation' => $data['observation'],
             'is_bonus' => $data['is_bonus'],
@@ -109,7 +127,11 @@ class BillService
             'invoiced' => $data['invoiced'],
             'company_bonus' => $data['company_bonus'],
             'charged' => $data['charged'],
-            'remitted' => $data['remitted']
+            'remitted' => $data['remitted'],
+            'communication_start_date' => $parseDate($data['communication_start_date'] ?? null),
+            'communication_end_date'   => $parseDate($data['communication_end_date'] ?? null),
+            'billing_date'             => $parseDate($data['billing_date'] ?? null),
+            'collection_date'          => $parseDate($data['collection_date'] ?? null),
         ]);
 
         return $bill;
@@ -280,7 +302,7 @@ class BillService
         $bill->update([
             'communication_start_date' => $data['date'] ? Carbon::createFromFormat('d-m-Y', $data['date'])->format('Y-m-d') : null,
         ]);
-        $registrations = Registration::billingRegistration($bill->id, $data->main_company_id)
+        $registrations = Registration::billingRegistration($bill->id, $data['main_company_id'])
             ->get();
         foreach ($registrations as $registration) {
             $chore = Chore::where('id', $registration->chore_id)
@@ -318,4 +340,5 @@ class BillService
             $chore->updateCommunicationEndDate($communicationData);
         }
     }
+
 }

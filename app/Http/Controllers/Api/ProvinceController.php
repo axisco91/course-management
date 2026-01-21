@@ -1,16 +1,50 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\ProvinceResource;
 use App\Models\Province;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class ProvinceController extends BaseController
 {
-    public function provinces() {
+    public function provinces(Request $request) {
         try {
-            return Province::getProvinces();
+            $query = Province::getProvinces();
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $provinces = ProvinceResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'provinces' => $provinces,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $provinces = ProvinceResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'provinces' => $provinces,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -20,7 +54,7 @@ class ProvinceController extends BaseController
 
     public function create(Request $request){
         try {
-            $province = Province::createProvince($request);
+            $province = Province::createWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -28,15 +62,18 @@ class ProvinceController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'province' => $province
-        ]);
+        return $this->sendResponse(
+            [
+                'province' => $province,
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
         try {
-            $province = Province::updateProvince($id, $request);
+            $province = Province::find($id);
+            $province->updateWithService($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -44,19 +81,23 @@ class ProvinceController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'province' => $province
-        ]);
+        return $this->sendResponse(
+            [
+                'province' => $province,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function getProvince($id){
         $province = Province::find($id);
         if ($province) {
-            return response()->json([
-                'status' => 200,
-                'province' => $province
-            ]);
+            return $this->sendResponse(
+                [
+                    'province' => $province,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -68,9 +109,10 @@ class ProvinceController extends BaseController
         if ($id) {
             try {
                 Province::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -89,7 +131,13 @@ class ProvinceController extends BaseController
             if ($request){
                 return Province::provincesWithFestivals($request->beginning, $request->end)->get();
             }
-            return Province::provincesWithFestivals()->get();
+
+            return $this->sendResponse(
+                [
+                    'province' => Province::provincesWithFestivals()->get(),
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()

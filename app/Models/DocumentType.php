@@ -13,10 +13,10 @@ class DocumentType extends Model
 
     protected $fillable = ['name', 'main_company_id'];
 
-    public static function getTypes($mainCompanyId){
-        $documentType = DocumentType::select('*', 'id as value', 'name as label')
-            ->where('main_company_id', $mainCompanyId)
-            ->get();
-        return $documentType;
+    public function scopeGetTypes($query, $mainCompanyId)
+    {
+        return $query
+            ->select('*', 'id as value', 'name as label')
+            ->where('main_company_id', $mainCompanyId);
     }
 }

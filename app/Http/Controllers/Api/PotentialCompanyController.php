@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\PotentialCompanyResource;
 use App\Models\Company;
 use App\Models\MainCompany;
 use App\Models\PotentialCompany;
@@ -14,7 +15,41 @@ class PotentialCompanyController extends BaseController
     public function getPotentialCompanies(Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            return PotentialCompany::getPotentialCompanies($mainCompanyId);
+            $query = PotentialCompany::getPotentialCompanies($mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $potentialCompanies = PotentialCompanyResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'potential_companies' => $potentialCompanies,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $potentialCompanies = PotentialCompanyResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'potential_companies' => $potentialCompanies,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -31,10 +66,12 @@ class PotentialCompanyController extends BaseController
 
             $company = PotentialCompany::createWithService($data);
 
-            return response()->json([
-                'status' => 200,
-                'potential_company' => $company
-            ]);
+            return $this->sendResponse(
+                [
+                    'potential_company' => $company,
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -55,10 +92,12 @@ class PotentialCompanyController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'potential_company' => $company
-        ]);
+        return $this->sendResponse(
+            [
+                'potential_company' => $company,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function getPotentialCompany($id, Request $request){
@@ -70,10 +109,12 @@ class PotentialCompanyController extends BaseController
 
 
         if ($company) {
-            return response()->json([
-                'status' => 200,
-                'potential_company' => $company
-            ]);
+            return $this->sendResponse(
+                [
+                    'potential_company' => $company,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 404,
@@ -98,9 +139,10 @@ class PotentialCompanyController extends BaseController
                 }
 
                 PotentialCompany::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -130,14 +172,16 @@ class PotentialCompanyController extends BaseController
                 ]);
             }
 
-            Company::createWithService($request);
+            Company::createWithService($request->all());
 
             $potentialCompany->updateWithService();
 
-            return response()->json([
-                'status' => 200,
-                'company' => $potentialCompany
-            ]);
+            return $this->sendResponse(
+                [
+                    'company' => $potentialCompany,
+                ],
+                trans('Generado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -160,9 +204,10 @@ class PotentialCompanyController extends BaseController
                     ->setUsername('zona@avzformacion.com')
                     ->setPassword('Avz.2021');
                 Mail::to($request['email'])->send(new \App\Mail\PotentialCompany());
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Enviado con éxito')
+                );
             } catch(\Exception $e) {
                 return response()->json([
                     'status' => 400,

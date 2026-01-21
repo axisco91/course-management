@@ -15,7 +15,7 @@ class Community extends Model
     protected $fillable = ['name'];
 
     public function scopeCommunitiesWithFestivals($query, $start = null, $end = null){
-        $query->select('communities.*', 'communities.id as value', 'communities.name as label')
+        $query->select('communities.*')
             ->leftjoin('community_festivals', 'community_festivals.community_id', '=', 'communities.id');
         if ($start && $end){
             $query->whereBetween('community_festivals.day', [$start, $end]);

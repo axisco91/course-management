@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Services\CompanyIncidenceService;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -21,36 +20,53 @@ class CompanyIncidence extends Model
         'main_company_id'
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    // ✅ Tipo de incidencia
+    public function incidenceType()
+    {
+        return $this->belongsTo(IncidenceType::class, 'incidence_type_id');
+    }
+
     public function scopeFilterMainCompany($query, $mainCompanyId) {
         return $query->where('company_incidences.main_company_id', $mainCompanyId);
     }
 
-    public static function getCompanyIncidences($companyId, $mainCompanyId){
-        $companyIncidences = CompanyIncidence::select('company_incidences.*',
-            'company_incidences.id as value',
-            'company_incidences.affair as label',
-            'incidence_types.name as incidence_type',
-            DB::raw("CONCAT(users.name,' ',users.surname) as user"))
-            ->leftjoin('incidence_types', 'incidence_types.id', '=', 'company_incidences.incidence_type_id')
-            ->leftjoin('users', 'users.id', '=', 'company_incidences.user_id')
-            ->where('company_id', $companyId)
-            ->where('company_incidences.main_company_id', $mainCompanyId)->get();
-        foreach ($companyIncidences as $companyIncidence) {
-            $companyIncidence['created'] = Carbon::createFromFormat('Y-m-d H:i:s', $companyIncidence['created_at'])->format('d/m/Y');
-        }
-        return $companyIncidences;
+    public function scopeFilterCompany($query, $companyId)
+    {
+        return $query->where('company_incidences.company_id', $companyId);
     }
 
-    public static function getCompanyIncidence($id, $mainCompanyId){
-        $companyIncidence = CompanyIncidence::select('company_incidences.*', 'incidence_types.name as incidence_type',
-            DB::raw("CONCAT(users.name,' ',users.surname) as user"))
-            ->leftjoin('incidence_types', 'incidence_types.id', '=', 'company_incidences.incidence_type_id')
-            ->leftjoin('users', 'users.id', '=', 'company_incidences.user_id')
+    public function scopeGetCompanyIncidences($query, $companyId, $mainCompanyId)
+    {
+        return $query
+            ->with([
+                'user:id,name,surname',
+                'incidenceType:id,name'
+            ])
+            ->select('company_incidences.*')
+            ->filterCompany($companyId)
+            ->filterMainCompany($mainCompanyId);
+
+    }
+
+    // Antes: static getCompanyIncidence($id, $mainCompanyId)
+    public function scopeGetCompanyIncidence($query, $id, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'company_incidences.*',
+                'incidence_types.name as incidence_type',
+                DB::raw("CONCAT(users.name,' ',users.surname) as user")
+            )
+            ->leftJoin('incidence_types', 'incidence_types.id', '=', 'company_incidences.incidence_type_id')
+            ->leftJoin('users', 'users.id', '=', 'company_incidences.user_id')
             ->where('company_incidences.id', $id)
-            ->where('company_incidences.main_company_id', $mainCompanyId)
-            ->first();
-        $companyIncidence['created'] = Carbon::createFromFormat('Y-m-d H:i:s', $companyIncidence['created_at'])->format('d/m/Y');
-        return $companyIncidence;
+            ->filterMainCompany($mainCompanyId);
+        // Aquí tampoco hacemos ->first()
     }
 
     public static function createWithService($data)

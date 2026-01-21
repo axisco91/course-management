@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\CertificationResource;
 use App\Models\Certification;
 use App\Models\CertificationElement;
 use App\Models\Module;
@@ -11,14 +12,56 @@ use Illuminate\Support\Facades\Auth;
 
 class CertificationController extends BaseController
 {
-    public function certifications(Request $request) {
+    public function certifications(Request $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            return Certification::getCertifications($mainCompanyId);
-        } catch (\Exception $e) {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                Auth::id()
+            );
+
+            // Query base usando el scope
+            $query = Certification::forMainCompanyWithMeta($mainCompanyId);
+
+            // CON PAGINACIÓN
+            if ($request->filled('perPage')) {
+                $perPage   = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $certifications = CertificationResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'certifications' => $certifications,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $certifications = CertificationResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'certifications' => $certifications,
+                ],
+                trans('Obtenido con éxito')
+            );
+        } catch (\Throwable $e) {
             return response()->json([
-                'message' => $e->getMessage()
-            ]);
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -28,18 +71,19 @@ class CertificationController extends BaseController
             $data = $request->all();
             $data['main_company_id'] = $mainCompanyId;
 
-            $certification = Certification::createCertification($data);
+            $certification = Certification::createWithService($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-
-        return response()->json([
-            'status' => 200,
-            'certification' => Certification::getCertification($certification->id, $mainCompanyId)
-        ]);
+        return $this->sendResponse(
+            [
+                'certification' => Certification::Certification($certification->id, $mainCompanyId),
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -48,7 +92,10 @@ class CertificationController extends BaseController
             $data = $request->all();
             $data['main_company_id'] = $mainCompanyId;
 
-            $certification = Certification::updateCertification($id, $data);
+            $certification = Certification::where('id', $id)
+                ->first();
+
+            $certification->updateWithService($data);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -56,21 +103,25 @@ class CertificationController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'certification' => Certification::getCertification($certification->id, $mainCompanyId)
-        ]);
+        return $this->sendResponse(
+            [
+                'certification' => Certification::Certification($certification->id, $mainCompanyId),
+            ],
+            trans('Actualizado con éxito')
+        );
     }
 
     public function getCertification($id, Request $request){
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-        $certification = Certification::getCertification($id, $mainCompanyId);
+        $certification = Certification::Certification($id, $mainCompanyId);
 
         if ($certification) {
-            return response()->json([
-                'status' => 200,
-                'certification' => $certification
-            ]);
+            return $this->sendResponse(
+                [
+                    'certification' => $certification,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -95,9 +146,11 @@ class CertificationController extends BaseController
                 }
 
                 Certification::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [
+                    ],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

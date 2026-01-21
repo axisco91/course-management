@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TutoringResource;
 use App\Models\Tutoring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -8,9 +10,43 @@ use Illuminate\Support\Facades\Validator;
 
 class TutoringController extends BaseController
 {
-    public function tutorings() {
+    public function tutorings(Request $request) {
         try {
-            return Tutoring::getTutorings();
+            $query = Tutoring::getTutoring();
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $tutorings = TutoringResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'tutorings' => $tutorings,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $tutorings = TutoringResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'tutorings' => $tutorings,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -27,10 +63,13 @@ class TutoringController extends BaseController
                 'message' => $e->getMessage()
             ]);
         }
-        return response()->json([
-            'status' => 200,
-            'tutoring' => $tutoring
-        ]);
+
+        return $this->sendResponse(
+            [
+                'tutoring' => $tutoring,
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -43,19 +82,23 @@ class TutoringController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'tutoring' => $tutoring
-        ]);
+        return $this->sendResponse(
+            [
+                'tutoring' => $tutoring,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function tutoring($id){
         $tutoring = Tutoring::find($id);
         if ($tutoring) {
-            return response()->json([
-                'status' => 200,
-                'tutoring' => $tutoring
-            ]);
+            return $this->sendResponse(
+                [
+                    'tutoring' => $tutoring,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -67,9 +110,10 @@ class TutoringController extends BaseController
         if ($id) {
             try {
                 Tutoring::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

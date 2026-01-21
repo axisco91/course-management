@@ -1,74 +1,139 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use App\Helpers\GeneralHelpers;
 use App\Http\Requests\StudentRequests;
+use App\Http\Resources\StudentResource;
 use App\Models\Registration;
 use App\Models\Student;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+
+// ✅ Si vas a exportar Excel con Maatwebsite (recomendado):
+// composer require maatwebsite/excel
+use App\Exports\StudentsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StudentController extends BaseController
 {
+    /**
+     * ✅ Aplica EXACTAMENTE los mismos filtros que el index/export.
+     * Ojo: aquí asumimos que students tiene company_id.
+     * Si tu query Student::student($mainCompanyId) ya hace joins, no pasa nada.
+     */
+    private function applyStudentFilters($query, Request $request)
+    {
+        $user = User::find(Auth::id());
 
+        // Si el usuario es profesor, filtra por sus cursos
+        if ($user && $user->teacher_id) {
+            $query = $query->leftJoin('registrations', 'registrations.student_id', '=', 'students.id')
+                ->leftJoin('courses', 'courses.id', '=', 'registrations.course_id')
+                ->where('courses.teacher_id', $user->teacher_id);
+        }
+
+        // show_inactive viene del front como 'true' / 'false'
+        if ($request->show_inactive === 'false') {
+            $query = $query->where('students.active', 1);
+        }
+
+        if ($request->filled('name')) {
+            $query = $query->where('students.name', 'like', '%' . $request->name . '%');
+        }
+        if ($request->filled('surname')) {
+            $query = $query->where('students.surname', 'like', '%' . $request->surname . '%');
+        }
+        if ($request->filled('dni')) {
+            $query = $query->where('students.dni', 'like', '%' . $request->dni . '%');
+        }
+        if ($request->filled('telephone')) {
+            $query = $query->where('students.telephone', 'like', '%' . $request->telephone . '%');
+        }
+        if ($request->filled('email')) {
+            $query = $query->where('students.email', 'like', '%' . $request->email . '%');
+        }
+
+        // ✅ company_id del filtro (0 = "All the companies")
+        if ($request->filled('company_id') && (int)$request->company_id > 0) {
+            $query = $query->where('students.company_id', (int)$request->company_id);
+        }
+
+        return $query;
+    }
 
     /**
      * Obtener alumnos
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            $students = Student::student($mainCompanyId);
-            $user = User::find(Auth::id());
-            if ($user->teacher_id) {
-                $students = $students->leftjoin('registrations', 'registrations.student_id', '=', 'students.id')
-                    ->leftjoin('courses', 'courses.id', '=', 'registrations.course_id')
-                    ->where('courses.teacher_id', $user->teacher_id);
+            $query = Student::student($mainCompanyId);
+
+            // ✅ filtros unificados
+            $query = $this->applyStudentFilters($query, $request);
+
+            // ✅ groupBy (si tu query tiene joins)
+            $query = $query->groupBy('students.id', 'students.name');
+
+            // ✅ SORT (DataGrid manda: name | -name | dni | -dni | telephone | -telephone | email | -email | company | -company | status | -status)
+            $sort = (string) $request->get('sort', '-id');
+            $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $key  = ltrim($sort, '-');
+
+            $sortable = [
+                'id'        => 'students.id',
+                'name'      => 'students.name',
+                'dni'       => 'students.dni',
+                'telephone' => 'students.telephone',
+                'email'     => 'students.email',
+                'status'    => 'students.active',
+            ];
+
+            if ($key === 'name') {
+                $query->orderBy('students.surname', $dir)->orderBy('students.name', $dir);
+            } elseif ($key === 'company') {
+                // si Student::student() ya hace join con companies, esto funciona
+                $query->orderBy('companies.name', $dir);
+            } elseif (isset($sortable[$key])) {
+                $query->orderBy($sortable[$key], $dir);
+            } else {
+                $query->orderBy('students.id', 'desc');
             }
 
-            if ($request->inactive == 'false') {
-                $students = $students->where('students.active', 1);
-            }
-            if ($request->name) {
-                $students = $students->where('students.name', 'like', '%'.$request->name.'%');
-            }
-            if ($request->surname) {
-                $students = $students->where('students.surname', 'like', '%'.$request->surname.'&');
-            }
-            if ($request->dni) {
-                $students = $students->where('students.dni', 'like', '%'.$request->dni.'%');
-            }
-            if ($request->telephone) {
-                $students = $students->where('students.telephone', 'like', '%'.$request->dni.'%');
-            }
-            if ($request->email) {
-                $students = $students->where('students.email', 'like', '%'.$request->email.'%');
-            }
-            if ($request->company) {
-                $students = $students->where('companies.name', 'like', '%'.$request->company.'%');
+            // ✅ paginación opcional
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                $students = StudentResource::collection($paginator);
+
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'students' => $students,
+                        'links'    => $paginationData['links'],
+                        'meta'     => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
             }
 
-            $students = $students->orderBy('students.name','asc')
-                ->groupBy('students.id', 'students.name')
-                ->get();
-            if (count($students) > 0) {
-                foreach($students as $student) {
-                    $registered = Registration::where('student_id', $student->id)
-                        ->FilterMainCompany($mainCompanyId)
-                        ->first();
-                    if ($registered) {
-                        $student['used'] = true;
-                    } else {
-                        $student['used'] = false;
-                    }
-                }
-            }
-            return $students;
+            // SIN PAGINACIÓN
+            $students = StudentResource::collection($query->get());
+
+            return $this->sendResponse(
+                [
+                    'students' => $students,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -78,11 +143,10 @@ class StudentController extends BaseController
 
     /**
      * Obtener alumno
-     * @param $id
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id, Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+    public function show($id, Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
         $student = Student::student($mainCompanyId)
             ->where('students.id', $id)
@@ -93,16 +157,16 @@ class StudentController extends BaseController
                 ->FilterMainCompany($mainCompanyId)
                 ->first();
 
-            if ($registered) {
-                $student['used'] = true;
-            } else {
-                $student['used'] = false;
-            }
-            return response()->json([
-                'status' => 200,
-                'student' => $student
-            ]);
+            $student['used'] = (bool) $registered;
+
+            return $this->sendResponse(
+                [
+                    'student' => $student,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
+
         return response()->json([
             'status' => 400,
             'message' => 'Alumno no existe'
@@ -111,36 +175,24 @@ class StudentController extends BaseController
 
     /**
      * Creamos alumno
-     * @param StudentRequests $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(StudentRequests $request){
+    public function store(StudentRequests $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
             $data = $request->all();
             $data['main_company_id'] = $mainCompanyId;
 
-            $element = Student::createWithService($data);
+            $student = Student::createWithService($data);
 
-            $student = Student::student($mainCompanyId)
-                ->where('students.id', $element->id)
-                ->first();
-
-            $registered = Registration::where('student_id', $student->id)
-                ->FilterMainCompany($mainCompanyId)
-                ->first();
-
-            if ($registered) {
-                $student['used'] = true;
-            } else {
-                $student['used'] = false;
-            }
-            return response()->json([
-                'status' => 200,
-                'student' => $student
-            ]);
-        } catch (\Exception $e){
+            return $this->sendResponse(
+                [
+                    'student' => $student
+                ],
+                trans('Creado con éxito')
+            );
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
@@ -150,35 +202,29 @@ class StudentController extends BaseController
 
     /**
      * Editar alumno
-     * @param $id
-     * @param StudentRequests $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function update($id, StudentRequests $request){
+    public function update($id, StudentRequests $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
             $data = $request->all();
-            $student = Student::find($id);
-            $element = $student->updateWithService($data);
 
-            $student = Student::student($mainCompanyId)
-                ->where('students.id', $element->id)
-                ->first();
-            $registered = Registration::where('student_id', $student->id)
-                ->FilterMainCompany($mainCompanyId)
-                ->first();
-
-            if ($registered) {
-                $student['used'] = true;
-            } else {
-                $student['used'] = false;
+            $student = Student::where('id', $id)->FilterMainCompany($mainCompanyId)->first();
+            if (!$student) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Alumno no encontrado'
+                ]);
             }
-            return response()->json([
-                'status' => 200,
-                'student' => $student
-            ]);
-        } catch (\Exception $e){
+
+            $student->updateWithService($data);
+
+            return $this->sendResponse(
+                [],
+                trans('Guardado con éxito')
+            );
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
@@ -188,66 +234,57 @@ class StudentController extends BaseController
 
     /**
      * Comprobamos si existe alumno con ese DNI
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function checkDni(Request $request){
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+    public function checkDni(Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
         $student = Student::where('dni', $request['dni'])
-        ->FilterMainCompany($mainCompanyId);
+            ->FilterMainCompany($mainCompanyId);
 
-        if ($request['id']){
+        if ($request['id']) {
             $student = $student->where('id', '!=', $request['id']);
         }
+
         $student = $student->first();
-        if ($student){
-            return response()->json([
-                'exists' => true
-            ]);
-        } else {
-            return response()->json([
-                'exists' => false
-            ]);
-        }
+
+        return response()->json([
+            'exists' => (bool) $student
+        ]);
     }
 
     /**
      * Obtener los cursos del alumno
-     * @param $id
-     * @return mixed
      */
-    public function getStudentsCourses($id, Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+    public function getStudentsCourses($id, Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        $registrations = Registration::studentCourses($id, $mainCompanyId);
-
-        $user = User::find(Auth::id());
-        if ($user->teacher_id) {
-            $registrations = $registrations->where('courses.teacher_id', $user->teacher_id);
-        }
-        $registrations = $registrations->get();
+        $registrations = Registration::studentCourses($id, $mainCompanyId)->get();
 
         if (count($registrations) > 0) {
-            foreach ($registrations as $registration){
-                $beginning = Carbon::parse($registration['beginning'])->format('d/m/Y');
-                $registration['beginning'] = $beginning;
-                $end = Carbon::parse($registration['end'])->format('d/m/Y');
-                $registration['end'] = $end;
+            foreach ($registrations as $registration) {
+                $registration['beginning'] = Carbon::parse($registration['beginning'])->format('d/m/Y');
+                $registration['end'] = Carbon::parse($registration['end'])->format('d/m/Y');
             }
         }
-        return $registrations;
+
+        return $this->sendResponse(
+            [
+                'registrations' => $registrations,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     /**
      * Eliminar Alumno
-     * @param $id
-     * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id, Request $request) {
+    public function destroy($id, Request $request)
+    {
         if ($id) {
             try {
-               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
                 $student = Student::where('id', $id)
                     ->FilterMainCompany($mainCompanyId)
@@ -261,9 +298,11 @@ class StudentController extends BaseController
                 }
 
                 Student::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -274,150 +313,78 @@ class StudentController extends BaseController
     }
 
     /**
-     * Obtener CSV de alumnos
-     * @param Request $request
-     * @return array|\Illuminate\Http\JsonResponse
+     * ✅ EXPORT EXCEL (misma lógica de filtros que index)
+     * Ruta recomendada: GET /students/export/excel
      */
-    public function studentsCSV(Request $request){
-        try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+    public function studentsExportExcel(Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            $students = Student::student($mainCompanyId);
+        $query = Student::student($mainCompanyId);
+        $query = $this->applyStudentFilters($query, $request);
 
-            if ($request->inactive == 'false') {
-                $students = $students->where('students.active', 1);
-            }
-            if ($request->name) {
-                $students = $students->where('students.name', 'like', '%'.$request->name.'%');
-            }
-            if ($request->surname) {
-                $students = $students->where('students.surname', 'like', '%'.$request->surname.'&');
-            }
-            if ($request->dni) {
-                $students = $students->where('students.dni', 'like', '%'.$request->dni.'%');
-            }
-            if ($request->telephone) {
-                $students = $students->where('students.telephone', 'like', '%'.$request->dni.'%');
-            }
-            if ($request->email) {
-                $students = $students->where('students.email', 'like', '%'.$request->email.'%');
-            }
-            if ($request->company) {
-                $students = $students->where('companies.name', 'like', '%'.$request->company.'%');
-            }
+        $students = $query->orderBy('students.name', 'asc')->get();
 
-            $students = $students->orderBy('students.name','asc')->get();
+        $rows = $students->map(function ($student) {
+            $disabled = ((int)($student->disabled ?? 0) === 1) ? 'Si' : 'No';
+            $status   = ((int)($student->active ?? 0) === 1) ? 'Activo' : 'Inactivo';
 
-            $data = [];
-            if (count($students) > 0) {
-                foreach ($students as $student) {
-                    $disabled = $student['disabled'] === 1 ? 'Si' : 'No';
-                    $status = $student['active'] === 1 ? 'Activo' : 'Inactivo';
-                    $element = [
-                        'Nombre' => $student['name'],
-                        'Apellidos' => $student['surname'],
-                        'DNI' => $student['dni'],
-                        'Correo' => $student['email'],
-                        'Teléfono' => $student['telephone'],
-                        'Empresa' => $student['company'],
-                        'Usuario' => $student['user'],
-                        'Contraseña' => $student['password'],
-                        'Fecha Nacimiento' => $student['level_study'],
-                        'Descapacitado' => $disabled,
-                        'Nº Seguridad Social' => $student['social_security_number'],
-                        'C. Cotización' => $student['c_quote'],
-                        'Grupo Cotización' => $student['quote_group'],
-                        'Categoría Profesional' => $student['professional_category'],
-                        'Salario Bruto Anual' => $student['annual_gross_salary'],
-                        'Horas Anuales' => $student['annual_hours'],
-                        'Coste Hora Bruto del Trabajador' => $student['hourly_cost_worker_gross'],
-                        'Dirección' => $student['direction'],
-                        'Código Postal' => $student['post_code'],
-                        'Provincia' => $student['province'],
-                        'Población' => $student['population'],
-                        'Iban' => $student['iban'],
-                        'Observaciones' => $student['observation'],
-                        'Estado' => $status
-                    ];
-                    $data[] = $element;
+            // Fecha Nacimiento en d/m/Y (si viene YYYY-MM-DD)
+            $dob = '';
+            if (!empty($student->date_of_birth)) {
+                try {
+                    $dob = \Carbon\Carbon::parse($student->date_of_birth)->format('d/m/Y');
+                } catch (\Throwable $e) {
+                    $dob = (string)$student->date_of_birth;
                 }
-            } else {
-                $element = [
-                    'Nombre' => '',
-                    'Apellidos' => '',
-                    'DNI' => '',
-                    'Correo' => '',
-                    'Teléfono' => '',
-                    'Empresa' => '',
-                    'Usuario' => '',
-                    'Contraseña' => '',
-                    'Fecha Nacimiento' => '',
-                    'Descapacitado' => '',
-                    'Nº Seguridad Social' => '',
-                    'C. Cotización' => '',
-                    'Grupo Cotización' => '',
-                    'Categoría Profesional' => '',
-                    'Salario Bruto Anual' => '',
-                    'Horas Anuales' => '',
-                    'Coste Hora Bruto del Trabajador' => '',
-                    'Dirección' => '',
-                    'Código Postal' => '',
-                    'Provincia' => '',
-                    'Población' => '',
-                    'Iban' => '',
-                    'Observaciones' => '',
-                    'Estado' => ''
-                ];
-                $data[] = $element;
             }
 
-            return $data;
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
-        }
+            // ⚠️ CONTRASEÑA: NO recomendable exportarla. Dejo vacío para cuadrar columnas.
+            $passwordExport = ''; // (string)($student->password ?? '');
+
+            // IMPORTANTÍSIMO: devuelve ARRAY NUMÉRICO (no asociativo) para evitar “Excel repair”
+            return [
+                (string)($student->name ?? ''),
+                (string)($student->surname ?? ''),
+                (string)($student->dni ?? ''),
+                (string)($student->email ?? ''),
+                (string)($student->telephone ?? ''),
+                (string)($student->company ?? ''),               // viene del scope Student::student()
+                (string)($student->user ?? ''),
+                (string)($passwordExport),
+                (string)($dob),
+                (string)($student->level_study ?? ''),           // “Nivel de Estudio”
+                (string)($disabled),
+                (string)($student->social_security_number ?? ''),
+                (string)($student->c_quote ?? ''),
+                (string)($student->quote_group ?? ''),
+                (string)($student->professional_category ?? ''),
+                (string)($student->annual_gross_salary ?? ''),
+                (string)($student->annual_hours ?? ''),
+                (string)($student->hourly_cost_worker_gross ?? ''),
+                (string)($student->direction ?? ''),
+                (string)($student->post_code ?? ''),             // “Código postal”
+                (string)($student->province ?? ''),
+                (string)($student->population ?? ''),
+                (string)($student->iban ?? ''),
+                (string)($student->observation ?? ''),           // en tu modelo era observation
+                (string)($status),
+            ];
+        });
+
+        $fileName = 'alumnos_' . now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(new StudentsExport($rows), $fileName);
     }
 
     /**
-     * Obtener alumnos activos
-     * @param Request $request
-     * @return array|\Illuminate\Http\JsonResponse|mixed
+     * Import
      */
-    public function getActiveStudents(Request $request) {
-        try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+    public function import(Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            $students = Student::student($mainCompanyId)
-                ->where('students.active', 1)
-                ->orderBy('students.name','asc')
-                ->get();
-
-            if (count($students) > 0) {
-                foreach($students as $student) {
-                    $registered = Registration::where('student_id', $student->id)
-                        ->FilterMainCompany($mainCompanyId)
-                        ->first();
-
-                    if ($registered) {
-                        $student['used'] = true;
-                    } else {
-                        $student['used'] = false;
-                    }
-                }
-            }
-            return $students;
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
-        }
-    }
-
-    public function import(Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
         $students = json_decode($request->input('students'), true);
-
         $students['main_company_id'] = $mainCompanyId;
 
         Student::import($students);

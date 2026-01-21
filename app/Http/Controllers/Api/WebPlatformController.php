@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\WebPlatformResource;
 use App\Models\WebPlatform;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,41 @@ class WebPlatformController extends BaseController
     public function webPlatforms(Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            return WebPlatform::getWebPlatforms($mainCompanyId);
+            $query = WebPlatform::getWebPlatform($mainCompanyId);
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $webPlatforms = WebPlatformResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'web_platforms' => $webPlatforms,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $webPlatforms = WebPlatformResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'web_platforms' => $webPlatforms,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -27,10 +62,12 @@ class WebPlatformController extends BaseController
 
             $web = WebPlatform::createWithService($data);
 
-            return response()->json([
-                'status' => 200,
-                'web_platform' => WebPlatform::getWebPlatform($web->id, $mainCompanyId),
-            ]);
+            return $this->sendResponse(
+                [
+                    'web_platform' => WebPlatform::getWebPlatform($mainCompanyId)->where('web_platforms.id', $web->id)->first(),
+                ],
+                trans('Creado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -56,10 +93,12 @@ class WebPlatformController extends BaseController
 
             $web = WebPlatform::updateWithService($request);
 
-            return response()->json([
-                'status' => 200,
-                'web_platform' => WebPlatform::getWebPlatform($web->id, $mainCompanyId),
-            ]);
+            return $this->sendResponse(
+                [
+                    'web_platform' => WebPlatform::getWebPlatform($mainCompanyId)->where('web_platforms.id', $web->id)->first(),
+                ],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -82,10 +121,12 @@ class WebPlatformController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 400,
-            'message' => 'Plataforma no existe'
-        ]);
+        return $this->sendResponse(
+            [
+                'web_platform' => $web,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     public function destroy($id, Request $request){
@@ -105,9 +146,10 @@ class WebPlatformController extends BaseController
                 }
 
                 WebPlatform::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

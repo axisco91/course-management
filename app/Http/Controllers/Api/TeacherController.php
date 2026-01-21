@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use App\Helpers\GeneralHelpers;
 use App\Http\Requests\TeacherRequests;
+use App\Http\Resources\TeacherResource;
 use App\Models\Course;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
@@ -10,109 +12,155 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
+// ✅ Excel
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\TeachersExport;
+
 class TeacherController extends BaseController
 {
     /**
-     * Obtener docentes
-     * @return \Illuminate\Http\JsonResponse
+     * ✅ Aplicar filtros (MISMO comportamiento que index)
      */
-    public function index(Request $request) {
+    private function applyTeacherFilters($query, Request $request)
+    {
+        if ($request->name) {
+            $query->where('teachers.name', 'like', '%' . $request->name . '%');
+        }
+        if ($request->surname) {
+            $query->where('teachers.surname', 'like', '%' . $request->surname . '%');
+        }
+        if ($request->dni) {
+            $query->where('teachers.dni', 'like', '%' . $request->dni . '%');
+        }
+        if ($request->telephone) {
+            $query->where('teachers.telephone', 'like', '%' . $request->telephone . '%');
+        }
+        if ($request->email) {
+            $query->where('teachers.email', 'like', '%' . $request->email . '%');
+        }
+        if ($request->show_inactive == 'false') {
+            $query->where('teachers.active', 1);
+        }
+        if ($request->area) {
+            $query->whereHas('teacherAreas', function ($q) use ($request) {
+                $q->where('teacher_areas.id', $request->area);
+            });
+        }
+
+        return $query;
+    }
+
+    /**
+     * Obtener docentes
+     */
+    public function index(Request $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $teachers = Teacher::teacher($mainCompanyId);
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $query = Teacher::teacher($mainCompanyId);
 
-            if ($request->name) {
-                $teachers = $teachers->where('teachers.name', 'like', '%'.$request->name.'%');
-            }
-            if ($request->surname) {
-                $teachers = $teachers->where('teachers.surname', 'like', '%'.$request->surname.'&');
-            }
-            if ($request->dni) {
-                $teachers = $teachers->where('teachers.dni', 'like', '%'.$request->dni.'%');
-            }
-            if ($request->telephone) {
-                $teachers = $teachers->where('teachers.telephone', 'like', '%'.$request->telephone.'%');
-            }
-            if ($request->email) {
-                $teachers = $teachers->where('teachers.email', 'like', '%'.$request->email.'%');
-            }
-            if ($request->inactive == 'false') {
-                $teachers = $teachers->where('teachers.active', 1);
-            }
-            $teachers = $teachers->orderBy('teachers.name','asc')
-                ->get();
+            // ✅ filtros
+            $query = $this->applyTeacherFilters($query, $request);
 
-            if (count($teachers) > 0){
-                foreach ($teachers as $teacher) {
-                    $course = Course::where('teacher_id', $teacher->id)
-                        ->FilterMainCompany($mainCompanyId)
-                        ->first();
-                    if ($course) {
-                        $teacher['used'] = true;
-                    } else {
-                        $teacher['used'] = false;
-                    }
-                    $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
-                }
+            // ✅ sort
+            $sort = (string) $request->get('sort', '-id');
+            $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $key  = ltrim($sort, '-');
+
+            $sortable = [
+                'id'        => 'teachers.id',
+                'dni'       => 'teachers.dni',
+                'telephone' => 'teachers.telephone',
+                'email'     => 'teachers.email',
+                'status'    => 'teachers.active',
+            ];
+
+            if ($key === 'name') {
+                $query->orderBy('teachers.surname', $dir)->orderBy('teachers.name', $dir);
+            } elseif (isset($sortable[$key])) {
+                $query->orderBy($sortable[$key], $dir);
+            } else {
+                $query->orderBy('teachers.id', 'desc');
             }
-            return $teachers;
+
+            // ✅ paginación
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+                $paginator = $query->paginate($perPage);
+
+                $teachers = TeacherResource::collection($paginator);
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'teachers' => $teachers,
+                        'links' => $paginationData['links'],
+                        'meta'  => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // sin paginación
+            $teachers = TeacherResource::collection($query->get());
+
+            return $this->sendResponse(
+                [
+                    'teachers' => $teachers,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
-            ]);
+            ], 500);
         }
     }
 
     /**
-     * Obtener docentes activos
-     * @return \Illuminate\Http\JsonResponse
+     * Obtener docente
      */
-    public function activeTeachers(Request $request) {
-        try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $teachers = Teacher::teacher($mainCompanyId)
-                ->where('active', 1)
-                ->orderBy('teachers.name','asc')
-                ->get();
-            return $teachers;
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
-        }
-    }
+    public function show($id, Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-    // Obtain student
-    public function show($id, Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
         $teacher = Teacher::teacher($mainCompanyId)
             ->where('teachers.id', $id)
             ->first();
+
         if ($teacher) {
             $course = Course::where('teacher_id', $teacher->id)
                 ->FilterMainCompany($mainCompanyId)
                 ->first();
-            if ($course) {
-                $teacher['used'] = true;
-            } else {
-                $teacher['used'] = false;
-            }
-            $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
-            return response()->json([
-                'status' => 200,
-                'teacher' => $teacher
-            ]);
+
+            $teacher['used'] = (bool) $course;
+
+            $teacher['teacher_areas'] = $teacher->teacherAreas()
+                ->select('id as value', 'name as label')
+                ->get()
+                ->toArray();
+
+            return $this->sendResponse(
+                [
+                    'teacher' => $teacher,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
+
         return response()->json([
             'status' => 400,
             'message' => 'Docente no existe'
-        ]);
+        ], 400);
     }
 
-
-    public function store(TeacherRequests $request){
+    /**
+     * Crear docente
+     */
+    public function store(TeacherRequests $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
             $data['main_company_id'] = $mainCompanyId;
 
@@ -122,42 +170,27 @@ class TeacherController extends BaseController
                 ->where('teachers.id', $element->id)
                 ->first();
 
-            $course = Course::where('teacher_id', $teacher->id)
-                ->FilterMainCompany($mainCompanyId)
-                ->first();
-
-            if ($course) {
-                $teacher['used'] = true;
-            } else {
-                $teacher['used'] = false;
-            }
-
-            // Asociar las áreas formativas al profesor
-            $teacherAreaIds = $request['teacher_area_id'];  // Los IDs de las áreas a las que está relacionado el profesor
-
-            if ($teacherAreaIds) {
-                foreach ($teacherAreaIds as $teacherAreaId) {
-                    $teacher->teacherAreas()->attach($teacherAreaId);
-                }
-            }
-
-            $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
-            return response()->json([
-                'status' => 200,
-                'teacher' => $teacher
-            ]);
-        } catch (\Exception $e){
+            return $this->sendResponse(
+                [
+                    'teacher' => $teacher,
+                ],
+                trans('Creado con éxito')
+            );
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
-            ]);
+            ], 400);
         }
     }
 
+    /**
+     * Editar docente
+     */
     public function update($id, TeacherRequests $request)
     {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
 
             $teacher = Teacher::where('id', $id)
@@ -169,109 +202,125 @@ class TeacherController extends BaseController
                 return response()->json([
                     'status' => 404,
                     'message' => 'Teacher not found'
-                ]);
+                ], 404);
             }
 
-            $element = $teacher->updateWithService($data);
-            $teacher = Teacher::teacher($mainCompanyId)
-                ->where('teachers.id', $element->id)
-                ->first();
-            $course = Course::where('teacher_id', $teacher->id)
-                ->FilterMainCompany($mainCompanyId)
-                ->first();
-            $teacher['used'] = $course ? true : false;
+            $teacher->updateWithService($data);
 
-            // Actualizar las áreas formativas asociadas al profesor
-            $teacher->teacherAreas()->detach();
-            $teacherAreaIds = $request->input('teacher_areas', []); // Obtener como array
-
-            Log::info('Request data:', ['request' => $request->all()]);
-            Log::info('Teacher area IDs received:', ['teacher_area_ids' => $teacherAreaIds]);
-
-            if (is_array($teacherAreaIds)) {
-                foreach ($teacherAreaIds as $teacherAreaId) {
-                    if (is_numeric($teacherAreaId)) { // Verificar que sea numérico
-                        $teacher->teacherAreas()->attach((int) $teacherAreaId); // Convertir a entero
-                    } else {
-                        Log::error("teacherAreaId is not numeric: " . print_r($teacherAreaId, true));
-                    }
-                }
-            } else {
-                Log::error("teacher_area_ids is null or not an array: " . print_r($teacherAreaIds, true));
-            }
-
-            $teacher['teacher_areas'] = $teacher->teacherAreas()->select('id as value', 'name as label')->get()->toArray();
-            return response()->json([
-                'status' => 200,
-                'teacher' => $teacher
-            ]);
+            return $this->sendResponse(
+                [],
+                trans('Guardado con éxito')
+            );
         } catch (\Exception $e) {
             Log::error("Exception occurred: " . $e->getMessage(), ['exception' => $e]);
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
-            ]);
+            ], 400);
         }
     }
 
-
     /**
      * Comprobamos DNI
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
-    public function checkDni(Request $request){
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+    public function checkDni(Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
         $teacher = Teacher::where('dni', $request->dni)
             ->FilterMainCompany($mainCompanyId);
 
-        if ($request->id){
-            $teacher = $teacher->where('id', '!=', $request->id);
+        if ($request->id) {
+            $teacher->where('id', '!=', $request->id);
         }
+
         $teacher = $teacher->first();
-        if ($teacher){
-            return response()->json([
-                'exists' => true
-            ]);
-        } else {
-            return response()->json([
-                'exists' => false
-            ]);
-        }
+
+        return response()->json([
+            'exists' => (bool) $teacher
+        ]);
     }
 
     /**
      * Obtener cursos de docente
-     * @param $id
-     * @return mixed
      */
-    public function getTeachersCourses($id, Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-        $courses = Course::teacherCourses($id, $mainCompanyId)
-            ->get();
+    public function getTeachersCourses($id, Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $courses = Course::teacherCourses($id, $mainCompanyId)->get();
 
         if (count($courses) > 0) {
-            foreach ($courses as $course){
-                $beginning = Carbon::parse($course['beginning'])->format('d/m/Y');
-                $course['beginning'] = $beginning;
-                $end = Carbon::parse($course['end'])->format('d/m/Y');
-                $course['end'] = $end;
+            foreach ($courses as $course) {
+                $course['beginning'] = Carbon::parse($course['beginning'])->format('d/m/Y');
+                $course['end'] = Carbon::parse($course['end'])->format('d/m/Y');
             }
         }
-        return $courses;
+
+        return $this->sendResponse(
+            [
+                'courses' => $courses,
+            ],
+            trans('Obtenido con éxito')
+        );
+    }
+
+    /**
+     * ✅ EXPORT EXCEL (Docentes)
+     * Columnas: (según tu Docentes.xlsx)
+     * Nombre, Apellidos, DNI, Correo, Teléfono, Usuario, Contraseña, Dirección, Código postal, Provincia,
+     * Población, Iban, Observaciones, Estado
+     */
+    public function teachersExportExcel(Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+        $query = Teacher::teacher($mainCompanyId);
+        $query = $this->applyTeacherFilters($query, $request);
+
+        $teachers = $query->orderBy('teachers.name', 'asc')->get();
+
+        $rows = $teachers->map(function ($teacher) {
+            $status = ((int)($teacher->active ?? 0) === 1) ? 'Activo' : 'Inactivo';
+
+            // ⚠️ NO recomendado exportar contraseñas reales
+            $passwordExport = ''; // (string)($teacher->password ?? '');
+
+            // ✅ filas numéricas para evitar "Excel repair"
+            return [
+                (string)($teacher->name ?? ''),
+                (string)($teacher->surname ?? ''),
+                (string)($teacher->dni ?? ''),
+                (string)($teacher->email ?? ''),
+                (string)($teacher->telephone ?? ''),
+                (string)($teacher->user ?? ''),
+                (string)($passwordExport),
+                (string)($teacher->address ?? ''),
+                (string)($teacher->post_code ?? ''),
+                (string)($teacher->province ? $teacher->province->name : ''),      // depende de tu scope Teacher::teacher()
+                (string)($teacher->population ?? ''),
+                (string)($teacher->iban ?? ''),
+                (string)($teacher->observations ?? ''),
+                (string)($status),
+            ];
+        });
+
+        $fileName = 'docentes_' . now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(new TeachersExport($rows), $fileName);
     }
 
     /**
      * Eliminar docente
-     * @param $id
-     * @return \Illuminate\Http\JsonResponse|void
      */
-    public function destroy($id, Request $request) {
+    public function destroy($id, Request $request)
+    {
         if ($id) {
             try {
-               $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-                $teacher = Teacher::where($id)
+                // ✅ FIX: where('id', $id)
+                $teacher = Teacher::where('id', $id)
                     ->FilterMainCompany($mainCompanyId)
                     ->first();
 
@@ -280,18 +329,20 @@ class TeacherController extends BaseController
                     return response()->json([
                         'status' => 404,
                         'message' => 'Teacher not found'
-                    ]);
+                    ], 404);
                 }
 
                 Teacher::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
                     'message' => $e->getMessage()
-                ]);
+                ], 400);
             }
         }
     }

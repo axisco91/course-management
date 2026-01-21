@@ -79,17 +79,22 @@ class PotentialCompany extends Model
         return $query->where('potential_companies.main_company_id', $mainCompanyId);
     }
 
-
-    public static function getPotentialCompanies($mainCompanyId){
-        return PotentialCompany::select('potential_companies.*', 'company_types.name as type',
-            'company_activities.name as activity', 'cnaes.name as cnae',
-            'provinces.name as province')
-            ->leftjoin('company_types', 'company_types.id', '=', 'potential_companies.company_type_id')
-            ->leftjoin('company_activities', 'company_activities.id', '=', 'potential_companies.company_activity_id')
-            ->leftjoin('cnaes', 'cnaes.id', '=', 'potential_companies.cnae_id')
-            ->leftjoin('provinces', 'provinces.id', '=', 'potential_companies.province_id')->orderBy('potential_companies.name', 'asc')
+    public function scopeGetPotentialCompanies($query, $mainCompanyId)
+    {
+        return $query
+            ->select(
+                'potential_companies.*',
+                'company_types.name as type',
+                'company_activities.name as activity',
+                'cnaes.name as cnae',
+                'provinces.name as province'
+            )
+            ->leftJoin('company_types', 'company_types.id', '=', 'potential_companies.company_type_id')
+            ->leftJoin('company_activities', 'company_activities.id', '=', 'potential_companies.company_activity_id')
+            ->leftJoin('cnaes', 'cnaes.id', '=', 'potential_companies.cnae_id')
+            ->leftJoin('provinces', 'provinces.id', '=', 'potential_companies.province_id')
             ->where('potential_companies.main_company_id', $mainCompanyId)
-            ->get();
+            ->orderBy('potential_companies.name', 'asc');
     }
 
     public static function findNif($nif, $mainCompanyId, $id = null){

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\QuoteGroupService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,11 +22,8 @@ class QuoteGroup extends Model
         return $this->hasMany('App\Models\Student', 'quote_group_id', 'id');
     }
 
-    public static function getQuoteGroups(){
-        $quote_groups = QuoteGroup::
-        select('quote_groups.*', 'id as value', 'name as label')
-            ->get();
-        return $quote_groups;
+    public function scopeGetQuoteGroups($query){
+        return $query->select('quote_groups.*', 'id as value', 'name as label');
     }
 
     public static function createQuoteGroup($data){
@@ -41,5 +39,16 @@ class QuoteGroup extends Model
             'name' => $data['name']
         ]);
         return $quote_group;
+    }
+
+    public static function createWithService($data)
+    {
+        $service = app(QuoteGroupService::class);
+        return $service->create($data);
+    }
+
+    public function updateWithService($data){
+        $service = app(QuoteGroupService::class);
+        return $service->update($this, $data);
     }
 }

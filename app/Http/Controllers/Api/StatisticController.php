@@ -24,12 +24,12 @@ class StatisticController extends BaseController
                 $start = Carbon::parse($now->year . '-' . $date->month . '-01')->toDateString();
                 $limit = Carbon::parse($now->year . '-' . $date->month . '-01')->endOfMonth()->toDateString();
 
-                $registrations = Registration::countRegistrations($start, $limit, $mainCompanyId);
+                $registrations = Registration::countRegistrations($start, $limit, $mainCompanyId)->count();
                 $data[] = $registrations;
                 $cont++;
             }
             return response()->json([
-                'registrations' => Registration::totalRegistrations($mainCompanyId),
+                'registrations' => Registration::totalRegistration($mainCompanyId)->get(),
                 'series' => [['data' => $data,
                 'name' => 'Matriculaciones']]
             ]);
@@ -44,7 +44,7 @@ class StatisticController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            return Chore::getChoresSendWelcome($mainCompanyId);
+            return Chore::ChoresSendWelcome($mainCompanyId)->get();
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()

@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Exports\BillsExport;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\BillResource;
 use App\Models\AdvisorCommission;
 use App\Models\AdvisorCommissionType;
 use App\Models\Bill;
@@ -14,6 +16,7 @@ use App\Models\CourseType;
 use App\Models\Registration;
 use App\Models\Student;
 use App\Models\TrainingAction;
+use App\Models\User;
 use App\Models\UserCommission;
 use App\Models\UserCommissionType;
 use App\Services\AdvisorCommissionService;
@@ -21,6 +24,8 @@ use App\Services\UserCommissionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class  BillController extends BaseController
 {
@@ -37,50 +42,195 @@ class  BillController extends BaseController
      * Obtener facturas
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request) {
+    public function index(Request $request)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
             $cfa = CourseType::where('name', 'CFA')->first();
-            $bills = Bill::bill($mainCompanyId);
+
+            $query = Bill::bill($mainCompanyId);
+
             if ($cfa) {
-                $bills = $bills->where('course_type_id', '!=', $cfa->id);
+                $query->whereHas('course', fn ($q) => $q->where('course_type_id', '!=', $cfa->id));
             }
 
-            if ($request->course) {
-                $bills = $bills->where('training_actions.name', 'like', '%'.$request->course.'%');
+            // ✅ filtros (arreglados)
+            if ($request->filled('course')) {
+                $course = $request->course;
+
+                $query->whereHas('course', function ($q) use ($course) {
+                    // si course es ID:
+                    if (is_numeric($course)) {
+                        $q->where('courses.id', (int) $course);
+                        return;
+                    }
+
+                    // si course es texto: busca por trainingAction->name o formative_action
+                    $q->whereHas('trainingAction', function ($ta) use ($course) {
+                        $ta->where('training_actions.name', 'like', "%{$course}%")
+                            ->orWhere('training_actions.formative_action', 'like', "%{$course}%");
+                    });
+                });
             }
-            if ($request->company) {
-                $bills = $bills->where('companies.name', 'like', '%'.$request->company.'&');
+
+            if ($request->filled('company')) {
+                $query->where('company_id', $request->company); // ✅ % % bien
             }
-            if ($request->type) {
-                if ($request->type === 'No bonificada') {
-                    $bills = $bills->where('billings.is_bonus', 1);
-                } else if ($request->type === 'Bonificada') {
-                    $bills = $bills->where('billings.is_bonus', 0);
-                }
-            }
-            if ($request->invoiced) {
-                if ($request->invoiced === 'Si') {
-                    $bills = $bills->where('billings.invoiced', 1);
-                } else if ($request->invoiced === 'No') {
-                    $bills = $bills->where('billings.invoiced', 0);
-                }
-            }
-            if ($request->charged) {
-                if ($request->charged === 'Si') {
-                    $bills = $bills->where('billings.charge', 1);
-                } else if ($request->charged === 'No') {
-                    $bills = $bills->where('billings.charge', 0);
+
+            if ($request->filled('type')) {
+                // OJO tu lógica estaba invertida:
+                // Billings.is_bonus = 1 => "Bonificada" (según tu CASE)
+                if ($request->type == 1) {
+                    $query->where('billings.is_bonus', 1);
+                } elseif ($request->type == 0) {
+                    $query->where('billings.is_bonus', 0);
                 }
             }
 
-            $bills = $bills->FilterMainCompany($mainCompanyId)->groupBy('billings.id')->orderBy('courses.beginning', 'desc')->get();
-            return $bills;
+            if ($request->filled('invoiced')) {
+                if ($request->invoiced === 'Si') $query->where('billings.invoiced', 1);
+                if ($request->invoiced === 'No') $query->where('billings.invoiced', 0);
+            }
+
+            if ($request->filled('charged')) {
+                if ($request->charged === 'Si') $query->where('billings.charged', 1); // ✅ era charged en tu scope
+                if ($request->charged === 'No') $query->where('billings.charged', 0);
+            }
+
+            if ($request->filled('year')) {
+                $year = (int) $request->year;
+
+                $query->whereHas('course', function ($q) use ($year) {
+                    $q->whereYear('beginning', $year); // ✅ sin "courses."
+                });
+            }
+
+            // ✅ agrupa y orden
+            $query->groupBy('billings.id');
+
+            $sort = (string) $request->get('sort', '-year'); // default: año desc
+            $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
+            $key  = ltrim($sort, '-');
+
+            switch ($key) {
+
+                // ✅ Invoice number (columna de billings)
+                case 'billing_number':
+                    $query->orderBy('billings.billing_number', $dir);
+                    break;
+
+                // ✅ Course (lo que ves en UI: formative_action / group training_action.name)
+                // Orden robusto: formative_action, group, training_action.name
+                case 'course':
+                    $query->orderByRaw("
+        (SELECT ta.formative_action
+         FROM courses c
+         JOIN training_actions ta ON ta.id = c.training_action_id
+         WHERE c.id = billings.course_id
+         LIMIT 1
+        ) {$dir}
+    ");
+
+                    $query->orderByRaw("
+        (SELECT c.`group`
+         FROM courses c
+         WHERE c.id = billings.course_id
+         LIMIT 1
+        ) {$dir}
+    ");
+
+                    $query->orderByRaw("
+        (SELECT ta.name
+         FROM courses c
+         JOIN training_actions ta ON ta.id = c.training_action_id
+         WHERE c.id = billings.course_id
+         LIMIT 1
+        ) {$dir}
+    ");
+                    break;
+
+                // ✅ Year (del beginning del curso)
+                case 'year':
+                    $query->orderByRaw(
+                        "YEAR((
+                SELECT c.beginning FROM courses c
+                WHERE c.id = billings.course_id
+                LIMIT 1
+            )) {$dir}"
+                    );
+                    break;
+
+                // ✅ Type (según tu UI: Bonificada/No bonificada)
+                // is_bonus = 1 => Bonificada (si tu lógica es la estándar)
+                case 'type':
+                    $query->orderBy('billings.is_bonus', $dir);
+                    break;
+
+                // ✅ Company (companies.name)
+                case 'company':
+                    $query->orderBy(
+                        Company::select('name')
+                            ->whereColumn('companies.id', 'billings.company_id')
+                            ->limit(1),
+                        $dir
+                    );
+                    break;
+
+                // ✅ Invoiced (billings.invoiced 0/1)
+                case 'invoiced':
+                    $query->orderBy('billings.invoiced', $dir);
+                    break;
+
+                // ✅ Bonus sent (si tienes bonus_sent / bonus_sent_status / bonus_status etc.)
+                // Ajusta el campo real: aquí pongo bonus_sent como ejemplo
+                case 'bonus_status':
+                    $query->orderBy('billings.bonus_status', $dir);
+                    break;
+
+                // ✅ Charged (billings.charged 0/1)
+                case 'charged':
+                    $query->orderBy('billings.charged', $dir);
+                    break;
+
+                // ✅ Invoice (tu columna real: remitted / invoice / etc.)
+                // Ajusta: yo pongo remitted por tu comentario.
+                case 'invoice':
+                    $query->orderBy('billings.remitted', $dir);
+                    break;
+
+                default:
+                    // default estable
+                    $query->orderByDesc(
+                        Course::select('beginning')
+                            ->whereColumn('courses.id', 'billings.course_id')
+                            ->limit(1)
+                    );
+                    break;
+            }
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                return $this->sendResponse(
+                    [
+                        'bills' => BillResource::collection($paginator),
+                        'links' => GeneralHelpers::generatePaginationData($paginator)['links'],
+                        'meta'  => GeneralHelpers::generatePaginationData($paginator)['meta'],
+                    ],
+                    trans('Obtenido')
+                );
+            }
+
+            return $this->sendResponse(
+                ['bills' => BillResource::collection($query->get())],
+                trans('Obtenido con éxito')
+            );
+
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage()
-            ]);
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 
@@ -99,10 +249,12 @@ class  BillController extends BaseController
             $course = Course::where('id', $bill->course_id)->first();
             $company = Company::where('id', $bill->company_id)->first();
             $bill['name'] = $course->name .' - '. $company->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
-            return response()->json([
-                'status' => 200,
-                'billing' => $bill
-            ]);
+            return $this->sendResponse(
+                [
+                    'bill' => $bill,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -232,11 +384,31 @@ class  BillController extends BaseController
                     ->first();
 
                 if ($chore) {
+                    $parseDate = function ($v) {
+                        if (empty($v)) return null;
+
+                        // si viene con hora, nos quedamos con la parte de fecha
+                        $v = substr((string)$v, 0, 10);
+
+                        foreach (['Y-m-d', 'd-m-Y'] as $fmt) {
+                            try {
+                                return \Illuminate\Support\Carbon::createFromFormat($fmt, $v)->format('Y-m-d');
+                            } catch (\Exception $e) {}
+                        }
+
+                        // último intento (más permisivo)
+                        try {
+                            return Carbon::parse($v)->format('Y-m-d');
+                        } catch (\Exception $e) {
+                            return null;
+                        }
+                    };
+
                     $chore->update([
                         'bonus_sent_status' => $bill['invoiced'],
-                        'bonus_sent_date' => $request['billing_date'] ? \Illuminate\Support\Carbon::createFromFormat('d-m-Y', $request['billing_date'])->format('Y-m-d') : null,
+                        'bonus_sent_date' => $parseDate($request['billing_date'] ?? null),
                         'invoiced_status' => $bill['invoiced'],
-                        'invoiced_date' => $request['billing_date'] ? Carbon::createFromFormat('d-m-Y', $request['billing_date'])->format('Y-m-d') : null,
+                        'invoiced_date' => $parseDate($request['billing_date'] ?? null),
                         'main_company_id' => $mainCompanyId,
                     ]);
                 }
@@ -254,10 +426,13 @@ class  BillController extends BaseController
                     ->first();
                 $bill['name'] = $course->group . '/' . $course->name . ' - ' . $company->name . ' ' . Carbon::parse($course->beginning)->format('d/m/Y') . ' - ' . Carbon::parse($course->end)->format('d/m/Y');
             }
-            return response()->json([
-                'status' => 200,
-                'billing' => $bill
-            ]);
+
+            return $this->sendResponse(
+                [
+                    'bill' => $bill,
+                ],
+                trans('Actualizado con éxito')
+            );
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -287,9 +462,9 @@ class  BillController extends BaseController
                     }
                 }
                 Bill::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -308,6 +483,150 @@ class  BillController extends BaseController
     {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        return response()->json(Student::billedStudent($id, $mainCompanyId)->get());
+        $students = Student::billedStudent($id, $mainCompanyId)->get();
+        return $this->sendResponse(
+            [
+                'students' => $students,
+            ],
+            trans('Obtenido con éxito')
+        );
+    }
+
+    public function minYear(Request $request)
+    {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                Auth::id()
+            );
+
+            // Solo billings de la compañía principal
+            // y con curso válido para sacar el YEAR(courses.beginning)
+            $minYear = DB::table('billings')
+                ->join('courses', 'courses.id', '=', 'billings.course_id')
+                ->where('billings.main_company_id', $mainCompanyId)
+                ->whereNotNull('courses.beginning')
+                ->min(DB::raw('YEAR(courses.beginning)'));
+
+            // fallback: si no hay nada, año actual
+            $minYear = $minYear ?: (int)date('Y');
+
+            return $this->sendResponse(
+                ['minYear' => (int)$minYear],
+                trans('Obtenido con éxito')
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+                $request->headers->get('origin'),
+                Auth::id()
+            );
+
+            $query = Bill::bill($mainCompanyId);
+
+            $user = User::where('id', Auth::id())
+                ->where('main_company_id', $mainCompanyId)
+                ->first();
+
+            if ($user && $user->teacher_id) {
+                $query->whereHas('course', function ($q) use ($user) {
+                    $q->where('teacher_id', $user->teacher_id);
+                });
+            }
+
+            // ✅ filtros típicos (ajusta a lo que mande tu frontend)
+            if ($request->filled('course')) {
+                $query->where('course_id', $request->course);
+            }
+            if ($request->filled('company')) {
+                $query->where('company_id', $request->company);
+            }
+            if ($request->filled('advisor')) {
+                $query->where('advisor_id', $request->advisor);
+            }
+            if ($request->filled('collaborator')) {
+                $query->where('collaborator_id', $request->collaborator);
+            }
+            if ($request->filled('payment')) {
+                $query->where('payment_id', $request->payment);
+            }
+
+            // orden (como sueles hacer)
+            $query->orderByDesc('id');
+
+            $items = $query->get();
+
+            $yesNo = fn($v) => ((string)$v === '1' || $v === 1 || $v === true) ? 'Sí' : 'No';
+
+            $num = function ($v) {
+                if ($v === null || $v === '') return '';
+                $n = (float) $v;
+                return rtrim(rtrim(number_format($n, 2, '.', ''), '0'), '.');
+            };
+
+            $yearFromCourseBeginning = function ($bill) {
+                $begin = data_get($bill, 'course.beginning');
+                if (!$begin) return '';
+                try {
+                    return \Carbon\Carbon::parse($begin)->format('Y');
+                } catch (\Exception $e) {
+                    return '';
+                }
+            };
+
+            $courseLabel = function ($bill) {
+                $fa    = (string) data_get($bill, 'course.trainingAction.formative_action', '');
+                $group = (string) data_get($bill, 'course.group', '');
+                $name  = (string) data_get($bill, 'course.trainingAction.name', '');
+
+                $label = trim($fa . ' / ' . $group . ' ' . $name);
+
+                return $label;
+            };
+
+            $rows = $items->map(function ($b) use ($yesNo, $num, $courseLabel, $yearFromCourseBeginning) {
+                $collabFull = trim(
+                    (string) data_get($b, 'collaborator.name', '') . ' ' .
+                    (string) data_get($b, 'collaborator.surname', '')
+                );
+
+                return [
+                    (string) data_get($b, 'billing_number', ''),            // Factura
+                    $courseLabel($b),                                       // Curso
+                    $yearFromCourseBeginning($b),                           // Año (desde course.beginning)
+                    (string) data_get($b, 'payment.name', ''),              // Tipo Factura
+                    (string) data_get($b, 'company.name', ''),              // Empresa
+                    (string) data_get($b, 'advisor.name', ''),              // Asesor
+                    $collabFull,                                            // Colaborador
+                    (string) data_get($b, 'number_students', ''),           // Nº Alumnos
+                    $num(data_get($b, 'billing', '')),                      // Total
+                    $num(data_get($b, 'bonus', '')),                        // Total Bonificado
+                    $num(data_get($b, 'expenses', '')),                     // Total No Bonificado (según tu campo)
+                    $yesNo(data_get($b, 'charged', '')),                    // Pagada
+                    (string) data_get($b, 'bonus_status', ''),              // Estado
+                    $yesNo(data_get($b, 'remitted', '')),                   // Verificada (remitted)
+                ];
+            });
+
+            return Excel::download(new BillsExport($rows), 'Facturas.xlsx');
+
+        } catch (\Exception $e) {
+            \Log::error("Bills exportExcel error: " . $e->getMessage());
+            \Log::error($e->getTraceAsString());
+
+            return response()->json([
+                'status' => 500,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

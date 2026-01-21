@@ -38,7 +38,7 @@ class AdvisorCommission extends Model
             ->leftJoin('courses', 'courses.id', '=', 'advisor_commissions.course_id')
             ->leftJoin('training_contracts', 'training_contracts.id', '=', 'advisor_commissions.training_contract_id')
             ->leftJoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
-            ->where('advisor_commissions.main_company_id', $mainCompanyId);
+            ->FilterMainCompany($mainCompanyId);
     }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {

@@ -148,8 +148,32 @@ class TrainingContractElementService
      * Función para editar las fechas
      */
     public function updateDates(TrainingContractElement $trainingContractElement, array $data) {
-        $beginning = $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null;
-        $end = $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null;
+        $beginningRaw = $data['beginning'] ?? null;
+        $endRaw = $data['end'] ?? null;
+
+        $parseDate = function ($v) {
+            if (!$v) return null;
+
+            // Si ya viene YYYY-MM-DD, úsalo directo
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $v)) {
+                return Carbon::createFromFormat('Y-m-d', $v)->format('Y-m-d');
+            }
+
+            // Si viene DD-MM-YYYY
+            if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $v)) {
+                return Carbon::createFromFormat('d-m-Y', $v)->format('Y-m-d');
+            }
+
+            // último intento (por si llega con / o datetime)
+            try {
+                return Carbon::parse($v)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return null; // o lanza excepción si quieres
+            }
+        };
+
+        $beginning = $parseDate($beginningRaw);
+        $end = $parseDate($endRaw);
         $trainingContractElement->update([
             'beginning' => $beginning,
             'end' =>  $end,

@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingContractStatusResource;
 use App\Models\TrainingContractStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -8,9 +10,43 @@ use Illuminate\Support\Facades\Validator;
 
 class TrainingContractStatusController extends BaseController
 {
-    public function getTrainingContractStatuses() {
+    public function getTrainingContractStatuses(Request $request) {
         try {
-            return TrainingContractStatus::getTrainingContractStatuses();
+            $query = TrainingContractStatus::getTrainingContractStatus();
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $trainingContractStatuses = TrainingContractStatusResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'training_contract_statuses' => $trainingContractStatuses,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $trainingContractStatuses = TrainingContractStatusResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'training_contract_statuses' => $trainingContractStatuses,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -28,10 +64,12 @@ class TrainingContractStatusController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'training_contract_status' => TrainingContractStatus::getTrainingContractStatus($status->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'training_contract_status' => TrainingContractStatus::getTrainingContractStatus()->where('training_contract_statuses.id', $status->id)->first(),
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
@@ -44,19 +82,23 @@ class TrainingContractStatusController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'training_contract_status' => TrainingContractStatus::getTrainingContractStatus($status->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'training_contract_status' => TrainingContractStatus::getTrainingContractStatus()->where('training_contract_statuses.id', $status->id)->first(),
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     public function getTrainingContractStatus($id){
-        $status = TrainingContractStatus::getTrainingContractStatus($id);
+        $status = TrainingContractStatus::getTrainingContractStatus()->where('training_contract_statuses.id', $id)->first();
         if ($status) {
-            return response()->json([
-                'status' => 200,
-                'training_contract_status' => $status
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_contract_status' => $status,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -68,9 +110,10 @@ class TrainingContractStatusController extends BaseController
         if ($id) {
             try {
                 TrainingContractStatus::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

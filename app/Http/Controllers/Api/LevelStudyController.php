@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\LevelStudyResource;
 use App\Models\LevelStudy;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class LevelStudyController extends BaseController
@@ -16,9 +17,43 @@ class LevelStudyController extends BaseController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function levelStudies() {
+    public function levelStudies(Request $request) {
         try {
-            return LevelStudy::getLevelStudies();
+            $query = LevelStudy::select('*');
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $levelStudies = LevelStudyResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'level_studies' => $levelStudies,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $levelStudies = LevelStudyResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'level_studies' => $levelStudies,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -39,7 +74,6 @@ class LevelStudyController extends BaseController
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'code' => 'required|string|size:2|unique:level_studies,code'
             ]);
 
             if ($validator->fails()) {
@@ -49,37 +83,42 @@ class LevelStudyController extends BaseController
                 ]);
             }
 
-            $level_study = LevelStudy::createLevelStudy($request->all());
+            $levelStudy = LevelStudy::createWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-        return response()->json([
-            'status' => 200,
-            'level_study' => LevelStudy::getLevelStudy($level_study->id)
-        ]);
+
+        return $this->sendResponse(
+            [
+                'level_study' => LevelStudy::where('level_studies.id', $levelStudy->id)->first(),
+            ],
+            trans('Creado con éxito')
+        );
     }
-    
+
     /**
      * Obtiene un nivel de estudio por su ID.
-     * 
+     *
      * Este método devuelve un nivel de estudio específico basado en el ID proporcionado.
-     * 
+     *
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
-     * 
+     *
      */
     public function show($id)
     {
         try {
-            $levelStudy = LevelStudy::getLevelStudy($id);
-            return response()->json([
-                'status' => 200,
-                'level_study' => $levelStudy
-            ]);
+            $levelStudy = LevelStudy::where('level_studies.id', $id)->first();
+            return $this->sendResponse(
+                [
+                    'level_study' => $levelStudy,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 400,
@@ -101,7 +140,6 @@ class LevelStudyController extends BaseController
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'code' => 'required|string|size:2|unique:level_studies,code,'.$id
             ]);
 
             if ($validator->fails()) {
@@ -111,17 +149,21 @@ class LevelStudyController extends BaseController
                 ]);
             }
 
-            $level_study = LevelStudy::updateLevelStudy($id, $request->all());
+            $levelStudy = LevelStudy::find($id);
+            $levelStudy->updateWithService($request->all());
+
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
-        return response()->json([
-            'status' => 200,
-            'level_study' => LevelStudy::getLevelStudy($level_study->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'level_study' => $levelStudy,
+            ],
+            trans('Guardado con éxito')
+        );
     }
 
     /**
@@ -137,9 +179,10 @@ class LevelStudyController extends BaseController
         if ($id) {
             try {
                 LevelStudy::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

@@ -23,32 +23,22 @@ class TrainingActionLevel extends Model
         return $this->hasMany('App\Models\TrainingAction', 'training_action_level_id', 'id');
     }
 
-    public static function getTrainingActionLevels(){
-        $trainingAction_levels = TrainingActionLevel::
-        select('*', 'id as value', 'name as label')
-            ->get();
-        foreach ($trainingAction_levels as $trainingAction_level){
-            $trainingAction = TrainingAction::where('training_action_level_id', $trainingAction_level['id'])->first();
-            if ($trainingAction){
-                $trainingAction_level['used'] = true;
-            } else {
-                $trainingAction_level['used'] = false;
-            }
-        }
-        return $trainingAction_levels;
-    }
-
-    public static function getTrainingActionLevel($id){
-        $trainingAction_level = TrainingActionLevel::
-        select('*', 'id as value', 'name as label')
-            ->where('id', $id)->first();
-        $trainingAction = TrainingAction::where('training_action_level_id', $trainingAction_level['id'])->first();
-        if ($trainingAction){
-            $trainingAction_level['used'] = true;
-        } else {
-            $trainingAction_level['used'] = false;
-        }
-        return $trainingAction_level;
+    public function scopeGetTrainingActionLevel($query)
+    {
+        return $query
+            ->select(
+                'training_action_levels.*',
+                'training_action_levels.id as value',
+                'training_action_levels.name as label'
+            )
+            ->leftJoin(
+                'training_actions',
+                'training_actions.training_action_level_id',
+                '=',
+                'training_action_levels.id'
+            )
+            ->selectRaw('CASE WHEN training_actions.id IS NULL THEN false ELSE true END as used')
+            ->groupBy('training_action_levels.id');
     }
 
     public static function createTrainingActionLevel($data){

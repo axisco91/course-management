@@ -21,46 +21,27 @@ class Payment extends Model
         return $this->hasMany('App\Models\Bonus', 'payment_id', 'id');
     }
 
-    public static function getPayments(){
-        $payments = Payment::select('*', 'id as value', 'name as label')
-            ->get();
-        foreach ($payments as $payment){
-            $bill = Bill::where('payment_id', $payment['id'])->first();
-            if ($bill){
-                $payment['used'] = true;
-            } else{
-                $payment['used'] = false;
-            }
-        }
-        return $payments;
+    public function scopeGetPayment($query)
+    {
+        return $query
+            ->select(
+                'payments.*',
+                'payments.id as value',
+                'payments.name as label'
+            )
+            ->leftJoin('billings', 'billings.payment_id', '=', 'payments.id')
+            ->selectRaw('CASE WHEN billings.id IS NULL THEN false ELSE true END as used')
+            ->groupBy('payments.id');
     }
 
-    public static function getPayment($id){
-        $payment = Payment::select('*', 'id as value', 'name as label')
-            ->where('id', $id)
-            ->first();
-        $bill = Bill::where('payment_id', $payment['id'])->first();
-        if ($bill){
-            $payment['used'] = true;
-        } else{
-            $payment['used'] = false;
-        }
-        return $payment;
+    public static function createWithService($data)
+    {
+        $service = app(Payment::class);
+        return $service->create($data);
     }
 
-    public static function createPayment($data){
-        $payment = Payment::create([
-            'name' => $data['name']
-        ]);
-        return $payment;
+    public function updateWithService($data){
+        $service = app(Payment::class);
+        return $service->update($this, $data);
     }
-
-    public static function updatePayment($id, $data){
-        $payment = Payment::find($id);
-        $payment->update([
-            'name' => $data['name']
-        ]);
-        return $payment;
-    }
-
 }

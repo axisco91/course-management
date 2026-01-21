@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\IncidenceTypeService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,56 +14,25 @@ class IncidenceType extends Model
 
     protected $fillable = ['name'];
 
-
-    public static function getIncidenceTypes(){
-        $incidenceTypes = IncidenceType::
-        select('incidence_types.*', 'id as value', 'name as label')->get();
-        foreach ($incidenceTypes as $incidenceType){
-            $incidences = AdvisorIncidence::where('incidence_type_id', $incidenceType['id'])->first();
-            if ($incidences){
-                $incidenceType['used'] = true;
-            } else {
-                $incidenceType['used'] = false;
-            }
-        }
-        return $incidenceTypes;
+    public function scopeGetIncidenceType($query)
+    {
+        return $query
+            ->select(
+                'incidence_types.*'
+            );
     }
 
-    public static function createIncidenceType($data){
-        $incidence_type = IncidenceType::create([
-            'name' => $data['name']
-        ]);
-        $incidence_type = IncidenceType::
-        select('incidence_types.*', 'id as value', 'name as label')
-            ->where('id', $incidence_type->id)->first();
-        $incidences = AdvisorIncidence::where('incidence_type_id', $incidence_type['id'])->first();
-        if ($incidences){
-            $incidence_type['used'] = true;
-        } else {
-            $incidence_type['used'] = false;
-        }
-        return $incidence_type;
+    public static function createWithService($data)
+    {
+        $service = app(IncidenceTypeService::class);
+
+        return $service->create($data);
     }
 
-    public static function updateIncidenceType($id, $data){
-        $incidence_type = IncidenceType::find($id);
-        $incidence_type->update([
-            'name' => $data['name']
-        ]);
+    public function updateWithService($data)
+    {
+        $service = app(IncidenceTypeService::class);
 
-        return $incidence_type;
-    }
-
-    public function getIncidenceType($id){
-        $incidence_type = IncidenceType::
-        select('incidence_types.*', 'id as value', 'name as label')
-            ->where('id', $id)->first();
-        $incidences = AdvisorIncidence::where('incidence_type_id', $incidence_type['id'])->first();
-        if ($incidences){
-            $incidence_type['used'] = true;
-        } else {
-            $incidence_type['used'] = false;
-        }
-        return $incidence_type;
+        return $service->update($this, $data);
     }
 }

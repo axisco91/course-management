@@ -21,12 +21,15 @@ class Tutoring extends Model
         return $this->hasMany('App\Models\TrainingAction', 'tutoring_id', 'id');
     }
 
-    public static function getTutorings(){
-        $tutorings = Tutoring::
-        select('*', 'id as value', 'name as label')
-            ->get();
-        return $tutorings;
+    public function scopeGetTutoring($query)
+    {
+        return $query->select(
+            'tutorings.*',
+            'tutorings.id as value',
+            'tutorings.name as label'
+        );
     }
+
 
     public static function createTutoring($data){
         $tutoring = Tutoring::create([

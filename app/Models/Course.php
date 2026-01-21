@@ -38,14 +38,6 @@ class Course extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function courseStatuses()
-    {
-        return $this->hasOne('App\Models\CourseStatus', 'id', 'course_status_id');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
     public function deliveryCenter()
     {
         return $this->hasOne('App\Models\Center', 'id', 'delivery_center_id');
@@ -59,13 +51,19 @@ class Course extends Model
         return $this->hasMany('App\Models\Chore', 'course_id', 'id');
     }
 
+    public function courseStatus()
+    {
+        return $this->belongsTo(CourseStatus::class, 'course_status_id');
+    }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
     public function courseType()
     {
-        return $this->hasOne('App\Models\CourseType', 'id', 'course_type_id');
+        return $this->belongsTo(CourseType::class, 'course_type_id');
+    }
+
+    public function trainingAction()
+    {
+        return $this->belongsTo(TrainingAction::class, 'training_action_id');
     }
 
     /**
@@ -73,8 +71,9 @@ class Course extends Model
      */
     public function registrations()
     {
-        return $this->hasMany('App\Models\Registration', 'course_id', 'id');
+        return $this->hasMany(Registration::class, 'course_id', 'id');
     }
+
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -95,45 +94,19 @@ class Course extends Model
     {
         return $this->hasMany('App\Models\Profitability', 'course_id', 'id');
     }
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function trainingAction()
-    {
-        return $this->hasOne('App\Models\TrainingAction', 'id', 'training_action_id');
-    }
 
     public function scopeWithCourseData($query, $mainCompanyId)
     {
         return $query
-            ->select(
-                'courses.*',
-                'course_types.name as course_type',
-                DB::raw("CONCAT(teachers.name,' ', teachers.surname) as teacher"),
-                'fc.name as formation_center',
-                'dc.name as delivery_center',
-                'course_statuses.name as course_status',
-                DB::raw("CONCAT(training_actions.formative_action,' / ', courses.group, ' ', training_actions.name) as label"),
-                DB::raw("CONCAT(training_actions.formative_action,' - ',training_actions.name) as training_action"),
-                'training_actions.formative_action as formative_action',
-                'training_actions.total_hours as total_hours', // Agregado total_hours
-                DB::raw("(SELECT GROUP_CONCAT(DISTINCT registrations.company_id) FROM registrations
-               WHERE registrations.course_id = courses.id) as company_ids"),
-                DB::raw("(SELECT GROUP_CONCAT(DISTINCT CONCAT(students.name, ' ', students.surname)) FROM students
-               INNER JOIN registrations ON registrations.student_id = students.id
-               WHERE registrations.course_id = courses.id) as student_names"),
-                DB::raw("(SELECT GROUP_CONCAT(DISTINCT companies.name) FROM companies
-               INNER JOIN registrations ON registrations.company_id = companies.id
-               WHERE registrations.course_id = courses.id) as company_names")
-            )
-            ->leftjoin('course_types', 'course_types.id', '=', 'courses.course_type_id')
-            ->leftjoin('teachers', 'teachers.id', '=', 'courses.teacher_id')
-            ->leftjoin('centers as fc', 'fc.id', '=', 'courses.formation_center_id')
-            ->leftjoin('centers as dc', 'dc.id', '=', 'courses.delivery_center_id')
-            ->leftjoin('course_statuses', 'course_statuses.id', '=', 'courses.course_status_id')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'courses.training_action_id')
-            ->where('courses.main_company_id', $mainCompanyId)
-            ->orderBy('courses.beginning', 'desc');
+            ->select('courses.*')
+            ->with([
+                'trainingAction:id,formative_action,name,total_hours',
+                'courseType:id,name',
+                'teacher:id,name,surname',
+                'courseStatus:id,name',
+            ])
+            ->withCount('registrations') // 👈 esto crea registrations_count
+            ->where('courses.main_company_id', $mainCompanyId);
     }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {
@@ -219,18 +192,13 @@ class Course extends Model
         ];
     }
 
-    public function scopeTrainingActionCourses($query, $id, $mainCompanyId) {
-        return $query->where('training_action_id', $id)
-            ->where('main_company_id', $mainCompanyId)
-            ->orderBy('beginning', 'DESC');
-    }
-
     public function scopeCompanyCourses($query, $id, $mainCompanyId) {
         $registrations = Registration::where('company_id', $id)->groupBy('course_id')->pluck('course_id')->toArray();
         return $query->select('courses.*')
             ->where(function ($query) use ($registrations){
                 $query->WhereIn('courses.id', $registrations);
             })
+            ->with(['courseType:id,name'])
             ->where('courses.main_company_id', $mainCompanyId);
     }
 

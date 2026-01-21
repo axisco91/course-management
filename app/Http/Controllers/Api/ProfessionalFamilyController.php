@@ -1,16 +1,50 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\GeneralHelpers;
+use App\Http\Resources\ProfessionalFamilyResource;
 use App\Models\ProfessionalFamily;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class ProfessionalFamilyController extends BaseController
 {
-    public function professionalFamilies() {
+    public function professionalFamilies(Request $request) {
         try {
-            return ProfessionalFamily::getProfessionalFamilies();
+            $query = ProfessionalFamily::getProfessionalFamily();
+
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $professionalFamilies = ProfessionalFamilyResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'professional_families' => $professionalFamilies,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $professionalFamilies = ProfessionalFamilyResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'professional_families' => $professionalFamilies,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -20,7 +54,7 @@ class ProfessionalFamilyController extends BaseController
 
     public function create(Request $request){
         try {
-            $family = ProfessionalFamily::createProfessionalFamily($request);
+            $family = ProfessionalFamily::createWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -28,15 +62,18 @@ class ProfessionalFamilyController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'professional_family' => ProfessionalFamily::getProfessionalFamily($family->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'professional_family' => ProfessionalFamily::getProfessionalFamily()->where('professional_families.id', $family->id)->first(),
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function edit($id, Request $request){
         try {
-            $family = ProfessionalFamily::updateProfessionalFamily($id, $request);
+            $family = ProfessionalFamily::find($id);
+            $family->updateWithService($request);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -44,19 +81,23 @@ class ProfessionalFamilyController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'professional_family' => ProfessionalFamily::getProfessionalFamily($family->id)
-        ]);
+        return $this->sendResponse(
+            [
+                'professional_family' => ProfessionalFamily::getProfessionalFamily()->where('professional_families.id', $family->id)->first(),
+            ],
+            trans('Editado con éxito')
+        );
     }
 
     public function getProfessionalFamily($id){
-        $family = ProfessionalFamily::getProfessionalFamily($id);
+        $family = ProfessionalFamily::getProfessionalFamily()->where('professional_families.id', $id)->first();
         if ($family) {
-            return response()->json([
-                'status' => 200,
-                'professional_family' => $family
-            ]);
+            return $this->sendResponse(
+                [
+                    'professional_family' => ProfessionalFamily::getProfessionalFamily()->where('professional_families.id', $family->id)->first(),
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -68,9 +109,10 @@ class ProfessionalFamilyController extends BaseController
         if ($id) {
             try {
                 ProfessionalFamily::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,

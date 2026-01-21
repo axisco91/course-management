@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Exports\TrainingContractsExport;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\TrainingContractResource;
 use App\Models\Advisor;
 use App\Models\Certification;
 use App\Models\Company;
@@ -20,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class TrainingContractController extends BaseController
@@ -31,31 +34,63 @@ class TrainingContractController extends BaseController
     public function index(Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $trainingContracts = TrainingContract::getTrainingContracts($mainCompanyId);
+            $query = TrainingContract::getTrainingContracts($mainCompanyId);
             $user = User::find(Auth::id());
             if ($user->teacher_id) {
-                $trainingContracts = $trainingContracts->leftjoin('training_contract_elements', 'training_contract_elements.training_contract_id', '=', 'training_contracts.id')
+                $query = $query->leftjoin('training_contract_elements', 'training_contract_elements.training_contract_id', '=', 'training_contracts.id')
                     ->leftjoin('courses', 'courses.id', '=', 'training_contract_elements.course_id')
                     ->where('courses.teacher_id', $user->teacher_id);
             }
 
             if ($request->company) {
-                $trainingContracts = $trainingContracts->where('companies.name', $request->company);
+                $query = $query->where('training_contracts.company_id', $request->company);
             }
-            if ($request->student_id) {
-                $trainingContracts = $trainingContracts->where('training_contracts.student_id', $request->student_id);
+            if ($request->student) {
+                $query = $query->where('training_contracts.student_id', $request->student);
             }
             if ($request->status) {
-                $trainingContracts = $trainingContracts->where('training_contract_statuses.name', $request->status);
+                $query = $query->where('training_contract_status_id', $request->status);
             }
 
             if (isset($request->not_canceled)) {
-                $trainingContracts = $trainingContracts->whereNotIn('training_contracts.training_contract_status_id', [4,5, 6]);
+                $query = $query->whereNotIn('training_contracts.training_contract_status_id', [4,5, 6]);
             }
 
-            $trainingContracts = $trainingContracts->groupBy('training_contracts.id', 'training_contracts.number_cfa')->orderby('training_contracts.beginning', 'desc')->get();
+            $query = $query->groupBy('training_contracts.id', 'training_contracts.number_cfa')->orderby('training_contracts.beginning', 'desc');
 
-            return $trainingContracts;
+            if ($request->filled('perPage')) {
+                $perPage = (int) $request->perPage;
+
+                $paginator = $query->paginate($perPage);
+
+                // Resource sobre el paginator
+                $trainingContracts = TrainingContractResource::collection($paginator);
+                // Si no tienes Resource, podrías usar directamente:
+                // $certifications = $paginator->items();
+
+                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
+                $paginationData = GeneralHelpers::generatePaginationData($paginator);
+
+                return $this->sendResponse(
+                    [
+                        'training_contracts' => $trainingContracts,
+                        'links'          => $paginationData['links'],
+                        'meta'           => $paginationData['meta'],
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // SIN PAGINACIÓN
+            $trainingContracts = TrainingContractResource::collection($query->get());
+            // o, sin resource: $certifications = $query->get();
+
+            return $this->sendResponse(
+                [
+                    'training_contracts' => $trainingContracts,
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -150,13 +185,16 @@ class TrainingContractController extends BaseController
             ]);
         }
         DB::commit();
-        return response()->json([
-            'status' => 200,
-            'training_contract' => TrainingContract::getTrainingContracts($mainCompanyId)
-                ->where('training_contracts.id', $contract->id)
-                ->first(),
-            'training_contract_elements' =>$elements
-        ]);
+
+        return $this->sendResponse(
+            [
+                'training_contract' => TrainingContract::getTrainingContracts($mainCompanyId)
+                    ->where('training_contracts.id', $contract->id)
+                    ->first(),
+                'training_contract_elements' =>$elements
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     /**
@@ -188,12 +226,14 @@ class TrainingContractController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'training_contract' => TrainingContract::getTrainingContracts($mainCompanyId)
-                ->where('training_contracts.id', $id)
-                ->first()
-        ]);
+        return $this->sendResponse(
+            [
+                'training_contract' => TrainingContract::getTrainingContracts($mainCompanyId)
+                    ->where('training_contracts.id', $id)
+                    ->first(),
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     /**
@@ -213,10 +253,12 @@ class TrainingContractController extends BaseController
             ->where('training_contracts.id', $id)
             ->first();
         if ($contract) {
-            return response()->json([
-                'status' => 200,
-                'training_contract' => $contract
-            ]);
+            return $this->sendResponse(
+                [
+                    'training_contract' => $contract,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
@@ -246,9 +288,10 @@ class TrainingContractController extends BaseController
                 }
 
                 TrainingContract::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [],
+                    trans('Eliminado con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
@@ -279,9 +322,13 @@ class TrainingContractController extends BaseController
         } else {
             $number_cfa = $id;
         }
-        return response()->json([
-            'number_cfa' => $number_cfa
-        ]);
+
+        return $this->sendResponse(
+            [
+                'number_cfa' => $number_cfa,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     /**
@@ -293,7 +340,13 @@ class TrainingContractController extends BaseController
         if ($id) {
             try {
                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-                return TrainingAction::getSpecialties($id, $mainCompanyId);
+
+                return $this->sendResponse(
+                    [
+                        'training_action_specialties' => TrainingAction::getSpecialties($id, $mainCompanyId)->get(),
+                    ],
+                    trans('Obtenido con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'message' => $e->getMessage()
@@ -311,7 +364,15 @@ class TrainingContractController extends BaseController
         if ($id) {
             try {
                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-                return Certification::getCertificationsNotinTrainingContract($id, $mainCompanyId);
+
+               $certifications = Certification::NotInTrainingContract($id, $mainCompanyId)->get();
+
+                return $this->sendResponse(
+                    [
+                        'certifications' => $certifications,
+                    ],
+                    trans('Obtenido con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'message' => $e->getMessage()
@@ -360,18 +421,21 @@ class TrainingContractController extends BaseController
 
             // Devolvemos una respuesta HTTP con todos los datos calculados
             DB::commit();
-            return response()->json([
-                'status' => 200,
-                'total_hours' => $hoursData['formative_hours_first_year'] + $hoursData['formative_hours_second_year'], // Total de horas de ambos años
-                'daily_hours_1' => $hoursData['daily_hours_1'], // Horas diarias del primer año
-                'daily_hours_2' => $hoursData['daily_hours_2'], // Horas diarias del segundo año
-                'formative_hours_first_year' => $hoursData['formative_hours_first_year'], // Horas del primer año
-                'formative_hours_second_year' => $hoursData['formative_hours_second_year'], // Horas del segundo año
-                'total_days' => $hoursData['cont_days_first_year'] + $hoursData['cont_days_second_year'], // Total de días de formación
-                'updated_elements' => $hoursData['updated_elements'], // Elementos actualizados en el proceso
-                'end_formation' => $record->end_formation, // Fecha de fin de formación
-                'end' => $record->end // Fecha final del contrato
-            ]);
+
+            return $this->sendResponse(
+                [
+                    'total_hours' => $hoursData['formative_hours_first_year'] + $hoursData['formative_hours_second_year'], // Total de horas de ambos años
+                    'daily_hours_1' => $hoursData['daily_hours_1'], // Horas diarias del primer año
+                    'daily_hours_2' => $hoursData['daily_hours_2'], // Horas diarias del segundo año
+                    'formative_hours_first_year' => $hoursData['formative_hours_first_year'], // Horas del primer año
+                    'formative_hours_second_year' => $hoursData['formative_hours_second_year'], // Horas del segundo año
+                    'total_days' => $hoursData['cont_days_first_year'] + $hoursData['cont_days_second_year'], // Total de días de formación
+                    'updated_elements' => $hoursData['updated_elements'], // Elementos actualizados en el proceso
+                    'end_formation' => $record->end_formation, // Fecha de fin de formación
+                    'end' => $record->end // Fecha final del contrato
+                ],
+                trans('Obtenido con éxito')
+            );
         } catch (\Exception $e) {
             // En caso de error, devolvemos una respuesta con el mensaje de la excepción
             DB::rollback();
@@ -536,10 +600,12 @@ class TrainingContractController extends BaseController
             ->FilterMainCompany($mainCompanyId)
             ->first();
 
-        return response()->json([
-            'status' => 200,
-            'element' => $element
-        ]);
+        return $this->sendResponse(
+            [
+                'element' => $element,
+            ],
+            trans('Obtenido con éxito')
+        );
     }
     /**
      * Calcula las fechas de finalización del contrato y de la formación
@@ -625,10 +691,12 @@ class TrainingContractController extends BaseController
 
         Log::info("Final End Formation Date: " . $date->toDateString());
 
-        return response()->json([
-            'status' => 200,
-            'end_formation' => $date->toDateString(),
-        ]);
+        return $this->sendResponse(
+            [
+                'end_formation' => $date->toDateString(),
+            ],
+            trans('Obtenido con éxito')
+        );
     }
 
     /**
@@ -652,12 +720,15 @@ class TrainingContractController extends BaseController
             if ($trainingContract) {
                 $data = $request->all();
                 $trainingContract->updateDocumentClause($data);
-                return response()->json([
-                    'status' => 200,
-                    'training_contract' => TrainingContract::getTrainingContracts($mainCompanyId)
-                        ->where('training_contracts.id', $trainingContract->id)
-                        ->first()
-                ]);
+
+                return $this->sendResponse(
+                    [
+                        'training_contract' => TrainingContract::getTrainingContracts($mainCompanyId)
+                            ->where('training_contracts.id', $trainingContract->id)
+                            ->first(),
+                    ],
+                    trans('Obtenido con éxito')
+                );
             }
         } catch (\Exception $e){
             return response()->json([
@@ -682,12 +753,96 @@ class TrainingContractController extends BaseController
                 ->FilterMainCompany($mainCompanyId)
                 ->get();
 
-            return $trainingActions;
+            return $this->sendResponse(
+                [
+                    'training_contract_actions' => $trainingActions,
+                ],
+                trans('Obtenido con éxito')
+            );
 
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
             ]);
+        }
+    }
+
+    public function exportExcel(Request $request)
+    {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $query = TrainingContract::getTrainingContracts($mainCompanyId);
+
+            $user = User::find(Auth::id());
+            if ($user && $user->teacher_id) {
+                $query->leftJoin('training_contract_elements', 'training_contract_elements.training_contract_id', '=', 'training_contracts.id')
+                    ->leftJoin('courses', 'courses.id', '=', 'training_contract_elements.course_id')
+                    ->where('courses.teacher_id', $user->teacher_id);
+            }
+
+            if ($request->company) {
+                $query->where('training_contracts.company_id', $request->company);
+            }
+            if ($request->student) {
+                $query->where('training_contracts.student_id', $request->student);
+            }
+            if ($request->status) {
+                $query->where('training_contract_status_id', $request->status);
+            }
+            if ($request->has('not_canceled')) {
+                $query->whereNotIn('training_contracts.training_contract_status_id', [4, 5, 6]);
+            }
+
+            $query->groupBy('training_contracts.id', 'training_contracts.number_cfa')
+                ->orderBy('training_contracts.beginning', 'desc');
+
+            $items = $query->get();
+
+            $fmtDate = function ($v) {
+                if (!$v) return '';
+                try {
+                    return Carbon::parse($v)->format('d-m-Y');
+                } catch (\Exception $e) {
+                    return '';
+                }
+            };
+
+            $rows = $items->map(function ($tc) use ($fmtDate) {
+                $studentName = trim(
+                    (string) data_get($tc, 'student.name', '') . ' ' .
+                    (string) data_get($tc, 'student.surname', '')
+                );
+
+                $collabName = trim(
+                    (string) data_get($tc, 'collaborator.name', '') . ' ' .
+                    (string) data_get($tc, 'collaborator.surname', '')
+                );
+
+                return [
+                    (string) data_get($tc, 'number_cfa', ''),
+                    (string) data_get($tc, 'company.name', ''),
+                    $studentName,
+                    (string) data_get($tc, 'trainingContractStatus.name', ''),
+                    (string) data_get($tc, 'provider.name', ''),
+                    $fmtDate(data_get($tc, 'beginning')),
+                    $fmtDate(data_get($tc, 'end')),
+                    (string) data_get($tc, 'occupation.name', ''),
+                    (string) data_get($tc, 'advisor.name', ''),
+                    $collabName,
+                ];
+            });
+
+            return Excel::download(
+                new TrainingContractsExport($rows),
+                'contratos_' . now()->format('Y-m-d_H-i-s') . '.xlsx'
+            );
+        } catch (\Throwable $e) {
+            \Log::error('Export contratos failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 500,
+                'message' => $e->getMessage(),
+            ], 500);
         }
     }
 }

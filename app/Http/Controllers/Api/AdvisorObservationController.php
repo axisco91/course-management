@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
+use App\Http\Resources\AdvisorObservationResource;
 use App\Models\AdvisorObservation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,28 @@ class AdvisorObservationController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            return AdvisorObservation::getAdvisorObservations($id, $mainCompanyId);
+            $params =  AdvisorObservation::ForAdvisor($id, $mainCompanyId);
+
+            if ($request->perPage) {
+                $advisorObservations = AdvisorObservationResource::collection($params->paginate(intval(request('perPage'))));
+                $paginationData = GeneralHelpers::generatePaginationData($params);
+                return $this->sendResponse(
+                    [
+                        'advisor_observations' => $advisorObservations,
+                        'links'       => $paginationData['links'],
+                        'meta'        => $paginationData['meta'],
+                    ],
+                    trans('Obtenido')
+                );
+            }
+            $advisorObservations = AdvisorObservationResource::collection($params->get());
+
+            return $this->sendResponse(
+                [
+                    'advisor_observations' => $advisorObservations,
+                ],
+                trans('Obtenido')
+            );
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
@@ -36,10 +58,12 @@ class AdvisorObservationController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'observation' => $observation
-        ]);
+        return $this->sendResponse(
+            [
+                'advisor_observation' => $observation,
+            ],
+            trans('Creado con éxito')
+        );
     }
 
     public function update($id, Request $request){
@@ -57,6 +81,7 @@ class AdvisorObservationController extends BaseController
             }
             $data = $request->all();
             $advisorObservation->updateWithService($data);
+
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -64,10 +89,12 @@ class AdvisorObservationController extends BaseController
             ]);
         }
 
-        return response()->json([
-            'status' => 200,
-            'observation' => $advisorObservation
-        ]);
+        return $this->sendResponse(
+            [
+                'advisor_observation' => $advisorObservation,
+            ],
+            trans('Actualizado con éxito')
+        );
     }
 
     public function show($id, Request $request){
@@ -78,10 +105,12 @@ class AdvisorObservationController extends BaseController
             ->first();
 
         if ($observation) {
-            return response()->json([
-                'status' => 200,
-                'observation' => $observation
-            ]);
+            return $this->sendResponse(
+                [
+                    'advisor_observation' => $observation,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 404,
@@ -93,9 +122,12 @@ class AdvisorObservationController extends BaseController
         if ($id) {
             try {
                 AdvisorObservation::destroy($id);
-                return response()->json([
-                    'status' => 200
-                ]);
+                return $this->sendResponse(
+                    [
+
+                    ],
+                    trans('Elimiando con éxito')
+                );
             } catch (\Exception $e) {
                 return response()->json([
                     'status' => 400,
