@@ -51,7 +51,7 @@ class WebPlatform extends Model
     }
 
     public function updateWithService($data){
-        $service = app(WebPlatformController::class);
+        $service = app(WebPlatformService::class);
         return $service->update($this, $data);
     }
 }

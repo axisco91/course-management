@@ -64,7 +64,7 @@ class WebPlatformController extends BaseController
 
             return $this->sendResponse(
                 [
-                    'web_platform' => WebPlatform::getWebPlatform($mainCompanyId)->where('web_platforms.id', $web->id)->first(),
+                    'web_platform' => $web,
                 ],
                 trans('Creado con éxito')
             );
@@ -91,7 +91,7 @@ class WebPlatformController extends BaseController
                 ]);
             }
 
-            $web = WebPlatform::updateWithService($request);
+            $web->updateWithService($request->all());
 
             return $this->sendResponse(
                 [

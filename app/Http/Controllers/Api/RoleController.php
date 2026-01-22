@@ -15,8 +15,6 @@ class RoleController extends BaseController
 
             foreach ($roles as $role) {
                 $roleData = [
-                    'label' => $role->label,
-                    'value' => $role->value,
                     'permissions' => []
                 ];
 
@@ -27,7 +25,12 @@ class RoleController extends BaseController
                 $role->permissions = $roleData;
             }
 
-            return $roles;
+            return $this->sendResponse(
+                [
+                    'roles' => $roles,
+                ],
+                trans('Obtenido con éxito')
+            );
 
         } catch (\Exception $e) {
             return response()->json([
@@ -50,10 +53,12 @@ class RoleController extends BaseController
             }
 
             $role->permissions = $roleData;
-            return response()->json([
-                'status' => 200,
-                'role' => $role
-            ]);
+            return $this->sendResponse(
+                [
+                    'role' => $role,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return response()->json([
             'status' => 400,
