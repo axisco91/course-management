@@ -8,37 +8,60 @@ use Illuminate\Http\Request;
 
 class TrainingActionGroupController extends BaseController
 {
-    public function trainingActionGroups(Request $request) {
+    public function trainingActionGroups(Request $request)
+    {
         try {
             $query = TrainingActionGroup::getTrainingActionGroup();
 
+            // ✅ FILTRO POR NOMBRE
+            // Ej: ?search=grupo
+            if ($request->filled('search')) {
+                $search = trim($request->input('search'));
+                $query->where('name', 'LIKE', '%' . $search . '%');
+            }
+
+            // ✅ SORT (por defecto name asc)
+            // ?sort=name   -> asc
+            // ?sort=-name  -> desc
+            $sort = $request->input('sort', 'name');
+            $direction = 'asc';
+
+            if (is_string($sort) && strlen($sort) > 0 && $sort[0] === '-') {
+                $direction = 'desc';
+                $sort = substr($sort, 1);
+            }
+
+            // (opcional) whitelist
+            $allowedSorts = ['id', 'name', 'created_at', 'updated_at'];
+            if (!in_array($sort, $allowedSorts, true)) {
+                $sort = 'name';
+                $direction = 'asc';
+            }
+
+            $query->orderBy($sort, $direction);
+
+            // ✅ PAGINACIÓN
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
 
                 $paginator = $query->paginate($perPage);
 
-                // Resource sobre el paginator
                 $trainingActionGroups = TrainingActionGroupResource::collection($paginator);
 
-                // Si no tienes Resource, podrías usar directamente:
-                // $certifications = $paginator->items();
-
-                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
                 $paginationData = GeneralHelpers::generatePaginationData($paginator);
 
                 return $this->sendResponse(
                     [
-                        'cnaes' => $trainingActionGroups,
-                        'links'          => $paginationData['links'],
-                        'meta'           => $paginationData['meta'],
+                        'training_action_groups' => $trainingActionGroups,
+                        'links' => $paginationData['links'],
+                        'meta'  => $paginationData['meta'],
                     ],
                     trans('Obtenido con éxito')
                 );
             }
 
-            // SIN PAGINACIÓN
+            // ✅ SIN PAGINACIÓN
             $trainingActionGroups = TrainingActionGroupResource::collection($query->get());
-            // o, sin resource: $certifications = $query->get();
 
             return $this->sendResponse(
                 [
@@ -65,7 +88,7 @@ class TrainingActionGroupController extends BaseController
 
         return $this->sendResponse(
             [
-                'training_action_group' => TrainingActionGroup::getTrainingActionGroup()->where('training_action_groups.id', $group->id)->first(),
+                'training_action_group' => $group,
             ],
             trans('Creado con éxito')
         );
@@ -83,7 +106,7 @@ class TrainingActionGroupController extends BaseController
 
         return $this->sendResponse(
             [
-                'training_action_group' => TrainingActionGroup::getTrainingActionGroup()->where('training_action_groups.id', $group->id)->first(),
+                'training_action_group' => $group,
             ],
             trans('Guardado con éxito')
         );
@@ -94,7 +117,7 @@ class TrainingActionGroupController extends BaseController
         if ($group) {
             return $this->sendResponse(
                 [
-                    'training_action_group' => $group->id,
+                    'training_action_group' => $group,
                 ],
                 trans('Obtenido con éxito')
             );

@@ -5,41 +5,72 @@ use App\Helpers\GeneralHelpers;
 use App\Http\Resources\OccupationResource;
 use App\Models\Occupation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class OccupationController extends BaseController
 {
-    public function getOccupations(Request $request) {
+    public function getOccupations(Request $request)
+    {
         try {
             $query = Occupation::getOccupation();
 
+            // ✅ FILTRO POR NOMBRE
+            // ?search=texto
+            if ($request->filled('search')) {
+                $search = trim($request->input('search'));
+                $query->where('name', 'LIKE', '%' . $search . '%');
+            }
+
+            // ✅ FILTRO POR CNO
+            // ?cno=123
+            if ($request->filled('cno')) {
+                $query->where('cno', 'LIKE', '%' . trim($request->input('cno')) . '%');
+            }
+
+            // ✅ SORT
+            // ?sort=name   -> asc
+            // ?sort=-name  -> desc
+            // ?sort=cno    -> asc
+            // ?sort=-cno   -> desc
+            $sort = $request->input('sort', 'name');
+            $direction = 'asc';
+
+            if (is_string($sort) && strlen($sort) > 0 && $sort[0] === '-') {
+                $direction = 'desc';
+                $sort = substr($sort, 1);
+            }
+
+            // 🔒 columnas permitidas
+            $allowedSorts = ['id', 'name', 'cno', 'created_at', 'updated_at'];
+
+            if (!in_array($sort, $allowedSorts, true)) {
+                $sort = 'name';
+                $direction = 'asc';
+            }
+
+            $query->orderBy($sort, $direction);
+
+            // ✅ PAGINACIÓN
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
 
                 $paginator = $query->paginate($perPage);
 
-                // Resource sobre el paginator
                 $occupations = OccupationResource::collection($paginator);
-                // Si no tienes Resource, podrías usar directamente:
-                // $certifications = $paginator->items();
 
-                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
                 $paginationData = GeneralHelpers::generatePaginationData($paginator);
 
                 return $this->sendResponse(
                     [
                         'occupations' => $occupations,
-                        'links'          => $paginationData['links'],
-                        'meta'           => $paginationData['meta'],
+                        'links'       => $paginationData['links'],
+                        'meta'        => $paginationData['meta'],
                     ],
                     trans('Obtenido con éxito')
                 );
             }
 
-            // SIN PAGINACIÓN
+            // ✅ SIN PAGINACIÓN
             $occupations = OccupationResource::collection($query->get());
-            // o, sin resource: $certifications = $query->get();
 
             return $this->sendResponse(
                 [
@@ -66,7 +97,7 @@ class OccupationController extends BaseController
 
         return $this->sendResponse(
             [
-                'occupation' => Occupation::getOccupation()->where('occupations.id', $occupation->id)->first(),
+                'occupation' => $occupation,
             ],
             trans('Creado con éxito')
         );
@@ -75,7 +106,7 @@ class OccupationController extends BaseController
     public function edit($id, Request $request){
         try {
             $occupation = Occupation::find($id);
-            $occupation = Occupation::updateWithService($request);
+            $occupation->updateWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

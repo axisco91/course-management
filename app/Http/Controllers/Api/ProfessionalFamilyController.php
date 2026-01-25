@@ -8,36 +8,60 @@ use Illuminate\Http\Request;
 
 class ProfessionalFamilyController extends BaseController
 {
-    public function professionalFamilies(Request $request) {
+    public function professionalFamilies(Request $request)
+    {
         try {
             $query = ProfessionalFamily::getProfessionalFamily();
 
+            // ✅ FILTRO POR NOMBRE
+            // Ej: ?search=industria
+            if ($request->filled('search')) {
+                $search = trim($request->input('search'));
+                $query->where('name', 'LIKE', '%' . $search . '%');
+            }
+
+            // ✅ SORT
+            // ?sort=name      -> asc
+            // ?sort=-name     -> desc
+            $sort = $request->input('sort', 'name');
+            $direction = 'asc';
+
+            if (is_string($sort) && strlen($sort) > 0 && $sort[0] === '-') {
+                $direction = 'desc';
+                $sort = substr($sort, 1);
+            }
+
+            // whitelist de columnas ordenables
+            $allowedSorts = ['id', 'name', 'created_at', 'updated_at'];
+            if (!in_array($sort, $allowedSorts, true)) {
+                $sort = 'name';
+                $direction = 'asc';
+            }
+
+            $query->orderBy($sort, $direction);
+
+            // ✅ PAGINACIÓN
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
 
                 $paginator = $query->paginate($perPage);
 
-                // Resource sobre el paginator
                 $professionalFamilies = ProfessionalFamilyResource::collection($paginator);
-                // Si no tienes Resource, podrías usar directamente:
-                // $certifications = $paginator->items();
 
-                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
                 $paginationData = GeneralHelpers::generatePaginationData($paginator);
 
                 return $this->sendResponse(
                     [
                         'professional_families' => $professionalFamilies,
-                        'links'          => $paginationData['links'],
-                        'meta'           => $paginationData['meta'],
+                        'links' => $paginationData['links'],
+                        'meta'  => $paginationData['meta'],
                     ],
                     trans('Obtenido con éxito')
                 );
             }
 
-            // SIN PAGINACIÓN
+            // ✅ SIN PAGINACIÓN
             $professionalFamilies = ProfessionalFamilyResource::collection($query->get());
-            // o, sin resource: $certifications = $query->get();
 
             return $this->sendResponse(
                 [
@@ -73,7 +97,7 @@ class ProfessionalFamilyController extends BaseController
     public function edit($id, Request $request){
         try {
             $family = ProfessionalFamily::find($id);
-            $family->updateWithService($request);
+            $family->updateWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

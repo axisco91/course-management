@@ -27,17 +27,7 @@ class ProfessionalArea extends Model
         return $query
             ->select(
                 'professional_areas.*',
-                'professional_areas.id as value',
-                'professional_areas.name as label'
-            )
-            ->leftJoin(
-                'training_actions',
-                'training_actions.professional_area_id',
-                '=',
-                'professional_areas.id'
-            )
-            ->selectRaw('CASE WHEN training_actions.id IS NULL THEN false ELSE true END as used')
-            ->groupBy('professional_areas.id');
+            );
     }
 
     public static function createWithService($data)

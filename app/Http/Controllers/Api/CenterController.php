@@ -119,16 +119,6 @@ class CenterController extends BaseController
             ], 404);
         }
 
-        // Comprobamos si el centro está usado en algún curso
-        $used = Course::where(function ($q) use ($center) {
-            $q->where('delivery_center_id', $center->id)
-                ->orWhere('formation_center_id', $center->id);
-        })
-            ->FilterMainCompany($mainCompanyId)
-            ->exists();
-
-        $center->used = $used;
-
         // Si quieres usar tu sendResponse para ser consistente:
         return $this->sendResponse(
             [
@@ -173,15 +163,6 @@ class CenterController extends BaseController
                 ], 500);
             }
 
-            // Comprobamos si el centro está usado en algún curso
-            $used = Course::where(function ($q) use ($center) {
-                $q->where('delivery_center_id', $center->id)
-                    ->orWhere('formation_center_id', $center->id);
-            })
-                ->FilterMainCompany($center->main_company_id ?? $mainCompanyId)
-                ->exists();
-
-            $center->used = $used;
 
             // Usamos tu helper sendResponse para mantener consistencia
             return $this->sendResponse(

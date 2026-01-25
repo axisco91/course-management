@@ -5,41 +5,65 @@ use App\Helpers\GeneralHelpers;
 use App\Http\Resources\ProfessionalAreaResource;
 use App\Models\ProfessionalArea;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class ProfessionalAreaController extends BaseController
 {
-    public function professionalAreas(Request $request) {
+    public function professionalAreas(Request $request)
+    {
         try {
             $query = ProfessionalArea::getProfessionalArea();
 
+            // ✅ FILTRO POR NOMBRE (search)
+            // Ej: ?search=gestion
+            if ($request->filled('name')) {
+                $search = trim($request->input('name'));
+                $query->where('name', 'LIKE', '%' . $search . '%');
+            }
+
+            // ✅ SORT (por defecto name asc)
+            // Ej:
+            //   ?sort=name      -> asc
+            //   ?sort=-name     -> desc
+            //   ?sort=created_at / -created_at -> si lo permites
+            $sort = $request->input('sort', 'name');
+            $direction = 'asc';
+
+            if (is_string($sort) && strlen($sort) > 0 && $sort[0] === '-') {
+                $direction = 'desc';
+                $sort = substr($sort, 1);
+            }
+
+            // (opcional) whitelist de columnas ordenables
+            $allowedSorts = ['name', 'id', 'created_at', 'updated_at'];
+            if (!in_array($sort, $allowedSorts, true)) {
+                $sort = 'name';
+                $direction = 'asc';
+            }
+
+            $query->orderBy($sort, $direction);
+
+            // ✅ PAGINACIÓN
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
 
                 $paginator = $query->paginate($perPage);
 
-                // Resource sobre el paginator
-                    $professionalAreas = ProfessionalAreaResource::collection($paginator);
-                // Si no tienes Resource, podrías usar directamente:
-                // $certifications = $paginator->items();
+                $professionalAreas = ProfessionalAreaResource::collection($paginator);
 
-                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
                 $paginationData = GeneralHelpers::generatePaginationData($paginator);
 
                 return $this->sendResponse(
                     [
                         'professional_areas' => $professionalAreas,
-                        'links'          => $paginationData['links'],
-                        'meta'           => $paginationData['meta'],
+                        'links' => $paginationData['links'],
+                        'meta'  => $paginationData['meta'],
                     ],
                     trans('Obtenido con éxito')
                 );
             }
 
-            // SIN PAGINACIÓN
+            // ✅ SIN PAGINACIÓN
             $professionalAreas = ProfessionalAreaResource::collection($query->get());
-            // o, sin resource: $certifications = $query->get();
 
             return $this->sendResponse(
                 [
@@ -66,7 +90,7 @@ class ProfessionalAreaController extends BaseController
 
         return $this->sendResponse(
             [
-                'professional_area' => ProfessionalArea::getProfessionalArea()->where('professional_area.id', $area->id)->first(),
+                'professional_area' => $area,
             ],
             trans('Created con éxito')
         );
@@ -75,7 +99,7 @@ class ProfessionalAreaController extends BaseController
     public function edit($id, Request $request){
         try {
             $area = ProfessionalArea::find($id);
-            $area->updateWithService($request);
+            $area->updateWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -85,18 +109,18 @@ class ProfessionalAreaController extends BaseController
 
         return $this->sendResponse(
             [
-                'professional_area' => ProfessionalArea::getProfessionalArea()->where('professional_area.id', $area->id)->first(),
+                'professional_area' => $area,
             ],
             trans('Obtenido con éxito')
         );
     }
 
     public function getProfessionalArea($id){
-        $area = ProfessionalArea::getProfessionalArea()->where('professional_area.id', $id)->first();
+        $area = ProfessionalArea::getProfessionalArea()->where('professional_areas.id', $id)->first();
         if ($area) {
             return $this->sendResponse(
                 [
-                    'professional_area' => ProfessionalArea::getProfessionalArea()->where('professional_area.id', $area->id)->first(),
+                    'professional_area' => $area,
                 ],
                 trans('Obtenido con éxito')
             );

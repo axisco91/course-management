@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\OccupationService;
+use App\Services\OnLeaveTypeService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -34,7 +35,7 @@ class OnLeaveType extends Model
 
     public static function createWithService($data)
     {
-        $service = app(OccupationService::class);
+        $service = app(OnLeaveTypeService::class);
         return $service->create($data);
     }
 

@@ -3,41 +3,67 @@
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
 use App\Http\Resources\ProfessionalAreaResource;
+use App\Http\Resources\ProfessionalCategoryResource;
 use App\Models\ProfessionalCategory;
 use Illuminate\Http\Request;
 
 class ProfessionalCategoryController extends BaseController
 {
-    public function professionalCategories(Request $request) {
+    public function professionalCategories(Request $request)
+    {
         try {
             $query = ProfessionalCategory::getProfessionalCategory();
 
+            // ✅ FILTRO POR NOMBRE
+            // Ej: ?search=administracion
+            if ($request->filled('search')) {
+                $search = trim($request->input('search'));
+                $query->where('name', 'LIKE', '%' . $search . '%');
+            }
+
+            // ✅ SORT (por defecto name asc)
+            // ?sort=name   -> asc
+            // ?sort=-name  -> desc
+            $sort = $request->input('sort', 'name');
+            $direction = 'asc';
+
+            if (is_string($sort) && strlen($sort) > 0 && $sort[0] === '-') {
+                $direction = 'desc';
+                $sort = substr($sort, 1);
+            }
+
+            // (opcional) whitelist de columnas ordenables
+            $allowedSorts = ['id', 'name', 'created_at', 'updated_at'];
+            if (!in_array($sort, $allowedSorts, true)) {
+                $sort = 'name';
+                $direction = 'asc';
+            }
+
+            $query->orderBy($sort, $direction);
+
+            // ✅ PAGINACIÓN
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
 
                 $paginator = $query->paginate($perPage);
 
-                // Resource sobre el paginator
-                $professionalCategories = ProfessionalAreaResource::collection($paginator);
-                // Si no tienes Resource, podrías usar directamente:
-                // $certifications = $paginator->items();
+                // ✅ Resource correcto para categorías
+                $professionalCategories = ProfessionalCategoryResource::collection($paginator);
 
-                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
                 $paginationData = GeneralHelpers::generatePaginationData($paginator);
 
                 return $this->sendResponse(
                     [
                         'professional_categories' => $professionalCategories,
-                        'links'          => $paginationData['links'],
-                        'meta'           => $paginationData['meta'],
+                        'links' => $paginationData['links'],
+                        'meta'  => $paginationData['meta'],
                     ],
                     trans('Obtenido con éxito')
                 );
             }
 
-            // SIN PAGINACIÓN
-            $professionalCategories = ProfessionalAreaResource::collection($query->get());
-            // o, sin resource: $certifications = $query->get();
+            // ✅ SIN PAGINACIÓN
+            $professionalCategories = ProfessionalCategoryResource::collection($query->get());
 
             return $this->sendResponse(
                 [
@@ -51,6 +77,7 @@ class ProfessionalCategoryController extends BaseController
             ]);
         }
     }
+
 
     public function create(Request $request){
         try {

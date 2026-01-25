@@ -42,7 +42,7 @@ class UserCommission extends Model
     }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {
-        return $query->where('training_contracts_excluded_days.main_company_id', $mainCompanyId);
+        return $query->where('user_commissions.main_company_id', $mainCompanyId);
     }
 
     public static function createWithService($data)

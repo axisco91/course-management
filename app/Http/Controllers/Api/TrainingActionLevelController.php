@@ -2,43 +2,67 @@
 
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
-use App\Http\Resources\TrainingActionGroupResource;
 use App\Http\Resources\TrainingActionLevelResource;
 use App\Models\TrainingActionLevel;
 use Illuminate\Http\Request;
 
 class TrainingActionLevelController extends BaseController
 {
-    public function getTrainingActionLevels(Request $request) {
+    public function getTrainingActionLevels(Request $request)
+    {
         try {
             $query = TrainingActionLevel::getTrainingActionLevel();
 
+            // ✅ FILTRO POR NOMBRE
+            // Ej: ?search=basico
+            if ($request->filled('search')) {
+                $search = trim($request->input('search'));
+                $query->where('name', 'LIKE', '%' . $search . '%');
+            }
+
+            // ✅ SORT (por defecto name asc)
+            // ?sort=name   -> asc
+            // ?sort=-name  -> desc
+            $sort = $request->input('sort', 'name');
+            $direction = 'asc';
+
+            if (is_string($sort) && strlen($sort) > 0 && $sort[0] === '-') {
+                $direction = 'desc';
+                $sort = substr($sort, 1);
+            }
+
+            // (opcional) whitelist de columnas ordenables
+            $allowedSorts = ['id', 'name', 'created_at', 'updated_at'];
+            if (!in_array($sort, $allowedSorts, true)) {
+                $sort = 'name';
+                $direction = 'asc';
+            }
+
+            $query->orderBy($sort, $direction);
+
+            // ✅ PAGINACIÓN
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
 
                 $paginator = $query->paginate($perPage);
 
-                // Resource sobre el paginator
-                $trainingActionLevels = TrainingActionGroupResource::collection($paginator);
-                // Si no tienes Resource, podrías usar directamente:
-                // $certifications = $paginator->items();
+                // ✅ Resource correcto (antes tenías TrainingActionGroupResource)
+                $trainingActionLevels = TrainingActionLevelResource::collection($paginator);
 
-                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
                 $paginationData = GeneralHelpers::generatePaginationData($paginator);
 
                 return $this->sendResponse(
                     [
                         'training_action_levels' => $trainingActionLevels,
-                        'links'          => $paginationData['links'],
-                        'meta'           => $paginationData['meta'],
+                        'links' => $paginationData['links'],
+                        'meta'  => $paginationData['meta'],
                     ],
                     trans('Obtenido con éxito')
                 );
             }
 
-            // SIN PAGINACIÓN
+            // ✅ SIN PAGINACIÓN
             $trainingActionLevels = TrainingActionLevelResource::collection($query->get());
-            // o, sin resource: $certifications = $query->get();
 
             return $this->sendResponse(
                 [

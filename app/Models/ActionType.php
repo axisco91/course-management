@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\ActionTypeService;
 use App\Services\AdvisorObservationService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,19 +29,19 @@ class ActionType extends Model
 
     public static function createWithService($data)
     {
-        $service = app(AdvisorObservationService::class);
+        $service = app(ActionTypeService::class);
         return $service->create($data);
     }
 
     public function updateWithService($data)
     {
-        $service = app(AdvisorObservationService::class);
+        $service = app(ActionTypeService::class);
         return $service->update($this, $data);
     }
 
     public function deleteWithService()
     {
-        $service = app(AdvisorObservationService::class);
+        $service = app(ActionTypeService::class);
         return $service->delete($this);
     }
 }

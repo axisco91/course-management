@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\PaymentService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,12 +37,12 @@ class Payment extends Model
 
     public static function createWithService($data)
     {
-        $service = app(Payment::class);
+        $service = app(PaymentService::class);
         return $service->create($data);
     }
 
     public function updateWithService($data){
-        $service = app(Payment::class);
+        $service = app(PaymentService::class);
         return $service->update($this, $data);
     }
 }

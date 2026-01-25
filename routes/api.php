@@ -997,6 +997,7 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('nacional-festivals')->group(function() {
         Route::controller(NacionalFestivalController::class)->group(function(){
             Route::get('', 'getNacionalFestivals');
+            Route::get('{id}', 'show');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
             Route::delete('{id}', 'destroy');

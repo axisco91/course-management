@@ -82,15 +82,11 @@ class UserCommissionController extends BaseController
                 ]);
             }
 
-            $userCommission->updateWithService($userCommission, $data);
-
-            $commission = UserCommission::commissions($mainCompanyId)
-                ->where('user_commissions.id', $id)
-                ->first();
+            $userCommission->updateWithService($data);
 
             return $this->sendResponse(
                 [
-                    'user_commission' => $commission,
+                    'user_commission' => $userCommission,
                 ],
                 trans('Guardado con éxito')
             );

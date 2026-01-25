@@ -54,7 +54,7 @@ class CompanyTypeController extends BaseController
 
     public function create(Request $request){
         try {
-            $companyType = CompanyType::createCompanyType($request);
+            $companyType = CompanyType::createWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -72,7 +72,9 @@ class CompanyTypeController extends BaseController
 
     public function edit($id, Request $request){
         try {
-            $companyType = CompanyType::updateCompanyType($id, $request);
+            $companyType = CompanyType::find($id);
+
+            $companyType->updateWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

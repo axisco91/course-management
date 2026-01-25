@@ -17,36 +17,64 @@ class LevelStudyController extends BaseController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function levelStudies(Request $request) {
+    public function levelStudies(Request $request)
+    {
         try {
-            $query = LevelStudy::select('*');
+            $query = LevelStudy::query();
 
+            // ✅ FILTRO (por nombre y/o código)
+            // Ej: ?search=bachiller
+            if ($request->filled('search')) {
+                $search = trim($request->input('search'));
+
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('code', 'LIKE', '%' . $search . '%');
+                });
+            }
+
+            // ✅ SORT (por defecto name asc)
+            // ?sort=name   -> asc
+            // ?sort=-name  -> desc
+            $sort = $request->input('sort', 'name');
+            $direction = 'asc';
+
+            if (is_string($sort) && strlen($sort) > 0 && $sort[0] === '-') {
+                $direction = 'desc';
+                $sort = substr($sort, 1);
+            }
+
+            // (opcional) whitelist de columnas ordenables
+            $allowedSorts = ['id', 'name', 'code', 'created_at', 'updated_at'];
+            if (!in_array($sort, $allowedSorts, true)) {
+                $sort = 'name';
+                $direction = 'asc';
+            }
+
+            $query->orderBy($sort, $direction);
+
+            // ✅ PAGINACIÓN
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
 
                 $paginator = $query->paginate($perPage);
 
-                // Resource sobre el paginator
                 $levelStudies = LevelStudyResource::collection($paginator);
-                // Si no tienes Resource, podrías usar directamente:
-                // $certifications = $paginator->items();
 
-                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
                 $paginationData = GeneralHelpers::generatePaginationData($paginator);
 
                 return $this->sendResponse(
                     [
                         'level_studies' => $levelStudies,
-                        'links'          => $paginationData['links'],
-                        'meta'           => $paginationData['meta'],
+                        'links' => $paginationData['links'],
+                        'meta'  => $paginationData['meta'],
                     ],
                     trans('Obtenido con éxito')
                 );
             }
 
-            // SIN PAGINACIÓN
+            // ✅ SIN PAGINACIÓN
             $levelStudies = LevelStudyResource::collection($query->get());
-            // o, sin resource: $certifications = $query->get();
 
             return $this->sendResponse(
                 [

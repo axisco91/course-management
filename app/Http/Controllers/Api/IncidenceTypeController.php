@@ -56,7 +56,6 @@ class IncidenceTypeController extends BaseController
         try {
             $type = IncidenceType::createWithService($request->all());
 
-            $type = IncidenceType::getIncidenceType()->where('incidence_types.id', $type->id)->first();
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -76,7 +75,7 @@ class IncidenceTypeController extends BaseController
         try {
             $type = IncidenceType::find($id);
 
-            $type->updateWithService($request);
+            $type->updateWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -93,7 +92,7 @@ class IncidenceTypeController extends BaseController
     }
 
     public function getIncidenceType($id){
-        $type = IncidenceType::getIncidenceType()->where('incidence_types.id', $id);
+        $type = IncidenceType::getIncidenceType()->where('incidence_types.id', $id)->first();
         if ($type) {
             return $this->sendResponse(
                 [

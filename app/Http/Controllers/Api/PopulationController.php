@@ -75,7 +75,8 @@ class PopulationController extends BaseController
     public function edit($id, Request $request){
         try {
             $population = Population::find($id);
-            $population->name = $request->name;
+            $population->update([
+               'name' => $request->name]);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -85,7 +86,7 @@ class PopulationController extends BaseController
 
         return $this->sendResponse(
             [
-                'population' => Population::select('populations.*', 'populations.id as value', 'populations.name as label')->where('id', $population->id)->first(),
+                'population' => $population,
             ],
             trans('Guardado con éxito')
         );

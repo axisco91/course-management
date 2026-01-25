@@ -90,7 +90,7 @@ class CommunityController extends BaseController
 
         return $this->sendResponse(
             [
-                'community' => Community::select('communities.*', 'communities.id as value', 'communities.name as label')->where('id', $community->id)->first(),
+                'community' => $community,
             ],
             trans('Guardado con éxito')
         );
@@ -99,14 +99,16 @@ class CommunityController extends BaseController
     public function show($id){
         $community = Community::find($id);
         if ($community) {
-            return response()->json([
-                'status' => 200,
-                'community' => $community
-            ]);
+            return $this->sendResponse(
+                [
+                    'community' => $community,
+                ],
+                trans('Obtenido con éxito')
+            );
         }
         return $this->sendResponse(
             [
-                'community' => Community::select('communities.*', 'communities.id as value', 'communities.name as label')->where('id', $community->id)->first(),
+                'community' => $community,
             ],
             trans('Creado con éxito')
         );

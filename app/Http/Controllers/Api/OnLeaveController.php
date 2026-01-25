@@ -64,7 +64,7 @@ class OnLeaveController extends BaseController
 
         return $this->sendResponse(
             [
-                'on_leave' => OnLeaveType::getOnLeaveType()->where('on_leave_types', $on_leave->id)->first(),
+                'on_leave' => $on_leave,
             ],
             trans('Creado con éxito')
         );
@@ -73,7 +73,7 @@ class OnLeaveController extends BaseController
     public function edit($id, Request $request){
         try {
             $on_leave = OnLeaveType::find($id);
-            $on_leave->updateWithService($request);
+            $on_leave->updateWithService($request->all());
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,
@@ -83,14 +83,14 @@ class OnLeaveController extends BaseController
 
         return $this->sendResponse(
             [
-                'on_leave' => OnLeaveType::getOnLeaveType()->where('on_leave_types', $on_leave->id)->first(),
+                'on_leave' => $on_leave,
             ],
             trans('Guardado con éxito')
         );
     }
 
     public function getOnLeaveType($id){
-        $onLeave = OnLeaveType::getOnLeaveType()->where('on_leave_types', $id)->first();
+        $onLeave = OnLeaveType::getOnLeaveType()->where('on_leave_types.id', $id)->first();
         if ($onLeave) {
             return $this->sendResponse(
                 [
