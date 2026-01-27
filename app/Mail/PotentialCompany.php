@@ -11,16 +11,18 @@ class PotentialCompany extends Mailable
 {
     use Queueable, SerializesModels;
 
-    protected $email;
+    protected $url;
+    protected $name;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($url, $name)
     {
-       // $this->email = $email;
+        $this->url = $url;
+        $this->name = $name;
     }
 
     /**
@@ -31,8 +33,11 @@ class PotentialCompany extends Mailable
     public function build()
     {
 
-        return $this->subject('Registro nuevo empresa en AVZ Formación')
-        //    ->to($this->email)
-            ->view('emails.potential_company');
+        return $this->subject('Registro nuevo empresa en '.$this->name)
+            ->view('emails.potential_company')
+            ->with([
+                'url' => $this->url,
+                'name' => $this->name,
+            ]);
     }
 }

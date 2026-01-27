@@ -145,10 +145,10 @@ class Advisor extends Model
         return $service->advisorUser($this);
     }
 
-    public function sendEmail()
+    public function sendEmail($mainCompanyId)
     {
         $service = app(AdvisorService::class);
 
-        return $service->sendEmail($this);
+        return $service->sendEmail($this, $mainCompanyId);
     }
 }

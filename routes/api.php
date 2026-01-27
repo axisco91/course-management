@@ -101,6 +101,87 @@ Route::post('login', [AuthController::class, 'signin']);
 Route::post('register', [AuthController::class, 'signup']);
 Route::post('logout', [AuthController::class, 'logout']);
 
+Route::prefix('quote-groups')->group(function() {
+    Route::controller(QuoteGroupController::class)->group(function(){
+        Route::get('', 'quoteGroups');
+    });
+});
+
+Route::prefix('course-types')->group(function() {
+    Route::controller(CourseTypeController::class)->group(function(){
+        Route::get('', 'getCourseTypes');
+    });
+});
+
+Route::prefix('course-statuses')->group(function() {
+    Route::controller(CourseStatusController::class)->group(function(){
+        Route::get('', 'getCourseStatuses');
+    });
+});
+
+Route::prefix('incidence-types')->group(function() {
+    Route::controller(IncidenceTypeController::class)->group(function(){
+        Route::get('', 'getIncidenceTypes');
+    });
+});
+
+Route::prefix('action-types')->group(function() {
+    Route::controller(ActionTypeController::class)->group(function(){
+        Route::get('', 'getActionTypes');
+    });
+});
+
+Route::prefix('training-action-levels')->group(function() {
+    Route::controller(TrainingActionLevelController::class)->group(function(){
+        Route::get('', 'getTrainingActionLevels');
+    });
+});
+
+Route::prefix('training-action-groups')->group(function() {
+    Route::controller(TrainingActionGroupController::class)->group(function(){
+        Route::get('', 'trainingActionGroups');
+    });
+});
+
+Route::prefix('tutorings')->group(function() {
+    Route::controller(TutoringController::class)->group(function(){
+        Route::get('', 'tutorings');
+    });
+});
+
+Route::prefix('occupations')->group(function() {
+    Route::controller(OccupationController::class)->group(function(){
+        Route::get('', 'getOccupations');
+    });
+});
+
+Route::prefix('on-leave-types')->group(function() {
+    Route::controller(OnLeaveController::class)->group(function(){
+        Route::get('', 'getOnLeaveTypes');
+    });
+});
+
+Route::prefix('payments')->group(function() {
+    Route::controller(PaymentController::class)->group(function(){
+        Route::get('', 'getPayments');
+    });
+});
+
+Route::prefix('training-contract-excluded-days')->group(function() {
+    Route::controller(TrainingContractExcludedDayController::class)->group(function(){
+        Route::get('', 'getTrainingContractExcludedDays');
+    });
+});
+
+/**
+ * Dias excluidos
+ */
+Route::prefix('excluded-day-types')->group(function() {
+    Route::controller(ExcludedDayTypeController::class)->group(function(){
+        Route::get('', 'getExcludedDayTypes');
+    });
+});
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 
@@ -181,7 +262,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('action-types')->group(function() {
         Route::controller(ActionTypeController::class)->group(function(){
-            Route::get('', 'getActionTypes');
             Route::get('{id}', 'getActionType');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
@@ -239,7 +319,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('course-types')->group(function() {
         Route::controller(CourseTypeController::class)->group(function(){
-            Route::get('', 'getCourseTypes');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
             Route::delete('{id}', 'destroy');
@@ -252,7 +331,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('course-statuses')->group(function() {
         Route::controller(CourseStatusController::class)->group(function(){
-            Route::get('', 'getCourseStatuses');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
             Route::delete('{id}', 'destroy');
@@ -279,7 +357,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('incidence-types')->group(function() {
         Route::controller(IncidenceTypeController::class)->group(function(){
-            Route::get('', 'getIncidenceTypes');
             Route::get('{id}', 'getIncidenceType');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
@@ -292,7 +369,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('training-action-levels')->group(function() {
         Route::controller(TrainingActionLevelController::class)->group(function(){
-            Route::get('', 'getTrainingActionLevels');
             Route::get('{id}', 'getTrainingActionLevel');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
@@ -305,7 +381,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('training-action-groups')->group(function() {
         Route::controller(TrainingActionGroupController::class)->group(function(){
-            Route::get('', 'trainingActionGroups');
             Route::get('{id}', 'getTrainingActionGroup');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
@@ -332,7 +407,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('on-leave-types')->group(function() {
         Route::controller(OnLeaveController::class)->group(function(){
-            Route::get('', 'getOnLeaveTypes');
             Route::get('{id}', 'getOnLeaveType');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
@@ -357,7 +431,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('quote-groups')->group(function() {
         Route::controller(QuoteGroupController::class)->group(function(){
-            Route::get('', 'quoteGroups');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
             Route::delete('{id}', 'destroy');
@@ -433,7 +506,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('payments')->group(function() {
         Route::controller(PaymentController::class)->group(function(){
-            Route::get('', 'getPayments');
             Route::get('{id}', 'getPayment');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
@@ -473,7 +545,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('tutorings')->group(function() {
         Route::controller(TutoringController::class)->group(function(){
-            Route::get('', 'tutorings');
             Route::get('{id}', 'tutoring');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
@@ -820,7 +891,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('occupations')->group(function() {
         Route::controller(OccupationController::class)->group(function(){
-            Route::get('', 'getOccupations');
             Route::get('{id}', 'getOccupation');
             Route::post('', 'create');
             Route::put('{id}', 'edit');
@@ -972,7 +1042,6 @@ Route::middleware('auth:sanctum')->group( function () {
      */
     Route::prefix('training-contract-excluded-days')->group(function() {
         Route::controller(TrainingContractExcludedDayController::class)->group(function(){
-            Route::get('', 'getTrainingContractExcludedDays');
             Route::post('', 'create');
             Route::post('createGroup', 'createGroup');
             Route::delete('{group}', 'destroy');
@@ -1049,15 +1118,6 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::put('{id}', 'edit');
             Route::delete('{id}', 'destroy');
             Route::get('{id}', 'getExamTutorial');
-        });
-    });
-
-    /**
-     * Dias excluidos
-     */
-    Route::prefix('excluded-day-types')->group(function() {
-        Route::controller(ExcludedDayTypeController::class)->group(function(){
-            Route::get('', 'getExcludedDayTypes');
         });
     });
 

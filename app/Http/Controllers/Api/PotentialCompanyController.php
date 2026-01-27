@@ -203,7 +203,7 @@ class PotentialCompanyController extends BaseController
                     ->getTransport()
                     ->setUsername('zona@avzformacion.com')
                     ->setPassword('Avz.2021');
-                Mail::to($request['email'])->send(new \App\Mail\PotentialCompany());
+                Mail::to($request['email'])->send(new \App\Mail\PotentialCompany($mainCompany->url, $mainCompany->name));
                 return $this->sendResponse(
                     [],
                     trans('Enviado con éxito')

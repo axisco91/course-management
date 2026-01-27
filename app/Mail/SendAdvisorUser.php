@@ -13,15 +13,19 @@ class SendAdvisorUser extends Mailable
 
     protected $username;
     protected $password;
+    protected $url;
+    protected $name;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($username, $password)
+    public function __construct($username, $password, $url, $name)
     {
         $this->username = $username;
         $this->password = $password;
+        $this->url = $url;
+        $this->name = $name;
     }
 
     /**
@@ -31,11 +35,13 @@ class SendAdvisorUser extends Mailable
      */
     public function build()
     {
-        return $this->subject('Alta plataforma Zona Formación')
+        return $this->subject('Alta plataforma '.$this->name)
             ->view('emails.advisor_user')
             ->with([
                 'username' => $this->username, // Rename to avoid conflicts
-                'password' => $this->password
+                'password' => $this->password,
+                'url' => $this->url,
+                'name' => $this->name,
             ]);
     }
 }

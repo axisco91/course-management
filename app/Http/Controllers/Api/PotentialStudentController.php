@@ -163,7 +163,7 @@ class PotentialStudentController extends BaseController
                     ->getTransport()
                     ->setUsername('zona@avzformacion.com')
                     ->setPassword('Avz.2021');
-                    Mail::to($request['email'])->send(new PotentialPrivateStudent());
+                    Mail::to($request['email'])->send(new PotentialPrivateStudent($mainCompany->url, $mainCompany->name));
                 return $this->sendResponse(
                     [],
                     trans('Enviado con éxito')
@@ -192,7 +192,7 @@ class PotentialStudentController extends BaseController
                     ->getTransport()
                     ->setUsername('zona@avzformacion.com')
                     ->setPassword('Avz.2021');
-                Mail::to($request['email'])->send(new PotentialEmail());
+                Mail::to($request['email'])->send(new PotentialEmail($mainCompany->url, $mainCompany->name));
                 return $this->sendResponse(
                     [],
                     trans('Eliminado con éxito')

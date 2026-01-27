@@ -513,7 +513,7 @@ class AdvisorController extends BaseController
                 ->where('advisors.main_company_id', $mainCompanyId);
 
             if ($advisor) {
-                $advisor->sendEmail();
+                $advisor->sendEmail($mainCompanyId);
                 return $this->sendResponse(
                     [
                         'advisor' => $advisor,

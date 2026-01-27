@@ -7,6 +7,7 @@ use App\Http\Resources\DocumentStudentResource;
 use App\Mail\SignDocument;
 use App\Models\Document;
 use App\Models\DocumentStudent;
+use App\Models\MainCompany;
 use App\Models\Student;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
@@ -114,13 +115,19 @@ class DocumentStudentController extends BaseController
                     ])->save();
                 }
 
-                Mail::to($student->email)->send(new SignDocument($documentStudent->name, $documentStudent->key));
-                Log::info('Mail sent to: ' . $student->email);
+                $mainCompany = MainCompany::find($mainCompanyId);
+                if ($mainCompany) {
+                    Mail::to($student->email)->send(new SignDocument($documentStudent->name, $documentStudent->key, $mainCompany->url));
+                    Log::info('Mail sent to: ' . $student->email);
 
-                return $this->sendResponse(
-                    [],
-                    trans('Enviado con éxito')
-                );
+                    return $this->sendResponse(
+                        [],
+                        trans('Enviado con éxito')
+                    );
+                } else {
+                    return response()->json(['status' => 400, 'message' => 'Error al enviar correo, empresa no encontrado'], 400);
+                }
+
             }
         } catch (\Exception $e) {
             Log::error('Error in send method: ' . $e->getMessage());

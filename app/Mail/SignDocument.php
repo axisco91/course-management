@@ -13,16 +13,18 @@ class SignDocument extends Mailable
 
     protected $name;
     protected $key;
+    protected $url;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($name, $key)
+    public function __construct($name, $key, $url)
     {
         $this->name = $name;
-        $this->key = $key                                  ;
+        $this->key = $key;
+        $this->url = $url;
     }
 
     /**
@@ -34,6 +36,6 @@ class SignDocument extends Mailable
     {
         return $this->subject('Firmar documento')
             ->view('emails.sign_document')
-            ->with(['name' => $this->name, 'key' => $this->key]);
+            ->with(['name' => $this->name, 'key' => $this->key, 'url' => $this->url]);
     }
 }

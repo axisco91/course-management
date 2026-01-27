@@ -15,43 +15,46 @@ class UserCommissionTypeController extends BaseController
      * Obtener tipo comisiones
      * @return mixed
      */
-    public function index(Request $request, $id) {
+    public function index(Request $request, $id)
+    {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            $query = CommissionType::select('commission_types.*', 'user_commission_types.id as user_commission_type_id', 'user_commission_types.percentage as user_commission_types_percentage')
+            $query = CommissionType::select(
+                'commission_types.*',
+                'user_commission_types.id as user_commission_type_id',
+                'user_commission_types.percentage as user_commission_types_percentage'
+            )
                 ->leftJoin('user_commission_types', function ($join) use ($id, $mainCompanyId) {
                     $join->on('user_commission_types.commission_type_id', '=', 'commission_types.id')
                         ->where('user_commission_types.user_id', '=', $id)
-                        ->where('user_commission_types.main_company_id', $mainCompanyId);
-                });
+                        // ✅ coge el de la empresa o, si no existe, el 0
+                        ->where(function ($q) use ($mainCompanyId) {
+                            $q->where('user_commission_types.main_company_id', '=', $mainCompanyId)
+                                ->orWhere('user_commission_types.main_company_id', '=', 0)
+                                ->orWhereNull('user_commission_types.main_company_id');
+                        });
+                })
+                ->orderBy('commission_types.id', 'asc');
 
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
-
                 $paginator = $query->paginate($perPage);
 
-                // Resource sobre el paginator
                 $commissionTypes = UserCommissionTypeResource::collection($paginator);
-                // Si no tienes Resource, podrías usar directamente:
-                // $certifications = $paginator->items();
-
-                // Datos de paginación (usar SIEMPRE el paginator, NO el builder)
                 $paginationData = GeneralHelpers::generatePaginationData($paginator);
 
                 return $this->sendResponse(
                     [
                         'commission_types' => $commissionTypes,
-                        'links'          => $paginationData['links'],
-                        'meta'           => $paginationData['meta'],
+                        'links' => $paginationData['links'],
+                        'meta'  => $paginationData['meta'],
                     ],
                     trans('Obtenido con éxito')
                 );
             }
 
-            // SIN PAGINACIÓN
             $commissionTypes = UserCommissionTypeResource::collection($query->get());
-            // o, sin resource: $certifications = $query->get();
 
             return $this->sendResponse(
                 [
@@ -59,16 +62,8 @@ class UserCommissionTypeController extends BaseController
                 ],
                 trans('Obtenido con éxito')
             );
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Handle database query exceptions
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 500); // HTTP 500 Internal Server Error
         } catch (\Exception $e) {
-            // Handle other exceptions
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 500); // HTTP 500 Internal Server Error
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 

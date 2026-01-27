@@ -6,6 +6,7 @@ use App\Helpers\GeneralHelpers;
 use App\Mail\SendAdvisorUser;
 use App\Models\Advisor;
 use App\Models\Company;
+use App\Models\MainCompany;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -205,7 +206,7 @@ class AdvisorService
         }
     }
 
-    public function sendEmail(Advisor $advisor){
+    public function sendEmail(Advisor $advisor, $mainCompanyId){
         try {
             $user = User::find($advisor->user_id);
 
@@ -221,9 +222,13 @@ class AdvisorService
                 'mail.mailers.smtp.password' => $emailPassword,
             ]);
 
-            Mail::mailer('smtp')
-                ->to($user->email)
-                ->send(new SendAdvisorUser($user->username, $user->default_password));
+            $mainCompany = MainCompany::find($mainCompanyId);
+
+            if ($mainCompany) {
+                Mail::mailer('smtp')
+                    ->to($user->email)
+                    ->send(new SendAdvisorUser($user->username, $user->default_password, $mainCompany->url));
+            }
 
             return $advisor;
         } catch (\Throwable $th) {
