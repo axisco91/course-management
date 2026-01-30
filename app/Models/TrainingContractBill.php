@@ -66,7 +66,7 @@ class TrainingContractBill extends Model
         );
     }
 
-    public function scopeGetTrainingContractBill($query)
+    public function scopeGetTrainingContractBill($query, $mainCompanyId)
     {
         return $query->select(
             'training_contract_bills.*',
@@ -93,6 +93,7 @@ class TrainingContractBill extends Model
                         ELSE NULL
                       END) as month_name")
         )
+            ->where('training_actions.main_company_id', $mainCompanyId)
             ->leftJoin('companies', 'companies.id', '=', 'training_contract_bills.company_id')
             ->leftJoin('training_contracts', 'training_contracts.id', '=', 'training_contract_bills.training_contract_id')
             ->leftJoin('students', 'students.id', '=', 'training_contracts.student_id');

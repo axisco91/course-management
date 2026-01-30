@@ -15,6 +15,7 @@ use App\Services\AdvisorCommissionService;
 use App\Services\UserCommissionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
 class TrainingContractBillController extends BaseController
@@ -30,7 +31,9 @@ class TrainingContractBillController extends BaseController
     public function index(Request $request)
     {
         try {
-            $query = TrainingContractBill::getTrainingContractBill();
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            $query = TrainingContractBill::getTrainingContractBill($mainCompanyId);
 
             /**
              * -------------------------
