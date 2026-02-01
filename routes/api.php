@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\CompanySettingController;
 use App\Http\Controllers\Api\LiquidationController;
 use App\Http\Controllers\Api\MainCompanyController;
 use App\Http\Controllers\API\PotentialTrainingContractController;
@@ -182,6 +183,14 @@ Route::prefix('excluded-day-types')->group(function() {
     });
 });
 
+Route::prefix('companies/settings')->group(function () {
+    Route::controller(CompanySettingController::class)->group(function(){
+        Route::get('', 'index');
+        Route::get('{key}', 'show');
+        Route::post('bulk', 'bulk');
+    });
+});
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 
@@ -347,6 +356,7 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::put('{id}', [CourseController::class, 'update']);
         Route::delete('{id}', [CourseController::class, 'destroy']);
         Route::get('set-data', [CourseController::class, 'setData']);
+        Route::get('next-formative-action/{trainingActionId}', [CourseController::class, 'nextFormativeAction']);
         Route::get('students/{id}', [CourseController::class, 'getStudents']);
         Route::put('reset-tracings/{id}', [CourseController::class, 'resetTracingsIfCancelled']);
         Route::get('{id}', [CourseController::class, 'show']);

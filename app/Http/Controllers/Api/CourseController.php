@@ -306,12 +306,6 @@ class CourseController extends BaseController
         );
     }
 
-    public function count(Request $request){
-        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-
-        return Course::FilterMainCompany($mainCompanyId)->count();
-    }
-
     /**
      * Este método restablece las fechas de seguimiento futuras (tracings), y elimina las tareas (chores) y facturas (bills) asociadas a un curso si el curso está cancelado.
      *
@@ -457,6 +451,52 @@ class CourseController extends BaseController
                 'status' => 500,
                 'message' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function nextFormativeAction(Request $request, $trainingActionId)
+    {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+
+            // 1) Buscar el máximo group (numérico) dentro de esa empresa + training_action
+            //    group es string con ceros (001/0001/etc), por eso CAST a UNSIGNED
+            $maxNumeric = Course::query()
+                ->where('main_company_id', $mainCompanyId)
+                ->where('training_action_id', $trainingActionId)
+                ->selectRaw('MAX(CAST(`group` AS UNSIGNED)) as max_value')
+                ->value('max_value');
+
+            // 2) Si no hay cursos -> sugerimos 001 y dejamos editar
+            if ($maxNumeric === null) {
+                return $this->sendResponse(
+                    [
+                        'group' => '0001',
+                        'editable' => true, // ✅ importante para tu caso
+                    ],
+                    trans('Obtenido con éxito')
+                );
+            }
+
+            // 3) Calcular siguiente
+            $next = ((int) $maxNumeric) + 1;
+
+            // 4) Formatear: mínimo 3 dígitos (001..999..1000)
+            //    Si en tu BD usas 4 dígitos (0001), cámbialo a 4.
+            $group = str_pad((string) $next, 4, '0', STR_PAD_LEFT);
+
+            return $this->sendResponse(
+                [
+                    'group' => $group,
+                    'editable' => false,
+                ],
+                trans('Obtenido con éxito')
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ], 400);
         }
     }
 }

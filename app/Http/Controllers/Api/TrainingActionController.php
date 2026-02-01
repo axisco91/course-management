@@ -268,24 +268,25 @@ class TrainingActionController extends BaseController
      * Obtenemos el siguiente número de la acción formativa
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getFormativeAction(Request $request) {
-       $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-        $training = TrainingAction::FilterMainCompany($mainCompanyId)
-            ->orderBy('id', 'desc')->first();
-        $id = $training['id']+1;
-        if ($id < 10) {
-            $formativeAction = '00'.$id;
-        }
-        else if ($id < 100) {
-            $formativeAction = '0'.$id;
-        } else {
-            $formativeAction = $id;
-        }
+    public function getFormativeAction(Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId(
+            $request->headers->get('origin'),
+            Auth::id()
+        );
+
+        // Si formative_action es "001", "002", etc.
+        $max = TrainingAction::where('main_company_id', $mainCompanyId)
+            ->selectRaw('MAX(CAST(formative_action AS UNSIGNED)) as max_value')
+            ->value('max_value');
+
+        $next = ((int) $max) + 1;
+
+        // 3 dígitos: 1 -> 001, 10 -> 010
+        $formativeAction = str_pad((string) $next, 3, '0', STR_PAD_LEFT);
 
         return $this->sendResponse(
-            [
-                'formative_action' => $formativeAction,
-            ],
+            ['formative_action' => $formativeAction],
             trans('Obtenido con éxito')
         );
     }

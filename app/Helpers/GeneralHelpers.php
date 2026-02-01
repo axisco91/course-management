@@ -75,24 +75,31 @@ class GeneralHelpers
         }
     }
 
-    public static function urlObtainCompanyId($url, $userId) {
-        if ($url === 'localhost') {
-            $url = 'zona.avzformacion.com';
+    public static function urlObtainCompanyId(string $url, ?int $userId = null): ?int
+    {
+        // Fix localhost
+        if ($url === 'http://localhost:3000') {
+            $url = 'https://zona.avzformacion.com';
         }
-        $mainCompany = MainCompany::where('url', $url)
-            ->first();
 
-        if (!$mainCompany) {
-            $companyId = $mainCompany->id;
-        } else {
+        // Buscar empresa por URL
+        $mainCompany = MainCompany::where('url', $url)->first();
+
+        if ($mainCompany) {
+            return $mainCompany->id;
+        }
+
+        // Si no hay empresa por URL y tenemos userId, usar la del usuario
+        if ($userId) {
             $user = User::find($userId);
 
-            if ($user) {
-                $companyId = $user->main_company_id;
+            if ($user && $user->main_company_id) {
+                return $user->main_company_id;
             }
         }
 
-        return $companyId;
+        // Si no se encuentra nada
+        return null;
     }
 
     public static function parseDateOrNull($value, $formatIn = 'd-m-Y', $formatOut = 'Y-m-d') {
