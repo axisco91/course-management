@@ -50,6 +50,9 @@ class TrainingActionController extends BaseController
             if ($request->provider) {
                 $query = $query->where('provider_id', $request->provider);
             }
+            if ($request->course_origin) {
+                $query = $query->where('course_origin_id', $request->course_origin);
+            }
             if ($request->show_inactive == 'false') {
                 $query = $query->where('training_actions.active', 1);
             }
@@ -434,6 +437,9 @@ class TrainingActionController extends BaseController
         if ($request->provider) {
             $query->where('provider_id', $request->provider);
         }
+        if ($request->course_origin) {
+            $query->where('course_origin_id', $request->course_origin);
+        }
         if ($request->show_inactive == 'false') {
             $query->where('training_actions.active', 1);
         }
@@ -447,6 +453,7 @@ class TrainingActionController extends BaseController
             'modality:id,name',
             'provider:id,name',
             'trainingActionLevel:id,name',
+            'courseOrigin:id,name',
         ]);
 
         $items = $query->get();

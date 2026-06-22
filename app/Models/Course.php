@@ -151,7 +151,9 @@ class Course extends Model
             $three_quarters = $dates['three_quarters'];
         }
 
-        $course_status_id = CourseStatusHelper::updateCourseStatus($beginning_date, $end_date);
+        $course_status_id = $beginning_date && $end_date
+            ? CourseStatusHelper::updateCourseStatus($beginning_date, $end_date)
+            : null;
 
         return [
             'quarter' => $quarter,

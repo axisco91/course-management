@@ -7,13 +7,27 @@ use Carbon\Carbon;
 
 class CourseResource extends JsonResource
 {
+    private function displayName(): string
+    {
+        $trainingAction = $this->resource->relationLoaded('trainingAction') ? $this->trainingAction : null;
+        $prefix = trim(implode(' / ', array_filter([
+            $trainingAction?->formative_action,
+            $this->group,
+        ])));
+        $name = $trainingAction?->name ?? $this->name ?? '';
+
+        return trim($prefix ? $prefix.' '.$name : $name);
+    }
+
     public function toArray($request)
     {
         return [
             'id' => $this->id,
 
-            // Nombre visible en la tabla
+            // Nombre guardado y nombre visible compuesto para tablas.
             'name' => $this->name,
+            'display_name' => $this->displayName(),
+            'group' => $this->group,
 
             // Relaciones
             'course_type' => $this->whenLoaded('courseType'),

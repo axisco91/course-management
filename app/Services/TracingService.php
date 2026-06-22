@@ -28,11 +28,10 @@ class TracingService
      * Función para editar un alumno
      */
     public function update(Tracing $tracing, $data) {
-        $tracing->update([
+        $payload = [
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
             'student_id' => $data['student_id'],
-            'last_connection' => GeneralHelpers::parseDateOrNull($data['last_connection']),
             'performed_activities' => $data['performed_activities'] ? $data['performed_activities'] : 0,
             'performed_hours' => $data['performed_hours'] ? CalculationHelpers::timeStringToDecimal($data['performed_hours']) : 0,
             'performed_units' => $data['performed_units'] ? $data['performed_units'] : 0,
@@ -50,7 +49,13 @@ class TracingService
             'half_message' => $data['half_message'],
             'three_quarters_message' => $data['three_quarters_message'],
             'final_message' => $data['final_message']
-        ]);
+        ];
+
+        if (array_key_exists('last_connection', $data) && !empty($data['last_connection'])) {
+            $payload['last_connection'] = GeneralHelpers::parseDateOrNull($data['last_connection']);
+        }
+
+        $tracing->update($payload);
         return $tracing;
     }
 }

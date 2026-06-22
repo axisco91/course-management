@@ -11,11 +11,15 @@ class CompanySettingController extends BaseController
 {
     /**
      * Obtener TODOS los settings de una empresa
-     * GET /companies/{companyId}/settings
+     * GET /companies/settings
      */
     public function index(Request $request)
     {
-        $companyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'));
+        $companyId = $this->resolveCompanyId($request);
+
+        if ($companyId === null) {
+            return $this->sendError('No se pudo resolver la empresa de la peticion', [], 400);
+        }
 
         $settings = SettingsHelper::getAllSettings($companyId);
 
@@ -29,11 +33,15 @@ class CompanySettingController extends BaseController
 
     /**
      * Obtener UN setting por key
-     * GET /companies/{companyId}/settings/{key}
+     * GET /companies/settings/{key}
      */
     public function show($key, Request $request)
     {
-        $companyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'));
+        $companyId = $this->resolveCompanyId($request);
+
+        if ($companyId === null) {
+            return $this->sendError('No se pudo resolver la empresa de la peticion', [], 400);
+        }
 
         $value = SettingsHelper::getSetting($key, $companyId);
 
@@ -53,11 +61,17 @@ class CompanySettingController extends BaseController
 
     /**
      * Obtener VARIOS settings por keys
-     * POST /companies/{companyId}/settings/bulk
+     * POST /companies/settings/bulk
      * body: { "keys": ["cursos.automaticos", "emails.activos"] }
      */
-    public function bulk(Request $request, $companyId)
+    public function bulk(Request $request)
     {
+        $companyId = $this->resolveCompanyId($request);
+
+        if ($companyId === null) {
+            return $this->sendError('No se pudo resolver la empresa de la peticion', [], 400);
+        }
+
         $keys = $request->input('keys', []);
 
         $allSettings = SettingsHelper::getAllSettings($companyId);
@@ -69,5 +83,17 @@ class CompanySettingController extends BaseController
             'success' => true,
             'data' => $filtered
         ]);
+    }
+
+    private function resolveCompanyId(Request $request): ?int
+    {
+        $companyUrl = $request->headers->get('origin')
+            ?? $request->headers->get('referer')
+            ?? $request->getHost();
+
+        return GeneralHelpers::urlObtainCompanyId(
+            $companyUrl,
+            Auth::id()
+        );
     }
 }

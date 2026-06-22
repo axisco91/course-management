@@ -16,7 +16,9 @@ class CourseService
      */
     public function create(array $data)
     {
-        $course_info = Course::courseDates(Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d'));
+        $beginning = $this->normalizeDate($data['beginning'] ?? null);
+        $end = $this->normalizeDate($data['end'] ?? null);
+        $course_info = Course::courseDates($beginning, $end);
         $anulado = CourseStatus::where('name', 'ANULADO')->first();
         if (isset($data['canceled']) && $data['canceled'] == 1) {
             $course_info['course_status_id'] = $anulado->id;
@@ -28,18 +30,18 @@ class CourseService
             'group' => $data['group'],
             'course_type_id' => $data['course_type_id'],
             'teacher_id' => $data['teacher_id'],
-            'beginning' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
-            'end' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
+            'beginning' => $beginning,
+            'end' => $end,
             'morning_schedule' => $data['morning_schedule'],
             'afternoon_schedule' => $data['afternoon_schedule'],
             'formation_center_id' => $data['formation_center_id'],
             'delivery_center_id' => $data['delivery_center_id'],
             'course_observation' => $data['course_observation'],
-            'welcome_date' => $data['beginning'] ? Carbon::createFromFormat('d-m-Y', $data['beginning'])->format('Y-m-d') : null,
+            'welcome_date' => $beginning,
             'quarter_date' => $course_info['quarter'],
             'half_date' => $course_info['half'],
             'three_quarters_date' => $course_info['three_quarters'],
-            'final_date' => $data['end'] ? Carbon::createFromFormat('d-m-Y', $data['end'])->format('Y-m-d') : null,
+            'final_date' => $end,
             'course_status_id' => $course_info['course_status_id'],
             'price' => $data['price'],
             'nebrija' => $data['nebrija'],
@@ -55,6 +57,26 @@ class CourseService
             'main_company_id' => $data['main_company_id'],
         ]);
         return $course;
+    }
+
+    private function normalizeDate($value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        $value = trim($value);
+        $formats = ['Y-m-d', 'd-m-Y', 'd/m/Y'];
+
+        foreach ($formats as $format) {
+            try {
+                return Carbon::createFromFormat($format, $value)->format('Y-m-d');
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        return Carbon::parse($value)->format('Y-m-d');
     }
 
     /**

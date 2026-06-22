@@ -5,241 +5,319 @@ namespace App\Helpers;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Throwable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class MoodleHelpers
 {
+    private const CACHE_TTL_SECONDS = 600;
+
+    private static function callMoodle(Client $client, $url, $token, string $function, array $query = []): ?array
+    {
+        $endpoint = rtrim((string) $url, '/').'/webservice/rest/server.php';
+
+        try {
+            $response = $client->request('GET', $endpoint, [
+                'query' => array_merge([
+                    'wstoken' => $token,
+                    'wsfunction' => $function,
+                    'moodlewsrestformat' => 'json',
+                ], $query),
+                'timeout' => 12,
+                'connect_timeout' => 5,
+            ]);
+        } catch (RequestException $e) {
+            Log::warning('Moodle request failed', [
+                'wsfunction' => $function,
+                'message' => $e->getMessage(),
+            ]);
+            return null;
+        } catch (Throwable $e) {
+            Log::warning('Unexpected Moodle request error', [
+                'wsfunction' => $function,
+                'message' => $e->getMessage(),
+            ]);
+            return null;
+        }
+
+        $data = json_decode((string) $response->getBody(), true);
+        if (!is_array($data)) {
+            Log::warning('Invalid Moodle response format', [
+                'wsfunction' => $function,
+            ]);
+            return null;
+        }
+
+        if (isset($data['exception']) || isset($data['errorcode'])) {
+            Log::warning('Moodle returned error payload', [
+                'wsfunction' => $function,
+                'errorcode' => $data['errorcode'] ?? null,
+                'message' => $data['message'] ?? null,
+            ]);
+            return null;
+        }
+
+        return $data;
+    }
+
+    private static function cacheKey(string $prefix, $url, array $parts = []): string
+    {
+        return 'moodle:'.md5((string) $url).':'.$prefix.':'.md5(json_encode($parts));
+    }
+
+    private static function getCachedCourseContents(Client $client, $courseId, $url, $token): ?array
+    {
+        $cacheKey = self::cacheKey('course_contents', $url, [$courseId]);
+
+        return Cache::remember($cacheKey, now()->addSeconds(self::CACHE_TTL_SECONDS), function () use ($client, $courseId, $url, $token) {
+            return self::callMoodle($client, $url, $token, 'core_course_get_contents', [
+                'courseid' => $courseId,
+            ]);
+        });
+    }
+
+    private static function getCachedUserByUsername(Client $client, $username, $url, $token): ?array
+    {
+        $cacheKey = self::cacheKey('user_by_username', $url, [$username]);
+
+        return Cache::remember($cacheKey, now()->addSeconds(self::CACHE_TTL_SECONDS), function () use ($client, $username, $url, $token) {
+            $users = self::callMoodle($client, $url, $token, 'core_user_get_users', [
+                'criteria[0][key]' => 'username',
+                'criteria[0][value]' => $username,
+            ]);
+
+            if (!is_array($users) || empty($users['users']) || !isset($users['users'][0]['id'])) {
+                return null;
+            }
+
+            return $users['users'][0];
+        });
+    }
+
+    private static function getCachedEnrolledUsers(Client $client, $courseId, $url, $token): ?array
+    {
+        $cacheKey = self::cacheKey('enrolled_users', $url, [$courseId]);
+
+        return Cache::remember($cacheKey, now()->addSeconds(self::CACHE_TTL_SECONDS), function () use ($client, $courseId, $url, $token) {
+            return self::callMoodle($client, $url, $token, 'core_enrol_get_enrolled_users', [
+                'courseid' => $courseId,
+            ]);
+        });
+    }
+
+    private static function defaultStudentDetails($courseId): array
+    {
+        return [
+            'courseId' => $courseId,
+            'userId' => null,
+            'finishedActivities' => 0,
+            'evaluationFinalDone' => false,
+            'lastAccess' => 'Never accessed',
+            'unitsViewed' => 0,
+            'totalTime' => GeneralHelpers::seconds_to_human_readable(0),
+            'cuestionar' => false,
+            'error' => null,
+        ];
+    }
 
     /**
      * Get the course
      */
     public static function getCourseByShortname($shortname, $url, $token) {
         $client = new Client();
+        $cacheKey = self::cacheKey('course_by_shortname', $url, [$shortname]);
 
-        try {
-            $response = $client->request('GET', $url.'/webservice/rest/server.php', [
-                'query' => [
-                    'wstoken' => $token,
-                    'wsfunction' => 'core_course_get_courses',
-                    'moodlewsrestformat' => 'json',
-                ]
-            ]);
+        return Cache::remember($cacheKey, now()->addSeconds(self::CACHE_TTL_SECONDS), function () use ($client, $shortname, $url, $token) {
+            $courses = self::callMoodle($client, $url, $token, 'core_course_get_courses');
 
-            $courses = json_decode($response->getBody(), true);
+            if (!is_array($courses)) {
+                return null;
+            }
 
             foreach ($courses as $course) {
-                if ($course['shortname'] === $shortname) {
-                    return $course; // Curso encontrado
+                if (
+                    is_array($course)
+                    && isset($course['shortname'])
+                    && $course['shortname'] === $shortname
+                ) {
+                    return $course;
                 }
             }
 
-            return null; // Curso no encontrado
-
-        } catch (RequestException $e) {
-            // Manejo del error HTTP o de red
             return null;
-        }
+        });
     }
 
     public static function getActivityCount($courseId, $url, $token) {
+        $result = [
+            'assignmentCount' => 0,
+            'normalScormCount' => 0,
+            'error' => null,
+        ];
+
         $client = new Client();
+        $courseContents = self::getCachedCourseContents($client, $courseId, $url, $token);
 
-        $response = $client->request('GET', $url.'/webservice/rest/server.php', [
-            'query' => [
-                'wstoken' => $token, // Replace with your token
-                'wsfunction' => 'core_course_get_contents',
-                'moodlewsrestformat' => 'json',
-                'courseid' => $courseId, // The ID of the course
-            ]
-        ]);
+        if (!is_array($courseContents)) {
+            $result['error'] = 'Unable to fetch course contents';
+            return $result;
+        }
 
-        $courseContents = json_decode($response->getBody(), true);
-
-        $assignmentCount = 0;
-        $normalScormCount = 0;
-
-        // Iterate through sections and count activities
         foreach ($courseContents as $section) {
-            if (isset($section['modules'])) {
-                foreach ($section['modules'] as $module) {
+            if (!isset($section['modules']) || !is_array($section['modules'])) {
+                continue;
+            }
 
-                    // Count assignments
-                    if ($module['modname'] === 'assign') {
-                        $assignmentCount++;
-                    }
+            foreach ($section['modules'] as $module) {
+                $moduleName = (string) ($module['name'] ?? '');
+                $moduleType = $module['modname'] ?? null;
 
-                    // Count normal SCORMs (exclude "extra" SCORMs based on a condition, e.g., name)
-                    if ($module['modname'] === 'scorm') {
-                        if (!str_contains($module['name'], 'Autoevaluación') &&
-                            !str_contains($module['name'], 'Evaluación Final')) {
-                            $normalScormCount++;
-                        }
-                    }
+                if ($moduleType === 'assign') {
+                    $result['assignmentCount']++;
+                }
+
+                if (
+                    $moduleType === 'scorm'
+                    && !str_contains($moduleName, 'Autoevaluación')
+                    && !str_contains($moduleName, 'Evaluación Final')
+                ) {
+                    $result['normalScormCount']++;
                 }
             }
         }
 
-        return [
-            'assignmentCount' => $assignmentCount,
-            'normalScormCount' => $normalScormCount,
-        ];
+        return $result;
     }
 
     public static function getStudentCourseDetails($courseId, $username, $url, $token) {
         $client = new Client();
-        // Step 1: Fetch userid from username
-        $responseUsers = $client->request('GET', $url.'/webservice/rest/server.php', [
-            'query' => [
-                'wstoken' => $token,
-                'wsfunction' => 'core_user_get_users',
-                'moodlewsrestformat' => 'json',
-                'criteria[0][key]' => 'username',
-                'criteria[0][value]' => $username,
-            ]
-        ]);
+        $result = self::defaultStudentDetails($courseId);
+        $errors = [];
 
-        $users = json_decode($responseUsers->getBody(), true);
+        $user = self::getCachedUserByUsername($client, $username, $url, $token);
 
-        if (empty($users['users'])) {
-            return ['error' => 'User not found'];
+        if (!is_array($user) || !isset($user['id'])) {
+            $result['error'] = 'User not found in Moodle';
+            return $result;
         }
 
-        $userId = $users['users'][0]['id']; // Fetch the first matched user
+        $userId = $user['id'];
+        $result['userId'] = $userId;
 
-        // Step 2: Fetch course contents (to map cmid to names)
-        $responseContents = $client->request('GET', $url.'/webservice/rest/server.php', [
-            'query' => [
-                'wstoken' => $token,
-                'wsfunction' => 'core_course_get_contents',
-                'moodlewsrestformat' => 'json',
-                'courseid' => $courseId,
-            ]
-        ]);
+        $courseContents = self::getCachedCourseContents($client, $courseId, $url, $token);
 
-        $courseContents = json_decode($responseContents->getBody(), true);
-
-        // Build a mapping of cmid to names
         $cmidToName = [];
-        foreach ($courseContents as $section) {
-            if (isset($section['modules'])) {
+        if (is_array($courseContents)) {
+            foreach ($courseContents as $section) {
+                if (!isset($section['modules']) || !is_array($section['modules'])) {
+                    continue;
+                }
+
                 foreach ($section['modules'] as $module) {
-                    $cmidToName[$module['id']] = $module['name'];
+                    if (isset($module['id'])) {
+                        $cmidToName[$module['id']] = (string) ($module['name'] ?? '');
+                    }
                 }
             }
+        } else {
+            $errors[] = 'Unable to fetch course contents';
         }
 
-        // Step 3: Fetch activities completion status
-        $responseCompletion = $client->request('GET', $url.'/webservice/rest/server.php', [
-            'query' => [
-                'wstoken' => $token,
-                'wsfunction' => 'core_completion_get_activities_completion_status',
-                'moodlewsrestformat' => 'json',
-                'courseid' => $courseId,
-                'userid' => $userId,
-            ]
+        $completionData = self::callMoodle($client, $url, $token, 'core_completion_get_activities_completion_status', [
+            'courseid' => $courseId,
+            'userid' => $userId,
         ]);
-
-        $completionData = json_decode($responseCompletion->getBody(), true);
 
         $finishedActivities = 0;
         $evaluationFinalDone = false;
         $normalScormCount = 0;
+        $satisfactionEvaluationDone = false;
 
-        foreach ($completionData['statuses'] as $module) {
-            $cmid = $module['cmid'];
-            $moduleName = $cmidToName[$cmid] ?? '';
+        if (is_array($completionData) && isset($completionData['statuses']) && is_array($completionData['statuses'])) {
+            foreach ($completionData['statuses'] as $module) {
+                $cmid = $module['cmid'] ?? null;
+                $moduleName = $cmid ? ($cmidToName[$cmid] ?? '') : '';
+                $moduleType = $module['modname'] ?? null;
+                $completed = (($module['state'] ?? 0) > 0);
 
-            // Count assignments
-            if ($module['modname'] === 'assign' && $module['state'] > 0) {
-                $finishedActivities++;
-            }
+                if ($moduleType === 'assign' && $completed) {
+                    $finishedActivities++;
+                }
 
-            // Check for SCORM named "Evaluación Final"
-            if ($module['modname'] === 'scorm' && $module['state'] > 0 && $moduleName === 'Evaluación Final') {
-                $evaluationFinalDone = true;
-            }
+                if ($moduleType === 'scorm' && $completed && $moduleName === 'Evaluación Final') {
+                    $evaluationFinalDone = true;
+                }
 
-            // Count normal SCORMs excluding "Autoevaluación" and "Evaluación Final"
-            if ($module['modname'] === 'scorm' && $module['state'] > 0) {
-                if (!str_contains($moduleName, 'Autoevaluación') && !str_contains($moduleName, 'Evaluación Final')) {
+                if (
+                    $moduleType === 'scorm'
+                    && $completed
+                    && !str_contains($moduleName, 'Autoevaluación')
+                    && !str_contains($moduleName, 'Evaluación Final')
+                ) {
                     $normalScormCount++;
                 }
-            }
-        }
 
-        // Step 4: Fetch last access time for the course
-        $responseEnrolledUsers = $client->request('GET', $url.'/webservice/rest/server.php', [
-            'query' => [
-                'wstoken' => $token,
-                'wsfunction' => 'core_enrol_get_enrolled_users',
-                'moodlewsrestformat' => 'json',
-                'courseid' => $courseId,
-            ]
-        ]);
-
-        $enrolledUsers = json_decode($responseEnrolledUsers->getBody(), true);
-
-        $lastAccess = null;
-        foreach ($enrolledUsers as $user) {
-            if ($user['id'] === $userId) {
-                $lastAccess = $user['lastaccess'];
-                break;
-            }
-        }
-
-        if ($lastAccess) {
-            $lastAccessFormatted = Carbon::createFromTimestamp($lastAccess, 'UTC') // Parse timestamp in UTC
-            ->setTimezone('Europe/Madrid') // Convert to Madrid timezone
-            ->format('Y-m-d H:i:s'); // Format the date
-        } else {
-            $lastAccessFormatted = 'Never accessed';
-        }
-
-        $response = $client->request('GET', $url.'/webservice/rest/server.php', [
-            'query' => [
-                'wstoken' => $token, // Your token
-                'wsfunction' => 'local_dedication_get_dedication', // Your custom service function name
-                'moodlewsrestformat' => 'json', // Response format
-                'userid' => $userId, // The user ID you want to check
-                'courseid' => $courseId, // The course ID you want to check
-            ]
-        ]);
-        $times = json_decode($response->getBody(), true);
-
-        $responseCompletion = $client->request('GET', $url.'/webservice/rest/server.php', [
-            'query' => [
-                'wstoken' => $token, // Replace with your token
-                'wsfunction' => 'core_completion_get_activities_completion_status',
-                'moodlewsrestformat' => 'json',
-                'courseid' => $courseId, // The course ID
-                'userid' => $userId, // The user ID
-            ]
-        ]);
-
-        $completionData = json_decode($responseCompletion->getBody(), true);
-
-        $satisfactionEvaluationDone = false;
-        foreach ($completionData['statuses'] as $activity) {
-            // Check if the activity name matches and if it's completed
-            \Log::error('Activity variable debug:', ['activity' => $activity]);
-
-            if (isset($activity['name'])) {
-                if ($activity['name'] === 'Encuesta de Satisfacción y Propuesta de Mejora' && $activity['state'] > 0) {
+                if (
+                    $completed
+                    && str_contains($moduleName, 'Encuesta de Satisfacción y Propuesta de Mejora')
+                ) {
                     $satisfactionEvaluationDone = true;
+                }
+            }
+        } else {
+            $errors[] = 'Unable to fetch completion status';
+        }
+
+        $enrolledUsers = self::getCachedEnrolledUsers($client, $courseId, $url, $token);
+
+        if (is_array($enrolledUsers)) {
+            $lastAccess = null;
+            foreach ($enrolledUsers as $user) {
+                if (($user['id'] ?? null) === $userId) {
+                    $lastAccess = $user['lastaccess'] ?? null;
                     break;
                 }
             }
+
+            if ($lastAccess) {
+                $result['lastAccess'] = Carbon::createFromTimestamp((int) $lastAccess, 'UTC')
+                    ->setTimezone('Europe/Madrid')
+                    ->format('Y-m-d H:i:s');
+            }
+        } else {
+            $errors[] = 'Unable to fetch enrolled users';
         }
 
-        return [
-            'courseId' => $courseId,
-            'userId' => $userId,
-            'finishedActivities' => $finishedActivities,
-            'evaluationFinalDone' => $evaluationFinalDone,
-            'lastAccess' => $lastAccessFormatted,
-            'unitsViewed' => $normalScormCount,
-            'totalTime' => GeneralHelpers::seconds_to_human_readable($times['total_time']),
-            'cuestionar' => $satisfactionEvaluationDone
-        ];
+        $times = self::callMoodle($client, $url, $token, 'local_dedication_get_dedication', [
+            'userid' => $userId,
+            'courseid' => $courseId,
+        ]);
+
+        if (is_array($times) && isset($times['total_time']) && is_numeric($times['total_time'])) {
+            $result['totalTime'] = GeneralHelpers::seconds_to_human_readable((int) $times['total_time']);
+        } else {
+            if (!is_array($times)) {
+                $errors[] = 'Unable to fetch dedication time';
+            } else {
+                $errors[] = 'Invalid dedication time response';
+            }
+        }
+
+        $result['finishedActivities'] = $finishedActivities;
+        $result['evaluationFinalDone'] = $evaluationFinalDone;
+        $result['unitsViewed'] = $normalScormCount;
+        $result['cuestionar'] = $satisfactionEvaluationDone;
+
+        if (!empty($errors)) {
+            $result['error'] = implode(' | ', array_unique($errors));
+            Log::warning('Partial Moodle data in getStudentCourseDetails', [
+                'course_id' => $courseId,
+                'username' => $username,
+                'errors' => $result['error'],
+            ]);
+        }
+
+        return $result;
     }
 }

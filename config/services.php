@@ -30,4 +30,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'dinahosting' => [
+        'api_url' => env('DINAHOSTING_API_URL'),
+        'auth_user' => env('DINAHOSTING_AUTH_USER'),
+        'auth_pwd' => env('DINAHOSTING_AUTH_PWD'),
+        'hosting' => env('DINAHOSTING_HOSTING'),
+        'directory' => env('DINAHOSTING_DIRECTORY'),
+    ],
+
 ];

@@ -19,6 +19,39 @@ class UserController extends BaseController
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $query = User::getUser($mainCompanyId);
 
+            if ($request->filled('name')) {
+                $query = $query->where('users.name', 'like', '%' . $request->name . '%');
+            }
+            if ($request->filled('surname')) {
+                $query = $query->where('users.surname', 'like', '%' . $request->surname . '%');
+            }
+            if ($request->filled('email')) {
+                $query = $query->where('users.email', 'like', '%' . $request->email . '%');
+            }
+            if ($request->filled('active')) {
+                $query = $query->where('users.active', (int) $request->active);
+            }
+
+            $sortParam = (string) $request->get('sort', '-id');
+            $direction = str_starts_with($sortParam, '-') ? 'desc' : 'asc';
+            $sortField = ltrim($sortParam, '-');
+
+            $sortMap = [
+                'id' => 'users.id',
+                'name' => 'users.name',
+                'surname' => 'users.surname',
+                'email' => 'users.email',
+                'active' => 'users.active',
+                'status' => 'users.active',
+            ];
+
+            if ($sortField === 'name') {
+                $query = $query->orderBy('users.name', $direction)->orderBy('users.surname', $direction);
+            } else {
+                $sortColumn = $sortMap[$sortField] ?? 'users.id';
+                $query = $query->orderBy($sortColumn, $direction);
+            }
+
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
 

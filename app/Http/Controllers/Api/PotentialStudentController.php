@@ -10,6 +10,7 @@ use App\Models\PotentialStudent;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Mockery\Exception;
 
@@ -17,9 +18,55 @@ class PotentialStudentController extends BaseController
 {
     public function getPotentialStudents(Request $request) {
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
             $query = PotentialStudent::getPotentialStudent($mainCompanyId);
+
+            if ($request->filled('name')) {
+                $query = $query->where('potential_students.name', 'like', '%' . $request->name . '%');
+            }
+            if ($request->filled('surname')) {
+                $query = $query->where('potential_students.surname', 'like', '%' . $request->surname . '%');
+            }
+            if ($request->filled('dni')) {
+                $query = $query->where('potential_students.dni', 'like', '%' . $request->dni . '%');
+            }
+            if ($request->filled('telephone')) {
+                $query = $query->where('potential_students.telephone', 'like', '%' . $request->telephone . '%');
+            }
+            if ($request->filled('email')) {
+                $query = $query->where('potential_students.email', 'like', '%' . $request->email . '%');
+            }
+            if ($request->filled('company_id') && (int) $request->company_id > 0) {
+                $query = $query->where('potential_students.company_id', (int) $request->company_id);
+            }
+
+            $sortParam = (string) $request->get('sort', 'name');
+            $direction = str_starts_with($sortParam, '-') ? 'desc' : 'asc';
+            $sortField = ltrim($sortParam, '-');
+
+            $sortMap = [
+                'name' => 'potential_students.name',
+                'surname' => 'potential_students.surname',
+                'dni' => 'potential_students.dni',
+                'telephone' => 'potential_students.telephone',
+                'email' => 'potential_students.email',
+                'status' => 'potential_students.active',
+                'active' => 'potential_students.active',
+            ];
+
+            // scopeGetPotentialStudent adds a default orderBy(name asc); reorder() replaces it.
+            if ($sortField === 'name') {
+                $query = $query->reorder('potential_students.name', $direction)
+                    ->orderBy('potential_students.surname', $direction);
+            } elseif (in_array($sortField, ['company', 'company_name'])) {
+                $query = $query
+                    ->leftJoin('companies', 'companies.id', '=', 'potential_students.company_id')
+                    ->reorder(DB::raw('COALESCE(companies.name, potential_students.company_name)'), $direction);
+            } else {
+                $sortColumn = $sortMap[$sortField] ?? 'potential_students.name';
+                $query = $query->reorder($sortColumn, $direction);
+            }
 
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
@@ -64,7 +111,7 @@ class PotentialStudentController extends BaseController
     public function getPotentialStudent($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-        $potentialStudent = PotentialStudent::getPotentialStudent($mainCompanyId)->where('potential_students.id', $id);
+        $potentialStudent = PotentialStudent::getPotentialStudent($mainCompanyId)->where('potential_students.id', $id)->first();
         if ($potentialStudent) {
             return $this->sendResponse(
                 [

@@ -2,18 +2,14 @@
 
 namespace App\Console\Commands;
 
-use App\Helpers\CourseStatusHelper;
+use App\Helpers\CalculationHelpers;
 use App\Helpers\GeneralHelpers;
 use App\Helpers\MoodleHelpers;
 use App\Models\Course;
-use App\Models\CourseStatus;
 use App\Models\Student;
 use App\Models\Tracing;
-use App\Models\TrainingAction;
-use App\Models\WebPlatform;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Mail;
 
 class updateCoursesTracings extends Command
 {
@@ -22,7 +18,7 @@ class updateCoursesTracings extends Command
      *
      * @var string
      */
-    protected $signature = 'updateCoursesTracings';
+    protected $signature = 'updateCoursesTracings {--months=2 : Include courses finished in the last N months}';
 
     /**
      * The console command description.
@@ -36,51 +32,80 @@ class updateCoursesTracings extends Command
      */
     public function handle()
     {
-        $courses = Course::whereDate('beginning', '<', Carbon::now())
-            ->whereDate('end', '>=', Carbon::now()->subDays(10))
+        $months = max(0, (int) $this->option('months'));
+        $now = Carbon::now();
+        $recentEndDate = $now->copy()->subMonths($months);
+
+        $courses = Course::with([
+                'trainingAction:id,web_platform_id',
+                'trainingAction.webPlatform:id,url,token',
+            ])
+            ->whereDate('beginning', '<=', $now)
+            ->whereDate('end', '>=', $recentEndDate)
+            ->whereHas('tracings')
+            ->whereHas('trainingAction', function ($query) {
+                $query->whereNotNull('web_platform_id');
+            })
             ->get();
+
+        $this->info(sprintf(
+            'Syncing %d courses started up to %s and finished since %s.',
+            $courses->count(),
+            $now->toDateString(),
+            $recentEndDate->toDateString()
+        ));
 
         foreach ($courses as $course) {
             $parts = explode(' - ', $course->name);
             $code = trim($parts[0]);
 
-            $trainingAction = TrainingAction::find($course->training_action_id);
+            $trainingAction = $course->trainingAction;
+            if (!$trainingAction || !$trainingAction->web_platform_id) {
+                continue;
+            }
 
-            if ($trainingAction->web_platform_id) {
-                $webPlatform = WebPlatform::find($trainingAction->web_platform_id);
+            $webPlatform = $trainingAction->webPlatform;
+            if (!$webPlatform || !$webPlatform->url || !$webPlatform->token) {
+                continue;
+            }
 
-                if ($webPlatform->url && $webPlatform->token) {
-                    $moodleId = MoodleHelpers::getCourseByShortname($code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
-                    if (!$moodleId) continue;
+            $moodleCourse = MoodleHelpers::getCourseByShortname($code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
+            if (!$moodleCourse || !isset($moodleCourse['id'])) {
+                continue;
+            }
 
-                    $courseId = $moodleId['id'];
+            // tracings.course_id points to local courses.id, not Moodle course id
+            $tracings = Tracing::where('course_id', $course->id)->get();
 
-                    // Optionally fetch users from your DB that are enrolled in this course
-                    $tracings = Tracing::where('course_id', $courseId)->get();
-
-                    foreach ($tracings as $tracing) {
-                        $student = Student::where('id', $tracing->student_id)->first();
-
-
-                        $courseData = MoodleHelpers::getStudentCourseDetails($moodleId['id'], $student->user, $webPlatform->url, $webPlatform->token);
-
-                        $endTime = Carbon::createFromTimestamp($tracing->end);
-                        $currentTime = Carbon::now();
-
-                        // Save or update in your DB
-                        $tracing->update(
-                            [
-                                'performed_activities' => $courseData['finishedActivities'],
-                                'last_connection' => $courseData['lastAccess'] != 'Never accessed' ? $courseData['lastAccess'] : null,
-                                'performed_units' => $courseData['unitsViewed'],
-                                'performed_hours' => GeneralHelpers::convertToMinutes($courseData['totalTime']),
-                                'final_test' => $courseData['evaluationFinalDone'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2),
-                                'questionnaire' => $courseData['cuestionar'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2)
-                            ]
-                        );
-
-                    }
+            foreach ($tracings as $tracing) {
+                $student = Student::find($tracing->student_id);
+                if (!$student || empty($student->user)) {
+                    continue;
                 }
+
+                $courseData = MoodleHelpers::getStudentCourseDetails(
+                    $moodleCourse['id'],
+                    $student->user,
+                    $webPlatform->url,
+                    $webPlatform->token
+                );
+
+                // Avoid overriding tracing metrics with partial/failed Moodle responses
+                if (!empty($courseData['error'])) {
+                    continue;
+                }
+
+                $endTime = Carbon::createFromTimestamp($tracing->end);
+                $currentTime = Carbon::now();
+
+                $tracing->update([
+                    'performed_activities' => $courseData['finishedActivities'],
+                    'last_connection' => $courseData['lastAccess'] !== 'Never accessed' ? $courseData['lastAccess'] : null,
+                    'performed_units' => $courseData['unitsViewed'],
+                    'performed_hours' => CalculationHelpers::timeStringToDecimal($courseData['totalTime']),
+                    'final_test' => $courseData['evaluationFinalDone'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2),
+                    'questionnaire' => $courseData['cuestionar'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2),
+                ]);
             }
         }
 

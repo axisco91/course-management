@@ -25,6 +25,11 @@ class TrainingAction extends Model
         return $this->belongsTo(Provider::class, 'provider_id');
     }
 
+    public function courseOrigin()
+    {
+        return $this->belongsTo(CourseOrigin::class, 'course_origin_id');
+    }
+
     public function modality()
     {
         return $this->belongsTo(Modality::class, 'modality_id');
@@ -83,6 +88,7 @@ class TrainingAction extends Model
                 'tutoring:id,name',
                 'webPlatform:id,name',
                 'provider:id,name',
+                'courseOrigin:id,name',
             ]);
     }
 

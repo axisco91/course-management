@@ -216,7 +216,7 @@
         <td width="70%" class="left-align">
             <p class="no-margin-bottom"> NIVEL FORMATIVO</p>
             <p>
-                <span class="empty-paragraph" style="float: left; width: 80%;">{{$trainingContract->student->levelStudy->name}}</span>
+                <span class="empty-paragraph" style="float: left; width: 80%;">{{ optional($trainingContract->student->levelStudy)->name }}</span>
                 <span class="empty-paragraph" style="float: right;">
                         @foreach(range(0,1) as $i)
                         <span style="border: 1px solid black; padding: 2px 8px; margin: -2px;">&nbsp;</span>
@@ -382,9 +382,9 @@
 <br>
 
 <ul class="no-bullets">
-    <li>a) Actividad laboral (6) <span class="dots">{{$trainingContract->occupation->name}}</span>
-        CNO: <span class="dots">{{(substr($trainingContract->occupation->cno, 0, 4))}} </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$trainingContract->company->address}} ({{$trainingContract->company->post_code}} {{$trainingContract->company->population}}) </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots"> María del Mar García Molina </span> , cuya cualificación profesional es (9) <span class="dots"> Tutor Experto </span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} </span></li>
-    <li>b) La actividad formativa vinculada al contrato es <span class="dots">{{$trainingContract->occupation->name}}	</span>, de acuerdo con el convenio de colaboración suscrito por la empresa con el centro o entidad formativa y que se incorpora como anexo en este contrato (10).</li>
+    <li>a) Actividad laboral (6) <span class="dots">{{ optional($trainingContract->occupation)->name }}</span>
+        CNO: <span class="dots">{{ substr(optional($trainingContract->occupation)->cno ?? '', 0, 4) }} </span> incluido en el grupo profesional de (7) <span class="dots"> aprendices</span>	, de acuerdo con el sistema de calificación vigente en la empresa. En el centro de trabajo ubicado en (calle, número y localidad) <span class="dots"> {{$trainingContract->company->address}} ({{$trainingContract->company->post_code}} {{$trainingContract->company->population}}) </span> Siendo el/la tutor/a designado por la entidad de formación D/Dña (8). <span class="dots"> María del Mar García Molina </span> , cuya cualificación profesional es (9) <span class="dots"> Tutor Experto </span> Siendo el/la tutor/a designado por la empresa D/Dña. <span class="dots">{{$trainingContract->company_tutor}} </span></li>
+    <li>b) La actividad formativa vinculada al contrato es <span class="dots">{{ optional($trainingContract->occupation)->name }}	</span>, de acuerdo con el convenio de colaboración suscrito por la empresa con el centro o entidad formativa y que se incorpora como anexo en este contrato (10).</li>
 </ul>
 
 <h3 class="no-line-break">SEGUNDA: </h3>

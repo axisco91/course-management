@@ -7,51 +7,51 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
         <style>
             .bg-black{
-                background-color: rgb(55, 49, 52) !important; 
+                background-color: rgb(55, 49, 52) !important;
             }
 
             .border-black{
-                border-color: rgb(55, 49, 52) !important; 
-            } 
+                border-color: rgb(55, 49, 52) !important;
+            }
 
             .bg-gris{
-                background-color: rgb(181, 179, 179); 
+                background-color: rgb(181, 179, 179);
             }
 
             .text-naranja{
-                color: rgb(233, 119, 33); 
+                color: rgb(233, 119, 33);
             }
 
             .bg-naranja{
-                background-color: rgb(233, 119, 33); 
+                background-color: rgb(233, 119, 33);
             }
 
             .font-bold{
-                font-weight: bold; 
+                font-weight: bold;
             }
 
             .font-semibold{
-                font-weight: 600; 
+                font-weight: 600;
             }
 
             .border-right{
-                border-right: 2px solid black; 
+                border-right: 2px solid black;
             }
 
             .border-left{
-                border-left: 2px solid black; 
+                border-left: 2px solid black;
             }
 
             .text-lg{
-                font-size: 1.125rem; 
+                font-size: 1.125rem;
             }
 
             .text-sm{
-                font-size: 0.875rem; 
+                font-size: 0.875rem;
             }
 
             .text-xs{
-                font-size: 0.75rem; 
+                font-size: 0.75rem;
             }
         </style>
     </head>
@@ -68,7 +68,7 @@
                 </td>
             </tr>
         </table>
-        
+
         <div class="bg-black" style="width: 100%; height: 5px"></div>
 
         <!-- INFORMACIÓN -->
@@ -95,14 +95,14 @@
                         <td class="border-right px-1"> Email  {{$trainingContract->company->advisor->email ?? ''}}  </td>
                     </tr>
                 </table>
-                
+
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
                         <td class="border-left border-right px-1">Dirección  {{$trainingContract->company->advisor->address ?? ''}}  </td>
                         <td class="border-right px-1"> CP   {{$trainingContract->company->advisor->post_code ?? ''}} </td>
                     </tr>
                 </table>
-                
+
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
                         <td class="border-left border-right px-1">Localidad   {{$trainingContract->company->advisor->population ?? ''}} </td>
@@ -158,21 +158,21 @@
                         </td>
                         <td class="border-right px-1">De 1 a 4 <input class="ml-2 w-5 h-5 my-auto" type="checkbox" {{$trainingContract->company->companyType && $trainingContract->company->companyType->name == 'Autónomo' ? 'checked' : ''}}></td>
                         <td class="border-right px-1">más de 4 <input class="ml-2 w-5 h-5 my-auto" type="checkbox" {{$trainingContract->company->companyType && $trainingContract->company->companyType->name != 'Autónomo' ? 'checked' : ''}}></td>
-                        <td class="border-right px-1">Jornada anual según convenio 
-                            <span class="text-xs text-naranja">(3)</span> 
+                        <td class="border-right px-1">Jornada anual según convenio
+                            <span class="text-xs text-naranja">(3)</span>
                             <span class="text-xs">(1800 si no lo especifica)</span>
                                {{$trainingContract->annually_day_hours ?? '1800'}}
                         </td>
                     </tr>
                 </table>
-                
+
                 <table class="border-bottom border-2 border-black" style="width: 100%;">
                     <tr class="p-2">
                         <td class="border-left border-right px-1">Representante legal   {{$trainingContract->company->legal_representative}}</td>
                         <td class="border-right px-1">NIF/NIE   {{$trainingContract->company->dni_legal_representative}} </td>
                     </tr>
                 </table>
-                    
+
                 <table class="border-bottom border-2 border-black">
                     <tr class="p-2">
                         <td class="border-left border-right px-1">IBAN</td>
@@ -253,8 +253,8 @@
                 </table>
                 <table class="border border-2 border-black mt-2" style="width: 100%;">
                     <tr>
-                        <td class="border-right px-1">Duración <span class="text-xs text-naranja">(7)</span> 
-                     
+                        <td class="border-right px-1">Duración <span class="text-xs text-naranja">(7)</span>
+
                         @php
                                 $start = \Carbon\Carbon::parse($trainingContract->beginning);
                                 $end = \Carbon\Carbon::parse($trainingContract->end);
@@ -374,11 +374,11 @@
                         alta en Seguridad Social. Es el que deberá utilizar para dar el alta de todos los trabajadores con contrato de formación.
                     </p>
                     <p>
-                        <span class="text-naranja font-bold">2.</span> <span class="font-bold">Nº de trabajadores plantilla:</span> Marca la opción de 1 a 4, 
+                        <span class="text-naranja font-bold">2.</span> <span class="font-bold">Nº de trabajadores plantilla:</span> Marca la opción de 1 a 4,
                         si tu empresa tiene como máximo 4 trabajadores (bonificación por tutorización de 80€ mensual), y más de 4, cuando la plantilla sea superior (bonificación de 60€ mensual).
                     </p>
                     <p >
-                        <span class="text-naranja font-bold">3.</span> <span class="font-bold">Jornada anual según convenio:</span> 
+                        <span class="text-naranja font-bold">3.</span> <span class="font-bold">Jornada anual según convenio:</span>
                             La jornada anual que puede tener como máximo el contrato de formación para cada
                             ocupación debe ser consultada siempre en el convenio colectivo. Si no se establece, será de 1.800 horas, según el Estatuto de
                             Trabajadores. El 25% ( 1ª año de contrato ) o 15% ( 2º y 3º) sobre esta cantidad, serán las de formación que recibirá el
@@ -391,22 +391,22 @@
                             teléfono personal y email para poder contactar con él fuera de su horario de trabajo y enviarle información sobre el curso.
                     </p>
                     <p >
-                        <span class="text-naranja font-bold">5.</span> <span class="font-bold">Estudios terminados:</span> 
+                        <span class="text-naranja font-bold">5.</span> <span class="font-bold">Estudios terminados:</span>
                             Especifica el nivel académico del alumno, que deberá acreditarse adjuntando una copia de su
                             titulación. Muy importante: el trabajador no podrá tener formación oficial relacionada con el puesto de trabajo a desempeñar.
                     </p>
                     <p>
-                        <span class="text-naranja font-bold">6.</span> <span class="font-bold">Inscrito en garantía juvenil:</span> 
+                        <span class="text-naranja font-bold">6.</span> <span class="font-bold">Inscrito en garantía juvenil:</span>
                         Indicar si el alumno está inscrito en garantía juvenil.
                     </p>
                     <p>
-                        <span class="text-naranja font-bold">7.</span> <span class="font-bold">Duración:</span> 
+                        <span class="text-naranja font-bold">7.</span> <span class="font-bold">Duración:</span>
                             1 año, pudiendo prorrogarse hasta 3 años, siempre que en convenio colectivo no se indique lo contrario. Si
                             permite una duración de 6 meses, se recomienda establecer un año igualmente, con el fin de evitar tener que repetir el proceso
                             de autorización a los 6 meses del contrato.
                     </p>
                     <p >
-                        <span class="text-naranja font-bold">8.</span> <span class="font-bold">Fecha de inicio:</span> 
+                        <span class="text-naranja font-bold">8.</span> <span class="font-bold">Fecha de inicio:</span>
                             Fecha en que se va a iniciar el contrato de formación. Deberá indicarse previendo al menos el margen de 1
                             mes, para que haya tiempo suficiente para solicitar la autorización de inicio de la actividad formativa.
                     </p>
@@ -426,11 +426,11 @@
                             los últimos seis meses con un contrato temporal o formativo.
                         </p>
                         <p class="ml-3">- El trabajador no será un familiar del empresario o miembro de la sociedad que le contrata.</p>
-                        <p class="ml-3">- La empresa no pueden haber tenido despidos reconocidos improcedentes o colectivos en contratos bonificados.</p> 
+                        <p class="ml-3">- La empresa no pueden haber tenido despidos reconocidos improcedentes o colectivos en contratos bonificados.</p>
                         <p>Consulta con nuestro equipo tu caso en particular.</p>
                     </div>
                     <p >
-                        <span class="text-naranja font-bold">10.</span> <span class="font-bold">Ocupación:</span> 
+                        <span class="text-naranja font-bold">10.</span> <span class="font-bold">Ocupación:</span>
                             Ocupación que va a desempeñar el trabajador en la empresa, que deberá estar directamente relacionada
                             con la formación que va a recibir durante su contrato.
                     </p>
@@ -439,7 +439,7 @@
                         para su contrato.
                     </p>
                     <p >
-                        <span class="text-naranja font-bold">12.</span> <span class="font-bold">Horario formativo:</span> 
+                        <span class="text-naranja font-bold">12.</span> <span class="font-bold">Horario formativo:</span>
                             Margen temporal que va a dedicar el trabajador a la semana para formarse (10 horas). Es muy
                             importante el horario que aquí se indique, porque será el notificado en la solicitud de autorización. El SEPE comprobará que el
                             trabajador se esté formando en ese periodo. Durante esas horas, el trabajador no podrá estar trabajando bajo ningún
@@ -448,7 +448,7 @@
                             nuestro centro de formación.
                     </p>
                     <p >
-                        <span class="text-naranja font-bold">13.</span> <span class="font-bold">Horario de trabajo:</span> 
+                        <span class="text-naranja font-bold">13.</span> <span class="font-bold">Horario de trabajo:</span>
                             Horas de trabajo efectivo que va a desempeñar. El trabajador no podrá realizar trabajo nocturno, entre
                             las 22:00 y 06:00 horas, rotativo, ni a turnos.
                     </p>
@@ -458,22 +458,22 @@
                             presentará la solicitud en la Delegación Territorial de Empleo de su misma provincia.
                     </p>
                     <p >
-                        <span class="text-naranja font-bold">15.</span> <span class="font-bold">Vacaciones:</span> 
+                        <span class="text-naranja font-bold">15.</span> <span class="font-bold">Vacaciones:</span>
                             El período vacacional estipulado en el contrato.
                     </p>
                     <p >
-                        <span class="text-naranja font-bold">16.</span> <span class="font-bold">Período de prueba:</span> 
+                        <span class="text-naranja font-bold">16.</span> <span class="font-bold">Período de prueba:</span>
                             El periodo de prueba es un tiempo durante el cual la empresa y el trabajador se prueban mutuamente.
                             La empresa decide si el trabajador se ajusta al trabajo y el trabajador ve si lo que le ofrece la empresa es lo que buscaba, o si
                             las condiciones son las prometidas.
                     </p>
                     <p >
-                        <span class="text-naranja font-bold">17.</span> <span class="font-bold">Tutor de empresa:</span> 
+                        <span class="text-naranja font-bold">17.</span> <span class="font-bold">Tutor de empresa:</span>
                             Nombre de la persona que va a realizar el seguimiento del alumno en el mismo centro de trabajo y
                             horario.
                     </p>
                     <p >
-                        <span class="text-naranja font-bold">18.</span> <span class="font-bold">Teléfono y email del tutor:</span> 
+                        <span class="text-naranja font-bold">18.</span> <span class="font-bold">Teléfono y email del tutor:</span>
                             Nuestros tutores estarán en continua comunicación con él, por ello, necesitan su teléfono
                             directo y email para poder coordinar la labor formativa.
                     </p>
@@ -486,7 +486,7 @@
             </article>
 
             <footer class="bg-naranja flex justify-end p-2 mt-3 pe-12">
-                <p class="text-white font-semibold">info@avzformacion.com - 957 923 473 - 644 680 310</p>
+                <p class="text-white font-semibold">info@avzformacion.com - 910 600 410</p>
             </footer>
         </section>
     </body>

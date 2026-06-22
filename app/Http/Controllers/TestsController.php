@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Helpers\MoodleHelpers;
 use App\Models\Registration;
+use App\Models\WebPlatform;
 use Carbon\Carbon;
-use GuzzleHttp\Client;
 
 class TestsController extends Controller
 {
@@ -27,15 +27,27 @@ class TestsController extends Controller
     }
 
     public function testMoodle() {
-        $data = MoodleHelpers::getCourseByShortname('030/0005');
+        $webPlatform = WebPlatform::whereNotNull('url')
+            ->whereNotNull('token')
+            ->first();
 
-        if (!empty($data)) {
-            $dara = MoodleHelpers::getActivityCount($data[0]['id']);
-
-            $da = MoodleHelpers::getStudentCourseDetails($data[0]['id'], '50625787g');
+        if (!$webPlatform) {
+            return ['error' => 'No web platform with Moodle credentials found'];
         }
 
-        return $da;
+        $data = MoodleHelpers::getCourseByShortname('030/0005', $webPlatform->url, $webPlatform->token);
+        if (empty($data) || !isset($data['id'])) {
+            return ['error' => 'Moodle course not found'];
+        }
+
+        $activities = MoodleHelpers::getActivityCount($data['id'], $webPlatform->url, $webPlatform->token);
+        $details = MoodleHelpers::getStudentCourseDetails($data['id'], '50625787g', $webPlatform->url, $webPlatform->token);
+
+        return [
+            'course' => $data,
+            'activities' => $activities,
+            'details' => $details,
+        ];
     }
 
 }

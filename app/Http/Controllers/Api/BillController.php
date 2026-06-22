@@ -47,64 +47,9 @@ class  BillController extends BaseController
         try {
             $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            $cfa = CourseType::where('name', 'CFA')->first();
-
             $query = Bill::bill($mainCompanyId);
 
-            if ($cfa) {
-                $query->whereHas('course', fn ($q) => $q->where('course_type_id', '!=', $cfa->id));
-            }
-
-            // ✅ filtros (arreglados)
-            if ($request->filled('course')) {
-                $course = $request->course;
-
-                $query->whereHas('course', function ($q) use ($course) {
-                    // si course es ID:
-                    if (is_numeric($course)) {
-                        $q->where('courses.id', (int) $course);
-                        return;
-                    }
-
-                    // si course es texto: busca por trainingAction->name o formative_action
-                    $q->whereHas('trainingAction', function ($ta) use ($course) {
-                        $ta->where('training_actions.name', 'like', "%{$course}%")
-                            ->orWhere('training_actions.formative_action', 'like', "%{$course}%");
-                    });
-                });
-            }
-
-            if ($request->filled('company')) {
-                $query->where('company_id', $request->company); // ✅ % % bien
-            }
-
-            if ($request->filled('type')) {
-                // OJO tu lógica estaba invertida:
-                // Billings.is_bonus = 1 => "Bonificada" (según tu CASE)
-                if ($request->type == 1) {
-                    $query->where('billings.is_bonus', 1);
-                } elseif ($request->type == 0) {
-                    $query->where('billings.is_bonus', 0);
-                }
-            }
-
-            if ($request->filled('invoiced')) {
-                if ($request->invoiced === 'Si') $query->where('billings.invoiced', 1);
-                if ($request->invoiced === 'No') $query->where('billings.invoiced', 0);
-            }
-
-            if ($request->filled('charged')) {
-                if ($request->charged === 'Si') $query->where('billings.charged', 1); // ✅ era charged en tu scope
-                if ($request->charged === 'No') $query->where('billings.charged', 0);
-            }
-
-            if ($request->filled('year')) {
-                $year = (int) $request->year;
-
-                $query->whereHas('course', function ($q) use ($year) {
-                    $q->whereYear('beginning', $year); // ✅ sin "courses."
-                });
-            }
+            $this->applyBillFilters($query, $request);
 
             // ✅ agrupa y orden
             $query->groupBy('billings.id');
@@ -292,7 +237,8 @@ class  BillController extends BaseController
             }
             $request['is_bonus'] = $bill->is_bonus;
             $data = $request->all();
-            $data['main_company_id'] = $bill->id;
+            $data['course_id'] = $bill->course_id;
+            $data['main_company_id'] = $mainCompanyId;
             $element = $bill->updateWithService($data);
 
             // Buscamos el curso de que pertenece esta matriculación
@@ -533,6 +479,8 @@ class  BillController extends BaseController
 
             $query = Bill::bill($mainCompanyId);
 
+            $this->applyBillFilters($query, $request);
+
             $user = User::where('id', Auth::id())
                 ->where('main_company_id', $mainCompanyId)
                 ->first();
@@ -541,23 +489,6 @@ class  BillController extends BaseController
                 $query->whereHas('course', function ($q) use ($user) {
                     $q->where('teacher_id', $user->teacher_id);
                 });
-            }
-
-            // ✅ filtros típicos (ajusta a lo que mande tu frontend)
-            if ($request->filled('course')) {
-                $query->where('course_id', $request->course);
-            }
-            if ($request->filled('company')) {
-                $query->where('company_id', $request->company);
-            }
-            if ($request->filled('advisor')) {
-                $query->where('advisor_id', $request->advisor);
-            }
-            if ($request->filled('collaborator')) {
-                $query->where('collaborator_id', $request->collaborator);
-            }
-            if ($request->filled('payment')) {
-                $query->where('payment_id', $request->payment);
             }
 
             // orden (como sueles hacer)
@@ -627,6 +558,105 @@ class  BillController extends BaseController
                 'status' => 500,
                 'message' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    protected function normalizeBooleanFilter($value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_bool($value) || is_int($value)) {
+            return (int) $value;
+        }
+
+        $normalized = mb_strtolower(trim((string) $value));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return match ($normalized) {
+            '1', 'si', 'sí', 'true' => 1,
+            '0', 'no', 'false' => 0,
+            default => null,
+        };
+    }
+
+    protected function normalizeChargedFilter(Request $request): ?int
+    {
+        $value = $request->has('paid')
+            ? $request->input('paid')
+            : $request->input('charged');
+
+        return $this->normalizeBooleanFilter($value);
+    }
+
+    protected function applyBillFilters($query, Request $request): void
+    {
+        $cfa = CourseType::where('name', 'CFA')->first();
+
+        if ($cfa) {
+            $query->whereHas('course', fn ($q) => $q->where('course_type_id', '!=', $cfa->id));
+        }
+
+        if ($request->filled('course')) {
+            $course = $request->course;
+
+            $query->whereHas('course', function ($q) use ($course) {
+                if (is_numeric($course)) {
+                    $q->where('courses.id', (int) $course);
+                    return;
+                }
+
+                $q->whereHas('trainingAction', function ($ta) use ($course) {
+                    $ta->where('training_actions.name', 'like', "%{$course}%")
+                        ->orWhere('training_actions.formative_action', 'like', "%{$course}%");
+                });
+            });
+        }
+
+        if ($request->filled('company')) {
+            $query->where('billings.company_id', $request->company);
+        }
+
+        if ($request->filled('advisor')) {
+            $query->where('billings.advisor_id', $request->advisor);
+        }
+
+        if ($request->filled('collaborator')) {
+            $query->where('billings.collaborator_id', $request->collaborator);
+        }
+
+        if ($request->filled('payment')) {
+            $query->where('billings.payment_id', $request->payment);
+        }
+
+        if ($request->filled('type')) {
+            if ($request->type == 1) {
+                $query->where('billings.is_bonus', 1);
+            } elseif ($request->type == 0) {
+                $query->where('billings.is_bonus', 0);
+            }
+        }
+
+        $invoiced = $this->normalizeBooleanFilter($request->input('invoiced'));
+        if ($invoiced !== null) {
+            $query->where('billings.invoiced', $invoiced);
+        }
+
+        $charged = $this->normalizeChargedFilter($request);
+        if ($charged !== null) {
+            $query->where('billings.charged', $charged);
+        }
+
+        if ($request->filled('year')) {
+            $year = (int) $request->year;
+
+            $query->whereHas('course', function ($q) use ($year) {
+                $q->whereYear('beginning', $year);
+            });
         }
     }
 }

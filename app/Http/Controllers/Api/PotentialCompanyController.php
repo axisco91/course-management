@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api;
 use App\Helpers\GeneralHelpers;
 use App\Http\Resources\PotentialCompanyResource;
+use App\Models\Advisor;
 use App\Models\Company;
 use App\Models\MainCompany;
 use App\Models\PotentialCompany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 
 class PotentialCompanyController extends BaseController
 {
@@ -16,6 +18,80 @@ class PotentialCompanyController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $query = PotentialCompany::getPotentialCompanies($mainCompanyId);
+
+            if ($request->filled('name')) {
+                $query = $query->where('potential_companies.name', 'like', '%' . $request->name . '%');
+            }
+            if ($request->filled('nif')) {
+                $query = $query->where('potential_companies.nif', 'like', '%' . $request->nif . '%');
+            }
+            if ($request->filled('email')) {
+                $query = $query->where('potential_companies.email', 'like', '%' . $request->email . '%');
+            }
+            if ($request->filled('telephone')) {
+                $query = $query->where('potential_companies.telephone', 'like', '%' . $request->telephone . '%');
+            }
+            $typeId = $request->filled('company_type_id') ? (int) $request->company_type_id : (int) $request->get('type', 0);
+            if ($typeId > 0) {
+                $query = $query->where('potential_companies.company_type_id', $typeId);
+            }
+            $activityId = $request->filled('company_activity_id') ? (int) $request->company_activity_id : (int) $request->get('activity', 0);
+            if ($activityId > 0) {
+                $query = $query->where('potential_companies.company_activity_id', $activityId);
+            }
+            $provinceId = (int) $request->get('province', 0);
+            if ($provinceId > 0) {
+                $query = $query->where('potential_companies.province_id', $provinceId);
+            }
+
+            // Front sends advisor id; potential_companies stores advisor_name (string).
+            $advisorId = (int) $request->get('advisor', 0);
+            if ($advisorId > 0) {
+                $advisor = Advisor::select('name')->where('id', $advisorId)->first();
+                if ($advisor && !empty($advisor->name)) {
+                    $query = $query->where('potential_companies.advisor_name', 'like', '%' . $advisor->name . '%');
+                } else {
+                    $query = $query->whereRaw('1 = 0');
+                }
+            }
+
+            // collaborator filter only if the column exists in this installation.
+            $collaboratorId = (int) $request->get('collaborator', 0);
+            if ($collaboratorId > 0 && Schema::hasColumn('potential_companies', 'collaborator_id')) {
+                $query = $query->where('potential_companies.collaborator_id', $collaboratorId);
+            }
+
+            $status = strtolower((string) $request->get('status', ''));
+            if ($status !== '') {
+                if ($status === 'potential') {
+                    if (Schema::hasColumn('potential_companies', 'potential')) {
+                        $query = $query->where('potential_companies.potential', 1);
+                    } else {
+                        $query = $query->where('potential_companies.converted', 0);
+                    }
+                } elseif ($status === 'active' && Schema::hasColumn('potential_companies', 'active')) {
+                    $query = $query->where('potential_companies.active', 1);
+                } elseif ($status === 'inactive' && Schema::hasColumn('potential_companies', 'active')) {
+                    $query = $query->where('potential_companies.active', 0);
+                }
+            }
+
+            $sortParam = (string) $request->get('sort', 'name');
+            $direction = str_starts_with($sortParam, '-') ? 'desc' : 'asc';
+            $sortField = ltrim($sortParam, '-');
+
+            $sortMap = [
+                'name' => 'potential_companies.name',
+                'nif' => 'potential_companies.nif',
+                'email' => 'potential_companies.email',
+                'type' => 'company_types.name',
+                'activity' => 'company_activities.name',
+                // Potential companies table has no `active`; closest status-like field is `converted`.
+                'status' => 'potential_companies.converted',
+            ];
+
+            $sortColumn = $sortMap[$sortField] ?? 'potential_companies.name';
+            $query = $query->reorder($sortColumn, $direction);
 
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
@@ -106,7 +182,6 @@ class PotentialCompanyController extends BaseController
         $company = PotentialCompany::where('id', $id)
             ->where('main_company_id', $mainCompanyId)
             ->first();
-
 
         if ($company) {
             return $this->sendResponse(

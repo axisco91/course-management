@@ -56,7 +56,45 @@ class TrainingContractController extends BaseController
                 $query = $query->whereNotIn('training_contracts.training_contract_status_id', [4,5, 6]);
             }
 
-            $query = $query->groupBy('training_contracts.id', 'training_contracts.number_cfa')->orderby('training_contracts.beginning', 'desc');
+            $sortParam = (string) $request->get('sort', '-start_date');
+            $direction = str_starts_with($sortParam, '-') ? 'desc' : 'asc';
+            $sortField = ltrim($sortParam, '-');
+
+            $sortMap = [
+                'number' => 'training_contracts.number_cfa',
+                'number_cfa' => 'training_contracts.number_cfa',
+                'company' => 'companies.name',
+                'company_name' => 'companies.name',
+                'student_name' => 'students.name',
+                'status' => 'training_contract_statuses.name',
+                'training_contract_status_id' => 'training_contracts.training_contract_status_id',
+                'provider' => 'providers.name',
+                'provider_name' => 'providers.name',
+                'start_date' => 'training_contracts.beginning',
+                'beginning' => 'training_contracts.beginning',
+                'end_date' => 'training_contracts.end',
+                'end' => 'training_contracts.end',
+            ];
+
+            // Join only when the sort field belongs to a related table.
+            if (in_array($sortField, ['company', 'company_name'])) {
+                $query->leftJoin('companies', 'companies.id', '=', 'training_contracts.company_id');
+            }
+            if ($sortField === 'student_name') {
+                $query->leftJoin('students', 'students.id', '=', 'training_contracts.student_id');
+            }
+            if (in_array($sortField, ['provider', 'provider_name'])) {
+                $query->leftJoin('providers', 'providers.id', '=', 'training_contracts.provider_id');
+            }
+            if ($sortField === 'status') {
+                $query->leftJoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id');
+            }
+
+            $sortColumn = $sortMap[$sortField] ?? 'training_contracts.beginning';
+
+            $query = $query
+                ->groupBy('training_contracts.id', 'training_contracts.number_cfa')
+                ->orderBy($sortColumn, $direction);
 
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
@@ -104,15 +142,29 @@ class TrainingContractController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request){
+        $lockName = null;
+        $lockAcquired = false;
+
         try {
-            DB::beginTransaction();
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $data = $request->all();
             $data['main_company_id'] = $mainCompanyId;
 
+            $lockName = $this->buildTrainingContractCreateLockName($data);
+            $lockAcquired = $this->acquireDatabaseLock($lockName);
+
+            if (!$lockAcquired) {
+                return response()->json([
+                    'status' => 409,
+                    'message' => 'Ya hay una creación de contrato en curso para estos datos. Inténtalo de nuevo en unos segundos.'
+                ], 409);
+            }
+
+            DB::beginTransaction();
+
             $contract = TrainingContract::createWithService($data);
 
-            if ($request->has('clone_id')) {
+            if ($request->has('clone_id') && $contract->wasRecentlyCreated) {
                 $trainingContractElements = TrainingContractElement::trainingContracts($request->clone_id, $mainCompanyId)->get();
                 foreach ($trainingContractElements as $trainingContractElement) {
                     $data = [
@@ -178,13 +230,24 @@ class TrainingContractController extends BaseController
                 }
             }
         } catch (\Exception $e){
-            DB::rollBack();
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
+            if ($lockAcquired) {
+                $this->releaseDatabaseLock($lockName);
+            }
+
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ]);
         }
         DB::commit();
+
+        if ($lockAcquired) {
+            $this->releaseDatabaseLock($lockName);
+        }
 
         return $this->sendResponse(
             [
@@ -195,6 +258,37 @@ class TrainingContractController extends BaseController
             ],
             trans('Creado con éxito')
         );
+    }
+
+    private function buildTrainingContractCreateLockName(array $data): string
+    {
+        $parts = [
+            $data['main_company_id'] ?? '',
+            $data['company_id'] ?? '',
+            $data['student_id'] ?? '',
+            $data['beginning'] ?? '',
+            $data['end'] ?? '',
+            $data['beginning_formation'] ?? '',
+            $data['end_formation'] ?? '',
+        ];
+
+        return 'training_contract_create_' . sha1(implode('|', $parts));
+    }
+
+    private function acquireDatabaseLock(string $lockName): bool
+    {
+        $result = DB::selectOne('SELECT GET_LOCK(?, 10) AS acquired', [$lockName]);
+
+        return (int) ($result->acquired ?? 0) === 1;
+    }
+
+    private function releaseDatabaseLock(?string $lockName): void
+    {
+        if (!$lockName) {
+            return;
+        }
+
+        DB::selectOne('SELECT RELEASE_LOCK(?) AS released', [$lockName]);
     }
 
     /**
@@ -846,4 +940,3 @@ class TrainingContractController extends BaseController
         }
     }
 }
-

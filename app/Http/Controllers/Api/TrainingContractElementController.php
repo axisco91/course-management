@@ -20,6 +20,14 @@ class TrainingContractElementController extends BaseController
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $query = TrainingContractElement::getAllTrainingContractElements($mainCompanyId);
 
+            if ($request->filled('beginning')) {
+                $query->whereDate('training_contract_elements.end', '>=', $request->beginning);
+            }
+
+            if ($request->filled('end')) {
+                $query->whereDate('training_contract_elements.beginning', '<=', $request->end);
+            }
+
             if ($request->filled('perPage')) {
                 $perPage = (int) $request->perPage;
 

@@ -43,7 +43,18 @@ class ChoreController extends BaseController
             }
 
             if ($request->company) {
-                $query->where('company_id', $request->company);
+                $companyId = $request->company;
+
+                $query->where(function ($q) use ($companyId, $mainCompanyId) {
+                    $q->where('chores.company_id', $companyId)
+                        ->orWhereExists(function ($subQuery) use ($companyId, $mainCompanyId) {
+                            $subQuery->selectRaw('1')
+                                ->from('registrations')
+                                ->whereColumn('registrations.chore_id', 'chores.id')
+                                ->where('registrations.company_id', $companyId)
+                                ->where('registrations.main_company_id', $mainCompanyId);
+                        });
+                });
             }
 
             if ($request->student) {
@@ -255,7 +266,18 @@ class ChoreController extends BaseController
             }
 
             if ($request->company) {
-                $query->where('company_id', $request->company);
+                $companyId = $request->company;
+
+                $query->where(function ($q) use ($companyId, $mainCompanyId) {
+                    $q->where('chores.company_id', $companyId)
+                        ->orWhereExists(function ($subQuery) use ($companyId, $mainCompanyId) {
+                            $subQuery->selectRaw('1')
+                                ->from('registrations')
+                                ->whereColumn('registrations.chore_id', 'chores.id')
+                                ->where('registrations.company_id', $companyId)
+                                ->where('registrations.main_company_id', $mainCompanyId);
+                        });
+                });
             }
 
             if ($request->student) {

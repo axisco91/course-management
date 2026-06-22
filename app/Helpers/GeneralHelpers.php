@@ -75,15 +75,25 @@ class GeneralHelpers
         }
     }
 
-    public static function urlObtainCompanyId(string $url, ?int $userId = null): ?int
+    public static function urlObtainCompanyId(?string $url, ?int $userId = null): ?int
     {
-        // Fix localhost
-        if ($url === 'http://localhost:3000') {
-            $url = 'https://zona.avzformacion.com';
+        $candidate = self::normalizeHostname($url);
+
+        // Fix localhost in local environments by mapping it to the current main company host.
+        if ($candidate === 'localhost') {
+            $candidate = 'zona.academypro.app';
         }
 
-        // Buscar empresa por URL
-        $mainCompany = MainCompany::where('url', $url)->first();
+        $mainCompany = null;
+        if ($candidate) {
+            // Buscar empresa por URL, normalizando también la columna en DB.
+            $mainCompany = MainCompany::query()
+                ->whereRaw(
+                    "LOWER(TRIM(BOTH '/' FROM REPLACE(REPLACE(TRIM(url), 'https://', ''), 'http://', ''))) = ?",
+                    [$candidate]
+                )
+                ->first();
+        }
 
         if ($mainCompany) {
             return $mainCompany->id;
@@ -100,6 +110,25 @@ class GeneralHelpers
 
         // Si no se encuentra nada
         return null;
+    }
+
+    private static function normalizeHostname(?string $value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+
+        if (!str_starts_with($value, 'http://') && !str_starts_with($value, 'https://')) {
+            $value = 'https://' . $value;
+        }
+
+        $host = parse_url($value, PHP_URL_HOST);
+        if (!is_string($host) || $host === '') {
+            return null;
+        }
+
+        return strtolower($host);
     }
 
     public static function parseDateOrNull($value, $formatIn = 'd-m-Y', $formatOut = 'Y-m-d') {

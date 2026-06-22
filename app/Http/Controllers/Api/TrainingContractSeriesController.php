@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\TrainingContractSeries;
 use App\Http\Controllers\Controller;
 
-class TrainingContractSeriesController extends Controller
+class TrainingContractSeriesController extends BaseController
 {
     /**
      * Display a listing of the resource.

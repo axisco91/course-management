@@ -3,6 +3,8 @@
 namespace App\Console;
 
 use App\Console\Commands\CheckAccesses;
+use App\Console\Commands\CourseEndReminderMessage;
+use App\Console\Commands\GreetingMessage;
 use App\Console\Commands\updateCoursesStatus;
 use App\Console\Commands\updateCoursesTracings;
 use Illuminate\Console\Scheduling\Schedule;
@@ -18,7 +20,9 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         updateCoursesStatus::class,
         updateCoursesTracings::class,
-        CheckAccesses::class
+        CheckAccesses::class,
+        GreetingMessage::class,
+        CourseEndReminderMessage::class,
     ];
 
     /**
@@ -34,6 +38,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('updateCoursesStatus')->dailyAt('00:00:00');
         $schedule->command('updateCoursesTracings')->everyThirtyMinutes();
         $schedule->command('checkAccesses')->everyMinute();
+        $schedule->command('greetingMessage')->dailyAt('06:00');
+        $schedule->command('courseEndReminderMessage')->dailyAt('06:00');
     }
 
     /**

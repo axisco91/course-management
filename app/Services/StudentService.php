@@ -7,6 +7,28 @@ use Illuminate\Support\Carbon;
 
 class StudentService
 {
+    private function normalizeDateOfBirth($value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        if ($value instanceof Carbon) {
+            return $value->format('Y-m-d');
+        }
+
+        $formats = ['d-m-Y', 'd/m/Y', 'Y-m-d', 'Y-m-d H:i:s', DATE_ATOM];
+
+        foreach ($formats as $format) {
+            try {
+                return Carbon::createFromFormat($format, $value)->format('Y-m-d');
+            } catch (\Throwable $e) {
+            }
+        }
+
+        return Carbon::parse($value)->format('Y-m-d');
+    }
+
     /**
      * Función para crear un alumno
      * @param array $data
@@ -24,7 +46,7 @@ class StudentService
             'user' => $data['user'],
             'password' => $data['password'],
             'disabled' => $data['disabled'],
-            'date_of_birth' => $data['date_of_birth'] ? Carbon::createFromFormat('d-m-Y', $data['date_of_birth'])->format('Y-m-d') : null,
+            'date_of_birth' => $this->normalizeDateOfBirth($data['date_of_birth'] ?? null),
             'level_study_id' => $data['level_study_id'] ?? null,
             'social_security_number' => $data['social_security_number'] ? $data['social_security_number'] : null,
             'c_quote' => $data['c_quote'] ? $data['c_quote'] : null,
@@ -46,7 +68,7 @@ class StudentService
             'population_code' => $data['population_code'] ? $data['population_code'] : null,
             'nationality_code' => $data['nationality_code'] ? $data['nationality_code'] : null,
             'regimen' => $data['regimen'] ? $data['regimen'] : null,
-  'main_company_id' => isset($data['main_company_id']) ?? null,
+            'main_company_id' => $data['main_company_id'] ?? null,
         ]);
     }
 
@@ -63,7 +85,7 @@ class StudentService
             'company_id' => $data['company_id'] ?? null,
             'user' => $data['user'],
             'password' => $data['password'],
-            'date_of_birth' => $data['date_of_birth'],
+            'date_of_birth' => $this->normalizeDateOfBirth($data['date_of_birth'] ?? null),
             'level_study_id' => $data['level_study_id'] ?? null,
             'social_security_number' => $data['social_security_number'] ? $data['social_security_number'] : null,
             'c_quote' => $data['c_quote'] ? $data['c_quote'] : null,

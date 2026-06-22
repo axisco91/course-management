@@ -2,9 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Helpers\CourseStatusHelper;
-use App\Models\Course;
-use App\Models\CourseStatus;
 use App\Models\TrainingContractElement;
 use Illuminate\Console\Command;
 

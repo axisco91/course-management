@@ -50,6 +50,15 @@ class CourseController extends BaseController
             if ($request->status) {
                 $query = $query->where('course_status_id', $request->status);
             }
+            if ($request->filled('modality') || $request->filled('modalities')) {
+                $modalityId = $request->input('modality', $request->input('modalities'));
+                $query->whereExists(function ($subQuery) use ($modalityId) {
+                    $subQuery->selectRaw('1')
+                        ->from('training_actions')
+                        ->whereColumn('training_actions.id', 'courses.training_action_id')
+                        ->where('training_actions.modality_id', $modalityId);
+                });
+            }
             if ($request->company) {
                 $registrations = Registration::where('company_id', $request->company)->groupBy('course_id')->pluck('course_id')->toArray();
                 $query = $query->where(function ($query) use ($registrations){
@@ -57,7 +66,7 @@ class CourseController extends BaseController
                 });
             }
 
-            $sort = (string) $request->get('sort', 'beginning'); // default si quieres
+            $sort = (string) $request->get('sort', '-beginning'); // default: cursos más nuevos primero
             $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
             $key  = ltrim($sort, '-');
 

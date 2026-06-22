@@ -18,6 +18,27 @@ use Illuminate\Support\Carbon;
 
 class BillService
 {
+    private function parseDate($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $value = substr((string) $value, 0, 10);
+
+        foreach (['Y-m-d', 'd-m-Y'] as $format) {
+            try {
+                return Carbon::createFromFormat($format, $value)->format('Y-m-d');
+            } catch (\Exception $e) {
+            }
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
 
     /**
      * Función para crear una factura
@@ -87,26 +108,6 @@ class BillService
             }
         }
 
-        $parseDate = function ($v) {
-            if (empty($v)) return null;
-
-            // si viene con hora, nos quedamos con la parte de fecha
-            $v = substr((string)$v, 0, 10);
-
-            foreach (['Y-m-d', 'd-m-Y'] as $fmt) {
-                try {
-                    return Carbon::createFromFormat($fmt, $v)->format('Y-m-d');
-                } catch (\Exception $e) {}
-            }
-
-            // último intento (más permisivo)
-            try {
-                return Carbon::parse($v)->format('Y-m-d');
-            } catch (\Exception $e) {
-                return null;
-            }
-        };
-
         $bill->update([
             'number_students' => $data['number_students'],
             'billing' => $data['billing'] ? GeneralHelpers::convertComa($data['billing']) : 0,
@@ -128,10 +129,10 @@ class BillService
             'company_bonus' => $data['company_bonus'],
             'charged' => $data['charged'],
             'remitted' => $data['remitted'],
-            'communication_start_date' => $parseDate($data['communication_start_date'] ?? null),
-            'communication_end_date'   => $parseDate($data['communication_end_date'] ?? null),
-            'billing_date'             => $parseDate($data['billing_date'] ?? null),
-            'collection_date'          => $parseDate($data['collection_date'] ?? null),
+            'communication_start_date' => $this->parseDate($data['communication_start_date'] ?? null),
+            'communication_end_date'   => $this->parseDate($data['communication_end_date'] ?? null),
+            'billing_date'             => $this->parseDate($data['billing_date'] ?? null),
+            'collection_date'          => $this->parseDate($data['collection_date'] ?? null),
         ]);
 
         return $bill;
@@ -300,7 +301,7 @@ class BillService
      */
     public function updateStartCommunicationDate(Bill $bill, $data){
         $bill->update([
-            'communication_start_date' => $data['date'] ? Carbon::createFromFormat('d-m-Y', $data['date'])->format('Y-m-d') : null,
+            'communication_start_date' => $this->parseDate($data['date'] ?? null),
         ]);
         $registrations = Registration::billingRegistration($bill->id, $data['main_company_id'])
             ->get();
@@ -308,6 +309,9 @@ class BillService
             $chore = Chore::where('id', $registration->chore_id)
                 ->FilterMainCompany($bill->main_company_id)
                 ->first();
+            if (!$chore) {
+                continue;
+            }
             $communicationData = [
                 'date' => $data['date'],
                 'status' => $data['status']
@@ -325,13 +329,16 @@ class BillService
      */
     public function updateCloseCommunicationDate(Bill $bill, $data){
         $bill->update([
-            'communication_end_date' => $data['date'] ? Carbon::createFromFormat('d-m-Y', $data['date'])->format('Y-m-d') : null
+            'communication_end_date' => $this->parseDate($data['date'] ?? null)
         ]);
         $registrations = Registration::billingRegistration($bill->id, $data['main_company_id'])->get();
         foreach ($registrations as $registration) {
             $chore = Chore::where('id', $registration->chore_id)
                 ->FilterMainCompany($data['main_company_id'])
                 ->first();
+            if (!$chore) {
+                continue;
+            }
 
             $communicationData = [
                 'date' => $data['date'],

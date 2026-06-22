@@ -8,6 +8,28 @@ use Illuminate\Support\Carbon;
 
 class ChoreService
 {
+    private function parseDate($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        $value = substr((string) $value, 0, 10);
+
+        foreach (['Y-m-d', 'd-m-Y'] as $format) {
+            try {
+                return Carbon::createFromFormat($format, $value)->format('Y-m-d');
+            } catch (\Exception $e) {
+            }
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d');
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
     /**
      * Función para crear una tarea
      * @param array $data
@@ -19,7 +41,7 @@ class ChoreService
             'course_id' => $data['course_id'],
             'company_id' => $data['company_id'],
             'student_id' => $data['student_id'],
-            'main_company_id' => isset($data['main_company_id']) ?? null,
+            'main_company_id' => $data['main_company_id'] ?? null,
         ]);
     }
 
@@ -41,9 +63,9 @@ class ChoreService
             'diploma_status' => $data['diploma_status'],
             'diploma_status_date' => $data['diploma_status_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['diploma_status_date'])->format('Y-m-d') : null,
             'start_communication_status' => $data['start_communication_status'],
-            'start_communication_date' => $data['start_communication_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['start_communication_date'])->format('Y-m-d') : null,
+            'start_communication_date' => $data['start_communication_date'] != 'null' ? $this->parseDate($data['start_communication_date']) : null,
             'close_communication_status' => $data['close_communication_status'],
-            'close_communication_date' => $data['close_communication_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['close_communication_date'])->format('Y-m-d') : null,
+            'close_communication_date' => $data['close_communication_date'] != 'null' ? $this->parseDate($data['close_communication_date']) : null,
             'invoiced_status' => $data['invoiced_status'],
             'invoiced_date' => $data['invoiced_date'] != 'null' ? Carbon::createFromFormat('d-m-Y', $data['invoiced_date'])->format('Y-m-d') : null,
             'bonus_sent_status' => $data['bonus_sent_status'],
@@ -68,7 +90,7 @@ class ChoreService
             $status = 0;
         }
         $chore->update([
-            'start_communication_date' => empty($data['date']) ? null : Carbon::createFromFormat('d-m-Y', $data['date'])->format('Y-m-d'),
+            'start_communication_date' => $this->parseDate($data['date'] ?? null),
             'start_communication_status' => $status
         ]);
     }
@@ -85,7 +107,7 @@ class ChoreService
             $status = 0;
         }
         $chore->update([
-            'close_communication_date' => empty($data['date']) ? null : Carbon::createFromFormat('d-m-Y', $data['date'])->format('Y-m-d'),
+            'close_communication_date' => $this->parseDate($data['date'] ?? null),
             'close_communication_status' => $status
         ]);
     }

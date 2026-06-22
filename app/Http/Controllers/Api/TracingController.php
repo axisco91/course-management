@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+use App\Helpers\CalculationHelpers;
 use App\Exports\TracingsExport;
 use App\Helpers\GeneralHelpers;
 use App\Helpers\MoodleHelpers;
@@ -34,37 +35,12 @@ class TracingController extends BaseController
                 ->first();
 
             if ($user->teacher_id) {
-                $query = $query->where('courses.teacher_id', $user->teacher_id);
-            }
-
-            if ($request->course) {
-                $query = $query->where('courses.id', $request->course);
-            }
-            if ($request->company) {
-                $query = $query->where('companies.id', $request->company);
-            }
-            if ($request->student) {
-                $query = $query->where('students.id', 'LIKE', $request->student);
-            }
-            if ($request->status) {
-                $query->whereHas('course.courseStatus', function ($q) use ($request) {
-                    $q->where('id', $request->status);
+                $query->whereHas('course', function ($q) use ($user) {
+                    $q->where('teacher_id', $user->teacher_id);
                 });
             }
-            if ($request->type) {
-                $query->whereHas('course.courseType', function ($q) use ($request) {
-                    $q->where('id', $request->type);
-                });
-            }
-            if ($request->beginning) {
-                $beginning = \Illuminate\Support\Carbon::parse($request->beginning)->format('Y-m-d');
-                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '>=', $beginning));
-            }
-
-            if ($request->end) {
-                $end = \Illuminate\Support\Carbon::parse($request->end)->format('Y-m-d');
-                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '<=', $end));
-            }
+            $this->applyTracingFilters($query, $request);
+            $this->applyCalendarDateFilter($query, $request);
 
             $sort = (string) $request->get('sort', 'follow_up_date');
             $dir  = str_starts_with($sort, '-') ? 'desc' : 'asc';
@@ -208,43 +184,49 @@ class TracingController extends BaseController
                 ->FilterMainCompany($mainCompanyId)
                 ->first();
 
-            if ($trainingAction->web_platform_id) {
+            if ($request->boolean('refresh_moodle') && $trainingAction && $trainingAction->web_platform_id) {
                 $webPlatform = WebPlatform::where('id', $trainingAction->web_platform_id)
                     ->FilterMainCompany($mainCompanyId)
                     ->first();
 
-                $moodleCourse = MoodleHelpers::getCourseByShortname($code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
+                if ($webPlatform && $webPlatform->url && $webPlatform->token) {
+                    $moodleCourse = MoodleHelpers::getCourseByShortname($code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
 
-                if (!empty($moodleCourse)) {
-                    $courseData = MoodleHelpers::getActivityCount($moodleCourse['id'], $webPlatform->url, $webPlatform->token);
-                    $tracing['number_activities'] = $courseData['assignmentCount'];
-                    $tracing['number_units'] = $courseData['normalScormCount'];
-                    //   $tracing['number_questions'] = $courseData['questionCount'];
+                    if (!empty($moodleCourse) && isset($moodleCourse['id'])) {
+                        $courseData = MoodleHelpers::getActivityCount($moodleCourse['id'], $webPlatform->url, $webPlatform->token);
+                        if (empty($courseData['error'])) {
+                            $tracing['number_activities'] = $courseData['assignmentCount'];
+                            $tracing['number_units'] = $courseData['normalScormCount'];
+                        }
+                        //   $tracing['number_questions'] = $courseData['questionCount'];
 
-                    $endTime = Carbon::createFromTimestamp($tracing->end);
-                    $currentTime = Carbon::now();
+                        $endTime = Carbon::parse($course->end);
+                        $currentTime = Carbon::now();
 
-                    $courseData = MoodleHelpers::getStudentCourseDetails($moodleCourse['id'], $student->user, $webPlatform->url, $webPlatform->token);
-                    $tracing['performed_activities'] = $courseData['finishedActivities'];
-                    $tracing['last_connection'] = $courseData['lastAccess'];
-                    $tracing['performed_units'] = $courseData['unitsViewed'];
-                    $tracing['performed_hours'] = $courseData['totalTime'];
-                    $tracing['final_test'] = $courseData['evaluationFinalDone'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
-                    $tracing['questionnaire'] = $courseData['cuestionar'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
+                        $courseData = MoodleHelpers::getStudentCourseDetails($moodleCourse['id'], $student->user, $webPlatform->url, $webPlatform->token);
+                        if (empty($courseData['error'])) {
+                            $tracing['performed_activities'] = $courseData['finishedActivities'];
+                            $tracing['last_connection'] = $courseData['lastAccess'];
+                            $tracing['performed_units'] = $courseData['unitsViewed'];
+                            $tracing['performed_hours'] = CalculationHelpers::timeStringToDecimal($courseData['totalTime']);
+                            $tracing['final_test'] = $courseData['evaluationFinalDone'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
+                            $tracing['questionnaire'] = $courseData['cuestionar'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
+                        }
 
-                    if ($tracing->final_test === 0) {
-                        $tracing['final_test_name'] = 'Pendiente';
-                    } else if ($tracing->final_test === 1) {
-                        $tracing['final_test_name'] = 'Realizado';
-                    } else if ($tracing->final_test === 2) {
-                        $tracing['final_test_name'] = 'No realizado';
-                    }
-                    if ($tracing->questionnaire === 0) {
-                        $tracing['questionnaire_name'] = 'Pendiente';
-                    } else if ($tracing->questionnaire === 1) {
-                        $tracing['questionnaire_name'] = 'Realizado';
-                    } else if ($tracing->questionnaire === 2) {
-                        $tracing['questionnaire_name'] = 'No realizado';
+                        if ($tracing->final_test === 0) {
+                            $tracing['final_test_name'] = 'Pendiente';
+                        } else if ($tracing->final_test === 1) {
+                            $tracing['final_test_name'] = 'Realizado';
+                        } else if ($tracing->final_test === 2) {
+                            $tracing['final_test_name'] = 'No realizado';
+                        }
+                        if ($tracing->questionnaire === 0) {
+                            $tracing['questionnaire_name'] = 'Pendiente';
+                        } else if ($tracing->questionnaire === 1) {
+                            $tracing['questionnaire_name'] = 'Realizado';
+                        } else if ($tracing->questionnaire === 2) {
+                            $tracing['questionnaire_name'] = 'No realizado';
+                        }
                     }
                 }
             }
@@ -415,24 +397,8 @@ class TracingController extends BaseController
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
             $tracings = Tracing::tracing($mainCompanyId);
-            if ($request->course) {
-                $tracings = $tracings->where('courses.id', $request->course);
-            }
-            if ($request->company) {
-                $tracings = $tracings->where('companies.id', $request->company);
-            }
-            if ($request->student) {
-                $tracings = $tracings->where('students.id', 'LIKE', $request->student);
-            }
-            if ($request->status) {
-                $tracings = $tracings->where('courses.course_status_id', 'LIKE', $request->status);
-            }
-            if ($request->beginning) {
-                $tracings = $tracings->where('courses.beginning', '>=', $request->beginning);
-            }
-            if ($request->end) {
-                $tracings = $tracings->where('courses.beginning', '<=', $request->end);
-            }
+            $this->applyTracingFilters($tracings, $request);
+            $this->applyCalendarDateFilter($tracings, $request);
 
             $tracings = $tracings->orderBy('tracings.id', 'desc')->get();
 
@@ -512,39 +478,13 @@ class TracingController extends BaseController
                 ->first();
 
             if ($user && $user->teacher_id) {
-                // (según tu index)
-                $query->where('courses.teacher_id', $user->teacher_id);
+                $query->whereHas('course', function ($q) use ($user) {
+                    $q->where('teacher_id', $user->teacher_id);
+                });
             }
 
-            // ✅ filtros IGUALES a index
-            if ($request->course) {
-                $query->where('courses.id', $request->course);
-            }
-            if ($request->company) {
-                $query->where('companies.id', $request->company);
-            }
-            if ($request->student) {
-                // OJO: en tu index tienes LIKE con id (raro), lo dejo igual
-                $query->where('students.id', 'LIKE', $request->student);
-            }
-            if ($request->status) {
-                $query->whereHas('course.courseStatus', function ($q) use ($request) {
-                    $q->where('id', $request->status);
-                });
-            }
-            if ($request->type) {
-                $query->whereHas('course.courseType', function ($q) use ($request) {
-                    $q->where('id', $request->type);
-                });
-            }
-            if ($request->beginning) {
-                $beginning = Carbon::parse($request->beginning)->format('Y-m-d');
-                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '>=', $beginning));
-            }
-            if ($request->end) {
-                $end = Carbon::parse($request->end)->format('Y-m-d');
-                $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '<=', $end));
-            }
+            $this->applyTracingFilters($query, $request);
+            $this->applyCalendarDateFilter($query, $request);
 
             // ✅ mismo sort del index (si quieres respetarlo en el excel)
             $sort = (string) $request->get('sort', 'follow_up_date');
@@ -670,6 +610,114 @@ class TracingController extends BaseController
                 'status' => 400,
                 'message' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    private function applyCalendarDateFilter($query, Request $request): void
+    {
+        $singleDate = $request->get('calendar_date');
+        $from = $this->parseDateFilter($request->get('calendar_date_from') ?? $singleDate);
+        $to = $this->parseDateFilter($request->get('calendar_date_to') ?? $singleDate);
+
+        if (!$from && !$to) {
+            return;
+        }
+
+        if (!$from) {
+            $from = $to;
+        }
+        if (!$to) {
+            $to = $from;
+        }
+
+        $tracingDateColumns = [
+            'tracings.follow_up_date',
+            'tracings.welcome_date_sent',
+            'tracings.quarter_date_sent',
+            'tracings.half_date_sent',
+            'tracings.three_quarters_date_sent',
+            'tracings.final_date_sent',
+        ];
+
+        $courseDateColumns = [
+            'beginning',
+            'welcome_date',
+            'quarter_date',
+            'half_date',
+            'three_quarters_date',
+            'final_date',
+        ];
+
+        $query->where(function ($dateQuery) use ($tracingDateColumns, $courseDateColumns, $from, $to) {
+            foreach ($tracingDateColumns as $index => $column) {
+                $method = $index === 0 ? 'where' : 'orWhere';
+                $dateQuery->{$method}(function ($q) use ($column, $from, $to) {
+                    $q->whereDate($column, '>=', $from)
+                        ->whereDate($column, '<=', $to);
+                });
+            }
+
+            $dateQuery->orWhereHas('course', function ($courseQuery) use ($courseDateColumns, $from, $to) {
+                $courseQuery->where(function ($courseDateQuery) use ($courseDateColumns, $from, $to) {
+                    foreach ($courseDateColumns as $index => $column) {
+                        $method = $index === 0 ? 'where' : 'orWhere';
+                        $courseDateQuery->{$method}(function ($q) use ($column, $from, $to) {
+                            $q->whereDate($column, '>=', $from)
+                                ->whereDate($column, '<=', $to);
+                        });
+                    }
+                });
+            });
+        });
+    }
+
+    private function applyTracingFilters($query, Request $request): void
+    {
+        if ($request->filled('course')) {
+            $query->where('tracings.course_id', $request->course);
+        }
+
+        if ($request->filled('company')) {
+            $query->where('tracings.company_id', $request->company);
+        }
+
+        if ($request->filled('student')) {
+            $query->where('tracings.student_id', $request->student);
+        }
+
+        if ($request->filled('status')) {
+            $query->whereHas('course.courseStatus', function ($q) use ($request) {
+                $q->where('id', $request->status);
+            });
+        }
+
+        if ($request->filled('type')) {
+            $query->whereHas('course.courseType', function ($q) use ($request) {
+                $q->where('id', $request->type);
+            });
+        }
+
+        if ($request->filled('beginning')) {
+            $beginning = Carbon::parse($request->beginning)->format('Y-m-d');
+            $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '>=', $beginning));
+        }
+
+        if ($request->filled('end')) {
+            $end = Carbon::parse($request->end)->format('Y-m-d');
+            $query->whereHas('course', fn ($q) => $q->whereDate('beginning', '<=', $end));
+        }
+    }
+
+    private function parseDateFilter($value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d');
+        } catch (\Throwable $e) {
+            return null;
         }
     }
 }

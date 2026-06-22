@@ -735,7 +735,7 @@ Route::middleware('auth:sanctum')->group( function () {
         });
     });
 
-    /**
+    /**training-contract-elements
      * Contracts
      */
     Route::prefix('training-contract-elements')->group(function() {
@@ -1360,7 +1360,17 @@ Route::prefix('training-actions')->group(function() {
 
 Route::prefix('main-companies')->group(function() {
     Route::controller(MainCompanyController::class)->group(function(){
+        Route::get('', 'index');
+        Route::post('', 'store');
         Route::get('basic', 'basic');
+        Route::put('basic', 'update');
+        Route::post('basic', 'update');
+        Route::post('basic/activate', 'activate');
+        Route::post('basic/deactivate', 'deactivate');
+        Route::get('{id}', 'show');
+        Route::put('{id}', 'updateById');
+        Route::post('{id}', 'updateById');
+        Route::delete('{id}', 'destroy');
     });
 });
 
