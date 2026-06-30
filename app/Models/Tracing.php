@@ -12,6 +12,8 @@ class Tracing extends Model
 {
     use HasFactory;
 
+    private const EXCLUDED_TRAINING_CONTRACT_STATUSES = ['BAJA', 'BAJA IT', 'NO FORMALIZADO'];
+
     public $timestamps = true;
 
     protected $fillable = ['course_id','company_id','student_id','performed_activities','performed_hours','performed_units','follow_up_date','final_test','questionnaire','welcome_message','quarter_message','half_message','three_quarters_message','final_message','one_week_message','observation', 'welcome_date_sent', 'quarter_date_sent', 'half_date_sent', 'three_quarters_date_sent', 'final_date_sent', 'one_week_date_sent', 'last_connection', 'training_contract_element_id', 'main_company_id'];
@@ -48,6 +50,11 @@ class Tracing extends Model
         return $this->hasOne('App\Models\Student', 'id', 'student_id');
     }
 
+    public function training_contract_element()
+    {
+        return $this->belongsTo(TrainingContractElement::class, 'training_contract_element_id');
+    }
+
     // Tracing model
     public function scopeTracing($query, $mainCompanyId)
     {
@@ -56,6 +63,7 @@ class Tracing extends Model
             ->with([
                 'company:id,name',
                 'student:id,name,surname',
+                'training_contract_element.training_contract.trainingContractStatus:id,name',
                 'course' => function ($q) {
                     $q->select(
                         'id',
@@ -64,6 +72,8 @@ class Tracing extends Model
                         'course_status_id',
                         'course_type_id',
                         'group',
+                        'beginning',
+                        'end',
                         'welcome_date',
                         'quarter_date',
                         'half_date',
@@ -77,6 +87,14 @@ class Tracing extends Model
                 },
             ])
             ->where('tracings.main_company_id', $mainCompanyId)
+            ->where(function ($q) {
+                $q->whereNull('tracings.training_contract_element_id')
+                    ->orWhereDoesntHave('training_contract_element.training_contract', function ($contractQuery) {
+                        $contractQuery
+                            ->leftJoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id')
+                            ->whereIn(DB::raw('UPPER(training_contract_statuses.name)'), self::EXCLUDED_TRAINING_CONTRACT_STATUSES);
+                    });
+            })
             ->addSelect([
                 DB::raw("
                     CASE

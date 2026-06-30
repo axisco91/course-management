@@ -26,6 +26,11 @@ class TrainingContractElement extends Model
         return $this->belongsTo(Certification::class);
     }
 
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
+
     public function scopeGetTrainingContractElements($query, $trainingContractId, $mainCompanyId)
     {
         return $query
@@ -53,7 +58,13 @@ class TrainingContractElement extends Model
     public function scopeGetAllTrainingContractElements($query, $mainCompanyId)
     {
         return $query
-            ->with(['training_contract', 'training_contract.student'])
+            ->with([
+                'training_contract',
+                'training_contract.student',
+                'training_contract.company',
+                'course',
+                'course.courseType',
+            ])
             ->select(
                 'training_contract_elements.*',
                 'certifications.name as certification_name',
@@ -96,7 +107,7 @@ class TrainingContractElement extends Model
             ->leftJoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
             ->leftJoin('training_contracts', 'training_contracts.id', '=', 'training_contract_elements.training_contract_id')
             ->leftJoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id')
-            ->whereNotIn('training_contract_statuses.name', ['BAJA', 'BAJA IT'])
+            ->whereNotIn(DB::raw('UPPER(training_contract_statuses.name)'), ['BAJA', 'BAJA IT'])
             ->where('training_contract_elements.main_company_id', $mainCompanyId)
             ->orderBy('training_contract_elements.order', 'asc');
     }

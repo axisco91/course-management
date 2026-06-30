@@ -602,7 +602,7 @@ class  BillController extends BaseController
         }
 
         if ($request->filled('course')) {
-            $course = $request->course;
+            $course = trim((string) $request->course);
 
             $query->whereHas('course', function ($q) use ($course) {
                 if (is_numeric($course)) {
@@ -610,9 +610,13 @@ class  BillController extends BaseController
                     return;
                 }
 
-                $q->whereHas('trainingAction', function ($ta) use ($course) {
-                    $ta->where('training_actions.name', 'like', "%{$course}%")
-                        ->orWhere('training_actions.formative_action', 'like', "%{$course}%");
+                $q->where(function ($courseQuery) use ($course) {
+                    $courseQuery->where('courses.name', 'like', "%{$course}%")
+                        ->orWhere('courses.group', 'like', "%{$course}%")
+                        ->orWhereHas('trainingAction', function ($ta) use ($course) {
+                            $ta->where('training_actions.name', 'like', "%{$course}%")
+                                ->orWhere('training_actions.formative_action', 'like', "%{$course}%");
+                        });
                 });
             });
         }
