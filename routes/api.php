@@ -85,6 +85,7 @@ use App\Http\Controllers\Api\UserCommissionController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\DocumentStudentController;
 use App\Http\Controllers\Api\DocumentTypeController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\TrainingContractSeriesController;
 
 /*
@@ -209,6 +210,19 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('get_chores_welcome_messages', 'getChoresWelcomeMessages');
             Route::get('get_number_courses', 'getNumberCourses');
             Route::get('get_number_courses_per_month', 'getNumberCoursesPerMonth');
+        });
+    });
+
+    Route::prefix('dashboard')->group(function() {
+        Route::controller(DashboardController::class)->group(function(){
+            Route::get('courses-metric', 'coursesMetric');
+            Route::get('registrations-metric', 'registrationsMetric');
+            Route::get('live-training-contracts', 'liveTrainingContracts');
+            Route::get('live-courses', 'liveCourses');
+            Route::get('advisors-commissions-top', 'advisorsCommissionsTop');
+            Route::get('users-commissions-top', 'usersCommissionsTop');
+            Route::get('calendar-events', 'calendarEvents');
+            Route::get('tracing-notifications', 'tracingNotifications');
         });
     });
 
