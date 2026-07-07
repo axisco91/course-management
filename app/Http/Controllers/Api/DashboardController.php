@@ -237,6 +237,39 @@ class DashboardController extends BaseController
         $this->applyCalendarDateFilter($tracingsQuery, $from, $to);
         $tracings = $tracingsQuery->orderBy('tracings.id', 'desc')->get();
 
+        $coursesQuery = Course::query()
+            ->with([
+                'courseType:id,name',
+                'courseStatus:id,name',
+                'registrations' => function ($query) use ($mainCompanyId) {
+                    $query->where('registrations.main_company_id', $mainCompanyId)
+                        ->with([
+                            'student:id,name,surname',
+                            'company:id,name',
+                        ]);
+                },
+            ])
+            ->where('courses.main_company_id', $mainCompanyId)
+            ->where('courses.course_status_id', '!=', 4)
+            ->where(function ($query) use ($from, $to) {
+                $query->whereBetween(DB::raw('DATE(courses.beginning)'), [$from, $to])
+                    ->orWhereBetween(DB::raw('DATE(courses.end)'), [$from, $to])
+                    ->orWhereBetween(DB::raw('DATE(courses.welcome_date)'), [$from, $to])
+                    ->orWhereBetween(DB::raw('DATE(courses.quarter_date)'), [$from, $to])
+                    ->orWhereBetween(DB::raw('DATE(courses.half_date)'), [$from, $to])
+                    ->orWhereBetween(DB::raw('DATE(courses.three_quarters_date)'), [$from, $to])
+                    ->orWhereBetween(DB::raw('DATE(courses.final_date)'), [$from, $to]);
+            })
+            ->whereHas('registrations', function ($query) use ($mainCompanyId) {
+                $query->where('registrations.main_company_id', $mainCompanyId);
+            });
+
+        if ($user?->teacher_id) {
+            $coursesQuery->where('courses.teacher_id', $user->teacher_id);
+        }
+
+        $courses = $coursesQuery->get();
+
         $elementsQuery = TrainingContractElement::getAllTrainingContractElements($mainCompanyId)
             ->leftJoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id')
             ->whereNotIn(DB::raw('UPPER(training_contract_statuses.name)'), self::EXCLUDED_CALENDAR_TRAINING_CONTRACT_STATUSES)
@@ -283,6 +316,10 @@ class DashboardController extends BaseController
                 'training_contracts.end',
                 'training_contracts.beginning_formation',
                 'training_contracts.end_formation',
+                'training_contracts.formation_hours',
+                'training_contracts.formative_hours_first_year',
+                'training_contracts.formative_hours_second_year',
+                'training_contracts.total_hours',
                 'training_contracts.training_contract_status_id',
                 'training_contracts.main_company_id'
             )
@@ -312,6 +349,10 @@ class DashboardController extends BaseController
                     'training_contracts.end',
                     'training_contracts.beginning_formation',
                     'training_contracts.end_formation',
+                    'training_contracts.formation_hours',
+                    'training_contracts.formative_hours_first_year',
+                    'training_contracts.formative_hours_second_year',
+                    'training_contracts.total_hours',
                     'training_contracts.training_contract_status_id',
                     'training_contracts.main_company_id'
                 );
@@ -322,6 +363,10 @@ class DashboardController extends BaseController
         $excludedTracingContractsByPair = $this->getExcludedTracingContractsByPair($tracings);
 
         $tracingEvents = $this->buildTracingEvents($tracings, $from, $to, $excludedTracingContractsByPair);
+        $tracingEvents = [
+            ...$tracingEvents,
+            ...$this->buildCourseTracingFallbackEvents($courses, $from, $to, $this->getExistingTracingEventKeys($tracingEvents)),
+        ];
         $trainingContractEvents = [
             ...$this->buildTrainingElementEvents($elements, $from, $to),
             ...$this->buildTrainingContractMainEvents($contracts, $from, $to),
@@ -505,6 +550,112 @@ class DashboardController extends BaseController
         return $events;
     }
 
+    private function buildCourseTracingFallbackEvents($courses, string $from, string $to, array $existingKeys = []): array
+    {
+        $events = [];
+        $seenKeys = array_fill_keys($existingKeys, true);
+
+        foreach ($courses as $course) {
+            if ((int) ($course->course_status_id ?? 0) === 4) {
+                continue;
+            }
+
+            $courseType = trim((string) ($course->courseType?->name ?? ''));
+            $courseBeginning = $this->firstValidYmd($course->beginning ?? null);
+            $courseQuarter = $this->firstValidYmd($course->quarter_date ?? null);
+            $courseHalf = $this->firstValidYmd($course->half_date ?? null);
+            $courseThreeQuarters = $this->firstValidYmd($course->three_quarters_date ?? null);
+            $courseEnd = $this->firstValidYmd($course->end ?? null, $course->final_date ?? null);
+
+            foreach (($course->registrations ?? []) as $registration) {
+                $studentName = trim(($registration->student?->name ?? '') . ' ' . ($registration->student?->surname ?? ''));
+
+                if ($studentName === '') {
+                    continue;
+                }
+
+                $definitions = [
+                    ['kind' => 'start', 'label' => 'Inicio curso', 'date' => $courseBeginning],
+                    ['kind' => 'quarter', 'label' => '25%', 'date' => $courseQuarter],
+                    ['kind' => 'half', 'label' => '50%', 'date' => $courseHalf],
+                    ['kind' => 'three_quarters', 'label' => '75%', 'date' => $courseThreeQuarters],
+                    ['kind' => 'end', 'label' => 'Fin curso', 'date' => $courseEnd],
+                ];
+
+                foreach ($definitions as $definition) {
+                    $date = $definition['date'] ?? '';
+                    if (!$this->isDateInRange($date, $from, $to)) {
+                        continue;
+                    }
+
+                    $eventKey = $this->buildCalendarStudentEventKey(
+                        $date,
+                        (string) ($definition['kind'] ?? ''),
+                        (int) ($course->id ?? 0),
+                        (int) ($registration->student_id ?? 0),
+                        (int) ($registration->company_id ?? 0)
+                    );
+
+                    if (isset($seenKeys[$eventKey])) {
+                        continue;
+                    }
+
+                    $seenKeys[$eventKey] = true;
+                    $events[] = [
+                        'title' => trim("{$studentName} - {$definition['label']}"),
+                        'start' => $date,
+                        'color' => $this->getCourseTypeColor($courseType, 0),
+                        'type' => 'tracing',
+                        'meta' => [
+                            'tracingId' => null,
+                            'tracing' => $this->serializeFallbackCourseTracingForCalendar($course, $registration),
+                            'dateKind' => $definition['kind'],
+                        ],
+                    ];
+                }
+            }
+        }
+
+        return $events;
+    }
+
+    private function getExistingTracingEventKeys(array $events): array
+    {
+        $keys = [];
+
+        foreach ($events as $event) {
+            $tracing = $event['meta']['tracing'] ?? null;
+            if (!$tracing) {
+                continue;
+            }
+
+            $date = $this->normalizeDate($event['start'] ?? null);
+            $dateKind = (string) ($event['meta']['dateKind'] ?? '');
+            $courseId = (int) ($tracing['course_id'] ?? 0);
+            $studentId = (int) ($tracing['student_id'] ?? 0);
+            $companyId = (int) ($tracing['company_id'] ?? 0);
+
+            if ($date === '' || $dateKind === '' || $courseId <= 0 || $studentId <= 0) {
+                continue;
+            }
+
+            $keys[] = $this->buildCalendarStudentEventKey($date, $dateKind, $courseId, $studentId, $companyId);
+        }
+
+        return array_values(array_unique($keys));
+    }
+
+    private function buildCalendarStudentEventKey(string $date, string $dateKind, int $courseId, int $studentId, int $companyId): string
+    {
+        return implode('|', [
+            $date,
+            $dateKind,
+            $courseId,
+            $studentId,
+            $companyId,
+        ]);
+    }
+
     private function getExcludedTracingContractsByPair($tracings): array
     {
         $pairs = collect($tracings)
@@ -644,7 +795,10 @@ class DashboardController extends BaseController
                     'meta' => [
                         'elementId' => $element->id,
                         'training_contract_id' => $trainingContractId,
-                        'raw' => $this->serializeTrainingElementForCalendar($element),
+                        'raw' => array_merge($this->serializeTrainingElementForCalendar($element), [
+                            'event_label' => 'Inicio formacion',
+                            'event_kind' => 'start',
+                        ]),
                     ],
                 ];
             }
@@ -660,7 +814,10 @@ class DashboardController extends BaseController
                     'meta' => [
                         'elementId' => $element->id,
                         'training_contract_id' => $trainingContractId,
-                        'raw' => $this->serializeTrainingElementForCalendar($element),
+                        'raw' => array_merge($this->serializeTrainingElementForCalendar($element), [
+                            'event_label' => 'Fin formacion',
+                            'event_kind' => 'end',
+                        ]),
                     ],
                 ];
             }
@@ -693,7 +850,10 @@ class DashboardController extends BaseController
                     'textColor' => $visual['textColor'],
                     'meta' => [
                         'training_contract_id' => $contract->id,
-                        'raw' => $this->serializeTrainingContractForCalendar($contract),
+                        'raw' => array_merge($this->serializeTrainingContractForCalendar($contract), [
+                            'event_label' => 'Inicio formacion',
+                            'event_kind' => 'start',
+                        ]),
                         'source' => 'trainingContractMain',
                     ],
                 ];
@@ -709,7 +869,10 @@ class DashboardController extends BaseController
                     'textColor' => $visual['textColor'],
                     'meta' => [
                         'training_contract_id' => $contract->id,
-                        'raw' => $this->serializeTrainingContractForCalendar($contract),
+                        'raw' => array_merge($this->serializeTrainingContractForCalendar($contract), [
+                            'event_label' => 'Fin formacion',
+                            'event_kind' => 'end',
+                        ]),
                         'source' => 'trainingContractMain',
                     ],
                 ];
@@ -745,7 +908,10 @@ class DashboardController extends BaseController
                     'textColor' => $visual['textColor'],
                     'meta' => [
                         'training_contract_id' => $contract->id,
-                        'raw' => $this->serializeTrainingContractForCalendar($contract),
+                        'raw' => array_merge($this->serializeTrainingContractForCalendar($contract), [
+                            'event_label' => 'Inicio contrato',
+                            'event_kind' => 'contract_start',
+                        ]),
                     ],
                 ];
             }
@@ -760,7 +926,10 @@ class DashboardController extends BaseController
                     'textColor' => $visual['textColor'],
                     'meta' => [
                         'training_contract_id' => $contract->id,
-                        'raw' => $this->serializeTrainingContractForCalendar($contract),
+                        'raw' => array_merge($this->serializeTrainingContractForCalendar($contract), [
+                            'event_label' => 'Fin contrato',
+                            'event_kind' => 'contract_end',
+                        ]),
                     ],
                 ];
             }
@@ -892,6 +1061,9 @@ class DashboardController extends BaseController
     {
         return [
             'id' => (int) $tracing->id,
+            'course_id' => (int) ($tracing->course_id ?? $tracing->course?->id ?? 0),
+            'student_id' => (int) ($tracing->student_id ?? $tracing->student?->id ?? 0),
+            'company_id' => (int) ($tracing->company_id ?? $tracing->company?->id ?? 0),
             'student_name' => $tracing->student_name ?? $tracing->student?->name ?? '',
             'student_surname' => $tracing->student_surname ?? $tracing->student?->surname ?? '',
             'company_name' => $tracing->company_name ?? $tracing->company?->name ?? '',
@@ -911,6 +1083,36 @@ class DashboardController extends BaseController
             'half_date_sent' => $tracing->half_date_sent,
             'three_quarters_date_sent' => $tracing->three_quarters_date_sent,
             'final_date_sent' => $tracing->final_date_sent,
+        ];
+    }
+
+    private function serializeFallbackCourseTracingForCalendar($course, $registration): array
+    {
+        return [
+            'id' => null,
+            'course_id' => (int) ($course->id ?? 0),
+            'student_id' => (int) ($registration->student_id ?? $registration->student?->id ?? 0),
+            'company_id' => (int) ($registration->company_id ?? $registration->company?->id ?? 0),
+            'student_name' => $registration->student?->name ?? '',
+            'student_surname' => $registration->student?->surname ?? '',
+            'company_name' => $registration->company?->name ?? '',
+            'course_name' => $course->name ?? '',
+            'course_type' => $course->courseType?->name ?? '',
+            'course_status_id' => $course->course_status_id ?? null,
+            'course_beginning' => $course->beginning ?? null,
+            'course_end' => $course->end ?? null,
+            'follow_up_date' => null,
+            'welcome_date' => $course->welcome_date ?? null,
+            'quarter_date' => $course->quarter_date ?? null,
+            'half_date' => $course->half_date ?? null,
+            'three_quarters_date' => $course->three_quarters_date ?? null,
+            'final_date' => $course->final_date ?? null,
+            'welcome_date_sent' => null,
+            'quarter_date_sent' => null,
+            'half_date_sent' => null,
+            'three_quarters_date_sent' => null,
+            'final_date_sent' => null,
+            'is_fallback' => true,
         ];
     }
 
@@ -949,6 +1151,10 @@ class DashboardController extends BaseController
             'end' => $contract->end ?? null,
             'beginning_formation' => $contract->beginning_formation ?? null,
             'end_formation' => $contract->end_formation ?? null,
+            'formation_hours' => $contract->formation_hours ?? null,
+            'formative_hours_first_year' => $contract->formative_hours_first_year ?? null,
+            'formative_hours_second_year' => $contract->formative_hours_second_year ?? null,
+            'total_hours' => $contract->total_hours ?? null,
             'course_name' => 'Contrato formativo',
             'company_name' => $contract->company_name ?? $contract->company?->name ?? '',
             'type_label' => 'CFA',
