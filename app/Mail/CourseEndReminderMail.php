@@ -10,25 +10,23 @@ class CourseEndReminderMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    protected $studentName;
-    protected $courseName;
-    protected $courseEndDate;
+    protected $tutorName;
+    protected $subjectCode;
 
-    public function __construct(string $studentName, string $courseName, string $courseEndDate)
+    public function __construct(string $tutorName, string $subjectCode)
     {
-        $this->studentName = $studentName;
-        $this->courseName = $courseName;
-        $this->courseEndDate = $courseEndDate;
+        $this->tutorName = $tutorName;
+        $this->subjectCode = $subjectCode;
     }
 
     public function build()
     {
-        return $this->subject('Recordatorio: tu curso finaliza en una semana')
+        return $this->from((string) config('mail.from.address'), $this->tutorName)
+            ->subject('ULTIMO DIA CURSO '.$this->subjectCode)
             ->view('emails.course_end_reminder')
             ->with([
-                'studentName' => $this->studentName,
-                'courseName' => $this->courseName,
-                'courseEndDate' => $this->courseEndDate,
+                'tutorName' => $this->tutorName,
+                'subjectCode' => $this->subjectCode,
             ]);
     }
 }

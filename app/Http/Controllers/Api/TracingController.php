@@ -12,6 +12,7 @@ use App\Models\Tracing;
 use App\Models\TrainingAction;
 use App\Models\User;
 use App\Models\WebPlatform;
+use App\Services\TracingEmailService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class TracingController extends BaseController
 {
+    public function __construct(private TracingEmailService $tracingEmailService)
+    {
+    }
+
     /**
      * Obtener los seguimientos
      * @return \Illuminate\Http\JsonResponse
@@ -184,51 +189,66 @@ class TracingController extends BaseController
                 ->FilterMainCompany($mainCompanyId)
                 ->first();
 
-            if ($request->boolean('refresh_moodle') && $trainingAction && $trainingAction->web_platform_id) {
+            if ($request->boolean('refresh_moodle')) {
+                if (!$trainingAction || !$trainingAction->web_platform_id) {
+                    return response()->json([
+                        'status' => 422,
+                        'message' => 'La acción formativa no tiene una plataforma Moodle configurada.'
+                    ], 422);
+                }
+
                 $webPlatform = WebPlatform::where('id', $trainingAction->web_platform_id)
                     ->FilterMainCompany($mainCompanyId)
                     ->first();
 
-                if ($webPlatform && $webPlatform->url && $webPlatform->token) {
-                    $moodleCourse = MoodleHelpers::getCourseByShortname($code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
-
-                    if (!empty($moodleCourse) && isset($moodleCourse['id'])) {
-                        $courseData = MoodleHelpers::getActivityCount($moodleCourse['id'], $webPlatform->url, $webPlatform->token);
-                        if (empty($courseData['error'])) {
-                            $tracing['number_activities'] = $courseData['assignmentCount'];
-                            $tracing['number_units'] = $courseData['normalScormCount'];
-                        }
-                        //   $tracing['number_questions'] = $courseData['questionCount'];
-
-                        $endTime = Carbon::parse($course->end);
-                        $currentTime = Carbon::now();
-
-                        $courseData = MoodleHelpers::getStudentCourseDetails($moodleCourse['id'], $student->user, $webPlatform->url, $webPlatform->token);
-                        if (empty($courseData['error'])) {
-                            $tracing['performed_activities'] = $courseData['finishedActivities'];
-                            $tracing['last_connection'] = $courseData['lastAccess'];
-                            $tracing['performed_units'] = $courseData['unitsViewed'];
-                            $tracing['performed_hours'] = CalculationHelpers::timeStringToDecimal($courseData['totalTime']);
-                            $tracing['final_test'] = $courseData['evaluationFinalDone'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
-                            $tracing['questionnaire'] = $courseData['cuestionar'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
-                        }
-
-                        if ($tracing->final_test === 0) {
-                            $tracing['final_test_name'] = 'Pendiente';
-                        } else if ($tracing->final_test === 1) {
-                            $tracing['final_test_name'] = 'Realizado';
-                        } else if ($tracing->final_test === 2) {
-                            $tracing['final_test_name'] = 'No realizado';
-                        }
-                        if ($tracing->questionnaire === 0) {
-                            $tracing['questionnaire_name'] = 'Pendiente';
-                        } else if ($tracing->questionnaire === 1) {
-                            $tracing['questionnaire_name'] = 'Realizado';
-                        } else if ($tracing->questionnaire === 2) {
-                            $tracing['questionnaire_name'] = 'No realizado';
-                        }
-                    }
+                if (!$webPlatform || !$webPlatform->url || !$webPlatform->token) {
+                    return response()->json([
+                        'status' => 422,
+                        'message' => 'La plataforma Moodle no tiene URL o token configurados.'
+                    ], 422);
                 }
+
+                $moodleCourse = MoodleHelpers::getCourseByShortname($code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
+                if (empty($moodleCourse) || !isset($moodleCourse['id'])) {
+                    return response()->json([
+                        'status' => 422,
+                        'message' => 'No se ha encontrado el curso correspondiente en Moodle.'
+                    ], 422);
+                }
+
+                $activityData = MoodleHelpers::getActivityCount($moodleCourse['id'], $webPlatform->url, $webPlatform->token);
+                if (!empty($activityData['error'])) {
+                    return response()->json([
+                        'status' => 422,
+                        'message' => 'Moodle no ha podido consultar los contenidos y actividades del curso.'
+                    ], 422);
+                }
+                $tracing['number_activities'] = $activityData['assignmentCount'];
+                $tracing['number_units'] = $activityData['normalScormCount'];
+                $tracing['number_final_evaluations'] = $activityData['finalEvaluationCount'];
+
+                $courseData = MoodleHelpers::getStudentCourseDetails($moodleCourse['id'], $student->user, $webPlatform->url, $webPlatform->token);
+                if (!empty($courseData['error'])) {
+                    return response()->json([
+                        'status' => 422,
+                        'message' => 'Moodle no ha podido consultar el progreso actualizado del alumno.'
+                    ], 422);
+                }
+
+                $endTime = Carbon::parse($course->end);
+                $currentTime = Carbon::now();
+                $tracing['performed_activities'] = $courseData['finishedActivities'];
+                $tracing['last_connection'] = $courseData['lastAccess'];
+                $tracing['performed_units'] = $courseData['unitsViewed'];
+                $tracing['performed_hours'] = CalculationHelpers::timeStringToDecimal($courseData['totalTime']);
+                $tracing['final_test'] = $courseData['evaluationFinalDone'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
+                $tracing['questionnaire'] = $courseData['cuestionar'] ? 1 : ($endTime->greaterThan($currentTime) ? 0 : 2);
+                $tracing['final_test_name'] = $tracing->final_test === 0
+                    ? 'Pendiente'
+                    : ($tracing->final_test === 1 ? 'Realizado' : 'No realizado');
+                $tracing['questionnaire_name'] = $tracing->questionnaire === 0
+                    ? 'Pendiente'
+                    : ($tracing->questionnaire === 1 ? 'Realizado' : 'No realizado');
             }
 
             return $this->sendResponse(
@@ -385,6 +405,49 @@ class TracingController extends BaseController
                     'message' => $e->getMessage()
                 ]);
             }
+        }
+    }
+
+    public function sendMail($id, Request $request)
+    {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $tracing = Tracing::where('id', $id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$tracing) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Seguimiento no encontrado'
+                ], 404);
+            }
+
+            $type = (string) $request->input('type', '');
+            $request->validate([
+                'subject' => ['nullable', 'string', 'max:255'],
+                'body_html' => ['nullable', 'string', 'max:50000'],
+            ]);
+
+            $updatedTracing = $this->tracingEmailService->sendTracingMail($tracing, $type, [
+                'final_result' => $request->input('final_result'),
+                'subject' => $request->input('subject'),
+                'body_html' => $request->input('body_html'),
+            ]);
+
+            return $this->sendResponse([
+                'tracing' => $updatedTracing,
+            ], trans('Correo enviado con éxito'));
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'status' => 422,
+                'message' => $e->getMessage()
+            ], 422);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ], 400);
         }
     }
 

@@ -88,6 +88,12 @@ return [
         'name' => env('MAIL_FROM_NAME', 'Zona Avz'),
     ],
 
+    'force_to' => [
+        'address' => env('MAIL_FORCE_TO', 'jmartinez@aztechnology.es'),
+    ],
+
+    'dry_run' => env('MAIL_DRY_RUN', false),
+
     /*
     |--------------------------------------------------------------------------
     | Markdown Mail Settings

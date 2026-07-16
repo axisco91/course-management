@@ -8,6 +8,7 @@ use GuzzleHttp\Exception\RequestException;
 use Throwable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class MoodleHelpers
 {
@@ -121,6 +122,60 @@ class MoodleHelpers
         ];
     }
 
+    private static function normalizeModuleName(string $name): string
+    {
+        return strtolower(Str::ascii(trim($name)));
+    }
+
+    private static function isFinalEvaluation(string $moduleType, string $moduleName): bool
+    {
+        if (!in_array($moduleType, ['scorm', 'quiz'], true)) {
+            return false;
+        }
+
+        $name = self::normalizeModuleName($moduleName);
+
+        return str_contains($name, 'final')
+            && ($moduleType === 'quiz'
+                || str_contains($name, 'evaluacion')
+                || str_contains($name, 'examen')
+                || str_contains($name, 'cuestionario'));
+    }
+
+    private static function isSatisfactionSurvey(string $moduleName): bool
+    {
+        $name = self::normalizeModuleName($moduleName);
+
+        return str_contains($name, 'satisfaccion')
+            || str_contains($name, 'encuesta de satisfaccion');
+    }
+
+    private static function isEvaluationActivity(string $moduleType, string $moduleName): bool
+    {
+        if (self::isFinalEvaluation($moduleType, $moduleName) || self::isSatisfactionSurvey($moduleName)) {
+            return false;
+        }
+
+        if ($moduleType !== 'scorm') {
+            return false;
+        }
+
+        $name = self::normalizeModuleName($moduleName);
+
+        return str_contains($name, 'autoevaluacion')
+            || str_contains($name, 'evaluacion')
+            || str_contains($name, 'examen')
+            || str_contains($name, 'cuestionario');
+    }
+
+    private static function isContentUnit(string $moduleType, string $moduleName): bool
+    {
+        return $moduleType === 'scorm'
+            && !self::isFinalEvaluation($moduleType, $moduleName)
+            && !self::isSatisfactionSurvey($moduleName)
+            && !self::isEvaluationActivity($moduleType, $moduleName);
+    }
+
     /**
      * Get the course
      */
@@ -153,6 +208,7 @@ class MoodleHelpers
         $result = [
             'assignmentCount' => 0,
             'normalScormCount' => 0,
+            'finalEvaluationCount' => 0,
             'error' => null,
         ];
 
@@ -171,17 +227,17 @@ class MoodleHelpers
 
             foreach ($section['modules'] as $module) {
                 $moduleName = (string) ($module['name'] ?? '');
-                $moduleType = $module['modname'] ?? null;
+                $moduleType = (string) ($module['modname'] ?? '');
 
-                if ($moduleType === 'assign') {
+                if (self::isFinalEvaluation($moduleType, $moduleName)) {
+                    $result['finalEvaluationCount']++;
+                }
+
+                if (self::isEvaluationActivity($moduleType, $moduleName)) {
                     $result['assignmentCount']++;
                 }
 
-                if (
-                    $moduleType === 'scorm'
-                    && !str_contains($moduleName, 'Autoevaluación')
-                    && !str_contains($moduleName, 'Evaluación Final')
-                ) {
+                if (self::isContentUnit($moduleType, $moduleName)) {
                     $result['normalScormCount']++;
                 }
             }
@@ -208,6 +264,7 @@ class MoodleHelpers
         $courseContents = self::getCachedCourseContents($client, $courseId, $url, $token);
 
         $cmidToName = [];
+        $cmidToType = [];
         if (is_array($courseContents)) {
             foreach ($courseContents as $section) {
                 if (!isset($section['modules']) || !is_array($section['modules'])) {
@@ -217,6 +274,7 @@ class MoodleHelpers
                 foreach ($section['modules'] as $module) {
                     if (isset($module['id'])) {
                         $cmidToName[$module['id']] = (string) ($module['name'] ?? '');
+                        $cmidToType[$module['id']] = (string) ($module['modname'] ?? '');
                     }
                 }
             }
@@ -238,30 +296,22 @@ class MoodleHelpers
             foreach ($completionData['statuses'] as $module) {
                 $cmid = $module['cmid'] ?? null;
                 $moduleName = $cmid ? ($cmidToName[$cmid] ?? '') : '';
-                $moduleType = $module['modname'] ?? null;
+                $moduleType = (string) ($module['modname'] ?? ($cmid ? ($cmidToType[$cmid] ?? '') : ''));
                 $completed = (($module['state'] ?? 0) > 0);
 
-                if ($moduleType === 'assign' && $completed) {
+                if ($completed && self::isEvaluationActivity($moduleType, $moduleName)) {
                     $finishedActivities++;
                 }
 
-                if ($moduleType === 'scorm' && $completed && $moduleName === 'Evaluación Final') {
+                if ($completed && self::isFinalEvaluation($moduleType, $moduleName)) {
                     $evaluationFinalDone = true;
                 }
 
-                if (
-                    $moduleType === 'scorm'
-                    && $completed
-                    && !str_contains($moduleName, 'Autoevaluación')
-                    && !str_contains($moduleName, 'Evaluación Final')
-                ) {
+                if ($completed && self::isContentUnit($moduleType, $moduleName)) {
                     $normalScormCount++;
                 }
 
-                if (
-                    $completed
-                    && str_contains($moduleName, 'Encuesta de Satisfacción y Propuesta de Mejora')
-                ) {
+                if ($completed && self::isSatisfactionSurvey($moduleName)) {
                     $satisfactionEvaluationDone = true;
                 }
             }

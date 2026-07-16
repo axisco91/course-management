@@ -246,6 +246,7 @@ class DashboardController extends BaseController
                         ->with([
                             'student:id,name,surname',
                             'company:id,name',
+                            'tracing:id',
                         ]);
                 },
             ])
@@ -360,12 +361,13 @@ class DashboardController extends BaseController
 
         $contracts = $contractsQuery->get();
 
-        $excludedTracingContractsByPair = $this->getExcludedTracingContractsByPair($tracings);
+        $tracingContractsByPair = $this->getTracingContractsByPair($tracings);
 
-        $tracingEvents = $this->buildTracingEvents($tracings, $from, $to, $excludedTracingContractsByPair);
+        $allTracingEvents = $this->buildTracingEvents($tracings, $from, $to);
+        $tracingEvents = $this->buildTracingEvents($tracings, $from, $to, $tracingContractsByPair);
         $tracingEvents = [
             ...$tracingEvents,
-            ...$this->buildCourseTracingFallbackEvents($courses, $from, $to, $this->getExistingTracingEventKeys($tracingEvents)),
+            ...$this->buildCourseTracingFallbackEvents($courses, $from, $to, $this->getExistingTracingEventKeys($allTracingEvents)),
         ];
         $trainingContractEvents = [
             ...$this->buildTrainingElementEvents($elements, $from, $to),
@@ -499,7 +501,7 @@ class DashboardController extends BaseController
         });
     }
 
-    private function buildTracingEvents($tracings, string $from, string $to, array $excludedTracingContractsByPair = []): array
+    private function buildTracingEvents($tracings, string $from, string $to, array $tracingContractsByPair = []): array
     {
         $events = [];
 
@@ -508,7 +510,7 @@ class DashboardController extends BaseController
                 continue;
             }
 
-            if ($this->shouldExcludeTracingFromTrainingContractStatus($tracing, $excludedTracingContractsByPair)) {
+            if ($this->shouldExcludeTracingFromTrainingContractStatus($tracing, $tracingContractsByPair)) {
                 continue;
             }
 
@@ -568,6 +570,10 @@ class DashboardController extends BaseController
             $courseEnd = $this->firstValidYmd($course->end ?? null, $course->final_date ?? null);
 
             foreach (($course->registrations ?? []) as $registration) {
+                if ($registration->tracing_id && $registration->tracing) {
+                    continue;
+                }
+
                 $studentName = trim(($registration->student?->name ?? '') . ' ' . ($registration->student?->surname ?? ''));
 
                 if ($studentName === '') {
@@ -656,7 +662,7 @@ class DashboardController extends BaseController
         ]);
     }
 
-    private function getExcludedTracingContractsByPair($tracings): array
+    private function getTracingContractsByPair($tracings): array
     {
         $pairs = collect($tracings)
             ->filter(function ($tracing) {
@@ -683,10 +689,10 @@ class DashboardController extends BaseController
                 'training_contracts.end',
                 'training_contracts.beginning_formation',
                 'training_contracts.end_formation',
-                'training_contracts.on_leave_date'
+                'training_contracts.on_leave_date',
+                'training_contract_statuses.name as status_name'
             )
             ->leftJoin('training_contract_statuses', 'training_contract_statuses.id', '=', 'training_contracts.training_contract_status_id')
-            ->whereIn(DB::raw('UPPER(training_contract_statuses.name)'), self::EXCLUDED_CALENDAR_TRAINING_CONTRACT_STATUSES)
             ->where(function ($query) use ($pairs) {
                 foreach ($pairs as $index => $pair) {
                     $method = $index === 0 ? 'where' : 'orWhere';
@@ -705,13 +711,14 @@ class DashboardController extends BaseController
             $grouped[$key][] = [
                 'start' => $this->firstValidYmd($contract->beginning_formation, $contract->beginning, $contract->on_leave_date),
                 'end' => $this->firstValidYmd($contract->end_formation, $contract->end),
+                'status' => strtoupper(trim((string) ($contract->status_name ?? ''))),
             ];
         }
 
         return $grouped;
     }
 
-    private function shouldExcludeTracingFromTrainingContractStatus($tracing, array $excludedTracingContractsByPair): bool
+    private function shouldExcludeTracingFromTrainingContractStatus($tracing, array $tracingContractsByPair): bool
     {
         if (!is_null($tracing->training_contract_element_id ?? null)) {
             return false;
@@ -724,7 +731,7 @@ class DashboardController extends BaseController
             return false;
         }
 
-        $contracts = $excludedTracingContractsByPair[$studentId . '|' . $companyId] ?? [];
+        $contracts = $tracingContractsByPair[$studentId . '|' . $companyId] ?? [];
         if ($contracts === []) {
             return false;
         }
@@ -747,6 +754,9 @@ class DashboardController extends BaseController
             return false;
         }
 
+        $hasExcludedContract = false;
+        $hasValidContract = false;
+
         foreach ($contracts as $contract) {
             $contractStart = $contract['start'] ?? '';
             $contractEnd = $contract['end'] ?? '';
@@ -763,10 +773,15 @@ class DashboardController extends BaseController
                 continue;
             }
 
-            return true;
+            $status = strtoupper(trim((string) ($contract['status'] ?? '')));
+            if (in_array($status, self::EXCLUDED_CALENDAR_TRAINING_CONTRACT_STATUSES, true)) {
+                $hasExcludedContract = true;
+            } elseif ($status !== '') {
+                $hasValidContract = true;
+            }
         }
 
-        return false;
+        return $hasExcludedContract && !$hasValidContract;
     }
 
     private function buildTrainingElementEvents($elements, string $from, string $to): array

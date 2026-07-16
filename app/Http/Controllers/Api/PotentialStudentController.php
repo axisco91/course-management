@@ -8,14 +8,18 @@ use App\Mail\PotentialStudent as PotentialEmail;
 use App\Models\MainCompany;
 use App\Models\PotentialStudent;
 use App\Models\Student;
+use App\Services\EmailDeliveryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Mockery\Exception;
 
 class PotentialStudentController extends BaseController
 {
+    public function __construct(private EmailDeliveryService $emailDeliveryService)
+    {
+    }
+
     public function getPotentialStudents(Request $request) {
         try {
             $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
@@ -205,12 +209,15 @@ class PotentialStudentController extends BaseController
                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
                 $mainCompany = MainCompany::find($mainCompanyId);
-
-                Mail::getSwiftMailer()
-                    ->getTransport()
-                    ->setUsername('zona@avzformacion.com')
-                    ->setPassword('Avz.2021');
-                    Mail::to($request['email'])->send(new PotentialPrivateStudent($mainCompany->url, $mainCompany->name));
+                $this->emailDeliveryService->sendTo(
+                    $request['email'],
+                    new PotentialPrivateStudent($mainCompany->url, $mainCompany->name),
+                    [
+                        'mail_type' => 'potential_private_student',
+                        'main_company_id' => $mainCompanyId,
+                    ],
+                    config('mail.default', 'smtp')
+                );
                 return $this->sendResponse(
                     [],
                     trans('Enviado con éxito')
@@ -234,12 +241,15 @@ class PotentialStudentController extends BaseController
                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
                 $mainCompany = MainCompany::find($mainCompanyId);
-
-                Mail::getSwiftMailer()
-                    ->getTransport()
-                    ->setUsername('zona@avzformacion.com')
-                    ->setPassword('Avz.2021');
-                Mail::to($request['email'])->send(new PotentialEmail($mainCompany->url, $mainCompany->name));
+                $this->emailDeliveryService->sendTo(
+                    $request['email'],
+                    new PotentialEmail($mainCompany->url, $mainCompany->name),
+                    [
+                        'mail_type' => 'potential_student_bonus',
+                        'main_company_id' => $mainCompanyId,
+                    ],
+                    config('mail.default', 'smtp')
+                );
                 return $this->sendResponse(
                     [],
                     trans('Eliminado con éxito')

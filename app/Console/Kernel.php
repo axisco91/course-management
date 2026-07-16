@@ -38,8 +38,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('updateCoursesStatus')->dailyAt('00:00:00');
         $schedule->command('updateCoursesTracings')->everyThirtyMinutes();
         $schedule->command('checkAccesses')->everyMinute();
-        $schedule->command('greetingMessage')->dailyAt('06:00');
-        $schedule->command('courseEndReminderMessage')->dailyAt('06:00');
     }
 
     /**

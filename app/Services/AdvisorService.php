@@ -8,19 +8,21 @@ use App\Models\Advisor;
 use App\Models\Company;
 use App\Models\MainCompany;
 use App\Models\User;
+use App\Services\EmailDeliveryService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class AdvisorService
 {
     private $userService;
+    private $emailDeliveryService;
 
-    public function __construct(UserService $userService)
+    public function __construct(UserService $userService, EmailDeliveryService $emailDeliveryService)
     {
         $this->userService = $userService;
+        $this->emailDeliveryService = $emailDeliveryService;
     }
 
     /**
@@ -185,17 +187,10 @@ class AdvisorService
                     'user_id' => $user->id,
                 ]);
 
-                $username = GeneralHelpers::generalSettingValue( 'email');
-                $emailPassword = GeneralHelpers::generalSettingValue( 'password');
-
-                config([
-                    'mail.mailers.smtp.username' => $username,
-                    'mail.mailers.smtp.password' => $emailPassword,
+                $this->emailDeliveryService->sendTo($email, new SendAdvisorUser($advisor->nif, $password), [
+                    'mail_type' => 'advisor_user_credentials',
+                    'main_company_id' => $advisor->main_company_id,
                 ]);
-
-                Mail::mailer('smtp')
-                    ->to($email)
-                    ->send(new SendAdvisorUser($advisor->nif, $password));
 
                 db::commit();
                 return $advisor;
@@ -214,20 +209,17 @@ class AdvisorService
                 $this->advisorUser($advisor);
             }
 
-            $username = GeneralHelpers::generalSettingValue( 'email');
-            $emailPassword = GeneralHelpers::generalSettingValue( 'password');
-
-            config([
-                'mail.mailers.smtp.username' => $username,
-                'mail.mailers.smtp.password' => $emailPassword,
-            ]);
-
             $mainCompany = MainCompany::find($mainCompanyId);
 
             if ($mainCompany) {
-                Mail::mailer('smtp')
-                    ->to($user->email)
-                    ->send(new SendAdvisorUser($user->username, $user->default_password, $mainCompany->url));
+                $this->emailDeliveryService->sendTo(
+                    $user->email,
+                    new SendAdvisorUser($user->username, $user->default_password, $mainCompany->url),
+                    [
+                        'mail_type' => 'advisor_user_credentials',
+                        'main_company_id' => $mainCompanyId,
+                    ]
+                );
             }
 
             return $advisor;

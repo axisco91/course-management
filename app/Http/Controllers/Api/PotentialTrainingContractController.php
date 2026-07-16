@@ -6,13 +6,17 @@ use App\Helpers\GeneralHelpers;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PotentialTrainingContractResource;
 use App\Models\PotentialTrainingContract;
+use App\Services\EmailDeliveryService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\PotentialTrainingContract as PotentialTrainingContractMail;
 
 class PotentialTrainingContractController extends Controller
 {
+    public function __construct(private EmailDeliveryService $emailDeliveryService)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -152,11 +156,14 @@ class PotentialTrainingContractController extends Controller
     public function sendEmail(Request $request){
         if ($request['email']){
             try {
-                Mail::getSwiftMailer()
-                    ->getTransport()
-                    ->setUsername('zona@avzformacion.com')
-                    ->setPassword('Avz.2021');
-                    Mail::to($request['email'])->send(new PotentialTrainingContractMail());
+                $this->emailDeliveryService->sendTo(
+                    $request['email'],
+                    new PotentialTrainingContractMail(),
+                    [
+                        'mail_type' => 'potential_training_contract',
+                    ],
+                    config('mail.default', 'smtp')
+                );
                 return $this->sendResponse(
                     [],
                     trans('Enviado con éxito')
