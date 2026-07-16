@@ -11,6 +11,7 @@ use App\Models\Course;
 use App\Models\CourseType;
 use App\Models\ExamTutorial;
 use App\Models\Registration;
+use App\Models\Teacher;
 use App\Models\TrainingAction;
 use App\Models\TrainingContract;
 use App\Models\TrainingContractElement;
@@ -601,11 +602,17 @@ class TrainingContractController extends BaseController
                         $course_data = Course::setName(null, $trainingAction->id, $mainCompanyId);
                         $course_type = CourseType::where('name', 'CFA')
                             ->first();
+                        $teacherId = null;
+                        if ($trainingContractElement->training_tutor_dni) {
+                            $teacherId = Teacher::where('dni', trim($trainingContractElement->training_tutor_dni))
+                                ->FilterMainCompany($mainCompanyId)
+                                ->value('id');
+                        }
                         $courseData = [
                             'name' => $trainingAction->formative_action.' - '.$trainingAction->name,
                             'training_action_id' => $trainingAction->id,
                             'group' => $course_data['group'],
-                            'teacher_id' => null,
+                            'teacher_id' => $teacherId,
                             'beginning' => Carbon::createFromFormat('Y-m-d', $trainingContractElement->beginning)->format('d-m-Y'),
                             'end' => Carbon::createFromFormat('Y-m-d', $trainingContractElement->end)->format('d-m-Y'),
                             'morning_schedule' => null,

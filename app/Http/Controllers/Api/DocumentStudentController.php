@@ -22,6 +22,7 @@ use App\Models\TrainingContractBonus;
 use App\Models\CompanyType;
 use App\Models\TrainingContractSeries;
 use App\Models\TrainingContractBill;
+use App\Services\EmailDeliveryService;
 use ZipArchive;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,10 @@ use Illuminate\Support\Facades\Auth;
 
 class DocumentStudentController extends BaseController
 {
+    public function __construct(private EmailDeliveryService $emailDeliveryService)
+    {
+    }
+
     public function index(Request $request)
     {
         try {
@@ -117,7 +122,16 @@ class DocumentStudentController extends BaseController
 
                 $mainCompany = MainCompany::find($mainCompanyId);
                 if ($mainCompany) {
-                    Mail::to($student->email)->send(new SignDocument($documentStudent->name, $documentStudent->key, $mainCompany->url));
+                    $this->emailDeliveryService->sendTo(
+                        $student->email,
+                        new SignDocument($documentStudent->name, $documentStudent->key, $mainCompany->url),
+                        [
+                            'mail_type' => 'sign_document',
+                            'student_id' => $student->id,
+                            'main_company_id' => $mainCompanyId,
+                        ],
+                        config('mail.default', 'smtp')
+                    );
                     Log::info('Mail sent to: ' . $student->email);
 
                     return $this->sendResponse(

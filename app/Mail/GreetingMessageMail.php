@@ -10,52 +10,41 @@ class GreetingMessageMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    protected $studentName;
-    protected $courseName;
-    protected $courseGroup;
+    protected $subjectCode;
+    protected $formativeActionLabel;
+    protected $tutorName;
+    protected $totalHours;
     protected $courseStartDate;
     protected $courseEndDate;
-    protected $platformName;
-    protected $platformUrl;
-    protected $platformUsername;
-    protected $platformPassword;
 
     public function __construct(
-        string $studentName,
-        string $courseName,
-        ?string $courseGroup,
+        string $subjectCode,
+        string $formativeActionLabel,
+        string $tutorName,
+        ?string $totalHours,
         ?string $courseStartDate,
-        ?string $courseEndDate,
-        string $platformName,
-        ?string $platformUrl,
-        ?string $platformUsername,
-        ?string $platformPassword
+        ?string $courseEndDate
     ) {
-        $this->studentName = $studentName;
-        $this->courseName = $courseName;
-        $this->courseGroup = $courseGroup;
+        $this->subjectCode = $subjectCode;
+        $this->formativeActionLabel = $formativeActionLabel;
+        $this->tutorName = $tutorName;
+        $this->totalHours = $totalHours;
         $this->courseStartDate = $courseStartDate;
         $this->courseEndDate = $courseEndDate;
-        $this->platformName = $platformName;
-        $this->platformUrl = $platformUrl;
-        $this->platformUsername = $platformUsername;
-        $this->platformPassword = $platformPassword;
     }
 
     public function build()
     {
-        return $this->subject('Bienvenido/a al curso - '.$this->platformName)
+        return $this->from((string) config('mail.from.address'), $this->tutorName)
+            ->subject('BIENVENIDA DOCENTE AF '.$this->subjectCode)
             ->view('emails.greeting_message')
             ->with([
-                'studentName' => $this->studentName,
-                'courseName' => $this->courseName,
-                'courseGroup' => $this->courseGroup,
+                'subjectCode' => $this->subjectCode,
+                'formativeActionLabel' => $this->formativeActionLabel,
+                'tutorName' => $this->tutorName,
+                'totalHours' => $this->totalHours,
                 'courseStartDate' => $this->courseStartDate,
                 'courseEndDate' => $this->courseEndDate,
-                'platformName' => $this->platformName,
-                'platformUrl' => $this->platformUrl,
-                'platformUsername' => $this->platformUsername,
-                'platformPassword' => $this->platformPassword,
             ]);
     }
 }

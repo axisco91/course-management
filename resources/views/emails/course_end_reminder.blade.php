@@ -1,19 +1,19 @@
-@extends('layouts/basicLayoutMaster')
-
 <div>
-    Hola {{ $studentName }},
+    Estimado alumno,
 </div>
 
 <div style="margin-top: 10px;">
-    Te recordamos que tu curso
-    <strong>{{ $courseName }}</strong>
-    finaliza en una semana.
+    Te informamos de que dispones hasta hoy a las 23:59 horas para finalizar todas las actividades y contenidos que tengas pendientes del curso.
 </div>
 
 <div style="margin-top: 10px;">
-    <strong>Fecha de fin:</strong> {{ $courseEndDate }}
+    Te recomendamos revisar la plataforma a la mayor brevedad posible y completar todo lo pendiente dentro del plazo establecido.
 </div>
 
 <div style="margin-top: 10px;">
-    Un saludo.
+    Quedo a tu disposición para cualquier consulta.
+</div>
+
+<div style="margin-top: 10px;">
+    Un saludo cordial.
 </div>

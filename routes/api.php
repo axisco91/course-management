@@ -86,6 +86,8 @@ use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\DocumentStudentController;
 use App\Http\Controllers\Api\DocumentTypeController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\EmailLogController;
+use App\Http\Controllers\Api\EmailTemplateController;
 use App\Http\Controllers\Api\TrainingContractSeriesController;
 
 /*
@@ -232,6 +234,21 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::prefix('permissions')->group(function() {
         Route::controller(PermissionController::class)->group(function(){
             Route::get('', 'permissions');
+        });
+    });
+
+    Route::prefix('email-logs')->group(function() {
+        Route::controller(EmailLogController::class)->group(function(){
+            Route::get('', 'index');
+            Route::post('{id}/resend', 'resend');
+        });
+    });
+
+    Route::prefix('email-templates')->group(function() {
+        Route::controller(EmailTemplateController::class)->group(function(){
+            Route::get('', 'index');
+            Route::put('{type}', 'update');
+            Route::delete('{type}', 'destroy');
         });
     });
 
@@ -814,6 +831,7 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::controller(TracingController::class)->group(function(){
             Route::get('', 'index');
             Route::get('export-excel', 'exportExcel');
+            Route::post('{id}/send-mail', 'sendMail');
             Route::put('{id}', 'update');
             Route::delete('{id}', 'destroy');
             Route::get('{id}', 'show');

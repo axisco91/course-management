@@ -7,13 +7,17 @@ use App\Models\Advisor;
 use App\Models\Company;
 use App\Models\MainCompany;
 use App\Models\PotentialCompany;
+use App\Services\EmailDeliveryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 
 class PotentialCompanyController extends BaseController
 {
+    public function __construct(private EmailDeliveryService $emailDeliveryService)
+    {
+    }
+
     public function getPotentialCompanies(Request $request) {
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
@@ -273,12 +277,15 @@ class PotentialCompanyController extends BaseController
                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
                 $mainCompany = MainCompany::find($mainCompanyId);
-
-                Mail::getSwiftMailer()
-                    ->getTransport()
-                    ->setUsername('zona@avzformacion.com')
-                    ->setPassword('Avz.2021');
-                Mail::to($request['email'])->send(new \App\Mail\PotentialCompany($mainCompany->url, $mainCompany->name));
+                $this->emailDeliveryService->sendTo(
+                    $request['email'],
+                    new \App\Mail\PotentialCompany($mainCompany->url, $mainCompany->name),
+                    [
+                        'mail_type' => 'potential_company',
+                        'main_company_id' => $mainCompanyId,
+                    ],
+                    config('mail.default', 'smtp')
+                );
                 return $this->sendResponse(
                     [],
                     trans('Enviado con éxito')

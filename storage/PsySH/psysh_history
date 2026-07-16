@@ -1,0 +1,1 @@
+hash('sha256', 'tracing:1925:greeting:sender:'.optional(optional(App\Models\Tracing::with('course.teacher')->find(1925)->course)->teacher)->user);

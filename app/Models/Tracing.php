@@ -69,6 +69,7 @@ class Tracing extends Model
                         'id',
                         'name',
                         'training_action_id',
+                        'teacher_id',
                         'course_status_id',
                         'course_type_id',
                         'group',
@@ -81,6 +82,7 @@ class Tracing extends Model
                         'final_date'
                     )->with([
                         'trainingAction:id,formative_action,name,number_activities,number_units,total_hours',
+                        'teacher:id,name,surname,user',
                         'courseStatus:id,name',
                         'courseType:id,name',
                     ]);

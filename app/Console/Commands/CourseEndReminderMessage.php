@@ -5,13 +5,18 @@ namespace App\Console\Commands;
 use App\Helpers\GeneralHelpers;
 use App\Mail\CourseEndReminderMail;
 use App\Models\Tracing;
+use App\Services\EmailDeliveryService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class CourseEndReminderMessage extends Command
 {
+    public function __construct(private EmailDeliveryService $emailDeliveryService)
+    {
+        parent::__construct();
+    }
+
     protected $signature = 'courseEndReminderMessage';
 
     protected $description = 'Envia recordatorio al alumno una semana antes de finalizar el curso';
@@ -23,16 +28,6 @@ class CourseEndReminderMessage extends Command
         $sent = 0;
         $skipped = 0;
         $failed = 0;
-
-        $username = GeneralHelpers::generalSettingValue('email');
-        $emailPassword = GeneralHelpers::generalSettingValue('password');
-
-        if ($username && $emailPassword) {
-            config([
-                'mail.mailers.smtp.username' => $username,
-                'mail.mailers.smtp.password' => $emailPassword,
-            ]);
-        }
 
         Tracing::query()
             ->with([
@@ -61,13 +56,21 @@ class CourseEndReminderMessage extends Command
                     $courseEndDate = Carbon::parse($course->end)->format('d-m-Y');
 
                     try {
-                        Mail::mailer('smtp')
-                            ->to($student->email)
-                            ->send(new CourseEndReminderMail(
+                        $this->emailDeliveryService->sendTo(
+                            $student->email,
+                            new CourseEndReminderMail(
                                 $studentName !== '' ? $studentName : 'Alumno/a',
                                 (string) $course->name,
                                 $courseEndDate
-                            ));
+                            ),
+                            [
+                                'mail_type' => 'course_end_reminder',
+                                'tracing_id' => $tracing->id,
+                                'student_id' => $student->id,
+                                'course_id' => $course->id,
+                                'main_company_id' => $tracing->main_company_id,
+                            ]
+                        );
 
                         $tracing->update([
                             'one_week_message' => 1,
