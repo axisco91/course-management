@@ -76,9 +76,15 @@ class EmailTemplateService
             ? $this->sanitizeHtml($bodyHtmlOverride)
             : ($template?->body_html ?? $definition['body_html']);
 
+        $renderedBody = $this->replaceVariables($bodyTemplate, $variables, true);
+        if (($variables['milestone_timing'] ?? 'hoy') !== 'hoy') {
+            $renderedBody = preg_replace('/\bhoy\b/ui', (string) $variables['milestone_timing'], $renderedBody)
+                ?? $renderedBody;
+        }
+
         return new TemplateMessageMail(
             $this->replaceVariables($subjectTemplate, $variables, false),
-            $this->replaceVariables($bodyTemplate, $variables, true),
+            $renderedBody,
             $senderName
         );
     }
@@ -124,20 +130,20 @@ class EmailTemplateService
             'quarter' => [
                 'name' => 'Seguimiento 25 %',
                 'subject' => 'SEGUIMIENTO 25% AF {{subject_code}}',
-                'variables' => $common,
-                'body_html' => '<p>Hola {{student_name}},</p><p>Te informamos de que hoy el curso <strong>{{formative_action}}</strong> alcanza el 25 % de su duración prevista. Este es un buen momento para revisar tu progreso y comprobar que llevas al día las unidades y evaluaciones programadas.</p><p>Te recomendamos acceder a la plataforma y verificar si tienes algún módulo o evaluación pendiente, para que puedas continuar el curso con normalidad y aprovechar al máximo la formación.</p><p>Si tienes cualquier duda o necesitas ayuda, no dudes en ponerte en contacto conmigo.</p><p>Un saludo.<br>{{tutor_name}}</p>',
+                'variables' => array_merge($common, ['milestone_timing']),
+                'body_html' => '<p>Hola {{student_name}},</p><p>Te informamos de que {{milestone_timing}} el curso <strong>{{formative_action}}</strong> alcanza el 25 % de su duración prevista. Este es un buen momento para revisar tu progreso y comprobar que llevas al día las unidades y evaluaciones programadas.</p><p>Te recomendamos acceder a la plataforma y verificar si tienes algún módulo o evaluación pendiente, para que puedas continuar el curso con normalidad y aprovechar al máximo la formación.</p><p>Si tienes cualquier duda o necesitas ayuda, no dudes en ponerte en contacto conmigo.</p><p>Un saludo.<br>{{tutor_name}}</p>',
             ],
             'half' => [
                 'name' => 'Seguimiento 50 %',
                 'subject' => 'SEGUIMIENTO 50% AF {{subject_code}}',
-                'variables' => $common,
-                'body_html' => '<p>Estimado/a {{student_name}},</p><p>Tu curso <strong>{{formative_action}}</strong> alcanza hoy el 50 % de su duración total.</p><p>Recuerda que para conseguir el apto debes visualizar la totalidad de las unidades, realizar todas las evaluaciones y obtener al menos una nota mínima de 5 en cada una de ellas.</p><p>Como sabes, estoy a tu disposición ante cualquier consulta.</p><p>Saludos.<br>{{tutor_name}}</p>',
+                'variables' => array_merge($common, ['milestone_timing']),
+                'body_html' => '<p>Estimado/a {{student_name}},</p><p>Tu curso <strong>{{formative_action}}</strong> alcanza {{milestone_timing}} el 50 % de su duración total.</p><p>Recuerda que para conseguir el apto debes visualizar la totalidad de las unidades, realizar todas las evaluaciones y obtener al menos una nota mínima de 5 en cada una de ellas.</p><p>Como sabes, estoy a tu disposición ante cualquier consulta.</p><p>Saludos.<br>{{tutor_name}}</p>',
             ],
             'three_quarters' => [
                 'name' => 'Seguimiento 75 %',
                 'subject' => 'SEGUIMIENTO 75% AF {{subject_code}}',
-                'variables' => array_merge($common, ['remaining_hours', 'remaining_units', 'remaining_activities', 'progress_message']),
-                'body_html' => '<p>Estimado/a {{student_name}},</p><p>Tu curso <strong>{{formative_action}}</strong> alcanza hoy el 75 % de su duración total.</p><p>{{progress_message}}</p><p>Como sabes, estoy a tu disposición ante cualquier consulta.</p><p>Saludos.<br>{{tutor_name}}</p>',
+                'variables' => array_merge($common, ['milestone_timing', 'remaining_hours', 'remaining_units', 'remaining_activities', 'progress_message']),
+                'body_html' => '<p>Estimado/a {{student_name}},</p><p>Tu curso <strong>{{formative_action}}</strong> alcanza {{milestone_timing}} el 75 % de su duración total.</p><p>{{progress_message}}</p><p>Como sabes, estoy a tu disposición ante cualquier consulta.</p><p>Saludos.<br>{{tutor_name}}</p>',
             ],
             'final' => [
                 'name' => 'Fin de curso',

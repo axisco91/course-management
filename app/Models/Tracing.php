@@ -16,7 +16,7 @@ class Tracing extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['course_id','company_id','student_id','performed_activities','performed_hours','performed_units','follow_up_date','final_test','questionnaire','welcome_message','quarter_message','half_message','three_quarters_message','final_message','one_week_message','observation', 'welcome_date_sent', 'quarter_date_sent', 'half_date_sent', 'three_quarters_date_sent', 'final_date_sent', 'one_week_date_sent', 'last_connection', 'training_contract_element_id', 'main_company_id'];
+    protected $fillable = ['course_id','company_id','student_id','performed_activities','performed_hours','performed_units','follow_up_date','suitability','final_test','questionnaire','welcome_message','quarter_message','half_message','three_quarters_message','final_message','one_week_message','observation', 'welcome_date_sent', 'quarter_date_sent', 'half_date_sent', 'three_quarters_date_sent', 'final_date_sent', 'one_week_date_sent', 'last_connection', 'training_contract_element_id', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne

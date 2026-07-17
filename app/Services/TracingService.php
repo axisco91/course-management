@@ -36,6 +36,7 @@ class TracingService
             'performed_hours' => $data['performed_hours'] ? CalculationHelpers::timeStringToDecimal($data['performed_hours']) : 0,
             'performed_units' => $data['performed_units'] ? $data['performed_units'] : 0,
             'follow_up_date' => $data['follow_up_date'] ? Carbon::createFromFormat('d-m-Y', $data['follow_up_date'])->format('Y-m-d') : null,
+            'suitability' => in_array($data['suitability'] ?? null, ['apto', 'no_apto'], true) ? $data['suitability'] : null,
             'final_test' => $data['final_test'],
             'questionnaire' => $data['questionnaire'],
             'observation' => $data['observation'],

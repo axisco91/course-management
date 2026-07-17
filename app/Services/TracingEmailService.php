@@ -177,6 +177,9 @@ class TracingEmailService
             throw new InvalidArgumentException('No se enviará el correo porque falta configurar el tutor.');
         }
 
+        $isEarly = $milestoneDate && Carbon::today()->lt(Carbon::parse($milestoneDate)->startOfDay());
+        $milestoneTiming = $isEarly ? 'en los próximos días' : 'hoy';
+
         $messageId = $this->moodleMailDeliveryService->sendTo(
             $tracing,
             $this->emailTemplateService->makeMailable(
@@ -185,9 +188,10 @@ class TracingEmailService
                 array_merge($this->templateVariables($tracing, $tutorName), [
                     'milestone_label' => $label,
                     'milestone_date' => $milestoneDate ? Carbon::parse($milestoneDate)->format('d-m-Y') : '-',
+                    'milestone_timing' => $milestoneTiming,
                     'final_result' => ($options['final_result'] ?? 'apto') === 'no_apto' ? 'NO APTO' : 'APTO',
                     'final_intro' => ($options['final_result'] ?? 'apto') === 'no_apto'
-                        ? 'Le informamos de que el curso finaliza hoy y, tras revisar su actividad en la plataforma, su calificación final es de NO APTO.'
+                        ? "Le informamos de que el curso finaliza {$milestoneTiming} y, tras revisar su actividad en la plataforma, su calificación final es de NO APTO."
                         : 'Te informamos de que has obtenido la calificación de APTO en el curso.',
                     'final_detail' => ($options['final_result'] ?? 'apto') === 'no_apto'
                         ? 'No se han alcanzado los requisitos de conexión, visualización de unidades y realización de evaluaciones establecidos para superar la formación.'

@@ -183,7 +183,7 @@ class TracingController extends BaseController
 
             $parts = explode(' - ', $course->name);
             $code = trim($parts[0]);
-            $tracing['name'] = $course->group.'/'. $course->name .' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
+            $tracing['name'] = $this->courseTitle($course).' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
 
             $trainingAction = TrainingAction::where('id', $course->training_action_id)
                 ->FilterMainCompany($mainCompanyId)
@@ -294,7 +294,7 @@ class TracingController extends BaseController
                 }
                 $course = Course::where('id', $tracing->course_id)->first();
                 $student = Student::where('id', $tracing->student_id)->first();
-                $tracing['name'] = $course->group.'/'. $course->name .' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
+                $tracing['name'] = $this->courseTitle($course).' - '. $student->name .' '.Carbon::parse($course->beginning)->format('d/m/Y') .' - '.Carbon::parse($course->end)->format('d/m/Y');
             }
             return response()->json([
                 'status' => 200,
@@ -357,7 +357,7 @@ class TracingController extends BaseController
                     ->FilterMainCompany($mainCompanyId)
                     ->first();
 
-                $tracing['name'] = $course->group . '/' . $course->name . ' - ' . $student->name . ' ' . Carbon::parse($course->beginning)->format('d/m/Y') . ' - ' . Carbon::parse($course->end)->format('d/m/Y');
+                $tracing['name'] = $this->courseTitle($course) . ' - ' . $student->name . ' ' . Carbon::parse($course->beginning)->format('d/m/Y') . ' - ' . Carbon::parse($course->end)->format('d/m/Y');
             }
             return $this->sendResponse(
                 [
@@ -782,5 +782,27 @@ class TracingController extends BaseController
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    private function courseTitle(Course $course): string
+    {
+        $course->loadMissing('trainingAction:id,formative_action,name');
+
+        if ($course->trainingAction) {
+            $actionAndGroup = collect([
+                $course->trainingAction->formative_action,
+                $course->group,
+            ])->filter()->implode('/');
+
+            return collect([
+                $actionAndGroup,
+                $course->trainingAction->name,
+            ])->filter()->implode(' - ');
+        }
+
+        $parts = explode(' - ', $course->name, 2);
+        $title = collect([trim($parts[0]), $course->group])->filter()->implode('/');
+
+        return isset($parts[1]) ? $title.' - '.trim($parts[1]) : $title;
     }
 }

@@ -17,7 +17,7 @@ class Course extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['name','training_action_id','group','course_type_id','teacher_id','nebrija','beginning','end','morning_schedule','afternoon_schedule','monday','tuesday','wednesday','thursday','friday','saturday','sunday','formation_center_id','delivery_center_id','outsourced','course_observation','reactivated','welcome_date','quarter_date','half_date','three_quarters_date','final_date','course_status_id','price', 'main_company_id'];
+    protected $fillable = ['name','training_action_id','group','course_type_id','teacher_id','web_platform_id','nebrija','beginning','end','morning_schedule','afternoon_schedule','monday','tuesday','wednesday','thursday','friday','saturday','sunday','formation_center_id','delivery_center_id','outsourced','course_observation','reactivated','welcome_date','quarter_date','half_date','three_quarters_date','final_date','course_status_id','price', 'main_company_id'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -83,6 +83,11 @@ class Course extends Model
         return $this->hasOne('App\Models\Teacher', 'id', 'teacher_id');
     }
 
+    public function webPlatform()
+    {
+        return $this->belongsTo(WebPlatform::class, 'web_platform_id');
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
@@ -103,6 +108,7 @@ class Course extends Model
                 'trainingAction:id,formative_action,name,total_hours',
                 'courseType:id,name',
                 'teacher:id,name,surname',
+                'webPlatform:id,name',
                 'courseStatus:id,name',
             ])
             ->withCount('registrations') // 👈 esto crea registrations_count

@@ -4,7 +4,7 @@
 </div>
 
 <div style="margin-top: 10px;">
-    Tu curso "<strong>{{ $formativeActionLabel }}</strong>", alcanza hoy el {{ $milestoneLabel }} de su duración total.
+    Tu curso "<strong>{{ $formativeActionLabel }}</strong>", alcanza {{ $milestoneTiming ?? 'hoy' }} el {{ $milestoneLabel }} de su duración total.
 </div>
 
 <div style="margin-top: 10px;">
@@ -24,7 +24,7 @@
 </div>
 
 <div style="margin-top: 10px;">
-    Tu curso "<strong>{{ $formativeActionLabel }}</strong>", alcanza hoy el 75% de su duración total.
+    Tu curso "<strong>{{ $formativeActionLabel }}</strong>", alcanza {{ $milestoneTiming ?? 'hoy' }} el 75% de su duración total.
 </div>
 
 <div style="margin-top: 10px;">
@@ -44,7 +44,7 @@
 </div>
 
 <div style="margin-top: 10px;">
-    Contacto contigo para comunicarte que tu curso: "<strong>{{ $formativeActionLabel }}</strong>" llega hoy a su fin.
+    Contacto contigo para comunicarte que tu curso: "<strong>{{ $formativeActionLabel }}</strong>" llega {{ $milestoneTiming ?? 'hoy' }} a su fin.
 </div>
 
 <div style="margin-top: 10px;">

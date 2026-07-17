@@ -44,6 +44,12 @@ class CourseController extends BaseController
             if ($request->group) {
                 $query = $query->where('courses.group', 'like', '%'.$request->group.'%');
             }
+            if ($request->filled('start_date')) {
+                $query->whereDate('courses.end', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->whereDate('courses.beginning', '<=', $request->end_date);
+            }
             if ($request->type) {
                 $query = $query->where('course_type_id', $request->type);
             }
@@ -180,6 +186,11 @@ class CourseController extends BaseController
     }
 
     public function store(Request $request){
+        $request->validate([
+            'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
+            'web_platform_id' => ['nullable', 'integer', 'exists:web_platforms,id'],
+        ]);
+
         try {
             $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
@@ -205,6 +216,11 @@ class CourseController extends BaseController
     }
 
     public function update($id, Request $request){
+        $request->validate([
+            'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
+            'web_platform_id' => ['nullable', 'integer', 'exists:web_platforms,id'],
+        ]);
+
         try {
             $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
@@ -403,6 +419,12 @@ class CourseController extends BaseController
             }
             if ($request->group) {
                 $query->where('courses.group', 'like', '%' . $request->group . '%');
+            }
+            if ($request->filled('start_date')) {
+                $query->whereDate('courses.end', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->whereDate('courses.beginning', '<=', $request->end_date);
             }
             if ($request->type) {
                 $query->where('course_type_id', $request->type);
