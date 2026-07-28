@@ -17,6 +17,8 @@ class WebPlatformService
             'name' => $data['name'],
             'url' => $data['url'],
             'token' => $data['token'],
+            'required_moodle_usernames' => $data['required_moodle_usernames'] ?? [],
+            'required_moodle_roles' => $data['required_moodle_roles'] ?? [],
              'main_company_id' => $data['main_company_id']
         ]);
     }
@@ -26,7 +28,9 @@ class WebPlatformService
         $webPlatform->update([
             'name' => $data['name'],
             'url' => $data['url'],
-            'token' => $data['token']
+            'token' => $data['token'],
+            'required_moodle_usernames' => $data['required_moodle_usernames'] ?? [],
+            'required_moodle_roles' => $data['required_moodle_roles'] ?? [],
         ]);
         return $webPlatform;
     }

@@ -272,7 +272,6 @@ class UserController extends BaseController
             $success['ability'][] = ['action' => $ability[0], 'subject' => $ability[1]];
         }
         // $success['ability'][] = ['action' => 'manage', 'subject' => 'all'];
-        $success['accessToken'] =  $authUser->createToken('MyAuthApp')->plainTextToken;
         $success['fullname'] =  $authUser->name.' '.$authUser->surname;
         $success['username'] = $authUser->username;
         $success['email'] = $authUser->email;

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\WebPlatformController;
 use App\Services\WebPlatformService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
 
 class WebPlatform extends Model
 {
@@ -13,7 +14,31 @@ class WebPlatform extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name','url','token', 'main_company_id'];
+    protected $fillable = ['name','url','token','required_moodle_usernames','required_moodle_roles', 'main_company_id'];
+
+    protected $casts = [
+        'required_moodle_usernames' => 'array',
+        'required_moodle_roles' => 'array',
+    ];
+
+    public function getTokenAttribute($value)
+    {
+        if (!$value) {
+            return $value;
+        }
+        try {
+            return Crypt::decryptString($value);
+        } catch (\Throwable $e) {
+            return $value;
+        }
+    }
+
+    public function setTokenAttribute($value): void
+    {
+        if ($value !== null && $value !== '') {
+            $this->attributes['token'] = Crypt::encryptString($value);
+        }
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

@@ -7,6 +7,7 @@ use App\Http\Resources\RegistrationResource;
 use App\Models\Advisor;
 use App\Models\Bill;
 use App\Models\Company;
+use App\Models\Course;
 use App\Models\Profitability;
 use App\Models\Registration;
 use App\Models\Student;
@@ -82,20 +83,43 @@ class RegistrationController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      */
     public function create(Request $request){
+        $validated = $request->validate([
+            'course_id' => ['required', 'integer'],
+            'student_id' => ['required', 'integer'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'is_bonus' => ['required', 'boolean'],
+        ]);
+
         try {
             DB::beginTransaction();
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
-            $student = Student::where('id', $request['student_id'])
+            $student = Student::where('id', $validated['student_id'])
                 ->FilterMainCompany($mainCompanyId)
                 ->first();
 
             if (!$student) {
                 DB::rollBack();
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'Alumno no encontrado',
-                ]);
+                return $this->sendError('Alumno no encontrado.', [], 404);
+            }
+
+            $course = Course::where('id', $validated['course_id'])
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if (!$course) {
+                DB::rollBack();
+                return $this->sendError('Curso no encontrado.', [], 404);
+            }
+
+            $alreadyRegistered = Registration::where('course_id', $course->id)
+                ->where('student_id', $student->id)
+                ->FilterMainCompany($mainCompanyId)
+                ->exists();
+
+            if ($alreadyRegistered) {
+                DB::rollBack();
+                return $this->sendError('El alumno ya está matriculado en este curso.', [], 409);
             }
             // Obtenemos los datos de asesorías y colaboradores
             $advisor_id = null;
@@ -103,6 +127,11 @@ class RegistrationController extends BaseController
             $company = Company::where('id', $student['company_id'])
                 ->FilterMainCompany($mainCompanyId)
                 ->first();
+
+            if (!$company) {
+                DB::rollBack();
+                return $this->sendError('No se ha encontrado la empresa del alumno.', [], 422);
+            }
 
             $advisor = null;
             if ($company->advisor_id) {
@@ -139,17 +168,17 @@ class RegistrationController extends BaseController
                 }
             }
             // Vemos si ya existe una factura sino creamos otro
-            $bill = Bill::where('course_id', $request->course_id)
+            $bill = Bill::where('course_id', $validated['course_id'])
                 ->where('company_id', $company->id)
-                ->where('is_bonus', $request->is_bonus)
+                ->where('is_bonus', $validated['is_bonus'])
                 ->FilterMainCompany($mainCompanyId)
                 ->first();
 
             $billData = [
-                'course_id' => $request['course_id'],
+                'course_id' => $validated['course_id'],
                 'company_id' => $student['company_id'],
-                'is_bonus' => $request['is_bonus'],
-                'price' => $request['price'],
+                'is_bonus' => $validated['is_bonus'],
+                'price' => $validated['price'],
                 'student_id' => $student['id'],
                 'advisor_id' => $advisor_id,
                 'collaborator_id' => $collaborator_id,
@@ -165,22 +194,22 @@ class RegistrationController extends BaseController
 
             // Vemos si existe la rentabilidad sino creamos otra
             $profitabilityData =[
-                'course_id' =>$request['course_id'],
+                'course_id' =>$validated['course_id'],
                 'company_id' => $student['company_id'],
                 'student_id' => $student['id'],
-                'price' => $request['price'],
-                'total' => $request['price'],
+                'price' => $validated['price'],
+                'total' => $validated['price'],
                 'advisor_percentage' => $advisor_percentage,
                 'collaborator_percentage' => $collaborator_percentage,
-                'is_bonus' => $request['is_bonus'],
+                'is_bonus' => $validated['is_bonus'],
                 'main_company_id' => $mainCompanyId,
             ];
-            if ($request->is_bonus) {
+            if ($validated['is_bonus']) {
                 $profitabilityData['student_id'] = null;
                 $profitability = Profitability::select('profitabilities.*')->leftjoin('registrations', 'registrations.profitability_id', '=', 'profitabilities.id')
-                    ->where('profitabilities.course_id', $request->course_id)
-                    ->where('profitabilities.company_id', $request->company_id)
-                    ->where('registrations.is_bonus', $request->is_bonus)
+                    ->where('profitabilities.course_id', $validated['course_id'])
+                    ->where('profitabilities.company_id', $student['company_id'])
+                    ->where('registrations.is_bonus', $validated['is_bonus'])
                     ->FilterMainCompany($mainCompanyId)
                     ->first();
 
@@ -195,14 +224,14 @@ class RegistrationController extends BaseController
 
             // Creamos la matriculación junto con los datos de tareas y seguimiento
             $data = [
-                'course_id' => $request['course_id'],
+                'course_id' => $validated['course_id'],
                 'company_id' => $student['company_id'],
                 'student_id' => $student['id'],
                 'advisor_id' => $advisor_id,
                 'collaborator_id' => $collaborator_id,
-                'price' => $request['price'],
+                'price' => $validated['price'],
                 'profitability_id' => $profitability['id'],
-                'is_bonus' => $request['is_bonus'],
+                'is_bonus' => $validated['is_bonus'],
                 'billing_id' => $bill->id,
                 'main_company_id' => $mainCompanyId,
             ];
@@ -210,12 +239,18 @@ class RegistrationController extends BaseController
 
             $student['registration_id'] = $registration->id;
 
-        } catch (\Exception $e){
+        } catch (\DomainException $e) {
             DB::rollBack();
-            return response()->json([
-                'status' => 400,
-                'message' => $e->getMessage()
+            return $this->sendError($e->getMessage(), [], 409);
+        } catch (\Throwable $e){
+            DB::rollBack();
+            Log::error('Error al crear la matriculación.', [
+                'course_id' => $validated['course_id'],
+                'student_id' => $validated['student_id'],
+                'exception' => $e,
             ]);
+
+            return $this->sendError('No se ha podido matricular al alumno: '.$e->getMessage(), [], 500);
         }
         DB::commit();
         return $this->sendResponse(

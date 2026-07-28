@@ -37,14 +37,19 @@ class updateCoursesTracings extends Command
         $recentEndDate = $now->copy()->subMonths($months);
 
         $courses = Course::with([
-                'trainingAction:id,web_platform_id',
-                'trainingAction.webPlatform:id,url,token',
+            'trainingAction:id,web_platform_id',
+            'trainingAction.webPlatform:id,url,token',
+            'webPlatform:id,url,token',
             ])
             ->whereDate('beginning', '<=', $now)
             ->whereDate('end', '>=', $recentEndDate)
             ->whereHas('tracings')
-            ->whereHas('trainingAction', function ($query) {
-                $query->whereNotNull('web_platform_id');
+            ->where('moodle_sync_status', 'synced')
+            ->where('moodle_mode', '!=', 'disabled')
+            ->where(function ($query) {
+                $query->whereNotNull('web_platform_id')->orWhereHas('trainingAction', function ($trainingAction) {
+                    $trainingAction->whereNotNull('web_platform_id');
+                });
             })
             ->get();
 
@@ -60,16 +65,16 @@ class updateCoursesTracings extends Command
             $code = trim($parts[0]);
 
             $trainingAction = $course->trainingAction;
-            if (!$trainingAction || !$trainingAction->web_platform_id) {
+            if (!$course->web_platform_id && (!$trainingAction || !$trainingAction->web_platform_id)) {
                 continue;
             }
 
-            $webPlatform = $trainingAction->webPlatform;
+            $webPlatform = $course->webPlatform ?: $trainingAction->webPlatform;
             if (!$webPlatform || !$webPlatform->url || !$webPlatform->token) {
                 continue;
             }
 
-            $moodleCourse = MoodleHelpers::getCourseByShortname($code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
+            $moodleCourse = MoodleHelpers::getCourseByShortname($course->moodle_shortname ?: $code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
             if (!$moodleCourse || !isset($moodleCourse['id'])) {
                 continue;
             }

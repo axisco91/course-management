@@ -65,6 +65,11 @@ class TrainingAction extends Model
         return $this->belongsTo(WebPlatform::class, 'web_platform_id');
     }
 
+    public function moodleCourseTemplates()
+    {
+        return $this->hasMany(MoodleCourseTemplate::class);
+    }
+
     public function scopeActive($query, int $mainCompanyId)
     {
         return $query

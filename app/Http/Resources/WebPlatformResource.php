@@ -14,6 +14,16 @@ class WebPlatformResource extends JsonResource
      */
     public function toArray($request)
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'url' => $this->url,
+            'token_configured' => filled($this->token),
+            'required_moodle_usernames' => $this->required_moodle_usernames ?? [],
+            'required_moodle_roles' => $this->required_moodle_roles ?? [],
+            'value' => $this->id,
+            'label' => $this->name,
+            'used' => (bool) ($this->used ?? false),
+        ];
     }
 }

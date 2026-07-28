@@ -31,6 +31,8 @@ class CourseService
             'course_type_id' => $data['course_type_id'],
             'teacher_id' => $data['teacher_id'],
             'web_platform_id' => $data['web_platform_id'] ?? null,
+            'moodle_mode' => $data['moodle_mode'] ?? 'disabled',
+            'moodle_sync_status' => ($data['moodle_mode'] ?? 'disabled') === 'disabled' ? 'disconnected' : 'pending',
             'beginning' => $beginning,
             'end' => $end,
             'morning_schedule' => $data['morning_schedule'],
@@ -107,6 +109,10 @@ class CourseService
             'course_type_id' => $data['course_type_id'],
             'teacher_id' => $data['teacher_id'],
             'web_platform_id' => $data['web_platform_id'] ?? null,
+            'moodle_mode' => $data['moodle_mode'] ?? $course->moodle_mode ?? 'disabled',
+            'moodle_sync_status' => ($data['moodle_mode'] ?? $course->moodle_mode) === 'disabled'
+                ? 'disconnected'
+                : 'pending',
             'beginning' => $data['beginning'],
             'end' => $data['end'],
             'morning_schedule' => $data['morning_schedule'],

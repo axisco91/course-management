@@ -734,6 +734,10 @@ class TrainingContractService
      */
     private function isWorkingDay($date, $record)
     {
+        if ($date->isWeekend()) {
+            return false;
+        }
+
         if (TrainingContractsExcludedDay::nonWorkingDay($record->id, $date, $record->main_company_id)) {
             return false;
         }

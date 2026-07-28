@@ -20,15 +20,20 @@ class MoodleMailDeliveryService
         $tracing->loadMissing([
             'student',
             'course.teacher:id,user',
+            'course.webPlatform',
             'course.trainingAction.webPlatform',
         ]);
 
         $student = $tracing->student;
         $course = $tracing->course;
-        $webPlatform = $course?->trainingAction?->webPlatform;
+        $webPlatform = $course?->webPlatform ?: $course?->trainingAction?->webPlatform;
         $recipientUsername = trim((string) ($student?->user ?? ''));
         $senderUsername = trim((string) ($course?->teacher?->user ?? ''));
-        $courseShortname = $this->resolveCourseShortname($course);
+        $courseShortname = trim((string) ($course?->moodle_shortname ?: $this->resolveCourseShortname($course)));
+
+        if (($course?->moodle_mode ?? 'disabled') === 'disabled' || ($course?->moodle_sync_status ?? 'disconnected') !== 'synced') {
+            throw new InvalidArgumentException('El curso no está conectado y validado con Moodle.');
+        }
 
         if (!$student || $recipientUsername === '') {
             throw new InvalidArgumentException('El alumno no tiene usuario de Moodle configurado.');

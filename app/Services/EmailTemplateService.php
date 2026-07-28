@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Mail\TemplateMessageMail;
 use App\Models\EmailTemplate;
+use App\Models\WebPlatformEmailTemplate;
 use InvalidArgumentException;
 
 class EmailTemplateService
@@ -17,14 +18,19 @@ class EmailTemplateService
         'course_end_reminder',
     ];
 
-    public function catalog(?int $mainCompanyId): array
+    public function catalog(?int $mainCompanyId, ?int $webPlatformId = null): array
     {
         $saved = $mainCompanyId
             ? EmailTemplate::where('main_company_id', $mainCompanyId)->get()->keyBy('mail_type')
             : collect();
 
-        return collect($this->defaults())->map(function (array $definition, string $type) use ($saved) {
-            $override = $saved->get($type);
+        $platformSaved = $webPlatformId
+            ? WebPlatformEmailTemplate::where('web_platform_id', $webPlatformId)->get()->keyBy('mail_type')
+            : collect();
+
+        return collect($this->defaults())->map(function (array $definition, string $type) use ($saved, $platformSaved) {
+            $companyOverride = $saved->get($type);
+            $override = $platformSaved->get($type) ?: $companyOverride;
 
             return [
                 'mail_type' => $type,
@@ -33,8 +39,23 @@ class EmailTemplateService
                 'body_html' => $override?->body_html ?? $definition['body_html'],
                 'variables' => $definition['variables'],
                 'customized' => (bool) $override,
+                'source' => $platformSaved->has($type) ? 'platform' : ($companyOverride ? 'company' : 'default'),
             ];
         })->values()->all();
+    }
+
+    public function saveForPlatform(int $webPlatformId, string $type, string $subject, string $bodyHtml): WebPlatformEmailTemplate
+    {
+        $this->definition($type);
+        return WebPlatformEmailTemplate::updateOrCreate(
+            ['web_platform_id' => $webPlatformId, 'mail_type' => $type],
+            ['subject' => trim(strip_tags($subject)), 'body_html' => $this->sanitizeHtml($bodyHtml)]
+        );
+    }
+
+    public function resetForPlatform(int $webPlatformId, string $type): void
+    {
+        WebPlatformEmailTemplate::where('web_platform_id', $webPlatformId)->where('mail_type', $type)->delete();
     }
 
     public function save(int $mainCompanyId, string $type, string $subject, string $bodyHtml): EmailTemplate
@@ -62,19 +83,23 @@ class EmailTemplateService
         array $variables,
         string $senderName,
         ?string $subjectOverride = null,
-        ?string $bodyHtmlOverride = null
+        ?string $bodyHtmlOverride = null,
+        ?int $webPlatformId = null
     ): TemplateMessageMail {
         $definition = $this->definition($type);
         $template = $mainCompanyId
             ? EmailTemplate::where('main_company_id', $mainCompanyId)->where('mail_type', $type)->first()
             : null;
+        $platformTemplate = $webPlatformId
+            ? WebPlatformEmailTemplate::where('web_platform_id', $webPlatformId)->where('mail_type', $type)->first()
+            : null;
 
         $subjectTemplate = $subjectOverride !== null
             ? trim(strip_tags($subjectOverride))
-            : ($template?->subject ?? $definition['subject']);
+            : ($platformTemplate?->subject ?? $template?->subject ?? $definition['subject']);
         $bodyTemplate = $bodyHtmlOverride !== null
             ? $this->sanitizeHtml($bodyHtmlOverride)
-            : ($template?->body_html ?? $definition['body_html']);
+            : ($platformTemplate?->body_html ?? $template?->body_html ?? $definition['body_html']);
 
         $renderedBody = $this->replaceVariables($bodyTemplate, $variables, true);
         if (($variables['milestone_timing'] ?? 'hoy') !== 'hoy') {

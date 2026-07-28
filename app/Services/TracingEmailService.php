@@ -20,8 +20,9 @@ class TracingEmailService
         $tracing->loadMissing([
             'student:id,name,surname,email,user,password',
             'training_contract_element:id,training_tutor,training_tutor_dni',
-            'course:id,name,group,beginning,end,welcome_date,quarter_date,half_date,three_quarters_date,final_date,main_company_id,training_action_id,teacher_id',
+            'course:id,name,group,beginning,end,welcome_date,quarter_date,half_date,three_quarters_date,final_date,main_company_id,training_action_id,teacher_id,web_platform_id,moodle_mode,moodle_course_id,moodle_shortname,moodle_sync_status',
             'course.teacher:id,name,surname,user',
+            'course.webPlatform:id,url,token',
             'course.trainingAction:id,formative_action,name,total_hours,training_tutor,web_platform_id',
             'course.trainingAction.webPlatform:id,url,token',
         ]);
@@ -67,7 +68,8 @@ class TracingEmailService
                 ]),
                 $tutorName,
                 $options['subject'] ?? null,
-                $options['body_html'] ?? null
+                $options['body_html'] ?? null,
+                $course->web_platform_id
             ),
             [
                 'mail_type' => 'greeting',
@@ -199,7 +201,8 @@ class TracingEmailService
                 ]),
                 $tutorName,
                 $options['subject'] ?? null,
-                $options['body_html'] ?? null
+                $options['body_html'] ?? null,
+                $course->web_platform_id
             ),
             [
                 'mail_type' => $mailType,
@@ -240,7 +243,8 @@ class TracingEmailService
                 $this->templateVariables($tracing, $tutorName),
                 $tutorName,
                 $options['subject'] ?? null,
-                $options['body_html'] ?? null
+                $options['body_html'] ?? null,
+                $course->web_platform_id
             ),
             [
                 'mail_type' => 'course_end_reminder',

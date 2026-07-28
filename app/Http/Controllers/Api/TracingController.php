@@ -190,14 +190,22 @@ class TracingController extends BaseController
                 ->first();
 
             if ($request->boolean('refresh_moodle')) {
-                if (!$trainingAction || !$trainingAction->web_platform_id) {
+                if ($course->moodle_mode === 'disabled' || $course->moodle_sync_status !== 'synced') {
+                    return response()->json([
+                        'status' => 422,
+                        'message' => 'El curso no está conectado y validado con Moodle.'
+                    ], 422);
+                }
+
+                $platformId = $course->web_platform_id ?: $trainingAction?->web_platform_id;
+                if (!$platformId) {
                     return response()->json([
                         'status' => 422,
                         'message' => 'La acción formativa no tiene una plataforma Moodle configurada.'
                     ], 422);
                 }
 
-                $webPlatform = WebPlatform::where('id', $trainingAction->web_platform_id)
+                $webPlatform = WebPlatform::where('id', $platformId)
                     ->FilterMainCompany($mainCompanyId)
                     ->first();
 
@@ -208,7 +216,7 @@ class TracingController extends BaseController
                     ], 422);
                 }
 
-                $moodleCourse = MoodleHelpers::getCourseByShortname($code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
+                $moodleCourse = MoodleHelpers::getCourseByShortname($course->moodle_shortname ?: $code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
                 if (empty($moodleCourse) || !isset($moodleCourse['id'])) {
                     return response()->json([
                         'status' => 422,

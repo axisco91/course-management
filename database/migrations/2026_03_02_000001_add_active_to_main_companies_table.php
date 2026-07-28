@@ -14,9 +14,11 @@ class AddActiveToMainCompaniesTable extends Migration
      */
     public function up()
     {
-        Schema::table('main_companies', function (Blueprint $table) {
-            $table->unsignedTinyInteger('active')->default(1)->after('logo');
-        });
+        if (!Schema::hasColumn('main_companies', 'active')) {
+            Schema::table('main_companies', function (Blueprint $table) {
+                $table->unsignedTinyInteger('active')->default(1)->after('logo');
+            });
+        }
 
         DB::table('main_companies')
             ->whereNull('active')

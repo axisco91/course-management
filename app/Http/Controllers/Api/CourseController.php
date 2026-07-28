@@ -10,6 +10,9 @@ use App\Models\Registration;
 use App\Models\Student;
 use App\Models\User;
 use App\Models\Bill;
+use App\Jobs\SyncCourseToMoodle;
+use App\Models\WebPlatform;
+use App\Services\MoodleProvisioningClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -185,10 +188,11 @@ class CourseController extends BaseController
         }
     }
 
-    public function store(Request $request){
+    public function store(Request $request, MoodleProvisioningClient $moodleClient){
         $request->validate([
             'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
-            'web_platform_id' => ['nullable', 'integer', 'exists:web_platforms,id'],
+            'moodle_mode' => ['nullable', 'in:disabled,manual,automatic'],
+            'web_platform_id' => ['nullable', 'required_unless:moodle_mode,disabled', 'integer', 'exists:web_platforms,id'],
         ]);
 
         try {
@@ -197,7 +201,18 @@ class CourseController extends BaseController
             $data = $request->all();
             $data['main_company_id'] = $mainCompanyId;
 
+            if (($data['moodle_mode'] ?? 'disabled') === 'automatic') {
+                $platform = WebPlatform::where('id', $data['web_platform_id'])
+                    ->where('main_company_id', $mainCompanyId)
+                    ->firstOrFail();
+                $moodleClient->assertProvisioningAvailable($platform);
+            }
+
             $course = Course::createWithService($data);
+
+            if ($course->moodle_mode === 'automatic') {
+                SyncCourseToMoodle::dispatch($course->id, 'create')->onQueue('moodle');
+            }
 
             $course = Course::withCourseData($mainCompanyId)->Where('courses.id', $course->id)->first();
 
@@ -208,17 +223,22 @@ class CourseController extends BaseController
                 trans('Creado con éxito')
             );
         } catch (\Exception $e){
+            Log::error('Course creation failed', [
+                'message' => $e->getMessage(),
+                'user_id' => Auth::id(),
+            ]);
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
-            ]);
+            ], 422);
         }
     }
 
     public function update($id, Request $request){
         $request->validate([
             'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
-            'web_platform_id' => ['nullable', 'integer', 'exists:web_platforms,id'],
+            'moodle_mode' => ['nullable', 'in:disabled,manual,automatic'],
+            'web_platform_id' => ['nullable', 'required_unless:moodle_mode,disabled', 'integer', 'exists:web_platforms,id'],
         ]);
 
         try {
@@ -237,18 +257,22 @@ class CourseController extends BaseController
 
             $course = $course->updateWithService($request->all());
 
+            if ($course->moodle_mode !== 'disabled' && ($course->moodle_course_id || $course->moodle_mode === 'automatic')) {
+                SyncCourseToMoodle::dispatch($course->id, 'update')->onQueue('moodle');
+            }
+
             \Log::info('Updated course: ' . json_encode($course));
         } catch (\Exception $e){
             \Log::error('Error updating course: ' . $e->getMessage());
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
-            ]);
+            ], 422);
         }
 
         return $this->sendResponse(
             [
-                'chores' => Course::withCourseData($mainCompanyId)->Where('courses.id', $course->id)->first(),
+                'course' => Course::withCourseData($mainCompanyId)->Where('courses.id', $course->id)->first(),
             ],
             trans('Guardado con éxito')
         );

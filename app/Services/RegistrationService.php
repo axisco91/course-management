@@ -10,6 +10,8 @@ use App\Models\Registration;
 use App\Models\Student;
 use App\Models\Tracing;
 use Carbon\Carbon;
+use App\Jobs\SyncCourseToMoodle;
+use App\Models\Course;
 
 class RegistrationService
 {
@@ -41,7 +43,7 @@ class RegistrationService
             ];
             $chore = Chore::createWithService($choreData);
 
-            return Registration::create([
+            $created = Registration::create([
                 'course_id' => $data['course_id'],
                 'company_id' => $data['company_id'],
                 'student_id' => $data['student_id'],
@@ -53,9 +55,11 @@ class RegistrationService
                 'is_bonus' => $data['is_bonus'],
                 'main_company_id' => $data['main_company_id'],
             ]);
-        } else {
-            return $registration;
+            $this->queueMoodleSync((int) $data['course_id']);
+            return $created;
         }
+
+        throw new \DomainException('El alumno ya está matriculado en este curso.');
     }
 
     /**
@@ -93,6 +97,7 @@ class RegistrationService
     }
 
     public function destroy(Registration $registration) {
+        $courseId = (int) $registration->course_id;
         $bill = Bill::where('course_id',$registration['course_id'])
             ->where('company_id', $registration['company_id'])
             ->where('is_bonus', $registration['is_bonus'])->first();
@@ -147,5 +152,14 @@ class RegistrationService
             }
         }
         $registration->delete();
+        $this->queueMoodleSync($courseId);
+    }
+
+    private function queueMoodleSync(int $courseId): void
+    {
+        $course = Course::find($courseId);
+        if ($course && $course->moodle_mode !== 'disabled' && $course->moodle_course_id) {
+            SyncCourseToMoodle::dispatch($courseId, 'enrolments')->onQueue('moodle');
+        }
     }
 }

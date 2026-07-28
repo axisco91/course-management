@@ -51,6 +51,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TrainingContractController;
 use App\Http\Controllers\Api\CenterController;
 use App\Http\Controllers\Api\CourseController;
+use App\Http\Controllers\Api\MoodleCourseController;
 use App\Http\Controllers\Api\ChoreController;
 use App\Http\Controllers\Api\BillController;
 use App\Http\Controllers\Api\CompanyIncidenceController;
@@ -389,9 +390,17 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::get('set-data', [CourseController::class, 'setData']);
         Route::get('next-formative-action/{trainingActionId}', [CourseController::class, 'nextFormativeAction']);
         Route::get('students/{id}', [CourseController::class, 'getStudents']);
+        Route::post('{id}/moodle/link', [MoodleCourseController::class, 'link']);
+        Route::post('{id}/moodle/disconnect', [MoodleCourseController::class, 'disconnect']);
+        Route::post('{id}/moodle/sync', [MoodleCourseController::class, 'sync']);
         Route::put('reset-tracings/{id}', [CourseController::class, 'resetTracingsIfCancelled']);
         Route::get('{id}', [CourseController::class, 'show']);
     });
+
+    Route::get('moodle/platforms/{platformId}/courses', [MoodleCourseController::class, 'platformCourses']);
+    Route::get('moodle/platforms/{platformId}/diagnostics', [MoodleCourseController::class, 'diagnostics']);
+    Route::get('moodle/training-actions/{trainingActionId}/templates', [MoodleCourseController::class, 'templates']);
+    Route::put('moodle/training-actions/{trainingActionId}/template', [MoodleCourseController::class, 'saveTemplate']);
 
     /**
      * Tipo incidencias

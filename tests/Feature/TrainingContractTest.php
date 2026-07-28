@@ -127,6 +127,49 @@ class TrainingContractTest extends TestCase
         $this->assertSame('2026-03-10', $newElement->end);
     }
 
+    public function testCalculateHoursNeverSchedulesElementsOnWeekendsEvenWhenEnabled()
+    {
+        $trainingContract = TrainingContract::create([
+            'company_id' => 1,
+            'student_id' => 1,
+            'beginning' => '2026-08-01',
+            'end' => '2026-12-31',
+            'beginning_formation' => '2026-08-01',
+            'end_formation' => '2026-08-04',
+            'bonus_hours_first_year' => 8,
+            'bonus_hours_second_year' => 0,
+            'monday' => true,
+            'tuesday' => true,
+            'wednesday' => true,
+            'thursday' => true,
+            'friday' => true,
+            'saturday' => true,
+            'sunday' => true,
+            'main_company_id' => null,
+        ]);
+
+        $action = TrainingAction::create([
+            'name' => 'Weekend action',
+            'formative_action' => 'Weekend action',
+            'total_hours' => 8,
+        ]);
+
+        TrainingContractElement::create([
+            'training_contract_id' => $trainingContract->id,
+            'training_action_id' => $action->id,
+            'order' => 1,
+            'main_company_id' => null,
+        ]);
+
+        app(TrainingContractService::class)->calculateHours($trainingContract->fresh());
+
+        $element = TrainingContractElement::first();
+
+        $this->assertSame('2026-08-03', $element->beginning);
+        $this->assertSame('2026-08-04', $element->end);
+        $this->assertSame(2, $trainingContract->fresh()->total_days);
+    }
+
     public function testCreateDefaultsSecondYearPercentageToZeroWhenFrontendOmitsIt()
     {
         $payload = $this->makeTrainingContractPayload();

@@ -18,6 +18,7 @@ use App\Models\TrainingContractElement;
 use App\Models\TrainingContractFestival;
 use App\Models\TrainingContractsExcludedDay;
 use App\Models\User;
+use App\Services\TrainingContractCourseCreationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -546,168 +547,37 @@ class TrainingContractController extends BaseController
      * Crea el curso y matricula al alumno
      * @return void
      */
-    public function register($id, Request $request) {
+    public function register($id, Request $request, TrainingContractCourseCreationService $service) {
+        $validated = $request->validate([
+            'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
+            'moodle_mode' => ['required', 'in:disabled,manual,automatic'],
+            'web_platform_id' => ['nullable', 'required_unless:moodle_mode,disabled', 'integer', 'exists:web_platforms,id'],
+            'moodle_course_id' => ['nullable', 'required_if:moodle_mode,manual', 'integer', 'min:1'],
+            'moodle_source_course_id' => ['nullable', 'required_if:moodle_mode,automatic', 'integer', 'min:1'],
+        ]);
+
         try {
-           $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-            $trainingContractElement = TrainingContractElement::where('id', $id)
-                ->FilterMainCompany($mainCompanyId)
-                ->first();
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $result = $service->create((int) $id, (int) $mainCompanyId, $validated);
 
-            if (!$trainingContractElement) {
-                return response()->json([
-                    'status' => 404,
-                    'message' => 'Elemento no encontrado'
-                ]);
-            }
-
-            $trainingAction = null;
-            if ($trainingContractElement && $trainingContractElement->course_id == null) {
-                $trainingContract = TrainingContract::find($trainingContractElement->training_contract_id);
-                if ($trainingContract) {
-                    if ($trainingContractElement->training_action_id) {
-                        $trainingAction = TrainingAction::find($trainingContractElement->training_action_id);
-
-                    } else {
-                        $certification = Certification::find($trainingContractElement->certification_id);
-                        if ($certification) {
-                            if ($certification->training_action_id) {
-                                $trainingAction = TrainingAction::find($certification->training_action_id);
-                            } else {
-                                $trainingAction = TrainingAction::where('name', $certification->name)
-                                    ->first();
-                                if ($trainingAction) {
-                                    $certification->update([
-                                        'training_action_id' => $trainingAction->id
-                                    ]);
-                                } else {
-                                    $data = [
-                                        'name' => $certification->name,
-                                        'face_to_face_hours' => $certification->face_to_face_hours,
-                                        'teletraining_hours' => $certification->teletraining_hours,
-                                        'total_hours' => $certification->total_hours,
-                                        'active' => 1,
-                                        'specialty' => 0,
-                                        'in_catalog' => 1,
-                                        'main_company_id' => $mainCompanyId
-                                    ];
-                                    $trainingAction = TrainingAction::create($data);
-                                    $certification->update([
-                                        'training_action_id' => $trainingAction->id
-                                    ]);
-                                }
-                            }
-                        }
-                    }
-                    if ($trainingAction) {
-                        $course_data = Course::setName(null, $trainingAction->id, $mainCompanyId);
-                        $course_type = CourseType::where('name', 'CFA')
-                            ->first();
-                        $teacherId = null;
-                        if ($trainingContractElement->training_tutor_dni) {
-                            $teacherId = Teacher::where('dni', trim($trainingContractElement->training_tutor_dni))
-                                ->FilterMainCompany($mainCompanyId)
-                                ->value('id');
-                        }
-                        $courseData = [
-                            'name' => $trainingAction->formative_action.' - '.$trainingAction->name,
-                            'training_action_id' => $trainingAction->id,
-                            'group' => $course_data['group'],
-                            'teacher_id' => $teacherId,
-                            'beginning' => Carbon::createFromFormat('Y-m-d', $trainingContractElement->beginning)->format('d-m-Y'),
-                            'end' => Carbon::createFromFormat('Y-m-d', $trainingContractElement->end)->format('d-m-Y'),
-                            'morning_schedule' => null,
-                            'afternoon_schedule' => null,
-                            'formation_center_id' => null,
-                            'delivery_center_id' => null,
-                            'course_observation' => null,
-                            'welcome_date' => Carbon::createFromFormat('Y-m-d', $trainingContractElement->beginning)->format('d-m-Y'),
-                            'final_date' => Carbon::createFromFormat('Y-m-d', $trainingContractElement->end)->format('d-m-Y'),
-                            'price' => 0,
-                            'nebrija' => 0,
-                            'monday' => 0,
-                            'tuesday' =>0,
-                            'wednesday' => 0,
-                            'thursday' => 0,
-                            'friday' => 0,
-                            'saturday' => 0,
-                            'sunday' => 0,
-                            'outsourced' => 0,
-                            'reactivated' => 0,
-                            'canceled' => 0,
-                            'course_type_id' => $course_type->id,
-                            'main_company_id' => $mainCompanyId
-                        ];
-                        $course = Course::createWithService($courseData);
-                        $advisor_id = null;
-                        $collaborator_id = null;
-                        $company = Company::find($trainingContract->company_id);
-                        $advisor = Advisor::find($company->advisor_id);
-                        $advisor_percentage = null;
-                        $collaborator_percentage = null;
-                        if ($advisor) {
-                            if ($advisor['collaborator_id']){
-                                $collaborator_id = $advisor['collaborator_id'];
-                            }
-                            if ($advisor['commission']){
-                                $advisor_percentage = intval($advisor['commission']);
-                            }
-                        }
-                        if ($company){
-                            if ($company['advisor_id']){
-                                $advisor_id = $company['advisor_id'];
-                            }
-                            if ($company['collaborator_id']){
-                                $collaborator_id = $company['collaborator_id'];
-                            }
-                        }
-                        if ($collaborator_id){
-                            $user = User::find($collaborator_id);
-                            if ($user){
-                                $collaborator_percentage = $user['commission'];
-                            }
-                        }
-                        $data = [
-                            'course_id' => $course->id,
-                            'company_id' => $trainingContract->company_id,
-                            'student_id' => $trainingContract->student_id,
-                            'advisor_id' => $advisor_id,
-                            'collaborator_id' => $collaborator_id,
-                            'price' => 0,
-                            'profitability_id' => null,
-                            'is_bonus' => 0,
-                            'main_company_id' => $mainCompanyId,
-                        ];
-                        Registration::createWithService($data);
-                        $data = [
-                            'course_id' => $course->id,
-                            'main_company_id' => $mainCompanyId,
-                        ];
-                        $trainingContractElement->addCourse($data);
-                    }
-                }
-            }
-        } catch (\Exception $e){
-            return response()->json([
-                'status' => 400,
-                'message' => $e->getMessage()
+            return $this->sendResponse(
+                $result,
+                $result['moodle_queue_error']
+                    ? 'Curso creado con error de sincronización Moodle.'
+                    : 'Curso creado con éxito.'
+            );
+        } catch (\DomainException $e) {
+            return response()->json(['status' => 409, 'message' => $e->getMessage()], 409);
+        } catch (\Throwable $e) {
+            Log::error('Error creating a course from a training contract element', [
+                'element_id' => $id,
+                'message' => $e->getMessage(),
             ]);
+
+            return response()->json(['status' => 422, 'message' => $e->getMessage()], 422);
         }
-
-        $element = TrainingContractElement::select('training_contract_elements.*', 'certifications.name as certification_name', 'certifications.total_hours as certification_total_hours',
-            'training_actions.formative_action', 'training_actions.name as training_action_name', 'training_actions.total_hours as training_action_total_hours')
-            ->leftjoin('training_actions', 'training_actions.id', '=', 'training_contract_elements.training_action_id')
-            ->leftjoin('certifications', 'certifications.id', '=', 'training_contract_elements.certification_id')
-            ->where('training_contract_elements.id', $id)
-            ->FilterMainCompany($mainCompanyId)
-            ->first();
-
-        return $this->sendResponse(
-            [
-                'element' => $element,
-            ],
-            trans('Obtenido con éxito')
-        );
     }
+
     /**
      * Calcula las fechas de finalización del contrato y de la formación
      * @param $trainingContractId
