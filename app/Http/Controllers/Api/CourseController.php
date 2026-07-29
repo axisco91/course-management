@@ -192,7 +192,8 @@ class CourseController extends BaseController
         $request->validate([
             'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
             'moodle_mode' => ['nullable', 'in:disabled,manual,automatic'],
-            'web_platform_id' => ['nullable', 'required_unless:moodle_mode,disabled', 'integer', 'exists:web_platforms,id'],
+            'web_platform_id' => ['nullable', 'required_if:moodle_mode,manual,automatic', 'integer', 'exists:web_platforms,id'],
+            'moodle_category_id' => ['nullable', 'required_if:moodle_mode,automatic', 'integer', 'min:1'],
         ]);
 
         try {
@@ -201,11 +202,16 @@ class CourseController extends BaseController
             $data = $request->all();
             $data['main_company_id'] = $mainCompanyId;
 
+            if (($data['moodle_mode'] ?? 'disabled') !== 'disabled' && (empty($data['beginning']) || empty($data['end']))) {
+                throw new \RuntimeException('El curso debe tener fecha de inicio y fin para conectarlo con Moodle.');
+            }
+
             if (($data['moodle_mode'] ?? 'disabled') === 'automatic') {
                 $platform = WebPlatform::where('id', $data['web_platform_id'])
                     ->where('main_company_id', $mainCompanyId)
                     ->firstOrFail();
                 $moodleClient->assertProvisioningAvailable($platform);
+                $moodleClient->assertCategoryExists($platform, (int) $data['moodle_category_id']);
             }
 
             $course = Course::createWithService($data);
@@ -234,11 +240,12 @@ class CourseController extends BaseController
         }
     }
 
-    public function update($id, Request $request){
+    public function update($id, Request $request, MoodleProvisioningClient $moodleClient){
         $request->validate([
             'teacher_id' => ['required', 'integer', 'exists:teachers,id'],
             'moodle_mode' => ['nullable', 'in:disabled,manual,automatic'],
-            'web_platform_id' => ['nullable', 'required_unless:moodle_mode,disabled', 'integer', 'exists:web_platforms,id'],
+            'web_platform_id' => ['nullable', 'required_if:moodle_mode,manual,automatic', 'integer', 'exists:web_platforms,id'],
+            'moodle_category_id' => ['nullable', 'integer', 'min:1'],
         ]);
 
         try {
@@ -253,6 +260,21 @@ class CourseController extends BaseController
                     'status' => 404,
                     'message' => 'Curso no encontrado'
                 ]);
+            }
+
+            $requestedMode = $request->input('moodle_mode', $course->moodle_mode);
+            if ($requestedMode !== 'disabled' && (!$request->input('beginning') || !$request->input('end'))) {
+                throw new \RuntimeException('El curso debe tener fecha de inicio y fin para conectarlo con Moodle.');
+            }
+            if ($requestedMode === 'automatic' && (int) ($course->moodle_provisioning_version ?? 1) >= 2) {
+                $categoryId = (int) ($course->moodle_category_id ?: $request->input('moodle_category_id'));
+                if (!$categoryId) {
+                    throw new \RuntimeException('Selecciona la categoría Moodle de destino.');
+                }
+                $platform = WebPlatform::where('id', $request->input('web_platform_id'))
+                    ->where('main_company_id', $mainCompanyId)
+                    ->firstOrFail();
+                $moodleClient->assertCategoryExists($platform, $categoryId);
             }
 
             $course = $course->updateWithService($request->all());

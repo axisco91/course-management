@@ -30,6 +30,43 @@ class MoodleProvisioningClientTest extends TestCase
         );
     }
 
+    public function testItListsCategoriesThroughTheConnector(): void
+    {
+        Http::fake(['*' => Http::response(['categories' => [[
+            'id' => 7,
+            'name' => 'Prevención',
+            'path' => 'Formación / Prevención',
+            'parent' => 2,
+            'idnumber' => '',
+            'visible' => true,
+        ]]])]);
+
+        $categories = app(MoodleProvisioningClient::class)->categories($this->platform());
+
+        $this->assertSame(7, $categories[0]['id']);
+        $this->assertSame('Formación / Prevención', $categories[0]['path']);
+        Http::assertSent(fn (Request $request) =>
+            $request['wsfunction'] === 'local_zonaavz_list_categories'
+        );
+    }
+
+    public function testItRejectsAnUnknownCategory(): void
+    {
+        Http::fake(['*' => Http::response(['categories' => [[
+            'id' => 7,
+            'name' => 'Prevención',
+            'path' => 'Formación / Prevención',
+            'parent' => 2,
+            'idnumber' => '',
+            'visible' => true,
+        ]]])]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('no existe');
+
+        app(MoodleProvisioningClient::class)->assertCategoryExists($this->platform(), 99);
+    }
+
     public function testItSendsProvisioningPayloadEncoded(): void
     {
         Http::fake(['*' => Http::response(['courseid' => 99, 'shortname' => '001/0002', 'created' => true])]);

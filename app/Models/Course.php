@@ -17,7 +17,7 @@ class Course extends Model
 
     public $timestamps = true;
 
-    protected $fillable = ['name','training_action_id','group','course_type_id','teacher_id','web_platform_id','moodle_mode','moodle_course_id','moodle_shortname','required_moodle_usernames','required_moodle_roles','moodle_sync_status','moodle_sync_error','moodle_synced_at','nebrija','beginning','end','morning_schedule','afternoon_schedule','monday','tuesday','wednesday','thursday','friday','saturday','sunday','formation_center_id','delivery_center_id','outsourced','course_observation','reactivated','welcome_date','quarter_date','half_date','three_quarters_date','final_date','course_status_id','price', 'main_company_id'];
+    protected $fillable = ['name','training_action_id','group','course_type_id','teacher_id','web_platform_id','moodle_mode','moodle_course_id','moodle_category_id','moodle_provisioning_version','moodle_shortname','required_moodle_usernames','required_moodle_roles','moodle_sync_status','moodle_sync_error','moodle_synced_at','nebrija','beginning','end','morning_schedule','afternoon_schedule','monday','tuesday','wednesday','thursday','friday','saturday','sunday','formation_center_id','delivery_center_id','outsourced','course_observation','reactivated','welcome_date','quarter_date','half_date','three_quarters_date','final_date','course_status_id','price', 'main_company_id'];
 
     protected $casts = [
         'moodle_synced_at' => 'datetime',

@@ -34,6 +34,18 @@ class MoodleCourseController extends BaseController
         }
     }
 
+    public function platformCategories(int $platformId, Request $request, MoodleProvisioningClient $client)
+    {
+        try {
+            return $this->sendResponse(
+                ['categories' => $client->categories($this->platform($platformId, $request))],
+                'Categorías Moodle obtenidas.'
+            );
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $this->connectorError($e)], 422);
+        }
+    }
+
     public function saveTemplate(int $trainingActionId, Request $request, MoodleProvisioningClient $client)
     {
         $data = $request->validate(['web_platform_id' => ['required', 'integer'], 'moodle_course_id' => ['required', 'integer', 'min:1']]);
@@ -60,6 +72,7 @@ class MoodleCourseController extends BaseController
     {
         $data = $request->validate(['web_platform_id' => ['required', 'integer'], 'moodle_course_id' => ['required', 'integer', 'min:1']]);
         $course = $this->course($courseId, $request);
+        abort_if(!$course->beginning || !$course->end, 422, 'El curso debe tener fecha de inicio y fin para conectarlo con Moodle.');
         $platform = $this->platform((int) $data['web_platform_id'], $request);
         $remote = collect($client->courses($platform))->firstWhere('id', (int) $data['moodle_course_id']);
         abort_unless($remote, 422, 'El curso Moodle seleccionado no existe.');

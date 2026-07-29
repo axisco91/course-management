@@ -64,6 +64,51 @@ class local_zonaavz_provisioning_external extends external_api
         )))));
     }
 
+    public static function list_categories_parameters() { return new external_function_parameters(array()); }
+
+    public static function list_categories()
+    {
+        global $DB;
+        self::validate_context(context_system::instance());
+        require_capability('local/zonaavz:sendmail', context_system::instance());
+        $records = $DB->get_records('course_categories', null, 'sortorder ASC', 'id,name,parent,idnumber,visible');
+        $paths = array();
+        $pathfor = function ($category) use (&$pathfor, &$paths, $records) {
+            if (isset($paths[$category->id])) { return $paths[$category->id]; }
+            $name = format_string($category->name, true, array('context' => context_coursecat::instance($category->id)));
+            if (!$category->parent || !isset($records[$category->parent])) {
+                return $paths[$category->id] = $name;
+            }
+            return $paths[$category->id] = $pathfor($records[$category->parent]).' / '.$name;
+        };
+        $categories = array();
+        foreach ($records as $category) {
+            $categories[] = array(
+                'id' => (int) $category->id,
+                'name' => (string) $category->name,
+                'path' => $pathfor($category),
+                'parent' => (int) $category->parent,
+                'idnumber' => (string) $category->idnumber,
+                'visible' => (bool) $category->visible,
+            );
+        }
+        return array('categories' => $categories);
+    }
+
+    public static function list_categories_returns()
+    {
+        return new external_single_structure(array(
+            'categories' => new external_multiple_structure(new external_single_structure(array(
+                'id' => new external_value(PARAM_INT),
+                'name' => new external_value(PARAM_TEXT),
+                'path' => new external_value(PARAM_TEXT),
+                'parent' => new external_value(PARAM_INT),
+                'idnumber' => new external_value(PARAM_RAW),
+                'visible' => new external_value(PARAM_BOOL),
+            ))),
+        ));
+    }
+
     public static function provision_course_parameters()
     {
         return new external_function_parameters(array('payload' => new external_value(PARAM_RAW)));
@@ -83,23 +128,37 @@ class local_zonaavz_provisioning_external extends external_api
         $creatednew = false;
         if (!$course) {
             $source = $DB->get_record('course', array('id' => (int) ($data['source_course_id'] ?? 0)), '*', MUST_EXIST);
+            $categoryid = (int) ($data['category_id'] ?? 0);
+            $provisioningversion = (int) ($data['provisioning_version'] ?? 1);
+            if (!$categoryid && $provisioningversion >= 2) {
+                throw new invalid_parameter_exception('La categoría Moodle de destino es obligatoria.');
+            }
+            if (!$categoryid) { $categoryid = (int) $source->category; }
+            $DB->get_record('course_categories', array('id' => $categoryid), '*', MUST_EXIST);
             $options = array(
                 array('name' => 'users', 'value' => 0), array('name' => 'role_assignments', 'value' => 0),
                 array('name' => 'comments', 'value' => 0), array('name' => 'userscompletion', 'value' => 0),
                 array('name' => 'logs', 'value' => 0), array('name' => 'grade_histories', 'value' => 0),
             );
             $created = core_course_external::duplicate_course($source->id, clean_param($data['fullname'], PARAM_TEXT),
-                clean_param($data['shortname'], PARAM_RAW_TRIMMED), $source->category, 1, $options);
+                clean_param($data['shortname'], PARAM_RAW_TRIMMED), $categoryid, 1, $options);
             $course = $DB->get_record('course', array('id' => (int) $created['id']), '*', MUST_EXIST);
             $creatednew = true;
         }
 
-        $course->fullname = clean_param($data['fullname'], PARAM_TEXT);
-        $course->shortname = clean_param($data['shortname'], PARAM_RAW_TRIMMED);
-        $course->idnumber = clean_param($data['idnumber'], PARAM_RAW_TRIMMED);
-        $course->startdate = (int) ($data['startdate'] ?? 0);
-        $course->enddate = (int) ($data['enddate'] ?? 0);
-        update_course($course);
+        $updatemetadata = !array_key_exists('update_course_metadata', $data) || !empty($data['update_course_metadata']);
+        if ($updatemetadata) {
+            $course->fullname = clean_param($data['fullname'], PARAM_TEXT);
+            $course->shortname = clean_param($data['shortname'], PARAM_RAW_TRIMMED);
+            $course->idnumber = clean_param($data['idnumber'], PARAM_RAW_TRIMMED);
+            $course->startdate = (int) ($data['startdate'] ?? 0);
+            $course->enddate = (int) ($data['enddate'] ?? 0);
+            if (!empty($data['category_id'])) {
+                $DB->get_record('course_categories', array('id' => (int) $data['category_id']), '*', MUST_EXIST);
+                $course->category = (int) $data['category_id'];
+            }
+            update_course($course);
+        }
         $keepusers = array();
         if (!empty($data['teacher'])) { $keepusers[] = self::sync_enrolment($course, $data['teacher']); }
         foreach (($data['students'] ?? array()) as $student) { $keepusers[] = self::sync_enrolment($course, $student); }
@@ -142,20 +201,45 @@ class local_zonaavz_provisioning_external extends external_api
         }
         $plugin = enrol_get_plugin('manual');
         $instance = null;
-        $fallbackinstance = null;
-        foreach (enrol_get_instances($course->id, true) as $candidate) {
+        $emptyfallback = null;
+        foreach (enrol_get_instances($course->id, false) as $candidate) {
             if ($candidate->enrol !== 'manual') { continue; }
             if ($candidate->name === 'ZonaAvz') { $instance = $candidate; break; }
-            if (!$fallbackinstance) { $fallbackinstance = $candidate; }
+            if (!$emptyfallback && !$DB->record_exists('user_enrolments', array('enrolid' => $candidate->id))) {
+                $emptyfallback = $candidate;
+            }
         }
-        $instance = $instance ?: $fallbackinstance;
+        if (!$instance && $emptyfallback) {
+            $DB->set_field('enrol', 'name', 'ZonaAvz', array('id' => $emptyfallback->id));
+            $emptyfallback->name = 'ZonaAvz';
+            $instance = $emptyfallback;
+        }
         if (!$instance) {
-            $instanceid = $plugin->add_instance($course, array('name' => 'ZonaAvz'));
+            $instanceid = $plugin->add_instance($course, array(
+                'name' => 'ZonaAvz',
+                'status' => ENROL_INSTANCE_ENABLED,
+            ));
             if (!$instanceid) { throw new moodle_exception('No se ha podido crear la matrícula manual del curso.'); }
             $instance = $DB->get_record('enrol', array('id' => $instanceid), '*', MUST_EXIST);
         }
+        if ((int) $instance->status !== ENROL_INSTANCE_ENABLED) {
+            $plugin->update_status($instance, ENROL_INSTANCE_ENABLED);
+            $instance->status = ENROL_INSTANCE_ENABLED;
+        }
         $status = !empty($data['suspended']) ? ENROL_USER_SUSPENDED : ENROL_USER_ACTIVE;
-        $plugin->enrol_user($instance, $user->id, $role ? $role->id : null, 0, 0, $status);
+        $enrolstartdate = max(0, (int) ($data['enrolstartdate'] ?? 0));
+        $enrolenddate = max(0, (int) ($data['enrolenddate'] ?? 0));
+        if ($enrolenddate && $enrolstartdate && $enrolenddate < $enrolstartdate) {
+            throw new invalid_parameter_exception('El fin de matrícula no puede ser anterior al inicio.');
+        }
+        $plugin->enrol_user(
+            $instance,
+            $user->id,
+            $role ? $role->id : null,
+            $enrolstartdate,
+            $enrolenddate,
+            $status
+        );
         return (int) $user->id;
     }
 

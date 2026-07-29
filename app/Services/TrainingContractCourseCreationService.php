@@ -33,9 +33,9 @@ class TrainingContractCourseCreationService
             throw new RuntimeException('El profesor no pertenece a la empresa.');
         }
 
-        [$platform, $remoteCourse] = $this->resolveMoodleSelection($mainCompanyId, $data);
+        [$platform, $remoteCourse, $categoryId] = $this->resolveMoodleSelection($mainCompanyId, $data);
 
-        $course = DB::transaction(function () use ($elementId, $mainCompanyId, $data, $platform, $remoteCourse) {
+        $course = DB::transaction(function () use ($elementId, $mainCompanyId, $data, $platform, $remoteCourse, $categoryId) {
             $element = TrainingContractElement::where('id', $elementId)
                 ->FilterMainCompany($mainCompanyId)
                 ->lockForUpdate()
@@ -75,6 +75,7 @@ class TrainingContractCourseCreationService
                 'teacher_id' => $data['teacher_id'],
                 'web_platform_id' => $platform?->id,
                 'moodle_mode' => $data['moodle_mode'],
+                'moodle_category_id' => $categoryId,
                 'beginning' => $element->beginning,
                 'end' => $element->end,
                 'morning_schedule' => null,
@@ -130,7 +131,7 @@ class TrainingContractCourseCreationService
     private function resolveMoodleSelection(int $mainCompanyId, array $data): array
     {
         if ($data['moodle_mode'] === 'disabled') {
-            return [null, null];
+            return [null, null, null];
         }
 
         $platform = WebPlatform::where('id', $data['web_platform_id'])
@@ -151,9 +152,14 @@ class TrainingContractCourseCreationService
         }
         if ($data['moodle_mode'] === 'automatic') {
             $this->moodleClient->assertProvisioningAvailable($platform);
+            $this->moodleClient->assertCategoryExists($platform, (int) $data['moodle_category_id']);
         }
 
-        return [$platform, $remoteCourse];
+        return [
+            $platform,
+            $remoteCourse,
+            $data['moodle_mode'] === 'automatic' ? (int) $data['moodle_category_id'] : null,
+        ];
     }
 
     private function configureMoodle(

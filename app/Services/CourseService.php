@@ -32,6 +32,7 @@ class CourseService
             'teacher_id' => $data['teacher_id'],
             'web_platform_id' => $data['web_platform_id'] ?? null,
             'moodle_mode' => $data['moodle_mode'] ?? 'disabled',
+            'moodle_category_id' => !empty($data['moodle_category_id']) ? (int) $data['moodle_category_id'] : null,
             'moodle_sync_status' => ($data['moodle_mode'] ?? 'disabled') === 'disabled' ? 'disconnected' : 'pending',
             'beginning' => $beginning,
             'end' => $end,
@@ -110,6 +111,8 @@ class CourseService
             'teacher_id' => $data['teacher_id'],
             'web_platform_id' => $data['web_platform_id'] ?? null,
             'moodle_mode' => $data['moodle_mode'] ?? $course->moodle_mode ?? 'disabled',
+            'moodle_category_id' => $course->moodle_category_id
+                ?: (!empty($data['moodle_category_id']) ? (int) $data['moodle_category_id'] : null),
             'moodle_sync_status' => ($data['moodle_mode'] ?? $course->moodle_mode) === 'disabled'
                 ? 'disconnected'
                 : 'pending',

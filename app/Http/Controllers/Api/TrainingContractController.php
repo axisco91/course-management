@@ -554,6 +554,7 @@ class TrainingContractController extends BaseController
             'web_platform_id' => ['nullable', 'required_unless:moodle_mode,disabled', 'integer', 'exists:web_platforms,id'],
             'moodle_course_id' => ['nullable', 'required_if:moodle_mode,manual', 'integer', 'min:1'],
             'moodle_source_course_id' => ['nullable', 'required_if:moodle_mode,automatic', 'integer', 'min:1'],
+            'moodle_category_id' => ['nullable', 'required_if:moodle_mode,automatic', 'integer', 'min:1'],
         ]);
 
         try {

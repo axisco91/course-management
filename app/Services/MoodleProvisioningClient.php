@@ -67,6 +67,23 @@ class MoodleProvisioningClient
         }
     }
 
+    public function categories(WebPlatform $platform): array
+    {
+        $result = $this->call($platform, 'local_zonaavz_list_categories');
+
+        return $result['categories'] ?? [];
+    }
+
+    public function assertCategoryExists(WebPlatform $platform, int $categoryId): void
+    {
+        $exists = collect($this->categories($platform))
+            ->contains(fn (array $category) => (int) ($category['id'] ?? 0) === $categoryId);
+
+        if (!$exists) {
+            throw new RuntimeException('La categoría Moodle seleccionada no existe.');
+        }
+    }
+
     public function provision(WebPlatform $platform, array $payload): array
     {
         try {

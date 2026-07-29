@@ -55,13 +55,22 @@ class SyncCourseToMoodle implements ShouldQueue
             }
             $course->save();
 
-            if (($course->required_moodle_roles ?? []) !== []) {
+            $modernProvisioning = (int) ($course->moodle_provisioning_version ?? 1) >= 2;
+            if ($modernProvisioning || ($course->required_moodle_roles ?? []) !== []) {
                 $siteInfo = $client->siteInfo($course->webPlatform);
-                if (version_compare((string) ($siteInfo['connectorversion'] ?? '0'), '2.2.0', '<')) {
+                $requiredVersion = $modernProvisioning ? '2.3.1' : '2.2.0';
+                if (version_compare((string) ($siteInfo['connectorversion'] ?? '0'), $requiredVersion, '<')) {
                     throw new RuntimeException(
-                        'Actualiza el plugin local_zonaavz de Moodle a la versión 2.2.0 para asignar roles obligatorios.'
+                        'Actualiza el plugin local_zonaavz de Moodle a la versión '.$requiredVersion.'.'
                     );
                 }
+            }
+
+            if ($modernProvisioning && (!$course->beginning || !$course->end)) {
+                throw new RuntimeException('El curso debe tener fecha de inicio y fin para sincronizarlo con Moodle.');
+            }
+            if ($modernProvisioning && $course->moodle_mode === 'automatic' && !$course->moodle_category_id) {
+                throw new RuntimeException('El curso no tiene una categoría Moodle de destino.');
             }
 
             $template = null;
@@ -73,25 +82,59 @@ class SyncCourseToMoodle implements ShouldQueue
                 }
             }
 
+            $updateCourseMetadata = !$modernProvisioning || $course->moodle_mode === 'automatic';
+            [$studentStart, $studentEnd] = $modernProvisioning
+                ? $this->enrolmentDates($course, 'student')
+                : [null, null];
+            [$teacherStart, $teacherEnd] = $modernProvisioning
+                ? $this->enrolmentDates($course, 'editingteacher')
+                : [null, null];
+
             $run->update(['stage' => 'provisioning']);
             $result = $client->provision($course->webPlatform, [
+                'provisioning_version' => (int) ($course->moodle_provisioning_version ?? 1),
                 'zonaavz_course_id' => $course->id,
                 'existing_course_id' => $course->moodle_course_id,
                 'source_course_id' => $template?->moodle_course_id,
-                'fullname' => $course->name,
+                'update_course_metadata' => $updateCourseMetadata,
+                'category_id' => $modernProvisioning && $course->moodle_mode === 'automatic'
+                    ? (int) $course->moodle_category_id
+                    : null,
+                'fullname' => $modernProvisioning ? $this->fullname($course) : $course->name,
                 'shortname' => $this->shortname($course),
                 'idnumber' => 'zonaavz-course-'.$course->id,
                 'startdate' => $course->beginning ? Carbon::parse($course->beginning)->startOfDay()->timestamp : 0,
                 'enddate' => $course->end ? Carbon::parse($course->end)->endOfDay()->timestamp : 0,
-                'teacher' => $this->userPayload($course->teacher, 'editingteacher'),
+                'teacher' => $this->userPayload(
+                    $course->teacher,
+                    'editingteacher',
+                    null,
+                    $teacherStart,
+                    $teacherEnd
+                ),
                 'students' => $course->registrations->map(fn ($registration) =>
-                    $this->userPayload($registration->student, 'student', $registration->status)
+                    $this->userPayload(
+                        $registration->student,
+                        'student',
+                        $registration->status,
+                        $studentStart,
+                        $studentEnd
+                    )
                 )->filter()->values()->all(),
                 'required_users' => collect($course->required_moodle_usernames ?? [])
-                    ->map(fn ($username) => [
-                        'username' => $username,
-                        'role' => $course->required_moodle_roles[$username] ?? null,
-                    ])
+                    ->map(function ($username) use ($course, $modernProvisioning) {
+                        $role = $course->required_moodle_roles[$username] ?? null;
+                        [$start, $end] = $modernProvisioning
+                            ? $this->enrolmentDates($course, (string) $role)
+                            : [null, null];
+
+                        return [
+                            'username' => $username,
+                            'role' => $role,
+                            'enrolstartdate' => $start,
+                            'enrolenddate' => $end,
+                        ];
+                    })
                     ->values()
                     ->all(),
             ]);
@@ -117,7 +160,36 @@ class SyncCourseToMoodle implements ShouldQueue
         return trim($code.'/'.$course->group, '/');
     }
 
-    private function userPayload($user, string $role, $status = null): ?array
+    private function fullname(Course $course): string
+    {
+        $name = trim((string) ($course->trainingAction?->name ?: $course->name));
+        $beginning = Carbon::parse($course->beginning)->format('d/m/Y');
+        $end = Carbon::parse($course->end)->format('d/m/Y');
+
+        return $this->shortname($course).' - '.$name.' ('.$beginning.' - '.$end.')';
+    }
+
+    private function enrolmentDates(Course $course, string $role): array
+    {
+        $start = Carbon::parse($course->beginning)->startOfDay();
+        $end = Carbon::parse($course->end)->endOfDay();
+
+        if ($role === 'editingteacher') {
+            $end = $end->addMonthNoOverflow();
+        } elseif ($role === 'inspectortotal') {
+            $end = $end->addYearsNoOverflow(4);
+        }
+
+        return [$start->timestamp, $end->timestamp];
+    }
+
+    private function userPayload(
+        $user,
+        string $role,
+        $status = null,
+        ?int $enrolStartDate = null,
+        ?int $enrolEndDate = null
+    ): ?array
     {
         if (!$user || !trim((string) $user->user)) {
             return null;
@@ -130,6 +202,8 @@ class SyncCourseToMoodle implements ShouldQueue
             'password' => (string) ($user->password ?: ''),
             'role' => $role,
             'suspended' => $status !== null && !in_array(strtolower((string) $status), ['', 'active', 'alta', '1'], true),
+            'enrolstartdate' => $enrolStartDate,
+            'enrolenddate' => $enrolEndDate,
         ];
     }
 }

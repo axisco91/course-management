@@ -398,6 +398,7 @@ Route::middleware('auth:sanctum')->group( function () {
     });
 
     Route::get('moodle/platforms/{platformId}/courses', [MoodleCourseController::class, 'platformCourses']);
+    Route::get('moodle/platforms/{platformId}/categories', [MoodleCourseController::class, 'platformCategories']);
     Route::get('moodle/platforms/{platformId}/diagnostics', [MoodleCourseController::class, 'diagnostics']);
     Route::get('moodle/training-actions/{trainingActionId}/templates', [MoodleCourseController::class, 'templates']);
     Route::put('moodle/training-actions/{trainingActionId}/template', [MoodleCourseController::class, 'saveTemplate']);

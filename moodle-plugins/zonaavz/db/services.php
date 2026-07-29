@@ -19,6 +19,14 @@ $functions = array(
         'type' => 'read',
         'capabilities' => 'local/zonaavz:sendmail',
     ),
+    'local_zonaavz_list_categories' => array(
+        'classname' => 'local_zonaavz_provisioning_external',
+        'methodname' => 'list_categories',
+        'classpath' => 'local/zonaavz/classes/provisioning_external.php',
+        'description' => 'Lists Moodle course categories available as destinations.',
+        'type' => 'read',
+        'capabilities' => 'local/zonaavz:sendmail',
+    ),
     'local_zonaavz_provision_course' => array(
         'classname' => 'local_zonaavz_provisioning_external',
         'methodname' => 'provision_course',
