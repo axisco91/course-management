@@ -246,6 +246,7 @@ class CourseController extends BaseController
             'moodle_mode' => ['nullable', 'in:disabled,manual,automatic'],
             'web_platform_id' => ['nullable', 'required_if:moodle_mode,manual,automatic', 'integer', 'exists:web_platforms,id'],
             'moodle_category_id' => ['nullable', 'integer', 'min:1'],
+            'moodle_course_id' => ['nullable', 'required_if:moodle_mode,manual', 'integer', 'min:1'],
         ]);
 
         try {
@@ -263,8 +264,21 @@ class CourseController extends BaseController
             }
 
             $requestedMode = $request->input('moodle_mode', $course->moodle_mode);
+            $manualRemoteCourse = null;
             if ($requestedMode !== 'disabled' && (!$request->input('beginning') || !$request->input('end'))) {
                 throw new \RuntimeException('El curso debe tener fecha de inicio y fin para conectarlo con Moodle.');
+            }
+            if ($requestedMode === 'manual') {
+                $platform = WebPlatform::where('id', $request->input('web_platform_id'))
+                    ->where('main_company_id', $mainCompanyId)
+                    ->firstOrFail();
+                $manualRemoteCourse = collect($moodleClient->courses($platform))->first(
+                    fn (array $remoteCourse) =>
+                        (int) ($remoteCourse['id'] ?? 0) === (int) $request->input('moodle_course_id')
+                );
+                if (!$manualRemoteCourse) {
+                    throw new \RuntimeException('El curso Moodle seleccionado no existe.');
+                }
             }
             if ($requestedMode === 'automatic' && (int) ($course->moodle_provisioning_version ?? 1) >= 2) {
                 $categoryId = (int) ($course->moodle_category_id ?: $request->input('moodle_category_id'));
@@ -278,6 +292,15 @@ class CourseController extends BaseController
             }
 
             $course = $course->updateWithService($request->all());
+
+            if ($requestedMode === 'manual' && $manualRemoteCourse) {
+                $course->update([
+                    'moodle_course_id' => (int) $manualRemoteCourse['id'],
+                    'moodle_shortname' => (string) $manualRemoteCourse['shortname'],
+                    'moodle_sync_status' => 'pending',
+                    'moodle_sync_error' => null,
+                ]);
+            }
 
             if ($course->moodle_mode !== 'disabled' && ($course->moodle_course_id || $course->moodle_mode === 'automatic')) {
                 SyncCourseToMoodle::dispatch($course->id, 'update')->onQueue('moodle');

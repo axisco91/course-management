@@ -58,7 +58,7 @@ class SyncCourseToMoodle implements ShouldQueue
             $modernProvisioning = (int) ($course->moodle_provisioning_version ?? 1) >= 2;
             if ($modernProvisioning || ($course->required_moodle_roles ?? []) !== []) {
                 $siteInfo = $client->siteInfo($course->webPlatform);
-                $requiredVersion = $modernProvisioning ? '2.3.1' : '2.2.0';
+                $requiredVersion = $modernProvisioning ? '2.3.2' : '2.2.0';
                 if (version_compare((string) ($siteInfo['connectorversion'] ?? '0'), $requiredVersion, '<')) {
                     throw new RuntimeException(
                         'Actualiza el plugin local_zonaavz de Moodle a la versión '.$requiredVersion.'.'
@@ -103,8 +103,12 @@ class SyncCourseToMoodle implements ShouldQueue
                 'fullname' => $modernProvisioning ? $this->fullname($course) : $course->name,
                 'shortname' => $this->shortname($course),
                 'idnumber' => 'zonaavz-course-'.$course->id,
-                'startdate' => $course->beginning ? Carbon::parse($course->beginning)->startOfDay()->timestamp : 0,
-                'enddate' => $course->end ? Carbon::parse($course->end)->endOfDay()->timestamp : 0,
+                'startdate' => $course->beginning
+                    ? Carbon::parse($course->beginning, $this->moodleTimezone())->startOfDay()->timestamp
+                    : 0,
+                'enddate' => $course->end
+                    ? Carbon::parse($course->end, $this->moodleTimezone())->setTime(23, 59)->timestamp
+                    : 0,
                 'teacher' => $this->userPayload(
                     $course->teacher,
                     'editingteacher',
@@ -171,8 +175,8 @@ class SyncCourseToMoodle implements ShouldQueue
 
     private function enrolmentDates(Course $course, string $role): array
     {
-        $start = Carbon::parse($course->beginning)->startOfDay();
-        $end = Carbon::parse($course->end)->endOfDay();
+        $start = Carbon::parse($course->beginning, $this->moodleTimezone())->startOfDay();
+        $end = Carbon::parse($course->end, $this->moodleTimezone())->setTime(23, 59);
 
         if ($role === 'editingteacher') {
             $end = $end->addMonthNoOverflow();
@@ -181,6 +185,11 @@ class SyncCourseToMoodle implements ShouldQueue
         }
 
         return [$start->timestamp, $end->timestamp];
+    }
+
+    private function moodleTimezone(): string
+    {
+        return (string) config('moodle.timezone', 'Europe/Madrid');
     }
 
     private function userPayload(

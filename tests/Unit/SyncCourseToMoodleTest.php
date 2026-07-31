@@ -31,7 +31,7 @@ class SyncCourseToMoodleTest extends TestCase
 
         $this->assertSame($student, $manager);
         $this->assertSame('2026-07-16 00:00:00', $this->timestamp($student[0]));
-        $this->assertSame('2026-07-26 23:59:59', $this->timestamp($student[1]));
+        $this->assertSame('2026-07-26 23:59:00', $this->timestamp($student[1]));
     }
 
     public function testTeacherGetsOneNaturalMonthWithoutOverflow(): void
@@ -40,7 +40,7 @@ class SyncCourseToMoodleTest extends TestCase
 
         [, $end] = $this->invoke('enrolmentDates', $course, 'editingteacher');
 
-        $this->assertSame('2027-02-28 23:59:59', $this->timestamp($end));
+        $this->assertSame('2027-02-28 23:59:00', $this->timestamp($end));
     }
 
     public function testInspectorGetsFourNaturalYearsWithoutOverflow(): void
@@ -49,7 +49,7 @@ class SyncCourseToMoodleTest extends TestCase
 
         [, $end] = $this->invoke('enrolmentDates', $course, 'inspectortotal');
 
-        $this->assertSame('2100-02-28 23:59:59', $this->timestamp($end));
+        $this->assertSame('2100-02-28 23:59:00', $this->timestamp($end));
     }
 
     private function course(string $beginning, string $end): Course
@@ -78,6 +78,6 @@ class SyncCourseToMoodleTest extends TestCase
 
     private function timestamp(int $timestamp): string
     {
-        return Carbon::createFromTimestamp($timestamp)->format('Y-m-d H:i:s');
+        return Carbon::createFromTimestamp($timestamp, config('moodle.timezone'))->format('Y-m-d H:i:s');
     }
 }

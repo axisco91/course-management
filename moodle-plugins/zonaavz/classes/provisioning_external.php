@@ -202,9 +202,11 @@ class local_zonaavz_provisioning_external extends external_api
         $plugin = enrol_get_plugin('manual');
         $instance = null;
         $emptyfallback = null;
+        $fallback = null;
         foreach (enrol_get_instances($course->id, false) as $candidate) {
             if ($candidate->enrol !== 'manual') { continue; }
             if ($candidate->name === 'ZonaAvz') { $instance = $candidate; break; }
+            if (!$fallback) { $fallback = $candidate; }
             if (!$emptyfallback && !$DB->record_exists('user_enrolments', array('enrolid' => $candidate->id))) {
                 $emptyfallback = $candidate;
             }
@@ -213,6 +215,9 @@ class local_zonaavz_provisioning_external extends external_api
             $DB->set_field('enrol', 'name', 'ZonaAvz', array('id' => $emptyfallback->id));
             $emptyfallback->name = 'ZonaAvz';
             $instance = $emptyfallback;
+        }
+        if (!$instance && $fallback) {
+            $instance = $fallback;
         }
         if (!$instance) {
             $instanceid = $plugin->add_instance($course, array(
@@ -240,20 +245,51 @@ class local_zonaavz_provisioning_external extends external_api
             $enrolenddate,
             $status
         );
+        self::track_managed_enrolment($course, $instance, $user);
         return (int) $user->id;
+    }
+
+    private static function track_managed_enrolment($course, $instance, $user)
+    {
+        global $DB;
+        $now = time();
+        $record = $DB->get_record('local_zonaavz_enrolments', array(
+            'courseid' => $course->id,
+            'userid' => $user->id,
+        ));
+        if ($record) {
+            $record->enrolid = $instance->id;
+            $record->timemodified = $now;
+            $DB->update_record('local_zonaavz_enrolments', $record);
+            return;
+        }
+        $DB->insert_record('local_zonaavz_enrolments', (object) array(
+            'courseid' => $course->id,
+            'enrolid' => $instance->id,
+            'userid' => $user->id,
+            'timecreated' => $now,
+            'timemodified' => $now,
+        ));
     }
 
     private static function suspend_missing_enrolments($course, array $keepusers)
     {
         global $DB;
-        $instance = $DB->get_record('enrol', array('courseid' => $course->id, 'enrol' => 'manual', 'name' => 'ZonaAvz'));
-        if (!$instance) { return; }
         $plugin = enrol_get_plugin('manual');
-        $enrolments = $DB->get_records('user_enrolments', array('enrolid' => $instance->id));
-        foreach ($enrolments as $enrolment) {
-            if (!in_array((int) $enrolment->userid, $keepusers, true)) {
-                $plugin->update_user_enrol($instance, $enrolment->userid, ENROL_USER_SUSPENDED);
-            }
+        $managed = $DB->get_records('local_zonaavz_enrolments', array('courseid' => $course->id));
+        foreach ($managed as $record) {
+            if (in_array((int) $record->userid, $keepusers, true)) { continue; }
+            $instance = $DB->get_record('enrol', array(
+                'id' => $record->enrolid,
+                'courseid' => $course->id,
+                'enrol' => 'manual',
+            ));
+            if (!$instance) { continue; }
+            if (!$DB->record_exists('user_enrolments', array(
+                'enrolid' => $instance->id,
+                'userid' => $record->userid,
+            ))) { continue; }
+            $plugin->update_user_enrol($instance, $record->userid, ENROL_USER_SUSPENDED);
         }
     }
 
