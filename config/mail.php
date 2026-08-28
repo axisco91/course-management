@@ -89,8 +89,10 @@ return [
     ],
 
     'force_to' => [
-        'address' => env('MAIL_FORCE_TO', 'jmartinez@aztechnology.es'),
+        'address' => env('MAIL_FORCE_TO', 'a.aranda@avzformacion.com'),
     ],
+
+    'force_moodle_to_smtp' => env('MAIL_FORCE_MOODLE_TO_SMTP', true),
 
     'dry_run' => env('MAIL_DRY_RUN', false),
 

@@ -25,6 +25,7 @@ class EmailLog extends Model
         'tracing_id',
         'course_id',
         'student_id',
+        'training_contract_id',
         'main_company_id',
     ];
 
@@ -46,6 +47,11 @@ class EmailLog extends Model
     public function student()
     {
         return $this->belongsTo(Student::class, 'student_id');
+    }
+
+    public function trainingContract()
+    {
+        return $this->belongsTo(TrainingContract::class, 'training_contract_id');
     }
 
     public function mainCompany()

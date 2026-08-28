@@ -85,6 +85,7 @@ class MoodleMailDeliveryService
                 'tracing_id' => $context['tracing_id'] ?? $tracing->id,
                 'course_id' => $context['course_id'] ?? $course->id,
                 'student_id' => $context['student_id'] ?? $student->id,
+                'training_contract_id' => $context['training_contract_id'] ?? null,
                 'main_company_id' => $context['main_company_id'] ?? $tracing->main_company_id ?? $course->main_company_id,
             ]
         );

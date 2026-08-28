@@ -11,7 +11,7 @@ class EmailTemplateServiceTest extends TestCase
     {
         $templates = app(EmailTemplateService::class)->catalog(null);
 
-        $this->assertCount(6, $templates);
+        $this->assertCount(11, $templates);
         $this->assertSame([
             'greeting',
             'quarter',
@@ -19,7 +19,48 @@ class EmailTemplateServiceTest extends TestCase
             'three_quarters',
             'final',
             'course_end_reminder',
+            'company_tutor_guide',
+            'training_compliance_notice',
+            'training_compliance_student_notice',
+            'training_noncompliance_notice',
+            'training_noncompliance_student_notice',
         ], array_column($templates, 'mail_type'));
+    }
+
+    public function testItRendersTheTrainingComplianceTemplate(): void
+    {
+        $company = app(EmailTemplateService::class)->render(null, 'training_compliance_notice', [
+            'company_tutor_name' => 'Ezequiel',
+            'student_name' => 'Oscar Enrique Santiago',
+        ]);
+        $student = app(EmailTemplateService::class)->render(null, 'training_compliance_student_notice', [
+            'student_name' => 'Oscar Enrique Santiago',
+        ]);
+
+        $this->assertSame('CUMPLIMIENTO DE FORMACIÓN - Oscar Enrique Santiago', $company['subject']);
+        $this->assertStringContainsString('Hola, Ezequiel', $company['body_html']);
+        $this->assertStringContainsString('trabajador', strtolower($company['body_html']));
+        $this->assertStringContainsString('Hola, Oscar Enrique Santiago', $student['body_html']);
+        $this->assertStringNotContainsString('empresa', strtolower($student['body_html']));
+        $this->assertStringNotContainsString('trabajador', strtolower($student['body_html']));
+    }
+
+    public function testItAddressesTheTrainingNoncomplianceNoticeToTheStudent(): void
+    {
+        $company = app(EmailTemplateService::class)->render(null, 'training_noncompliance_notice', [
+            'company_tutor_name' => 'Ezequiel',
+            'student_name' => 'Oscar Enrique Santiago',
+        ]);
+        $student = app(EmailTemplateService::class)->render(null, 'training_noncompliance_student_notice', [
+            'student_name' => 'Oscar Enrique Santiago',
+        ]);
+
+        $this->assertStringContainsString('Hola, Ezequiel', $company['body_html']);
+        $this->assertStringContainsString('trabajador', strtolower($company['body_html']));
+        $this->assertStringContainsString('Hola, Oscar Enrique Santiago', $student['body_html']);
+        $this->assertStringContainsString('Te pedimos que regularices', $student['body_html']);
+        $this->assertStringNotContainsString('empresa', strtolower($student['body_html']));
+        $this->assertStringNotContainsString('trabajador', strtolower($student['body_html']));
     }
 
     public function testItRendersAllowedVariablesAndEscapesTheirValues(): void

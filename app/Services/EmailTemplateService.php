@@ -16,6 +16,11 @@ class EmailTemplateService
         'three_quarters',
         'final',
         'course_end_reminder',
+        'company_tutor_guide',
+        'training_compliance_notice',
+        'training_compliance_student_notice',
+        'training_noncompliance_notice',
+        'training_noncompliance_student_notice',
     ];
 
     public function catalog(?int $mainCompanyId, ?int $webPlatformId = null): array
@@ -86,6 +91,26 @@ class EmailTemplateService
         ?string $bodyHtmlOverride = null,
         ?int $webPlatformId = null
     ): TemplateMessageMail {
+        $rendered = $this->render(
+            $mainCompanyId,
+            $type,
+            $variables,
+            $subjectOverride,
+            $bodyHtmlOverride,
+            $webPlatformId
+        );
+
+        return new TemplateMessageMail($rendered['subject'], $rendered['body_html'], $senderName);
+    }
+
+    public function render(
+        ?int $mainCompanyId,
+        string $type,
+        array $variables,
+        ?string $subjectOverride = null,
+        ?string $bodyHtmlOverride = null,
+        ?int $webPlatformId = null
+    ): array {
         $definition = $this->definition($type);
         $template = $mainCompanyId
             ? EmailTemplate::where('main_company_id', $mainCompanyId)->where('mail_type', $type)->first()
@@ -107,11 +132,10 @@ class EmailTemplateService
                 ?? $renderedBody;
         }
 
-        return new TemplateMessageMail(
-            $this->replaceVariables($subjectTemplate, $variables, false),
-            $renderedBody,
-            $senderName
-        );
+        return [
+            'subject' => $this->replaceVariables($subjectTemplate, $variables, false),
+            'body_html' => $renderedBody,
+        ];
     }
 
     private function replaceVariables(string $template, array $variables, bool $escape): string
@@ -181,6 +205,36 @@ class EmailTemplateService
                 'subject' => 'ULTIMO DIA CURSO {{subject_code}}',
                 'variables' => $common,
                 'body_html' => '<p>Estimado/a {{student_name}},</p><p>Te recuerdo que hoy es el último día de la acción formativa <strong>{{formative_action}}</strong>.</p><p>La plataforma permanecerá disponible hasta las 23:59 horas de hoy. Si aún tienes alguna unidad por visualizar, evaluaciones por realizar o la evaluación final pendiente, es importante que lo completes antes de esa hora.</p><p>Una vez finalizado el plazo, el acceso al curso quedará cerrado y no será posible realizar ninguna actividad adicional.</p><p>Te recomiendo revisar tu progreso para asegurarte de que has completado todos los requisitos necesarios para superar la formación.</p><p>Para cualquier consulta de última hora, puedes contactar conmigo a través de la plataforma.</p><p>Recibe un cordial saludo.<br>{{tutor_name}}</p>',
+            ],
+            'company_tutor_guide' => [
+                'name' => 'Correo para tutor laboral',
+                'subject' => 'GUÍA DEL TUTOR LABORAL - {{student_name}}',
+                'variables' => ['student_name'],
+                'body_html' => '<p>Como bien sabe, se ha comunicado un nuevo CFA durante los próximos 12 meses con el trabajador <strong>{{student_name}}</strong> y su empresa.</p><p>Adjunto a este correo le enviamos la <strong>Guía del Tutor Laboral</strong>, en la cual podrá encontrar toda la información relevante sobre las funciones y responsabilidades que asumirá en su rol de tutor. Este documento le proporcionará las pautas necesarias para llevar a cabo un seguimiento adecuado.</p><p>Si tiene alguna duda o necesita aclaraciones adicionales, no dude en contactarnos.</p><p>Saludos cordiales,</p>',
+            ],
+            'training_compliance_notice' => [
+                'name' => 'Aviso de cumplimiento de formación',
+                'subject' => 'CUMPLIMIENTO DE FORMACIÓN - {{student_name}}',
+                'variables' => ['company_tutor_name', 'student_name'],
+                'body_html' => '<p>Hola, {{company_tutor_name}}:</p><p>Me pongo en contacto contigo en relación con la formación asociada al contrato de formación en alternancia del trabajador <strong>{{student_name}}</strong>.</p><p>Tras realizar las correspondientes revisiones de seguimiento, hemos podido comprobar que {{student_name}} está realizando la formación de manera adecuada y manteniendo un buen ritmo de progreso en la plataforma.</p><p>Queremos destacar especialmente su implicación y compromiso con la parte formativa del contrato. Está accediendo regularmente a la plataforma, avanzando de forma constante en los contenidos y mostrando una actitud responsable y preocupada por cumplir correctamente con las obligaciones formativas establecidas.</p><p>El seguimiento que estamos realizando refleja una evolución positiva y un buen aprovechamiento de la formación, manteniendo un ritmo adecuado para alcanzar los objetivos establecidos dentro de los plazos correspondientes.</p><p>Por nuestra parte, valoramos muy positivamente el trabajo que está realizando y su compromiso con la formación. Es importante que continúe manteniendo esta constancia y dedicación durante el resto del periodo formativo.</p><p>Agradecemos también vuestra colaboración y el seguimiento que se está realizando desde la empresa para facilitar que la formación se desarrolle correctamente.</p><p>Quedo a tu disposición para cualquier aclaración o consulta adicional.</p><p>Saludos cordiales,</p>',
+            ],
+            'training_compliance_student_notice' => [
+                'name' => 'Cumplimiento de formación para alumno',
+                'subject' => 'CUMPLIMIENTO DE FORMACIÓN - {{student_name}}',
+                'variables' => ['student_name'],
+                'body_html' => '<p>Hola, {{student_name}}:</p><p>Me pongo en contacto contigo en relación con la formación asociada a tu contrato de formación en alternancia.</p><p>Tras realizar las correspondientes revisiones de seguimiento, hemos comprobado que estás realizando la formación de manera adecuada y manteniendo un buen ritmo de progreso en la plataforma.</p><p>Queremos destacar especialmente tu implicación y compromiso con la parte formativa del contrato. Estás accediendo regularmente, avanzando de forma constante en los contenidos y mostrando una actitud responsable para cumplir correctamente con tus obligaciones formativas.</p><p>Tu evolución es positiva y estás aprovechando bien la formación. Te animamos a mantener esta constancia y dedicación durante el resto del periodo formativo.</p><p>Quedo a tu disposición para cualquier aclaración o consulta adicional.</p><p>Saludos cordiales,</p>',
+            ],
+            'training_noncompliance_notice' => [
+                'name' => 'Aviso por incumplimiento de formación',
+                'subject' => 'AVISO POR INCUMPLIMIENTO DE FORMACIÓN - {{student_name}}',
+                'variables' => ['company_tutor_name', 'student_name'],
+                'body_html' => '<p>Hola, {{company_tutor_name}}:</p><p>Me pongo en contacto contigo en relación con la formación asociada al contrato de formación del trabajador <strong>{{student_name}}</strong>.</p><p>Tras realizar varias revisiones de seguimiento, hemos comprobado que la formación no se está realizando de manera adecuada. Aunque se le han enviado distintos avisos y recordatorios para que acceda a la plataforma y realice el contenido formativo, la situación continúa sin regularizarse.</p><p>Queremos recordarte la importancia que tiene el correcto seguimiento de la formación dentro de este tipo de contratos. La formación es un requisito obligatorio y esencial del contrato de formación en alternancia, por lo que debe realizarse de manera continuada y dentro de los plazos establecidos. Tanto la actividad laboral como la formativa forman parte del propio contrato y están sujetas a posibles revisiones o inspecciones por parte de la Administración.</p><p>Por ello, agradeceríamos vuestra colaboración para trasladar al trabajador la necesidad de regularizar esta situación cuanto antes y mantener un seguimiento diario y adecuado de la formación.</p><p>Quedo a tu disposición para cualquier aclaración o consulta adicional.</p><p>Saludos cordiales.</p>',
+            ],
+            'training_noncompliance_student_notice' => [
+                'name' => 'Incumplimiento de formación para alumno',
+                'subject' => 'AVISO POR INCUMPLIMIENTO DE FORMACIÓN - {{student_name}}',
+                'variables' => ['student_name'],
+                'body_html' => '<p>Hola, {{student_name}}:</p><p>Me pongo en contacto contigo en relación con la formación asociada a tu contrato de formación en alternancia.</p><p>Tras realizar varias revisiones de seguimiento, hemos comprobado que la formación no se está realizando de manera adecuada. Aunque se te han enviado distintos avisos y recordatorios para que accedas y realices el contenido formativo, la situación continúa sin regularizarse.</p><p>Queremos recordarte que la formación es un requisito obligatorio y esencial de tu contrato, por lo que debes realizarla de manera continuada y dentro de los plazos establecidos.</p><p>Te pedimos que regularices esta situación cuanto antes y mantengas un seguimiento diario y adecuado de la formación.</p><p>Quedo a tu disposición para cualquier aclaración o consulta adicional.</p><p>Saludos cordiales.</p>',
             ],
         ];
     }

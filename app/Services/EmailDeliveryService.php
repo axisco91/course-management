@@ -18,6 +18,7 @@ class EmailDeliveryService
         $forcedRecipients = $this->normalizeRecipients(config('mail.force_to.address', ''));
         $dryRun = (bool) config('mail.dry_run', false);
         $finalRecipients = count($forcedRecipients) > 0 ? $forcedRecipients : $originalRecipients;
+        $idempotencyKey = $context['idempotency_key'] ?? null;
 
         if (count($finalRecipients) === 0) {
             throw new InvalidArgumentException('No hay destinatarios válidos para el envío.');
@@ -39,10 +40,29 @@ class EmailDeliveryService
             'course_id' => $context['course_id'] ?? null,
             'student_id' => $context['student_id'] ?? null,
             'main_company_id' => $context['main_company_id'] ?? null,
+            'training_contract_id' => $context['training_contract_id'] ?? null,
+            'channel' => $context['channel'] ?? 'smtp',
+            'idempotency_key' => $idempotencyKey,
         ];
 
+        $reservedLog = null;
+        if ($idempotencyKey) {
+            $reservedLog = EmailLog::firstOrCreate(
+                ['idempotency_key' => $idempotencyKey],
+                array_merge($payload, ['status' => 'pending', 'sent_at' => null])
+            );
+
+            if (!$reservedLog->wasRecentlyCreated && in_array($reservedLog->status, ['pending', 'sent', 'simulated'], true)) {
+                return;
+            }
+
+            if (!$reservedLog->wasRecentlyCreated) {
+                $reservedLog->update(array_merge($payload, ['status' => 'pending', 'sent_at' => null]));
+            }
+        }
+
         if ($dryRun) {
-            EmailLog::create($payload);
+            $reservedLog ? $reservedLog->update($payload) : EmailLog::create($payload);
             return;
         }
 
@@ -55,9 +75,9 @@ class EmailDeliveryService
                 $pendingMail->to($finalRecipients)->send($mailable);
             }
 
-            EmailLog::create($payload);
+            $reservedLog ? $reservedLog->update($payload) : EmailLog::create($payload);
         } catch (\Throwable $e) {
-            EmailLog::create([
+            $failurePayload = [
                 'mail_type' => $payload['mail_type'],
                 'mailable' => $payload['mailable'],
                 'subject' => $payload['subject'],
@@ -71,7 +91,11 @@ class EmailDeliveryService
                 'course_id' => $payload['course_id'],
                 'student_id' => $payload['student_id'],
                 'main_company_id' => $payload['main_company_id'],
-            ]);
+                'training_contract_id' => $payload['training_contract_id'],
+                'channel' => $payload['channel'],
+                'idempotency_key' => $idempotencyKey,
+            ];
+            $reservedLog ? $reservedLog->update($failurePayload) : EmailLog::create($failurePayload);
 
             Log::error('Email delivery failed', [
                 'mail_type' => $payload['mail_type'],

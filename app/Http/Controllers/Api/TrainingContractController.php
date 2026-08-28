@@ -19,6 +19,7 @@ use App\Models\TrainingContractFestival;
 use App\Models\TrainingContractsExcludedDay;
 use App\Models\User;
 use App\Services\TrainingContractCourseCreationService;
+use App\Services\TrainingContractCommunicationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,6 +30,69 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class TrainingContractController extends BaseController
 {
+    public function communicationPreview(
+        int $id,
+        string $type,
+        Request $request,
+        TrainingContractCommunicationService $service
+    ) {
+        try {
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $contract = TrainingContract::whereKey($id)->FilterMainCompany($mainCompanyId)->first();
+            if (!$contract) {
+                return response()->json(['status' => 404, 'message' => 'Contrato formativo no encontrado.'], 404);
+            }
+
+            return $this->sendResponse($service->preview($contract, $type), trans('Obtenido con éxito'));
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['status' => 422, 'message' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            Log::error('Training contract communication preview failed', ['contract_id' => $id, 'message' => $e->getMessage()]);
+            return response()->json(['status' => 400, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function sendCommunication(
+        int $id,
+        string $type,
+        Request $request,
+        TrainingContractCommunicationService $service
+    ) {
+        try {
+            $request->merge(['communication_type' => $type]);
+            $validated = $request->validate([
+                'confirmation_token' => ['required', 'uuid'],
+                'subject' => ['required', 'string', 'max:255'],
+                'body_html' => ['required', 'string', 'max:50000'],
+                'student_subject' => ['nullable', 'required_unless:communication_type,guide', 'string', 'max:255'],
+                'student_body_html' => ['nullable', 'required_unless:communication_type,guide', 'string', 'max:50000'],
+            ]);
+            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $contract = TrainingContract::whereKey($id)->FilterMainCompany($mainCompanyId)->first();
+            if (!$contract) {
+                return response()->json(['status' => 404, 'message' => 'Contrato formativo no encontrado.'], 404);
+            }
+
+            $result = $service->send(
+                $contract,
+                $type,
+                $validated['confirmation_token'],
+                $validated['subject'],
+                $validated['body_html'],
+                $validated['student_subject'] ?? null,
+                $validated['student_body_html'] ?? null,
+                (int) Auth::id()
+            );
+
+            return $this->sendResponse($result, trans('Correo enviado con éxito'));
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['status' => 422, 'message' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            Log::error('Training contract communication failed', ['contract_id' => $id, 'message' => $e->getMessage()]);
+            return response()->json(['status' => 400, 'message' => $e->getMessage()], 400);
+        }
+    }
+
     /**
      * Obtenemos todos los CFA
      * @return \Illuminate\Http\JsonResponse

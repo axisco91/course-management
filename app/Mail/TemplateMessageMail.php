@@ -13,15 +13,26 @@ class TemplateMessageMail extends Mailable
     public function __construct(
         private string $messageSubject,
         private string $messageBody,
-        private string $senderName
+        private string $senderName,
+        private ?string $attachmentPath = null,
+        private ?string $attachmentName = null
     ) {
     }
 
     public function build()
     {
-        return $this->from((string) config('mail.from.address'), $this->senderName)
+        $mail = $this->from((string) config('mail.from.address'), $this->senderName)
             ->subject($this->messageSubject)
             ->view('emails.template_message')
             ->with(['bodyHtml' => $this->messageBody]);
+
+        if ($this->attachmentPath !== null) {
+            $mail->attach($this->attachmentPath, [
+                'as' => $this->attachmentName ?: basename($this->attachmentPath),
+                'mime' => 'application/pdf',
+            ]);
+        }
+
+        return $mail;
     }
 }
