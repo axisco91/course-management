@@ -5,8 +5,10 @@ use App\Helpers\GeneralHelpers;
 use App\Http\Resources\TrainingContractElementResource;
 use App\Models\Certification;
 use App\Models\TrainingAction;
+use App\Models\TrainingContract;
 use App\Models\TrainingContractElement;
 use App\Models\User;
+use App\Services\TrainingContractService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -98,6 +100,12 @@ class TrainingContractElementController extends BaseController
                         ->where('courses.teacher_id', $user->teacher_id);
                 }
                 $elements = $elements->get();
+                $trainingContract = TrainingContract::where('id', $id)
+                    ->FilterMainCompany($mainCompanyId)
+                    ->first();
+                if ($trainingContract) {
+                    app(TrainingContractService::class)->appendAssignedScheduleMetrics($trainingContract, $elements);
+                }
                 $planned = 0;
                 foreach ($elements as $element) {
                     if ($element->certification_total_hours) {
@@ -342,10 +350,23 @@ class TrainingContractElementController extends BaseController
             $data = $request->all();
 
             $element->updateDates($data);
+            $updatedElement = TrainingContractElement::info($mainCompanyId)
+                ->where('training_contract_elements.id', $element->id)
+                ->first();
+            $trainingContract = TrainingContract::where('id', $element->training_contract_id)
+                ->FilterMainCompany($mainCompanyId)
+                ->first();
+
+            if ($trainingContract && $updatedElement) {
+                app(TrainingContractService::class)->appendAssignedScheduleMetrics(
+                    $trainingContract,
+                    collect([$updatedElement])
+                );
+            }
 
             return $this->sendResponse(
                 [
-                    'training_contract_element' => TrainingContractElement::info($mainCompanyId)->where('training_contract_elements.id', $element->id)->first(),
+                    'training_contract_element' => $updatedElement,
                 ],
                 trans('Obtenido con éxito')
             );

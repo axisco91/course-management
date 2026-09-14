@@ -553,6 +553,10 @@ class TrainingContractController extends BaseController
      */
     public function calculateHours($id, Request $request)
     {
+        $validated = $request->validate([
+            'tolerance_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+        ]);
+
         try {
             DB::beginTransaction();
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
@@ -569,7 +573,7 @@ class TrainingContractController extends BaseController
             }
 
             // Calculamos las horas formativas usando un método del modelo
-            $hoursData = $record->calculateHours();
+            $hoursData = $record->calculateHours((float) $validated['tolerance_percentage']);
 
             // Obtenemos el usuario autenticado
             $user = User::find(Auth::id());
@@ -591,11 +595,22 @@ class TrainingContractController extends BaseController
                     'formative_hours_second_year' => $hoursData['formative_hours_second_year'], // Horas del segundo año
                     'total_days' => $hoursData['cont_days_first_year'] + $hoursData['cont_days_second_year'], // Total de días de formación
                     'updated_elements' => $hoursData['updated_elements'], // Elementos actualizados en el proceso
+                    'compacted_days' => $hoursData['compacted_days'],
+                    'compacted_courses' => $hoursData['compacted_courses'],
+                    'effective_tolerance_percentage' => $hoursData['effective_tolerance_percentage'],
+                    'adjustment_warning' => $hoursData['adjustment_warning'],
                     'end_formation' => $record->end_formation, // Fecha de fin de formación
                     'end' => $record->end // Fecha final del contrato
                 ],
                 trans('Obtenido con éxito')
             );
+        } catch (\DomainException $e) {
+            DB::rollback();
+
+            return response()->json([
+                'status' => 422,
+                'message' => $e->getMessage(),
+            ], 422);
         } catch (\Exception $e) {
             // En caso de error, devolvemos una respuesta con el mensaje de la excepción
             DB::rollback();

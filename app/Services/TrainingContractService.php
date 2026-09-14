@@ -7,6 +7,7 @@ use App\Models\TrainingContractElement;
 use App\Models\TrainingContractsExcludedDay;
 use App\Models\TrainingContractFestival;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -206,7 +207,12 @@ class TrainingContractService
      * @return array Un arreglo con los datos actualizados del contrato de formación.
      * @throws Exception Si no hay días laborables en el período del primer año.
      */
-    public function calculateHours($record)
+    public function calculateHours($record, float $tolerancePercentage = 0)
+    {
+        return DB::transaction(fn () => $this->performCalculateHours($record, $tolerancePercentage));
+    }
+
+    private function performCalculateHours($record, float $tolerancePercentage)
     {
         // Recuperamos el contrato de formación por su ID, si no existe lanza una excepción
         $trainingContractId = $record->id;
@@ -262,19 +268,20 @@ class TrainingContractService
         // Actualizamos las fechas de los elementos relacionados al contrato
         $updated_elements = $this->updateDates(
             $trainingContractId,
-            $result['daily_hours_1'],
-            $result['daily_hours_2'],
-            $record->end_formation
+            $result['daily_hours_1_internal'],
+            $result['daily_hours_2_internal'],
+            $record->end_formation,
+            $tolerancePercentage
         );
 
         // Gestionamos la actualización del último elemento si hubo cambios importantes
-        $this->handleLastElementUpdate($record, $updated_elements, $initial_end_formation);
+        $this->handleLastElementUpdate($record, $updated_elements['updated_elements'], $initial_end_formation);
 
         // Registramos en el log que el método ha terminado con éxito
         Log::info('Fin de calculateHours', $result);
 
         // Devolvemos el resultado combinado con los elementos actualizados
-        return array_merge($result, ['updated_elements' => $updated_elements]);
+        return array_merge($result, $updated_elements);
     }
 
 
@@ -437,16 +444,18 @@ class TrainingContractService
             }
         }
 
-        // Calculamos las horas diarias para cada año, redondeando a dos decimales
-        $daily_hours_1 = $cont_days_first_year > 0 ? round($bonus_hours_first_year / $cont_days_first_year, 2) : 0;
-        $daily_hours_2 = $cont_days_second_year > 0 ? round($bonus_hours_second_year / $cont_days_second_year, 2) : 0;
+        // Conservamos la precisión completa para el calendario y redondeamos solo los valores visibles.
+        $daily_hours_1_internal = $cont_days_first_year > 0 ? $bonus_hours_first_year / $cont_days_first_year : 0;
+        $daily_hours_2_internal = $cont_days_second_year > 0 ? $bonus_hours_second_year / $cont_days_second_year : 0;
 
         // Devolvemos los resultados en un array estructurado
         return [
             'formative_hours_first_year' => round($bonus_hours_first_year, 2),
             'formative_hours_second_year' => round($bonus_hours_second_year, 2),
-            'daily_hours_1' => $daily_hours_1,
-            'daily_hours_2' => $daily_hours_2,
+            'daily_hours_1' => round($daily_hours_1_internal, 2),
+            'daily_hours_2' => round($daily_hours_2_internal, 2),
+            'daily_hours_1_internal' => $daily_hours_1_internal,
+            'daily_hours_2_internal' => $daily_hours_2_internal,
             'cont_days_first_year' => $cont_days_first_year,
             'cont_days_second_year' => $cont_days_second_year,
             'total_days' => $totalDays
@@ -545,10 +554,9 @@ class TrainingContractService
      * @param string|null $end_formation La fecha de finalización de la formación (opcional).
      * @return \Illuminate\Support\Collection La colección de elementos actualizados.
      */
-    private function updateDates($trainingContractId, $daily_hours_1, $daily_hours_2, $end_formation = null)
+    private function updateDates($trainingContractId, $daily_hours_1, $daily_hours_2, $end_formation = null, float $tolerancePercentage = 0)
     {
         $trainingContract = TrainingContract::find($trainingContractId);
-        $updated_elements = collect();
         $end_formation_carbon = $end_formation ? Carbon::parse($end_formation) : null;
 
         $trainingContractElements = TrainingContractElement::with(['training_action', 'certification'])
@@ -556,89 +564,335 @@ class TrainingContractService
             ->orderBy('order', 'asc')
             ->get();
 
-        foreach($trainingContractElements as $trainingContractElement) {
-            if (!$trainingContractElement->course_id ) {
-                $trainingContractElement->update([
+        Log::info('Total de elementos recuperados', ['count' => $trainingContractElements->count()]);
+
+        if ($trainingContractElements->isEmpty()) {
+            return [
+                'updated_elements' => collect($this->handleEmptyElements($trainingContract)),
+                'compacted_days' => 0,
+                'compacted_courses' => 0,
+                'effective_tolerance_percentage' => 0,
+                'adjustment_warning' => null,
+            ];
+        }
+
+        $calendar = $this->loadItineraryCalendar($trainingContract);
+        $targetEnd = $this->lastWorkingDayOnOrBefore($end_formation_carbon, $trainingContract, $calendar);
+        $compactedDayCounts = [];
+        $usedTolerancePercentages = [];
+        $simulation = $this->simulateElementDates(
+            $trainingContractElements,
+            $trainingContract,
+            $daily_hours_1,
+            $daily_hours_2,
+            $compactedDayCounts,
+            $tolerancePercentage,
+            $calendar
+        );
+
+        while ($simulation['last_end'] && $simulation['last_end']->gt($targetEnd)) {
+            $candidates = collect($simulation['candidates'])
+                ->sort(function ($left, $right) {
+                    $coverageComparison = $right['currently_meets_hours'] <=> $left['currently_meets_hours'];
+                    if ($coverageComparison !== 0) {
+                        return $coverageComparison;
+                    }
+
+                    $hoursComparison = $right['element_hours'] <=> $left['element_hours'];
+
+                    return $hoursComparison !== 0
+                        ? $hoursComparison
+                        : $left['resulting_deficit_percentage'] <=> $right['resulting_deficit_percentage'];
+                });
+            $selectedCandidate = null;
+            $selectedSimulation = null;
+
+            foreach ($candidates as $candidate) {
+                $trialCounts = $compactedDayCounts;
+                $trialCounts[$candidate['element_id']] = ($trialCounts[$candidate['element_id']] ?? 0) + 1;
+                $trial = $this->simulateElementDates(
+                    $trainingContractElements,
+                    $trainingContract,
+                    $daily_hours_1,
+                    $daily_hours_2,
+                    $trialCounts,
+                    $tolerancePercentage,
+                    $calendar
+                );
+
+                if (
+                    ($trial['applied_compactions'][$candidate['element_id']] ?? 0) === $trialCounts[$candidate['element_id']]
+                    && $trial['last_end']
+                    && $trial['last_end']->lt($simulation['last_end'])
+                ) {
+                    $selectedCandidate = $candidate;
+                    $selectedSimulation = $trial;
+                    break;
+                }
+            }
+
+            if (!$selectedCandidate || !$selectedSimulation) {
+                throw new \DomainException(
+                    'El itinerario no cabe con la tolerancia máxima indicada. Amplía la fecha final o aumenta la tolerancia.'
+                );
+            }
+
+            $compactedDayCounts = $selectedSimulation['applied_compactions'];
+            $usedTolerancePercentages[$selectedCandidate['element_id']] = $selectedCandidate['resulting_deficit_percentage'];
+            $simulation = $selectedSimulation;
+        }
+
+        $warning = null;
+        if (!$simulation['last_end'] || !$simulation['last_end']->equalTo($targetEnd)) {
+            $warning = 'Las fechas de los cursos ya creados impiden ocupar exactamente todo el período formativo.';
+        }
+
+        foreach ($trainingContractElements as $element) {
+            if ($element->course_id === null) {
+                $element->update($simulation['assignments'][$element->id] ?? [
                     'beginning' => null,
                     'end' => null,
                 ]);
             }
         }
 
-        Log::info('Total de elementos recuperados', ['count' => $trainingContractElements->count()]);
+        $effectivePercentages = array_intersect_key(
+            $usedTolerancePercentages,
+            $compactedDayCounts
+        );
 
-        if ($trainingContractElements->isEmpty()) {
-            return $this->handleEmptyElements($trainingContract);
+        $freshElements = $trainingContractElements->fresh(['training_action', 'certification']);
+        $this->appendAssignedScheduleMetrics($trainingContract, $freshElements);
+
+        return [
+            'updated_elements' => $freshElements,
+            'compacted_days' => array_sum($compactedDayCounts),
+            'compacted_courses' => count($compactedDayCounts),
+            'effective_tolerance_percentage' => empty($effectivePercentages)
+                ? 0
+                : round(max($effectivePercentages), 2),
+            'adjustment_warning' => $warning,
+        ];
+    }
+
+    public function appendAssignedScheduleMetrics(TrainingContract $trainingContract, $elements)
+    {
+        $calendar = $this->loadItineraryCalendar($trainingContract);
+        $firstYearLimit = Carbon::parse($trainingContract->beginning_formation)->addYear();
+
+        foreach ($elements as $element) {
+            $assignedTrainingDays = 0;
+            $assignedHours = 0.0;
+
+            if ($element->beginning && $element->end) {
+                $date = Carbon::parse($element->beginning);
+                $end = Carbon::parse($element->end);
+
+                while ($date->lte($end)) {
+                    if ($this->isItineraryWorkingDay($date, $trainingContract, $calendar)) {
+                        $assignedTrainingDays++;
+                        $dailyHours = $date->lt($firstYearLimit)
+                            ? (float) $trainingContract->daily_hours_1
+                            : (float) $trainingContract->daily_hours_2;
+                        if ($dailyHours <= 0) {
+                            $dailyHours = max(
+                                (float) $trainingContract->daily_hours_1,
+                                (float) $trainingContract->daily_hours_2
+                            );
+                        }
+                        $assignedHours += $dailyHours;
+                    }
+
+                    $date->addDay();
+                }
+            }
+
+            $element->setAttribute('assigned_training_days', $assignedTrainingDays);
+            $element->setAttribute('assigned_hours', round($assignedHours, 2));
         }
 
+        return $elements;
+    }
+
+    private function simulateElementDates(
+        $elements,
+        $trainingContract,
+        float $dailyHoursFirstYear,
+        float $dailyHoursSecondYear,
+        array $compactedDayCounts,
+        float $maximumTolerance,
+        array $calendar
+    ): array {
         $beginning = Carbon::parse($trainingContract->beginning_formation);
-        $first_year_limit = $beginning->copy()->addYear();
+        $firstYearLimit = $beginning->copy()->addYear();
         $currentDate = $beginning->copy();
+        $assignments = [];
+        $candidates = [];
+        $appliedCompactions = [];
+        $lastEnd = null;
 
-        foreach ($trainingContractElements as $element) {
+        foreach ($elements as $element) {
             if ($element->course_id !== null) {
-                $updated_elements->push($element);
-
                 if ($element->end) {
-                    $currentDate = Carbon::parse($element->end)->copy()->addDay();
-
-                    while ($currentDate->lte($end_formation_carbon) && !$this->isWorkingDay($currentDate, $trainingContract)) {
-                        $currentDate->addDay();
-                    }
+                    $lastEnd = Carbon::parse($element->end);
+                    $currentDate = $lastEnd->copy()->addDay();
                 }
-
                 continue;
             }
 
-            if ($element->training_action) {
-                $elementHours = $element->training_action ? $element->training_action->total_hours : 0;
-            } else {
-                $elementHours = $element->certification ? $element->certification->total_hours : 0;
+            $elementHours = (float) ($element->training_action?->total_hours
+                ?? $element->certification?->total_hours
+                ?? 0);
+            if ($elementHours <= 0) {
+                throw new \DomainException('Hay un elemento del itinerario sin horas formativas válidas.');
             }
 
-            $accumulatedHours = 0;
-            $courseStart = null;
-            $courseEnd = null;
+            $accumulatedHours = 0.0;
+            $strictDays = [];
+            $scanDate = $currentDate->copy();
 
-            while ($accumulatedHours < $elementHours && $currentDate->lte($end_formation_carbon)) {
-                if ($this->isWorkingDay($currentDate, $trainingContract)) {
-                    // Decide which daily hours apply (first or second year)
-                    $current_daily_hours = $currentDate->lt($first_year_limit)
-                        ? $daily_hours_1
-                        : $daily_hours_2;
-
-                    // Determine how many hours we can allocate today
-                    $hoursToday = min($current_daily_hours, $elementHours - $accumulatedHours);
-
-                    if ($courseStart === null) {
-                        $courseStart = $currentDate->copy();
-                    }
-
-                    $accumulatedHours += $hoursToday;
-                    $courseEnd = $currentDate->copy();
+            while ($accumulatedHours + 0.0000001 < $elementHours) {
+                $scanDate = $this->nextWorkingDay($scanDate, $trainingContract, $calendar);
+                $dailyHours = $scanDate->lt($firstYearLimit)
+                    ? $dailyHoursFirstYear
+                    : $dailyHoursSecondYear;
+                if (
+                    $dailyHours <= 0
+                    && $trainingContract->end_formation
+                    && $scanDate->gt(Carbon::parse($trainingContract->end_formation))
+                ) {
+                    // Para medir el exceso estricto podemos simular fuera del período con la última tarifa válida.
+                    $dailyHours = max($dailyHoursFirstYear, $dailyHoursSecondYear);
+                }
+                if ($dailyHours <= 0) {
+                    throw new \DomainException('No hay horas diarias disponibles para completar el itinerario.');
                 }
 
-                $currentDate->addDay();
+                $allocatedHours = min($dailyHours, $elementHours - $accumulatedHours);
+                $strictDays[] = [
+                    'date' => $scanDate->copy(),
+                    'capacity' => $dailyHours,
+                    'allocated' => $allocatedHours,
+                ];
+                $accumulatedHours += $allocatedHours;
+                $scanDate->addDay();
             }
 
-            $element->update([
-                'beginning' => $courseStart ? $courseStart->toDateString() : null,
-                'end' => $courseEnd ? $courseEnd->toDateString() : null
-            ]);
-
-            $updated_elements->push($element);
-
-            // Skip non-working days after setting new current date
-            while ($currentDate->lte($end_formation_carbon) && !$this->isWorkingDay($currentDate, $trainingContract)) {
-                $currentDate->addDay();
+            $requestedRemovals = (int) ($compactedDayCounts[$element->id] ?? 0);
+            $appliedRemovals = min($requestedRemovals, max(0, count($strictDays) - 1));
+            $retainedDays = array_slice($strictDays, 0, count($strictDays) - $appliedRemovals);
+            if ($appliedRemovals > 0) {
+                $appliedCompactions[$element->id] = $appliedRemovals;
             }
 
-            if ($currentDate->gt($end_formation_carbon)) {
-                break;
+            $courseStart = $retainedDays[0]['date'];
+            $courseEnd = $retainedDays[count($retainedDays) - 1]['date'];
+            $assignedCapacity = array_sum(array_column($retainedDays, 'capacity'));
+            $currentDate = $courseEnd->copy()->addDay();
+
+            if (count($retainedDays) > 1) {
+                $capacityAfterRemoval = $assignedCapacity - $retainedDays[count($retainedDays) - 1]['capacity'];
+                $resultingDeficit = max(0, $elementHours - $capacityAfterRemoval);
+                $resultingDeficitPercentage = ($resultingDeficit / $elementHours) * 100;
+
+                if ($resultingDeficitPercentage <= $maximumTolerance + 0.0000001) {
+                    $candidates[] = [
+                        'element_id' => $element->id,
+                        'element_hours' => $elementHours,
+                        'currently_meets_hours' => $assignedCapacity + 0.0000001 >= $elementHours,
+                        'resulting_deficit_percentage' => $resultingDeficitPercentage,
+                    ];
+                }
+            }
+
+            $assignments[$element->id] = [
+                'beginning' => $courseStart?->toDateString(),
+                'end' => $courseEnd?->toDateString(),
+            ];
+            $lastEnd = $courseEnd;
+        }
+
+        return [
+            'assignments' => $assignments,
+            'candidates' => $candidates,
+            'applied_compactions' => $appliedCompactions,
+            'last_end' => $lastEnd,
+        ];
+    }
+
+    private function loadItineraryCalendar(TrainingContract $trainingContract): array
+    {
+        $excludedDays = TrainingContractsExcludedDay::where('training_contract_id', $trainingContract->id)
+            ->where('main_company_id', $trainingContract->main_company_id)
+            ->where('valid', 1)
+            ->pluck('day')
+            ->map(fn ($day) => Carbon::parse($day)->toDateString())
+            ->all();
+        $festivalDays = TrainingContractFestival::festivals($trainingContract->main_company_id)
+            ->where('training_contract_festivals.training_contract_id', $trainingContract->id)
+            ->get()
+            ->pluck('day')
+            ->filter()
+            ->map(fn ($day) => Carbon::parse($day)->toDateString())
+            ->all();
+
+        return [
+            'excluded' => array_fill_keys($excludedDays, true),
+            'festivals' => array_fill_keys($festivalDays, true),
+        ];
+    }
+
+    private function isItineraryWorkingDay(
+        Carbon $date,
+        TrainingContract $trainingContract,
+        array $calendar
+    ): bool {
+        if ($date->isWeekend()) {
+            return false;
+        }
+
+        $dateString = $date->toDateString();
+        if (isset($calendar['excluded'][$dateString]) || isset($calendar['festivals'][$dateString])) {
+            return false;
+        }
+
+        $dayOfWeek = strtolower($date->format('l'));
+        return $trainingContract->$dayOfWeek === 1;
+    }
+
+    private function nextWorkingDay(
+        Carbon $date,
+        TrainingContract $trainingContract,
+        array $calendar
+    ): Carbon
+    {
+        $attempts = 0;
+        while (!$this->isItineraryWorkingDay($date, $trainingContract, $calendar)) {
+            $date->addDay();
+            if (++$attempts > 3660) {
+                throw new \DomainException('No se han encontrado días laborables para completar el itinerario.');
             }
         }
 
-        return $updated_elements;
+        return $date;
+    }
+
+    private function lastWorkingDayOnOrBefore(
+        Carbon $date,
+        TrainingContract $trainingContract,
+        array $calendar
+    ): Carbon
+    {
+        $target = $date->copy();
+        $attempts = 0;
+        while (!$this->isItineraryWorkingDay($target, $trainingContract, $calendar)) {
+            $target->subDay();
+            if (++$attempts > 3660) {
+                throw new \DomainException('No se ha encontrado un día laborable al final de la formación.');
+            }
+        }
+
+        return $target;
     }
 
     /**
@@ -799,7 +1053,13 @@ class TrainingContractService
             : $updated_elements->last();
 
         // Verificamos que haya un último elemento y que el contrato tenga una fecha de fin de formación
-        if ($lastElement && $record->end_formation && !$lastElement->course_id && $lastElement->end) {
+        if (
+            $initial_end_formation === null
+            && $lastElement
+            && $record->end_formation
+            && !$lastElement->course_id
+            && $lastElement->end
+        ) {
             // Obtenemos la fecha de fin actual del último elemento
             $lastDate = Carbon::parse($lastElement->end); // Nota: el campo es 'end', no 'end_date'
 

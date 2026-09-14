@@ -106,10 +106,10 @@ class TrainingContract extends Model
         return $query->where('training_contracts.main_company_id', $mainCompanyId);
     }
 
-    public function calculateHours()
+    public function calculateHours(float $tolerancePercentage = 0)
     {
         $service = app(TrainingContractService::class);
-        return $service->calculateHours($this);
+        return $service->calculateHours($this, $tolerancePercentage);
     }
 
     public function calculateMonthlyFormationHours()
