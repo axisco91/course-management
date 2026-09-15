@@ -658,6 +658,27 @@ class TrainingContractController extends BaseController
         }
     }
 
+    public function updateDocumentFields($id, Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $trainingContract = TrainingContract::where('id', $id)
+            ->FilterMainCompany($mainCompanyId)
+            ->firstOrFail();
+
+        $data = $request->validate([
+            'remuneration' => ['required', 'string', 'max:255'],
+            'remuneration_period' => ['required', 'string', 'max:255'],
+            'annual_holidays' => ['required', 'string', 'max:255'],
+        ]);
+
+        $trainingContract->update($data);
+
+        return $this->sendResponse(
+            ['training_contract' => $trainingContract->fresh()],
+            trans('Guardado con éxito')
+        );
+    }
+
     /**
      * Calcula las fechas de finalización del contrato y de la formación
      * @param $trainingContractId

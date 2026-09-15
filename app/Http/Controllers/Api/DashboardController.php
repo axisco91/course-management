@@ -518,7 +518,12 @@ class DashboardController extends BaseController
             $studentLabel = trim(($tracing->student_name ?? $tracing->student?->name ?? '') . ' ' . ($tracing->student_surname ?? $tracing->student?->surname ?? ''));
 
             $definitions = [
-                ['kind' => 'start', 'label' => 'Inicio curso', 'message' => 0],
+                [
+                    'kind' => 'start',
+                    'label' => 'Inicio curso',
+                    'message' => 0,
+                    'messageSent' => (int) ($tracing->welcome_message ?? 0),
+                ],
                 ['key' => 'quarter', 'label' => '25%', 'message' => (int) ($tracing->quarter_message ?? 0)],
                 ['key' => 'half', 'label' => '50%', 'message' => (int) ($tracing->half_message ?? 0)],
                 ['key' => 'three_quarters', 'label' => '75%', 'message' => (int) ($tracing->three_quarters_message ?? 0)],
@@ -544,6 +549,7 @@ class DashboardController extends BaseController
                         'tracingId' => $tracing->id,
                         'tracing' => $this->serializeTracingForCalendar($tracing),
                         'dateKind' => $definition['kind'] ?? $definition['key'],
+                        'messageSent' => ($definition['messageSent'] ?? $definition['message']) === 1,
                     ],
                 ];
             }

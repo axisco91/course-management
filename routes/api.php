@@ -866,6 +866,7 @@ Route::middleware('auth:sanctum')->group( function () {
             Route::get('export-excel', 'exportExcel');
             Route::post('', 'store');
             Route::put('update-additional-clause/{id}', 'updateAdditionalClause');
+            Route::put('{id}/document-fields', 'updateDocumentFields');
             Route::delete('{id}', 'destroy');
             Route::get('cfa-number', 'getCFANumber');
             Route::get('specialties/{id}', 'getSpecialties');

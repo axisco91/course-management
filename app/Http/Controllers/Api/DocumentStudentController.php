@@ -314,6 +314,12 @@ class DocumentStudentController extends BaseController
         try {
             $data = $this->prepareDataForPdf($trainingContract, $mainCompanyId);
 
+            if (str_contains($viewName, 'ContratoFormacion') || str_contains($viewName, 'contratoFormacionAlternancia')) {
+                $data['remuneration'] = $trainingContract->remuneration;
+                $data['remuneration_period'] = $trainingContract->remuneration_period;
+                $data['annual_holidays'] = $trainingContract->annual_holidays;
+            }
+
             // Verifica si todas las variables necesarias están presentes
             Log::info('Data prepared for PDF:', array_keys($data));
 

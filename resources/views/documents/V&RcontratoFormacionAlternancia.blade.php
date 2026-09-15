@@ -437,11 +437,11 @@
     <br>
 
     <h3 class="no-line-break">CUARTA: </h3>
-    <p class="no-line-break"> el/la trabajador/a percibirá por la prestación de sus servicios una retribución de (15) <span class="dots"> s/convenio </span>euros brutos (16) <span class="dots"> s/convenio </span> </p>
+    <p class="no-line-break"> el/la trabajador/a percibirá por la prestación de sus servicios una retribución de (15) <span class="dots"> {{ $remuneration }} </span>euros brutos (16) <span class="dots"> {{ $remuneration_period }} </span> </p>
     <br>
 
     <h3 class="no-line-break">QUINTA: </h3>
-    <p class="no-line-break"> la duración de las vacaciones anuales será (17) <span class="dots"> s/convenio </span></p>
+    <p class="no-line-break"> la duración de las vacaciones anuales será (17) <span class="dots"> {{ $annual_holidays }} </span></p>
     <br>
 
     <h3 class="no-line-break">SEXTA: </h3>
