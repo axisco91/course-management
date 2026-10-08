@@ -9,10 +9,12 @@ use App\Models\TrainingContract;
 use App\Models\TrainingContractElement;
 use App\Models\User;
 use App\Services\TrainingContractService;
+use App\Services\TrainingContractCompletionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 
 class TrainingContractElementController extends BaseController
@@ -132,6 +134,11 @@ class TrainingContractElementController extends BaseController
     public function store($id, Request $request){
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+            $contract = TrainingContract::whereKey($id)->FilterMainCompany($mainCompanyId)->firstOrFail();
+            if ($request['element_type'] === 'training_action_id') {
+                app(TrainingContractCompletionService::class)
+                    ->assertTrainingActionCanBeAdded($contract, (int) $request['id']);
+            }
             $data = [
                 'training_contract_id' => $id,
                 'element_id' => $request['id'],
@@ -170,6 +177,12 @@ class TrainingContractElementController extends BaseController
                 ],
                 trans('Creado con éxito')
             );
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 422,
+                'message' => collect($e->errors())->flatten()->first() ?: 'La especialidad no se puede añadir.',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e){
             return response()->json([
                 'status' => 400,

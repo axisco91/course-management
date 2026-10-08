@@ -190,9 +190,9 @@ class TrainingContractElement extends Model
     }
 
     public function scopeTrainingContracts($query, $trainingContractId, $mainCompanyId){
-        return $query->where('training_contract_id', $trainingContractId)
+        return $query->where('training_contract_elements.training_contract_id', $trainingContractId)
             ->where('training_contract_elements.main_company_id', $mainCompanyId)
-            ->orderBy('order', 'asc');
+            ->orderBy('training_contract_elements.order', 'asc');
     }
 
     public function scopeFilterMainCompany($query, $mainCompanyId) {

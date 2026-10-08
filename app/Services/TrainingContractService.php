@@ -13,6 +13,21 @@ use Exception;
 
 class TrainingContractService
 {
+    private function chainFormationBeginning(TrainingContract $contract): Carbon
+    {
+        if ($contract->original_training_contract_id) {
+            $original = $contract->relationLoaded('originalContract')
+                ? $contract->originalContract
+                : $contract->originalContract()->first();
+
+            if ($original?->beginning) {
+                return Carbon::parse($original->beginning);
+            }
+        }
+
+        return Carbon::parse($contract->beginning);
+    }
+
     private function normalizeNumber($value, $default = 0)
     {
         if ($value === null || $value === '') {
@@ -145,6 +160,14 @@ class TrainingContractService
     public function update(TrainingContract $trainingContract, array $data) {
         $bonusYearOne = $this->normalizeNumber($data['bonus_hours_first_year'] ?? null);
         $bonusYearTwo = $this->normalizeNumber($data['bonus_hours_second_year'] ?? null);
+        $firstYearClosed = $trainingContract->original_training_contract_id
+            && Carbon::parse($trainingContract->beginning)->gte(
+                $this->chainFormationBeginning($trainingContract)->addYear()
+            );
+
+        if ($firstYearClosed) {
+            $bonusYearOne = $this->normalizeNumber($trainingContract->bonus_hours_first_year);
+        }
 
         $trainingContract->update([
             'company_id' => $data['company_id'],
@@ -173,9 +196,13 @@ class TrainingContractService
             'on_leave_date' => $this->normalizeDate($data['on_leave_date'] ?? null),
             'advisor_id' => $data['advisor_id'],
             'collaborator_id' => $data['collaborator_id'],
-            'percentage_first_year' => $this->normalizeNumber($data['percentage_first_year'] ?? $trainingContract->percentage_first_year),
+            'percentage_first_year' => $firstYearClosed
+                ? $trainingContract->percentage_first_year
+                : $this->normalizeNumber($data['percentage_first_year'] ?? $trainingContract->percentage_first_year),
             'percentage_second_year' => $this->normalizeNumber($data['percentage_second_year'] ?? null),
-            'formative_hours_first_year' => $this->normalizeNumber($data['formative_hours_first_year'] ?? null),
+            'formative_hours_first_year' => $firstYearClosed
+                ? $trainingContract->formative_hours_first_year
+                : $this->normalizeNumber($data['formative_hours_first_year'] ?? null),
             'formative_hours_second_year' => $this->normalizeNumber($data['formative_hours_second_year'] ?? null),
             'provider_id' => $data['provider_id'],
             'disabled' => $data['disabled'],
@@ -192,7 +219,9 @@ class TrainingContractService
             'sunday' => $data['sunday'],
             'total_hours' => $bonusYearOne + $bonusYearTwo,
             'observations' => $data['observations'],
-            'daily_hours_1' => $this->normalizeNumber($data['daily_hours_1'] ?? null),
+            'daily_hours_1' => $firstYearClosed
+                ? $trainingContract->daily_hours_1
+                : $this->normalizeNumber($data['daily_hours_1'] ?? null),
             'daily_hours_2' => $this->normalizeNumber($data['daily_hours_2'] ?? null),
             'bonification' => $data['bonification'] ?? $trainingContract->bonification,
         ]);
@@ -230,7 +259,7 @@ class TrainingContractService
         Log::info('Registro recuperado', ['record' => $record->toArray()]);
 
         // Convertimos la fecha de inicio de la formación a un objeto Carbon
-        $beginning_formation_carbon = Carbon::parse($record->beginning_formation);
+        $beginning_formation_carbon = $this->chainFormationBeginning($record);
 
         // Calculamos el total de horas de formación usando un método auxiliar
         $total_hours = $this->calculateTotalHours($trainingContractId);
@@ -684,7 +713,7 @@ class TrainingContractService
     public function appendAssignedScheduleMetrics(TrainingContract $trainingContract, $elements)
     {
         $calendar = $this->loadItineraryCalendar($trainingContract);
-        $firstYearLimit = Carbon::parse($trainingContract->beginning_formation)->addYear();
+        $firstYearLimit = $this->chainFormationBeginning($trainingContract)->addYear();
 
         foreach ($elements as $element) {
             $assignedTrainingDays = 0;
@@ -730,7 +759,7 @@ class TrainingContractService
         array $calendar
     ): array {
         $beginning = Carbon::parse($trainingContract->beginning_formation);
-        $firstYearLimit = $beginning->copy()->addYear();
+        $firstYearLimit = $this->chainFormationBeginning($trainingContract)->addYear();
         $currentDate = $beginning->copy();
         $assignments = [];
         $candidates = [];
@@ -912,7 +941,7 @@ class TrainingContractService
         list($cont_days_first_year, $cont_days_second_year, $total_days) = $this->calculateWorkingDays(
             Carbon::parse($trainingContract->beginning_formation),
             Carbon::parse($trainingContract->end_formation),
-            Carbon::parse($trainingContract->beginning_formation),
+            $this->chainFormationBeginning($trainingContract),
             $trainingContract
         );
 
@@ -1091,6 +1120,7 @@ class TrainingContractService
         $record = TrainingContract::findOrFail($trainingContractId);
 
         $beginning_date = Carbon::parse($record->beginning_formation);
+        $chain_beginning_date = $this->chainFormationBeginning($record);
         $end_date = Carbon::parse($record->end_formation);
 
         $monthly_formation_hours = [];
@@ -1106,7 +1136,7 @@ class TrainingContractService
                 }
             }
 
-            $daily_hours = $date->lt($beginning_date->copy()->addYear()) ? $record->daily_hours_1 : $record->daily_hours_2;
+            $daily_hours = $date->lt($chain_beginning_date->copy()->addYear()) ? $record->daily_hours_1 : $record->daily_hours_2;
             $monthly_formation_hours[$date->format('Y-m')] = $cont_days * $daily_hours;
         }
 
@@ -1127,13 +1157,14 @@ class TrainingContractService
     {
         $formative_hours_first_year = 0;
         $formative_hours_second_year = 0;
-        $first_year_end = Carbon::parse($record->beginning_formation)->addYear()->subDay();
+        $chainBeginning = $this->chainFormationBeginning($record);
+        $first_year_end = $chainBeginning->copy()->addYear()->subDay();
 
         foreach ($updated_elements as $element) {
             $element_start = Carbon::parse($element->beginning);
             $element_end = Carbon::parse($element->end);
             $element_days = $this->countWorkingDays($record, $element_start, $element_end);
-            $daily_hours = $this->getDailyHours($element_start, Carbon::parse($record->beginning_formation), $record->daily_hours_1, $record->daily_hours_2);
+            $daily_hours = $this->getDailyHours($element_start, $chainBeginning, $record->daily_hours_1, $record->daily_hours_2);
 
             if ($element_end->lte($first_year_end)) {
                 $formative_hours_first_year += $element_days * $daily_hours;
@@ -1143,7 +1174,7 @@ class TrainingContractService
                 $first_year_days = $this->countWorkingDays($record, $element_start, $first_year_end);
                 $second_year_days = $element_days - $first_year_days;
                 $formative_hours_first_year += $first_year_days * $daily_hours;
-                $formative_hours_second_year += $second_year_days * $this->getDailyHours($first_year_end->addDay(), Carbon::parse($record->beginning_formation), $record->daily_hours_1, $record->daily_hours_2);
+                $formative_hours_second_year += $second_year_days * $this->getDailyHours($first_year_end->addDay(), $chainBeginning, $record->daily_hours_1, $record->daily_hours_2);
             }
         }
 

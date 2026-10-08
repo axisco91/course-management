@@ -34,6 +34,26 @@ class TrainingContract extends Model
         return $this->hasMany(TrainingContractElement::class);
     }
 
+    public function originalContract()
+    {
+        return $this->belongsTo(self::class, 'original_training_contract_id');
+    }
+
+    public function previousContract()
+    {
+        return $this->belongsTo(self::class, 'previous_training_contract_id');
+    }
+
+    public function nextRenewal()
+    {
+        return $this->hasOne(self::class, 'previous_training_contract_id');
+    }
+
+    public function renewals()
+    {
+        return $this->hasMany(self::class, 'original_training_contract_id')->orderBy('extension_sequence');
+    }
+
     public function trainingContractFestivals()
     {
         return $this->hasMany(TrainingContractFestival::class);
@@ -98,7 +118,10 @@ class TrainingContract extends Model
                 'advisor:id,name',
                 'collaborator:id,name,surname',
                 'occupation:id,name',
+                'originalContract:id,beginning',
+                'nextRenewal:id,previous_training_contract_id',
             ])
+            ->withCount('nextRenewal')
             ->where('training_contracts.main_company_id', $mainCompanyId);
     }
 

@@ -20,6 +20,8 @@ use App\Models\TrainingContractsExcludedDay;
 use App\Models\User;
 use App\Services\TrainingContractCourseCreationService;
 use App\Services\TrainingContractCommunicationService;
+use App\Services\TrainingContractCompletionService;
+use App\Services\TrainingContractRenewalService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -140,6 +142,7 @@ class TrainingContractController extends BaseController
                 'beginning' => 'training_contracts.beginning',
                 'end_date' => 'training_contracts.end',
                 'end' => 'training_contracts.end',
+                'contract_type' => 'training_contracts.extension_sequence',
             ];
 
             // Join only when the sort field belongs to a related table.
@@ -447,6 +450,13 @@ class TrainingContractController extends BaseController
                     ]);
                 }
 
+                if ($trainingContract->nextRenewal()->exists()) {
+                    return response()->json([
+                        'status' => 422,
+                        'message' => 'No se puede eliminar un contrato que tiene una prórroga posterior. Elimine primero la última prórroga.'
+                    ], 422);
+                }
+
                 TrainingContract::destroy($id);
                 return $this->sendResponse(
                     [],
@@ -459,6 +469,24 @@ class TrainingContractController extends BaseController
                 ]);
             }
         }
+    }
+
+    public function renewal(int $id, Request $request, TrainingContractRenewalService $service)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        abort_unless($request->user() && $request->user()->can('edit.training_contracts'), 403, 'No tiene permisos para esta acción.');
+
+        $validated = $request->validate([
+            'end' => ['required', 'date_format:Y-m-d'],
+        ]);
+        $contract = TrainingContract::whereKey($id)->FilterMainCompany($mainCompanyId)->firstOrFail();
+        $renewal = $service->create($contract, $validated['end']);
+
+        return $this->sendResponse([
+            'training_contract' => TrainingContract::getTrainingContracts($mainCompanyId)
+                ->where('training_contracts.id', $renewal->id)
+                ->first(),
+        ], 'Prórroga creada como nuevo contrato.');
     }
 
     /**
@@ -500,10 +528,16 @@ class TrainingContractController extends BaseController
         if ($id) {
             try {
                $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+                $contract = TrainingContract::whereKey($id)->FilterMainCompany($mainCompanyId)->firstOrFail();
+                $passedIds = app(TrainingContractCompletionService::class)->passedTrainingActionIds($contract);
+                $specialties = TrainingAction::getSpecialties($id, $mainCompanyId)->get()
+                    ->each(function ($specialty) use ($passedIds) {
+                        $specialty->previously_passed_in_chain = $passedIds->contains((int) $specialty->id);
+                    });
 
                 return $this->sendResponse(
                     [
-                        'training_action_specialties' => TrainingAction::getSpecialties($id, $mainCompanyId)->get(),
+                        'training_action_specialties' => $specialties,
                     ],
                     trans('Obtenido con éxito')
                 );

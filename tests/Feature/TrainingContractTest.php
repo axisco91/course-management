@@ -8,13 +8,82 @@ use App\Models\TrainingContractElement;
 use App\Models\TrainingContractFestival;
 use App\Models\TrainingContractsExcludedDay;
 use App\Services\TrainingContractService;
+use App\Services\TrainingContractRenewalService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class TrainingContractTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function testRenewalIsCreatedAsAnIndependentConsecutiveContract(): void
+    {
+        DB::table('training_contract_statuses')->insert(['id' => 1, 'name' => 'TRAMITACIÓN']);
+        $contract = TrainingContract::create([
+            'company_id' => 1,
+            'student_id' => 1,
+            'beginning' => '2026-01-01',
+            'end' => '2026-06-30',
+            'beginning_formation' => '2026-01-01',
+            'end_formation' => '2026-06-30',
+            'main_company_id' => null,
+        ]);
+        $element = TrainingContractElement::create([
+            'training_contract_id' => $contract->id,
+            'order' => 1,
+            'beginning' => '2026-05-01',
+            'end' => '2026-05-31',
+            'main_company_id' => null,
+        ]);
+        $renewal = app(TrainingContractRenewalService::class)->create($contract, '2026-09-30');
+
+        $this->assertSame('2026-07-01', $renewal->beginning);
+        $this->assertSame('2026-09-30', $renewal->end);
+        $this->assertSame($contract->id, $renewal->original_training_contract_id);
+        $this->assertSame($contract->id, $renewal->previous_training_contract_id);
+        $this->assertSame(1, $renewal->extension_sequence);
+        $this->assertCount(0, $renewal->trainingContractElements);
+        $this->assertSame('2026-05-01', $element->fresh()->beginning);
+        $this->assertSame('2026-05-31', $element->fresh()->end);
+    }
+
+    public function testRenewalCannotBranchFromAContractThatAlreadyHasANextRenewal(): void
+    {
+        DB::table('training_contract_statuses')->insert(['id' => 1, 'name' => 'TRAMITACIÓN']);
+        $contract = TrainingContract::create([
+            'company_id' => 1,
+            'student_id' => 1,
+            'beginning' => '2026-01-01',
+            'end' => '2026-06-30',
+            'beginning_formation' => '2026-01-01',
+            'end_formation' => '2026-06-30',
+            'main_company_id' => null,
+        ]);
+        $service = app(TrainingContractRenewalService::class);
+        $service->create($contract, '2026-09-30');
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $service->create($contract, '2028-01-01');
+    }
+
+    public function testRenewalCannotMakeTheChainLongerThanTwoYears(): void
+    {
+        DB::table('training_contract_statuses')->insert(['id' => 1, 'name' => 'TRAMITACIÓN']);
+        $contract = TrainingContract::create([
+            'company_id' => 1,
+            'student_id' => 1,
+            'beginning' => '2026-01-01',
+            'end' => '2026-06-30',
+            'beginning_formation' => '2026-01-01',
+            'end_formation' => '2026-06-30',
+            'main_company_id' => null,
+        ]);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        app(TrainingContractRenewalService::class)->create($contract, '2028-01-01');
+    }
 
     private function createToleranceScenario(): TrainingContract
     {
