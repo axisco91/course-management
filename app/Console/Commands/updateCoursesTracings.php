@@ -74,8 +74,12 @@ class updateCoursesTracings extends Command
                 continue;
             }
 
-            $moodleCourse = MoodleHelpers::getCourseByShortname($course->moodle_shortname ?: $code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
-            if (!$moodleCourse || !isset($moodleCourse['id'])) {
+            $moodleCourseId = $course->moodle_course_id;
+            if (!$moodleCourseId) {
+                $moodleCourse = MoodleHelpers::getCourseByShortname($course->moodle_shortname ?: $code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
+                $moodleCourseId = $moodleCourse['id'] ?? null;
+            }
+            if (!$moodleCourseId) {
                 continue;
             }
 
@@ -89,10 +93,11 @@ class updateCoursesTracings extends Command
                 }
 
                 $courseData = MoodleHelpers::getStudentCourseDetails(
-                    $moodleCourse['id'],
+                    $moodleCourseId,
                     $student->user,
                     $webPlatform->url,
-                    $webPlatform->token
+                    $webPlatform->token,
+                    $course->moodle_module_types ?? []
                 );
 
                 // Avoid overriding tracing metrics with partial/failed Moodle responses

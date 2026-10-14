@@ -113,6 +113,8 @@ class MoodleHelpers
             'courseId' => $courseId,
             'userId' => null,
             'finishedActivities' => 0,
+            'finishedTasks' => 0,
+            'finishedFinalEvaluations' => 0,
             'evaluationFinalDone' => false,
             'lastAccess' => 'Never accessed',
             'unitsViewed' => 0,
@@ -129,7 +131,7 @@ class MoodleHelpers
 
     private static function isFinalEvaluation(string $moduleType, string $moduleName): bool
     {
-        if (!in_array($moduleType, ['scorm', 'quiz'], true)) {
+        if (!in_array($moduleType, ['scorm', 'quiz', 'assign'], true)) {
             return false;
         }
 
@@ -176,6 +178,60 @@ class MoodleHelpers
             && !self::isEvaluationActivity($moduleType, $moduleName);
     }
 
+    private static function inferredModuleType(string $moduleType, string $moduleName): string
+    {
+        if (self::isFinalEvaluation($moduleType, $moduleName)) {
+            return 'final_evaluation';
+        }
+        if (self::isSatisfactionSurvey($moduleName)) {
+            return 'satisfaction_survey';
+        }
+        if (self::isEvaluationActivity($moduleType, $moduleName) || $moduleType === 'quiz') {
+            return 'activity';
+        }
+        if ($moduleType === 'scorm') {
+            return 'unit';
+        }
+
+        return $moduleType === 'assign' ? 'task' : 'ignore';
+    }
+
+    private static function resolvedModuleType($cmid, string $moduleType, string $moduleName, array $moduleTypes): string
+    {
+        return $moduleTypes[(string) $cmid] ?? self::inferredModuleType($moduleType, $moduleName);
+    }
+
+    public static function getCourseModules($courseId, $url, $token, array $moduleTypes = []): array
+    {
+        $client = new Client();
+        $contents = self::getCachedCourseContents($client, $courseId, $url, $token);
+        if (!is_array($contents)) {
+            return ['modules' => [], 'error' => 'Unable to fetch course contents'];
+        }
+
+        $modules = [];
+        foreach ($contents as $section) {
+            foreach (($section['modules'] ?? []) as $module) {
+                $moduleType = (string) ($module['modname'] ?? '');
+                if (!in_array($moduleType, ['scorm', 'quiz', 'assign'], true) || !isset($module['id'])) {
+                    continue;
+                }
+                $cmid = (int) $module['id'];
+                $name = (string) ($module['name'] ?? '');
+                $modules[] = [
+                    'cmid' => $cmid,
+                    'name' => $name,
+                    'section' => (string) ($section['name'] ?? ''),
+                    'module_type' => $moduleType,
+                    'type' => self::resolvedModuleType($cmid, $moduleType, $name, $moduleTypes),
+                    'automatic' => !array_key_exists((string) $cmid, $moduleTypes),
+                ];
+            }
+        }
+
+        return ['modules' => $modules, 'error' => null];
+    }
+
     /**
      * Get the course
      */
@@ -204,11 +260,12 @@ class MoodleHelpers
         });
     }
 
-    public static function getActivityCount($courseId, $url, $token) {
+    public static function getActivityCount($courseId, $url, $token, array $moduleTypes = []) {
         $result = [
             'assignmentCount' => 0,
             'normalScormCount' => 0,
             'finalEvaluationCount' => 0,
+            'taskCount' => 0,
             'error' => null,
         ];
 
@@ -229,16 +286,20 @@ class MoodleHelpers
                 $moduleName = (string) ($module['name'] ?? '');
                 $moduleType = (string) ($module['modname'] ?? '');
 
-                if (self::isFinalEvaluation($moduleType, $moduleName)) {
+                $resolvedType = self::resolvedModuleType($module['id'] ?? null, $moduleType, $moduleName, $moduleTypes);
+                if ($resolvedType === 'final_evaluation') {
                     $result['finalEvaluationCount']++;
                 }
 
-                if (self::isEvaluationActivity($moduleType, $moduleName)) {
+                if ($resolvedType === 'activity') {
                     $result['assignmentCount']++;
                 }
 
-                if (self::isContentUnit($moduleType, $moduleName)) {
+                if ($resolvedType === 'unit') {
                     $result['normalScormCount']++;
+                }
+                if ($resolvedType === 'task') {
+                    $result['taskCount']++;
                 }
             }
         }
@@ -246,7 +307,7 @@ class MoodleHelpers
         return $result;
     }
 
-    public static function getStudentCourseDetails($courseId, $username, $url, $token) {
+    public static function getStudentCourseDetails($courseId, $username, $url, $token, array $moduleTypes = []) {
         $client = new Client();
         $result = self::defaultStudentDetails($courseId);
         $errors = [];
@@ -288,7 +349,9 @@ class MoodleHelpers
         ]);
 
         $finishedActivities = 0;
+        $finishedTasks = 0;
         $evaluationFinalDone = false;
+        $finishedFinalEvaluations = 0;
         $normalScormCount = 0;
         $satisfactionEvaluationDone = false;
 
@@ -299,19 +362,24 @@ class MoodleHelpers
                 $moduleType = (string) ($module['modname'] ?? ($cmid ? ($cmidToType[$cmid] ?? '') : ''));
                 $completed = (($module['state'] ?? 0) > 0);
 
-                if ($completed && self::isEvaluationActivity($moduleType, $moduleName)) {
+                $resolvedType = self::resolvedModuleType($cmid, $moduleType, $moduleName, $moduleTypes);
+                if ($completed && $resolvedType === 'activity') {
                     $finishedActivities++;
                 }
 
-                if ($completed && self::isFinalEvaluation($moduleType, $moduleName)) {
+                if ($completed && $resolvedType === 'final_evaluation') {
                     $evaluationFinalDone = true;
+                    $finishedFinalEvaluations++;
                 }
 
-                if ($completed && self::isContentUnit($moduleType, $moduleName)) {
+                if ($completed && $resolvedType === 'unit') {
                     $normalScormCount++;
                 }
+                if ($completed && $resolvedType === 'task') {
+                    $finishedTasks++;
+                }
 
-                if ($completed && self::isSatisfactionSurvey($moduleName)) {
+                if ($completed && $resolvedType === 'satisfaction_survey') {
                     $satisfactionEvaluationDone = true;
                 }
             }
@@ -355,7 +423,9 @@ class MoodleHelpers
         }
 
         $result['finishedActivities'] = $finishedActivities;
+        $result['finishedTasks'] = $finishedTasks;
         $result['evaluationFinalDone'] = $evaluationFinalDone;
+        $result['finishedFinalEvaluations'] = $finishedFinalEvaluations;
         $result['unitsViewed'] = $normalScormCount;
         $result['cuestionar'] = $satisfactionEvaluationDone;
 

@@ -393,6 +393,8 @@ Route::middleware('auth:sanctum')->group( function () {
         Route::post('{id}/moodle/link', [MoodleCourseController::class, 'link']);
         Route::post('{id}/moodle/disconnect', [MoodleCourseController::class, 'disconnect']);
         Route::post('{id}/moodle/sync', [MoodleCourseController::class, 'sync']);
+        Route::get('{id}/moodle/modules', [CourseController::class, 'moodleModules']);
+        Route::put('{id}/moodle/modules', [CourseController::class, 'updateMoodleModules']);
         Route::put('reset-tracings/{id}', [CourseController::class, 'resetTracingsIfCancelled']);
         Route::get('{id}', [CourseController::class, 'show']);
     });

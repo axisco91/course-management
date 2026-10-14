@@ -216,15 +216,19 @@ class TracingController extends BaseController
                     ], 422);
                 }
 
-                $moodleCourse = MoodleHelpers::getCourseByShortname($course->moodle_shortname ?: $code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
-                if (empty($moodleCourse) || !isset($moodleCourse['id'])) {
+                $moodleCourseId = $course->moodle_course_id;
+                if (!$moodleCourseId) {
+                    $moodleCourse = MoodleHelpers::getCourseByShortname($course->moodle_shortname ?: $code.'/'.$course->group, $webPlatform->url, $webPlatform->token);
+                    $moodleCourseId = $moodleCourse['id'] ?? null;
+                }
+                if (!$moodleCourseId) {
                     return response()->json([
                         'status' => 422,
                         'message' => 'No se ha encontrado el curso correspondiente en Moodle.'
                     ], 422);
                 }
 
-                $activityData = MoodleHelpers::getActivityCount($moodleCourse['id'], $webPlatform->url, $webPlatform->token);
+                $activityData = MoodleHelpers::getActivityCount($moodleCourseId, $webPlatform->url, $webPlatform->token, $course->moodle_module_types ?? []);
                 if (!empty($activityData['error'])) {
                     return response()->json([
                         'status' => 422,
@@ -234,8 +238,9 @@ class TracingController extends BaseController
                 $tracing['number_activities'] = $activityData['assignmentCount'];
                 $tracing['number_units'] = $activityData['normalScormCount'];
                 $tracing['number_final_evaluations'] = $activityData['finalEvaluationCount'];
+                $tracing['number_tasks'] = $activityData['taskCount'];
 
-                $courseData = MoodleHelpers::getStudentCourseDetails($moodleCourse['id'], $student->user, $webPlatform->url, $webPlatform->token);
+                $courseData = MoodleHelpers::getStudentCourseDetails($moodleCourseId, $student->user, $webPlatform->url, $webPlatform->token, $course->moodle_module_types ?? []);
                 if (!empty($courseData['error'])) {
                     return response()->json([
                         'status' => 422,
@@ -246,6 +251,8 @@ class TracingController extends BaseController
                 $endTime = Carbon::parse($course->end);
                 $currentTime = Carbon::now();
                 $tracing['performed_activities'] = $courseData['finishedActivities'];
+                $tracing['performed_final_evaluations'] = $courseData['finishedFinalEvaluations'];
+                $tracing['performed_tasks'] = $courseData['finishedTasks'];
                 $tracing['last_connection'] = $courseData['lastAccess'];
                 $tracing['performed_units'] = $courseData['unitsViewed'];
                 $tracing['performed_hours'] = CalculationHelpers::timeStringToDecimal($courseData['totalTime']);

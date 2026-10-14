@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Exports\CoursesExport;
 use App\Helpers\GeneralHelpers;
+use App\Helpers\MoodleHelpers;
 use App\Http\Resources\CourseResource;
 use App\Models\Course;
 use App\Models\Registration;
@@ -20,6 +21,48 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class CourseController extends BaseController
 {
+    public function moodleModules($id, Request $request)
+    {
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $course = Course::with(['webPlatform', 'trainingAction.webPlatform'])
+            ->FilterMainCompany($mainCompanyId)
+            ->findOrFail($id);
+        $platform = $course->webPlatform ?: $course->trainingAction?->webPlatform;
+
+        if (!$course->moodle_course_id || !$platform?->url || !$platform?->token) {
+            return response()->json(['message' => 'El curso no está conectado correctamente con Moodle.'], 422);
+        }
+
+        $result = MoodleHelpers::getCourseModules(
+            $course->moodle_course_id,
+            $platform->url,
+            $platform->token,
+            $course->moodle_module_types ?? []
+        );
+        if ($result['error']) {
+            return response()->json(['message' => 'No se han podido consultar los módulos SCORM de Moodle.'], 422);
+        }
+
+        return $this->sendResponse(['modules' => $result['modules']], 'Módulos obtenidos con éxito.');
+    }
+
+    public function updateMoodleModules($id, Request $request)
+    {
+        $data = $request->validate([
+            'modules' => ['required', 'array'],
+            'modules.*.cmid' => ['required', 'integer', 'min:1'],
+            'modules.*.type' => ['required', 'in:unit,activity,task,final_evaluation,satisfaction_survey,ignore'],
+        ]);
+        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        $course = Course::FilterMainCompany($mainCompanyId)->findOrFail($id);
+        $course->moodle_module_types = collect($data['modules'])
+            ->mapWithKeys(fn (array $module) => [(string) $module['cmid'] => $module['type']])
+            ->all();
+        $course->save();
+
+        return $this->sendResponse(['moodle_module_types' => $course->moodle_module_types], 'Clasificación guardada con éxito.');
+    }
+
     public function index(Request $request) {
         try {
             $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
