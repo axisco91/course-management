@@ -58,10 +58,38 @@ class TrainingContractService
         return Carbon::parse($value)->format('Y-m-d');
     }
 
+    private function yearlyHours(array $data, ?TrainingContract $contract = null): array
+    {
+        \Illuminate\Support\Facades\Validator::make($data, [
+            'hours_first_year' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'hours_second_year' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+        ])->validate();
+
+        $result = [];
+        foreach (['first', 'second'] as $year) {
+            $key = "hours_{$year}_year";
+            $base = array_key_exists($key, $data) ? $data[$key] : $contract?->{$key};
+            $base = $base === null || $base === '' ? null : round((float) $base, 2);
+            $bonus = $this->normalizeNumber($data["bonus_hours_{$year}_year"] ?? $contract?->{"bonus_hours_{$year}_year"});
+            if ($base !== null) {
+                $percentage = $this->normalizeNumber($data["percentage_{$year}_year"] ?? $contract?->{"percentage_{$year}_year"});
+                $bonus = $base * $percentage / 100;
+                if ($year === 'second') {
+                    $bonus = round($bonus / 5) * 5;
+                }
+            }
+            $result[$key] = $base;
+            $result["bonus_hours_{$year}_year"] = round($bonus);
+        }
+
+        return $result;
+    }
+
     private function buildCreateAttributes(array $data): array
     {
-        $bonusYearOne = $this->normalizeNumber($data['bonus_hours_first_year'] ?? null);
-        $bonusYearTwo = $this->normalizeNumber($data['bonus_hours_second_year'] ?? null);
+        $yearly = $this->yearlyHours($data);
+        $bonusYearOne = $yearly['bonus_hours_first_year'];
+        $bonusYearTwo = $yearly['bonus_hours_second_year'];
 
         return [
             'company_id' => $data['company_id'],
@@ -79,6 +107,8 @@ class TrainingContractService
             'beginning_formation' => $this->normalizeDate($data['beginning_formation'] ?? null),
             'end_formation' => $this->normalizeDate($data['end_formation'] ?? null),
             'annually_day_hours' => $data['annually_day_hours'],
+            'hours_first_year' => $yearly['hours_first_year'],
+            'hours_second_year' => $yearly['hours_second_year'],
             'bonus_hours_first_year' => round($bonusYearOne),
             'bonus_hours_second_year' => round($bonusYearTwo),
             'training_schedule' => $data['training_schedule'],
@@ -158,8 +188,9 @@ class TrainingContractService
     }
 
     public function update(TrainingContract $trainingContract, array $data) {
-        $bonusYearOne = $this->normalizeNumber($data['bonus_hours_first_year'] ?? null);
-        $bonusYearTwo = $this->normalizeNumber($data['bonus_hours_second_year'] ?? null);
+        $yearly = $this->yearlyHours($data, $trainingContract);
+        $bonusYearOne = $yearly['bonus_hours_first_year'];
+        $bonusYearTwo = $yearly['bonus_hours_second_year'];
         $firstYearClosed = $trainingContract->original_training_contract_id
             && Carbon::parse($trainingContract->beginning)->gte(
                 $this->chainFormationBeginning($trainingContract)->addYear()
@@ -186,6 +217,8 @@ class TrainingContractService
             'end_formation' => $this->normalizeDate($data['end_formation'] ?? null),
             // 'formation_hours' => $data['formation_hours'],
             'annually_day_hours' => $data['annually_day_hours'],
+            'hours_first_year' => $firstYearClosed ? $trainingContract->hours_first_year : $yearly['hours_first_year'],
+            'hours_second_year' => $yearly['hours_second_year'],
             'bonus_hours_first_year' =>  round($bonusYearOne),
             'bonus_hours_second_year' => round($bonusYearTwo),
             'training_schedule' => $data['training_schedule'],

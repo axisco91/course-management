@@ -211,6 +211,11 @@ class TrainingContractController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request){
+        $request->validate([
+            'hours_first_year' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'hours_second_year' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+        ]);
+
         $lockName = null;
         $lockAcquired = false;
 
@@ -367,6 +372,11 @@ class TrainingContractController extends BaseController
      * @return \Illuminate\Http\JsonResponse
      */
     public function update($id, Request $request){
+        $request->validate([
+            'hours_first_year' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'hours_second_year' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+        ]);
+
         try {
            $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
 
