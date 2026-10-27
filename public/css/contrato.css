@@ -99,12 +99,10 @@ hr {
 
 .aditional-fondo-azul {
     background-color: #f1f4ff; /* Light background for clarity */
-    height: 240px; /* Fixed height to always reserve the same amount of space */
     display: block; /* Makes the span behave like a block element */
     padding: 20px; /* Optional: Add some inner spacing for better aesthetics */
     box-sizing: border-box; /* Ensure padding is included in the height */
     text-align: justify; /* Keep the text aligned neatly */
-    overflow: hidden; /* Prevent content from exceeding the fixed height */
 }
 
 p.text-left {

@@ -13,6 +13,9 @@ class TrainingContractRenewalService
     {
         return DB::transaction(function () use ($source, $newEnd) {
             $source = TrainingContract::whereKey($source->id)->lockForUpdate()->firstOrFail();
+            if ($source->external_second_year) {
+                throw ValidationException::withMessages(['contract' => 'Un segundo año procedente de otro centro no admite nuevas prórrogas.']);
+            }
             if ($source->nextRenewal()->exists()) {
                 throw ValidationException::withMessages([
                     'contract' => 'Solo se puede crear una prórroga desde el último contrato de la cadena.',

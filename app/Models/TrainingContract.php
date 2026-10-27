@@ -14,6 +14,8 @@ class TrainingContract extends Model
 
     protected $guarded = [];
 
+    protected $casts = ['external_second_year' => 'boolean'];
+
     public function excludedDays()
     {
         return $this->belongsToMany(ExcludedDayType::class, 'training_contracts_excluded_days', 'training_contract_id', 'excluded_day_id');

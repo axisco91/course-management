@@ -212,9 +212,14 @@ class TrainingContractController extends BaseController
      */
     public function store(Request $request){
         $request->validate([
+            'external_second_year' => ['sometimes', 'boolean'],
             'hours_first_year' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'hours_second_year' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
         ]);
+
+        if ($request->boolean('external_second_year')) {
+            abort_unless($request->user()?->can('edit.training_contracts'), 403);
+        }
 
         $lockName = null;
         $lockAcquired = false;
@@ -312,6 +317,8 @@ class TrainingContractController extends BaseController
                 $this->releaseDatabaseLock($lockName);
             }
 
+            if ($e instanceof \Illuminate\Validation\ValidationException || $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) throw $e;
+
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
@@ -373,6 +380,7 @@ class TrainingContractController extends BaseController
      */
     public function update($id, Request $request){
         $request->validate([
+            'external_second_year' => ['sometimes', 'boolean'],
             'hours_first_year' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'hours_second_year' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
         ]);
@@ -391,8 +399,13 @@ class TrainingContractController extends BaseController
                 ]);
             }
 
+            if ($request->has('external_second_year')
+                && $request->boolean('external_second_year') !== (bool) $trainingContract->external_second_year) {
+                abort_unless($request->user()?->can('edit.training_contracts'), 403);
+            }
             $trainingContract->updateWithService($request->all());
         } catch (\Exception $e){
+            if ($e instanceof \Illuminate\Validation\ValidationException || $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) throw $e;
             return response()->json([
                 'status' => 400,
                 'message' => $e->getMessage()
@@ -401,9 +414,9 @@ class TrainingContractController extends BaseController
 
         return $this->sendResponse(
             [
-                'training_contract' => TrainingContract::getTrainingContracts($mainCompanyId)
+                'training_contract' => new TrainingContractResource(TrainingContract::getTrainingContracts($mainCompanyId)
                     ->where('training_contracts.id', $id)
-                    ->first(),
+                    ->first()),
             ],
             trans('Obtenido con éxito')
         );
@@ -428,7 +441,7 @@ class TrainingContractController extends BaseController
         if ($contract) {
             return $this->sendResponse(
                 [
-                    'training_contract' => $contract,
+                    'training_contract' => new TrainingContractResource($contract),
                 ],
                 trans('Obtenido con éxito')
             );
@@ -479,6 +492,55 @@ class TrainingContractController extends BaseController
                 ]);
             }
         }
+    }
+
+    public function previousCandidates(int $id, Request $request, \App\Services\TrainingContractLinkService $service)
+    {
+        abort_unless($request->user()?->can('edit.training_contracts'), 403);
+        $tenant = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        abort_unless($tenant, 403, 'No se ha identificado la organización.');
+        $current = TrainingContract::whereKey($id)->FilterMainCompany($tenant)->firstOrFail();
+        $service->assertIndependent($current);
+        $candidates = TrainingContract::where('main_company_id', $tenant)
+            ->where('student_id', $current->student_id)->where('company_id', $current->company_id)
+            ->where('id', '<>', $current->id)->whereDoesntHave('nextRenewal')
+            ->whereDate('end', Carbon::parse($current->beginning)->subDay()->toDateString())
+            ->orderBy('end', 'desc')->get()->filter(function ($candidate) use ($service, $current) {
+                try {
+                    $service->validatePair($current, $candidate);
+                    return true;
+                } catch (\Illuminate\Validation\ValidationException $e) {
+                    return false;
+                }
+            })->values()->map->only(['id', 'number_cfa', 'beginning', 'end']);
+        return $this->sendResponse(['candidates' => $candidates], 'Contratos anteriores disponibles.');
+    }
+
+    public function linkPrevious(int $id, Request $request, \App\Services\TrainingContractLinkService $service)
+    {
+        abort_unless($request->user()?->can('edit.training_contracts'), 403);
+        $validated = $request->validate(['previous_training_contract_id' => ['required', 'integer', 'min:1']]);
+        $tenant = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        abort_unless($tenant, 403, 'No se ha identificado la organización.');
+        $current = TrainingContract::whereKey($id)->FilterMainCompany($tenant)->firstOrFail();
+        $service->link($current, (int) $validated['previous_training_contract_id']);
+        $contract = TrainingContract::getTrainingContracts($tenant)->whereKey($id)->firstOrFail();
+        return $this->sendResponse(['training_contract' => new TrainingContractResource($contract)], 'Contrato vinculado.');
+    }
+
+    public function unlinkPrevious(int $id, Request $request, \App\Services\TrainingContractLinkService $service)
+    {
+        abort_unless($request->user()?->can('edit.training_contracts'), 403);
+        $validated = $request->validate([
+            'confirmed' => ['required', 'accepted'],
+            'previous_training_contract_id' => ['required', 'integer', 'min:1'],
+        ]);
+        $tenant = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
+        abort_unless($tenant, 403);
+        $current = TrainingContract::whereKey($id)->FilterMainCompany($tenant)->firstOrFail();
+        $service->unlink($current, (int) $validated['previous_training_contract_id']);
+        $contract = TrainingContract::getTrainingContracts($tenant)->whereKey($id)->firstOrFail();
+        return $this->sendResponse(['training_contract' => new TrainingContractResource($contract)], 'Contrato desvinculado.');
     }
 
     public function renewal(int $id, Request $request, TrainingContractRenewalService $service)
@@ -597,6 +659,7 @@ class TrainingContractController extends BaseController
      */
     public function calculateHours($id, Request $request)
     {
+        abort_unless($request->user()?->can('edit.training_contracts'), 403);
         $validated = $request->validate([
             'tolerance_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
         ]);
@@ -610,10 +673,11 @@ class TrainingContractController extends BaseController
                 ->first();
 
             if (!$record) {
+                DB::rollBack();
                 return response()->json([
                     'status' => 404,
                     'message' => 'Contrato no encontrado'
-                ]);
+                ], 404);
             }
 
             // Calculamos las horas formativas usando un método del modelo
@@ -648,6 +712,9 @@ class TrainingContractController extends BaseController
                 ],
                 trans('Obtenido con éxito')
             );
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\DomainException $e) {
             DB::rollback();
 
@@ -655,7 +722,7 @@ class TrainingContractController extends BaseController
                 'status' => 422,
                 'message' => $e->getMessage(),
             ], 422);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // En caso de error, devolvemos una respuesta con el mensaje de la excepción
             DB::rollback();
             return response()->json([
@@ -745,6 +812,17 @@ class TrainingContractController extends BaseController
             ]);
         }
 
+        if ($record->external_second_year) {
+            abort_unless($request->user()?->can('edit.training_contracts'), 403);
+            try {
+                $date = app(\App\Services\TrainingContractService::class)->externalEndFormation($record, (float) $daily_hours_2);
+                $record->update(['end_formation' => $date]);
+                return $this->sendResponse(['end_formation' => $date], 'Fecha calculada.');
+            } catch (\DomainException $e) {
+                return response()->json(['status' => 422, 'message' => $e->getMessage()], 422);
+            }
+        }
+
         Log::info("Calculating end dates for Training Contract ID: {$trainingContractId}");
 
         $h1 = (int) ($record->formative_hours_first_year ?? 0);
@@ -822,8 +900,8 @@ class TrainingContractController extends BaseController
      */
     public function getMonthlyFormationHours($id, Request $request) {
        $mainCompanyId = GeneralHelpers::urlObtainCompanyId($request->headers->get('origin'), Auth::id());
-        $trainingContract = new TrainingContract();
-        return $trainingContract->calculateMonthlyFormationHours($id, $mainCompanyId);
+        TrainingContract::whereKey($id)->FilterMainCompany($mainCompanyId)->firstOrFail();
+        return app(\App\Services\TrainingContractService::class)->calculateMonthlyFormationHours($id);
     }
 
     public function updateAdditionalClause($id, Request $request){

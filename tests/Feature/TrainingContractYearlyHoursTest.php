@@ -29,6 +29,8 @@ class TrainingContractYearlyHoursTest extends TestCase
         });
         $migration = require database_path('migrations/2026_10_26_000001_add_yearly_hours_to_training_contracts_table.php');
         $migration->up();
+        $migration = require database_path('migrations/2026_10_27_000001_add_external_second_year_to_training_contracts.php');
+        $migration->up();
     }
 
     private function data(array $overrides = []): array
@@ -116,6 +118,19 @@ class TrainingContractYearlyHoursTest extends TestCase
         $this->assertEquals(50, $renewal->percentage_first_year);
         $this->assertEquals(225, $renewal->formative_hours_first_year);
         $this->assertEquals(400, $renewal->bonus_hours_second_year);
+    }
+
+    public function test_external_second_year_can_be_created_without_original_contract_and_rounds_second_year_hours(): void
+    {
+        $service = app(TrainingContractService::class);
+        $contract = $service->create($this->data([
+            'external_second_year' => '1', 'beginning' => '2026-10-15', 'end' => '2027-10-14',
+            'beginning_formation' => '2026-10-15', 'end_formation' => '2027-10-14',
+            'hours_first_year' => 0, 'hours_second_year' => 1758, 'percentage_second_year' => 15,
+        ]));
+        $this->assertTrue($contract->fresh()->external_second_year);
+        $this->assertNull($contract->original_training_contract_id);
+        $this->assertEquals(265, $contract->bonus_hours_second_year);
     }
 
     /** @dataProvider invalidBases */
