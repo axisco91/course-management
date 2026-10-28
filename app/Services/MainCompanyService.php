@@ -53,6 +53,12 @@ class MainCompanyService
 
     private function buildPayload(MainCompany $mainCompany, array $data): array
     {
+        if (array_key_exists('url', $data)) {
+            $host = parse_url(str_contains((string) $data['url'], '://') ? $data['url'] : 'https://' . $data['url'], PHP_URL_HOST);
+            if (strtolower(explode('.', (string) $host)[0]) === 'accesoclientes') {
+                throw \Illuminate\Validation\ValidationException::withMessages(['url' => 'El subdominio accesoclientes est? reservado para el portal de acceso.']);
+            }
+        }
         $allowed = [
             'name',
             'address',

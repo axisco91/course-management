@@ -38,6 +38,15 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->routes(function () {
+            $domain = config('client_access.domain');
+            if ($domain) {
+                foreach (['accesoclientes.', 'api.'] as $prefix) {
+                Route::domain($prefix . $domain)->middleware(['throttle:public-companies'])->group(function () {
+                    Route::get('/public/companies/search', [\App\Http\Controllers\PublicCompanyController::class, 'search']);
+                    Route::get('/public/companies/{id}', [\App\Http\Controllers\PublicCompanyController::class, 'show'])->whereNumber('id');
+                });
+                }
+            }
             Route::prefix('api')
                 ->middleware('api')
                 ->namespace($this->namespace)
@@ -56,6 +65,8 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting()
     {
+        RateLimiter::for('public-companies', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
+
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(500)->by(optional($request->user())->id ?: $request->ip());
         });
